@@ -3,6 +3,40 @@
  * Clean, formal, structured — inspired by real structural engineering calculation sheets
  */
 
+/**
+ * Converts a live SVG DOM element to a PNG data URL via Blob + Image.
+ * Works with inline gradients, fills, and CSS-styled SVG content.
+ */
+function svgToDataURL(svgEl) {
+    return new Promise((resolve, reject) => {
+        try {
+            // Clone so we can set explicit dimensions without affecting the page
+            const clone = svgEl.cloneNode(true);
+            const bbox = svgEl.getBoundingClientRect();
+            clone.setAttribute('width', bbox.width || 600);
+            clone.setAttribute('height', bbox.height || 210);
+            clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+            // Inline a white background rect at the start
+            const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            bgRect.setAttribute('x', '0'); bgRect.setAttribute('y', '0');
+            bgRect.setAttribute('width', '100%'); bgRect.setAttribute('height', '100%');
+            bgRect.setAttribute('fill', '#ffffff');
+            clone.insertBefore(bgRect, clone.firstChild);
+
+            const serialized = new XMLSerializer().serializeToString(clone);
+            const blob = new Blob([serialized], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = () => { URL.revokeObjectURL(url); resolve(url); };
+            img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+            img.src = url;
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
+
 async function exportPDF(results, config, projectInfo) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
@@ -21,7 +55,7 @@ async function exportPDF(results, config, projectInfo) {
     const LIGHT = [180, 180, 180];
     const XLIGHT = [240, 240, 240];
     const WHITE = [255, 255, 255];
-    const ACCENT = [26, 86, 219];   // single corporate blue
+    const ACCENT = [79, 70, 229];   // indigo brand colour
 
     /* ── Font helpers ───────────────────────────────────────── */
     const f = (size, style = 'normal', color = BLACK) => {
@@ -376,14 +410,18 @@ async function exportPDF(results, config, projectInfo) {
         y += 7;
 
         try {
-            const canvas = await html2canvas(el, {
-                backgroundColor: '#FFFFFF',
-                scale: 2,
-                logging: false,
-                useCORS: true,
-            });
-            const img = canvas.toDataURL('image/png');
-            const imgH = Math.min((canvas.height / canvas.width) * COL, 48);
+            const dataUrl = await svgToDataURL(el);
+            const tempImg = new Image();
+            await new Promise((res, rej) => { tempImg.onload = res; tempImg.onerror = rej; tempImg.src = dataUrl; });
+            const cvs = document.createElement('canvas');
+            cvs.width = el.clientWidth * 2;
+            cvs.height = el.clientHeight * 2;
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, cvs.width, cvs.height);
+            ctx.drawImage(tempImg, 0, 0, cvs.width, cvs.height);
+            const img = cvs.toDataURL('image/png');
+            const imgH = Math.min((cvs.height / cvs.width) * COL, 52);
             rect(ML, y, COL, imgH, WHITE, LIGHT);
             doc.addImage(img, 'PNG', ML, y, COL, imgH);
             y += imgH + 6;
