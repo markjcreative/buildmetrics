@@ -1,0 +1,481 @@
+/**
+ * pdfReport.js — Professional Engineering Firm PDF Report
+ * Clean, formal, structured — inspired by real structural engineering calculation sheets
+ */
+
+async function exportPDF(results, config, projectInfo) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageW = 210;
+    const pageH = 297;
+    const ML = 20;   // margin left
+    const MR = 20;   // margin right
+    const MT = 20;   // margin top (below header)
+    const COL = pageW - ML - MR; // content width
+    let y = 0;
+
+    /* ── Palette (clean, minimal) ───────────────────────────── */
+    const BLACK = [17, 17, 17];
+    const DARK = [40, 40, 40];
+    const MID = [100, 100, 100];
+    const LIGHT = [180, 180, 180];
+    const XLIGHT = [240, 240, 240];
+    const WHITE = [255, 255, 255];
+    const ACCENT = [26, 86, 219];   // single corporate blue
+
+    /* ── Font helpers ───────────────────────────────────────── */
+    const f = (size, style = 'normal', color = BLACK) => {
+        doc.setFont('helvetica', style);
+        doc.setFontSize(size);
+        doc.setTextColor(...color);
+    };
+    const line = (x1, y1, x2, y2, color = LIGHT, w = 0.25) => {
+        doc.setDrawColor(...color);
+        doc.setLineWidth(w);
+        doc.line(x1, y1, x2, y2);
+    };
+    const rect = (x, yp, w, h, fill, stroke = null) => {
+        if (fill) { doc.setFillColor(...fill); doc.rect(x, yp, w, h, stroke ? 'FD' : 'F'); }
+        if (stroke && !fill) { doc.setDrawColor(...stroke); doc.rect(x, yp, w, h, 'S'); }
+    };
+
+    /* ── Page break check ───────────────────────────────────── */
+    const check = (need) => {
+        if (y + need > pageH - 22) {
+            doc.addPage();
+            drawHeader();
+            drawFooter();
+            y = 35;
+            return true;
+        }
+        return false;
+    };
+
+    /* ── Row heights & styles ───────────────────────────────── */
+    const ROW_H = 7;
+
+    /* ─────────────────────────────────────────────────────────
+       HEADER — every page
+    ───────────────────────────────────────────────────────── */
+    function drawHeader() {
+        // Left: firm / project
+        rect(0, 0, pageW, 22, WHITE);
+        line(0, 22, pageW, 22, LIGHT, 0.5);
+
+        // Left accent strip
+        rect(0, 0, 4, 22, ACCENT);
+
+        f(9, 'bold', ACCENT);
+        doc.text('BEAMCALC PRO', 9, 8.5);
+
+        f(7.5, 'normal', MID);
+        doc.text(`Project: ${projectInfo.projectName || 'Untitled'}`, 9, 14.5);
+
+        // Right block
+        f(7.5, 'normal', MID);
+        doc.text(`Engineer: ${projectInfo.engineer || '—'}`, pageW - MR, 8.5, { align: 'right' });
+        doc.text(`Firm: ${projectInfo.firm || '—'}`, pageW - MR, 14.5, { align: 'right' });
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       FOOTER — every page
+    ───────────────────────────────────────────────────────── */
+    function drawFooter() {
+        const fy = pageH - 12;
+        line(ML, fy, pageW - MR, fy, LIGHT, 0.25);
+        f(7, 'normal', LIGHT);
+        doc.text(
+            'This document is generated for informational purposes only. Results must be verified by a licensed structural engineer before use in any design or construction.',
+            ML, fy + 5, { maxWidth: COL * 0.75, align: 'left' }
+        );
+        const pageNum = doc.getCurrentPageInfo().pageNumber;
+        f(7, 'bold', MID);
+        doc.text(`${pageNum}`, pageW - MR, fy + 5, { align: 'right' });
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       SECTION HEADING
+    ───────────────────────────────────────────────────────── */
+    function sectionHead(title, num) {
+        check(14);
+        y += 4;
+        // Number badge
+        rect(ML, y, 6, 6, ACCENT);
+        f(7, 'bold', WHITE);
+        doc.text(String(num), ML + 3, y + 4.5, { align: 'center' });
+
+        f(9, 'bold', BLACK);
+        doc.text(title.toUpperCase(), ML + 10, y + 4.5);
+        line(ML + 10, y + 7, pageW - MR, y + 7, XLIGHT, 0.4);
+        y += 12;
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       TABLE ROW
+    ───────────────────────────────────────────────────────── */
+    function tableRow(cells, widths, isHead = false, shade = false) {
+        check(ROW_H + 1);
+        const bg = isHead ? XLIGHT : (shade ? [249, 249, 249] : WHITE);
+        rect(ML, y, COL, ROW_H, bg);
+        line(ML, y, pageW - MR, y, LIGHT, 0.15);
+
+        let cx = ML;
+        cells.forEach((cell, i) => {
+            const cw = COL * widths[i];
+            if (isHead) f(7.5, 'bold', DARK);
+            else f(7.5, 'normal', DARK);
+            const txt = String(cell ?? '—');
+            doc.text(txt, cx + 2, y + 5, { maxWidth: cw - 4 });
+            cx += cw;
+        });
+
+        line(ML, y + ROW_H, pageW - MR, y + ROW_H, LIGHT, 0.15);
+        // Left and right borders of table
+        line(ML, y, ML, y + ROW_H, LIGHT, 0.15);
+        line(pageW - MR, y, pageW - MR, y + ROW_H, LIGHT, 0.15);
+        // Column dividers
+        let dx = ML;
+        widths.slice(0, -1).forEach(w => {
+            dx += COL * w;
+            line(dx, y, dx, y + ROW_H, LIGHT, 0.1);
+        });
+        y += ROW_H;
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       KEY-VALUE ROW (two-column compact)
+    ───────────────────────────────────────────────────────── */
+    function kvRow(label, value, unit = '', shade = false) {
+        check(ROW_H);
+        const bg = shade ? [249, 249, 249] : WHITE;
+        rect(ML, y, COL, ROW_H, bg);
+        line(ML, y, ML, y + ROW_H, LIGHT, 0.15);
+        line(pageW - MR, y, pageW - MR, y + ROW_H, LIGHT, 0.15);
+        line(ML + COL * 0.5, y, ML + COL * 0.5, y + ROW_H, LIGHT, 0.1);
+        line(ML, y + ROW_H, pageW - MR, y + ROW_H, LIGHT, 0.15);
+
+        f(7.5, 'normal', MID);
+        doc.text(label, ML + 2, y + 5);
+
+        f(7.5, 'bold', BLACK);
+        doc.text(`${value}${unit ? '  ' + unit : ''}`, ML + COL * 0.5 + 2, y + 5);
+        y += ROW_H;
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       RESULT HIGHLIGHT ROW (value with accent)
+    ───────────────────────────────────────────────────────── */
+    function resultRow(label, value, location, color = BLACK, shade = false) {
+        check(ROW_H);
+        const bg = shade ? [249, 249, 249] : WHITE;
+        rect(ML, y, COL, ROW_H, bg);
+        line(ML, y, ML, y + ROW_H, LIGHT, 0.15);
+        line(pageW - MR, y, pageW - MR, y + ROW_H, LIGHT, 0.15);
+
+        f(7.5, 'normal', MID);
+        doc.text(label, ML + 2, y + 5, { maxWidth: COL * 0.42 });
+
+        f(8, 'bold', color);
+        doc.text(String(value), ML + COL * 0.44, y + 5, { maxWidth: COL * 0.3 });
+
+        f(7.5, 'normal', LIGHT);
+        doc.text(String(location), ML + COL * 0.72, y + 5, { maxWidth: COL * 0.27 });
+
+        const cols = [0, 0.44, 0.72, 1];
+        cols.slice(0, -1).forEach((c, i) => {
+            line(ML + COL * c, y, ML + COL * c, y + ROW_H, LIGHT, 0.1);
+        });
+        line(ML, y + ROW_H, pageW - MR, y + ROW_H, LIGHT, 0.15);
+        y += ROW_H;
+    }
+
+    /* ═════════════════════════════════════════════════════════
+       PAGE 1 — COVER (Title Block)
+    ═════════════════════════════════════════════════════════ */
+
+    // Full white page
+    rect(0, 0, pageW, pageH, WHITE);
+
+    // Left accent bar
+    rect(0, 0, 5, pageH, ACCENT);
+
+    // Top header strip
+    rect(5, 0, pageW - 5, 60, BLACK);
+
+    // App wordmark
+    f(22, 'bold', WHITE);
+    doc.text('BEAMCALC', 20, 28);
+    f(22, 'normal', [180, 200, 255]);
+    doc.text('PRO', 20 + doc.getTextWidth('BEAMCALC') + 4, 28);
+
+    f(9, 'normal', [150, 170, 210]);
+    doc.text('Structural Analysis Report', 20, 40);
+
+    // Accent line
+    rect(5, 60, pageW - 5, 1.5, ACCENT);
+
+    // Title block — engineering-style box
+    y = 80;
+    rect(ML, y, COL, 70, null, LIGHT);
+
+    // Inner grid lines
+    line(ML, y + 25, ML + COL, y + 25, LIGHT, 0.3);
+    line(ML, y + 45, ML + COL, y + 45, LIGHT, 0.3);
+    line(ML + COL * 0.5, y, ML + COL * 0.5, y + 45, LIGHT, 0.3);
+
+    // Labels
+    f(7, 'normal', LIGHT);
+    doc.text('PROJECT NAME', ML + 3, y + 5);
+    doc.text('DOCUMENT TYPE', ML + COL * 0.5 + 3, y + 5);
+    doc.text('ENGINEER', ML + 3, y + 29);
+    doc.text('FIRM / ORGANISATION', ML + COL * 0.5 + 3, y + 29);
+    doc.text('DATE ISSUED', ML + 3, y + 49);
+    doc.text('DOCUMENT REF.', ML + COL * 0.5 + 3, y + 49);
+
+    // Values
+    f(10, 'bold', BLACK);
+    doc.text(projectInfo.projectName || 'Untitled Project', ML + 3, y + 20, { maxWidth: COL * 0.48 });
+
+    f(9, 'normal', DARK);
+    doc.text('Structural Beam Analysis', ML + COL * 0.5 + 3, y + 20, { maxWidth: COL * 0.48 });
+
+    f(9, 'normal', DARK);
+    doc.text(projectInfo.engineer || '—', ML + 3, y + 40, { maxWidth: COL * 0.48 });
+    doc.text(projectInfo.firm || '—', ML + COL * 0.5 + 3, y + 40, { maxWidth: COL * 0.48 });
+
+    const dateStr = new Date().toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' });
+    doc.text(dateStr, ML + 3, y + 60);
+    f(9, 'normal', MID);
+    doc.text(`BC-${Date.now().toString().slice(-6)}`, ML + COL * 0.5 + 3, y + 60);
+
+    // Revision block
+    y += 85;
+    rect(ML, y, COL, 7, XLIGHT);
+    f(7, 'bold', MID);
+    doc.text('REV', ML + 2, y + 5);
+    doc.text('DESCRIPTION', ML + 18, y + 5);
+    doc.text('PREPARED BY', ML + COL * 0.65, y + 5);
+    doc.text('DATE', ML + COL * 0.85, y + 5);
+    line(ML, y, pageW - MR, y, LIGHT, 0.3);
+    line(ML, y + 7, pageW - MR, y + 7, LIGHT, 0.3);
+    y += 7;
+    rect(ML, y, COL, 8, WHITE);
+    f(8, 'normal', BLACK);
+    doc.text('01', ML + 2, y + 5.5);
+    doc.text('Initial issue', ML + 18, y + 5.5);
+    doc.text(projectInfo.engineer || '—', ML + COL * 0.65, y + 5.5, { maxWidth: COL * 0.19 });
+    doc.text(new Date().toLocaleDateString('en-AU'), ML + COL * 0.85, y + 5.5);
+    line(ML, y + 8, pageW - MR, y + 8, LIGHT, 0.3);
+    line(ML, y, ML, y + 8, LIGHT, 0.3);
+    line(pageW - MR, y, pageW - MR, y + 8, LIGHT, 0.3);
+
+    // Disclaimer box
+    y += 22;
+    rect(ML, y, COL, 20, [250, 250, 250], LIGHT);
+    f(7.5, 'bold', MID);
+    doc.text('DISCLAIMER', ML + 4, y + 6);
+    f(7, 'normal', MID);
+    doc.text(
+        'This calculation report is prepared for preliminary structural analysis purposes only. All results must be independently verified and checked by a suitably qualified professional engineer registered in the relevant jurisdiction before use in any structural design, assessment, or construction works.',
+        ML + 4, y + 11, { maxWidth: COL - 8 }
+    );
+
+    // Bottom of cover
+    y = pageH - 28;
+    line(ML, y, pageW - MR, y, XLIGHT, 0.4);
+    f(7.5, 'bold', ACCENT);
+    doc.text('BeamCalc Pro  •  Structural Analysis Software', ML, y + 7);
+    f(7, 'normal', LIGHT);
+    doc.text('Generated: ' + new Date().toISOString().slice(0, 19).replace('T', '  '), pageW - MR, y + 7, { align: 'right' });
+
+    /* ═════════════════════════════════════════════════════════
+       PAGE 2 — BEAM PROPERTIES & LOADING
+    ═════════════════════════════════════════════════════════ */
+    doc.addPage();
+    drawHeader();
+    drawFooter();
+    y = 35;
+
+    // Summary strip (4 key values across top)
+    const panels = [
+        { label: 'MAX. MOMENT', value: `${BeamUtils.formatValue(results.summary.maxAbsMoment, 3)} kNm` },
+        { label: 'MAX. SHEAR', value: `${BeamUtils.formatValue(results.summary.maxAbsShear, 3)} kN` },
+        { label: 'MAX. DEFLECTION', value: `${(results.summary.maxDeflection * 1000).toFixed(3)} mm` },
+        { label: 'SPAN / DEFL.', value: `L / ${Math.abs(results.summary.maxDeflection) > 1e-9 ? Math.round(config.span / Math.abs(results.summary.maxDeflection)) : '∞'}` },
+    ];
+    const pw = COL / 4;
+    panels.forEach((p, i) => {
+        const bx = ML + i * pw;
+        rect(bx, y, pw - 1, 18, i === 0 ? ACCENT : XLIGHT);
+        f(6.5, 'bold', i === 0 ? WHITE : MID);
+        doc.text(p.label, bx + 3, y + 5.5);
+        f(9.5, 'bold', i === 0 ? WHITE : BLACK);
+        doc.text(p.value, bx + 3, y + 14);
+    });
+    y += 24;
+
+    /* — Section 1: Beam Properties — */
+    sectionHead('Beam Properties', 1);
+    kvRow('Beam Span', config.span, 'm', false);
+    kvRow('Material', cap(config.material), '', true);
+    kvRow("Young's Modulus ( E )", config.E.toLocaleString(), 'kN/m²', false);
+    kvRow('Moment of Inertia ( I )', config.I, 'm⁴', true);
+    kvRow('Cross-Section Area ( A )', config.A, 'm²', false);
+    kvRow('Flexural Rigidity ( EI )', (config.E * config.I).toLocaleString(), 'kNm²', true);
+    y += 4;
+
+    /* — Section 2: Support Conditions — */
+    sectionHead('Support Conditions', 2);
+    tableRow(['Support Type', 'Position (m)', 'Vertical Reaction (kN)', 'Fixed Moment (kNm)'], [0.25, 0.25, 0.25, 0.25], true);
+    results.reactions.forEach((r, i) => {
+        tableRow([cap(r.type), BeamUtils.formatValue(r.position, 2), BeamUtils.formatValue(r.Fy, 3), Math.abs(r.M) > 1e-6 ? BeamUtils.formatValue(r.M, 3) : '—'], [0.25, 0.25, 0.25, 0.25], false, i % 2 === 0);
+    });
+    y += 4;
+
+    /* — Section 3: Applied Loading — */
+    sectionHead('Applied Loading', 3);
+    tableRow(['Load Type', 'Category', 'Position / Range (m)', 'Magnitude'], [0.22, 0.18, 0.32, 0.28], true);
+    config.loads.forEach((l, i) => {
+        const range = l.position != null ? `x = ${l.position} m` : `${l.start} m → ${l.end} m`;
+        const suffix = ['udl', 'partial_udl', 'triangular'].includes(l.type) ? ' kN/m' : l.type === 'moment' ? ' kNm' : ' kN';
+        const mag = l.magnitude != null ? `${l.magnitude}${suffix}` : `${l.magnitudeStart}–${l.magnitudeEnd} kN/m`;
+        tableRow([cap(l.type.replace('_', ' ')), cap(l.category || 'Dead'), range, mag], [0.22, 0.18, 0.32, 0.28], false, i % 2 === 0);
+    });
+    y += 4;
+
+    /* ═════════════════════════════════════════════════════════
+       PAGE 3 — DIAGRAMS
+    ═════════════════════════════════════════════════════════ */
+    doc.addPage();
+    drawHeader();
+    drawFooter();
+    y = 35;
+
+    sectionHead('Structural Diagrams', 4);
+
+    const diagrams = [
+        { id: 'svg-reactions', label: 'Beam Configuration & Reaction Diagram' },
+        { id: 'svg-sfd', label: 'Shear Force Diagram (V)' },
+        { id: 'svg-bmd', label: 'Bending Moment Diagram (M)' },
+        { id: 'svg-deflection', label: 'Deflection Diagram (δ)' },
+    ];
+
+    for (const d of diagrams) {
+        const el = document.getElementById(d.id);
+        if (!el) continue;
+        check(58);
+
+        // Diagram label bar
+        rect(ML, y, COL, 7, XLIGHT);
+        f(7.5, 'bold', DARK);
+        doc.text(d.label.toUpperCase(), ML + 3, y + 5);
+        line(ML, y, pageW - MR, y, LIGHT, 0.3);
+        line(ML, y + 7, pageW - MR, y + 7, LIGHT, 0.3);
+        line(ML, y, ML, y + 7, LIGHT, 0.3);
+        line(pageW - MR, y, pageW - MR, y + 7, LIGHT, 0.3);
+        y += 7;
+
+        try {
+            const canvas = await html2canvas(el, {
+                backgroundColor: '#FFFFFF',
+                scale: 2,
+                logging: false,
+                useCORS: true,
+            });
+            const img = canvas.toDataURL('image/png');
+            const imgH = Math.min((canvas.height / canvas.width) * COL, 48);
+            rect(ML, y, COL, imgH, WHITE, LIGHT);
+            doc.addImage(img, 'PNG', ML, y, COL, imgH);
+            y += imgH + 6;
+        } catch (e) {
+            rect(ML, y, COL, 20, [252, 252, 252], LIGHT);
+            f(7.5, 'normal', LIGHT);
+            doc.text('Diagram not available in this environment.', ML + 4, y + 12);
+            y += 24;
+        }
+    }
+
+    /* ═════════════════════════════════════════════════════════
+       PAGE 4 — RESULTS & CALCULATIONS
+    ═════════════════════════════════════════════════════════ */
+    check(60);
+    if (y > 35) {  // only add page if we're not already at top
+        doc.addPage();
+        drawHeader();
+        drawFooter();
+        y = 35;
+    }
+
+    sectionHead('Analysis Results Summary', 5);
+
+    // Column headers
+    tableRow(['Result Quantity', 'Value', 'Location / Notes'], [0.42, 0.28, 0.30], true);
+
+    const rows = [
+        ['Max Positive Bending Moment', `${BeamUtils.formatValue(results.summary.maxPositiveMoment, 3)} kNm`, `x = ${BeamUtils.formatValue(results.summary.maxPositiveMomentPos, 2)} m`],
+        ['Max Negative Bending Moment', `${BeamUtils.formatValue(results.summary.maxNegativeMoment, 3)} kNm`, `x = ${BeamUtils.formatValue(results.summary.maxNegativeMomentPos, 2)} m`],
+        ['Maximum Absolute Moment', `${BeamUtils.formatValue(results.summary.maxAbsMoment, 3)} kNm`, 'Governing design value'],
+        ['Maximum Shear Force (+)', `${BeamUtils.formatValue(results.summary.maxShear, 3)} kN`, `x = ${BeamUtils.formatValue(results.summary.maxShearPos, 2)} m`],
+        ['Maximum Shear Force (−)', `${BeamUtils.formatValue(results.summary.minShear, 3)} kN`, '—'],
+        ['Maximum Absolute Shear', `${BeamUtils.formatValue(results.summary.maxAbsShear, 3)} kN`, 'Governing design value'],
+        ['Maximum Deflection (sag)', `${(results.summary.maxDeflection * 1000).toFixed(4)} mm`, `x = ${BeamUtils.formatValue(results.summary.maxDeflectionPos, 2)} m`],
+        ['Span / Deflection Ratio', `L / ${Math.abs(results.summary.maxDeflection) > 1e-9 ? Math.round(config.span / Math.abs(results.summary.maxDeflection)) : '∞'}`, 'Serviceability — compare to L/300 or L/360'],
+    ];
+    rows.forEach(([r, v, n], i) => tableRow([r, v, n], [0.42, 0.28, 0.30], false, i % 2 === 0));
+
+    y += 6;
+    sectionHead('Support Reactions', 6);
+    tableRow(['Support', 'Position (m)', 'Vertical Fy (kN)', 'Fixed-End Moment (kNm)'], [0.25, 0.25, 0.25, 0.25], true);
+    results.reactions.forEach((r, i) => {
+        tableRow([cap(r.type), BeamUtils.formatValue(r.position, 2), BeamUtils.formatValue(r.Fy, 3), Math.abs(r.M) > 1e-6 ? BeamUtils.formatValue(r.M, 3) : '—'], [0.25, 0.25, 0.25, 0.25], false, i % 2 === 0);
+    });
+
+    y += 6;
+    sectionHead('Equilibrium Check', 7);
+    const totalLoad = config.loads.reduce((s, l) => {
+        if (l.type === 'point') return s + (l.magnitude || 0);
+        if (['udl', 'partial_udl'].includes(l.type)) return s + (l.magnitude || 0) * ((l.end || 0) - (l.start || 0));
+        return s;
+    }, 0);
+    const totalReaction = results.reactions.reduce((s, r) => s + r.Fy, 0);
+    kvRow('Total Applied Load', BeamUtils.formatValue(totalLoad, 3), 'kN', false);
+    kvRow('Total Vertical Reaction', BeamUtils.formatValue(totalReaction, 3), 'kN', true);
+    kvRow('Equilibrium Error', BeamUtils.formatValue(Math.abs(totalLoad - totalReaction), 6), 'kN (should be ≈ 0)', false);
+
+    /* ── Final page numbers ──────────────────────────────────── */
+    const total = doc.getNumberOfPages();
+    for (let p = 1; p <= total; p++) {
+        doc.setPage(p);
+        if (p > 1) {
+            f(7, 'bold', MID);
+            doc.text(`Page ${p} of ${total}`, pageW - MR, pageH - 7, { align: 'right' });
+        }
+    }
+
+    doc.save(`BeamCalcPro_Report_${Date.now()}.pdf`);
+}
+
+/* ── Helpers ────────────────────────────────────────────── */
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : '—'; }
+
+function showProjectInfoModal() {
+    return new Promise(resolve => {
+        const modal = document.getElementById('pdf-modal');
+        modal.classList.add('open');
+        document.getElementById('btn-modal-confirm').onclick = () => {
+            const info = {
+                projectName: document.getElementById('modal-project').value,
+                engineer: document.getElementById('modal-engineer').value,
+                firm: document.getElementById('modal-firm').value,
+            };
+            modal.classList.remove('open');
+            resolve(info);
+        };
+        document.getElementById('btn-modal-cancel').onclick = () => {
+            modal.classList.remove('open');
+            resolve(null);
+        };
+    });
+}
+
+window.PDFReport = { exportPDF, showProjectInfoModal };
