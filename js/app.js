@@ -78,7 +78,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('nav-project-name').textContent = proj.name;
             // Re-open save modal now that we have a project
             openSaveCalcModal();
-        } catch (e) { alert(e.message); }
+        } catch (e) {
+            if (e.message === 'FREE_LIMIT_PROJECTS') {
+                document.getElementById('proj-picker-modal').classList.remove('open');
+                UpgradeModal.show('projects');
+            } else { alert(e.message); }
+        }
     });
 
     // ── Auto-fill PDF modal from profile ────────────────────────────────
@@ -173,7 +178,12 @@ function doSaveCalc() {
         document.getElementById('save-modal').classList.remove('open');
         showToast(`✓ Saved to "${proj.name}"`);
     } catch (e) {
-        alert('Save failed: ' + e.message);
+        if (e.message === 'FREE_LIMIT_CALCS') {
+            document.getElementById('save-modal').classList.remove('open');
+            UpgradeModal.show('calcs');
+        } else {
+            alert('Save failed: ' + e.message);
+        }
     }
 }
 

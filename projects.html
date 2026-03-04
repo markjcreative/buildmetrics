@@ -12,6 +12,8 @@
     <script src="js/auth/auth.js"></script>
     <script src="js/projects/history.js"></script>
     <script src="js/projects/projects.js"></script>
+    <script src="js/subscription/plans.js"></script>
+    <script src="js/subscription/upgrade-modal.js"></script>
     <link rel="stylesheet" href="css/main.css" />
     <style>
         .page-wrap {
@@ -319,6 +321,87 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Usage Meter */
+        .usage-meter-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .usage-meter-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .usage-bar-track {
+            width: 80px;
+            height: 6px;
+            background: #E5E5E5;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .usage-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        .usage-bar-fill.full {
+            background: #F97316;
+        }
+
+        .usage-meter-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .btn-upgrade-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+        }
+
+        .btn-upgrade-nav:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+        }
+
+        .pro-badge-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: #F0FDF4;
+            color: #16A34A;
+            border: 1px solid #BBF7D0;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
     </style>
 </head>
 
@@ -336,6 +419,7 @@
             </a>
             <div class="nav-spacer"></div>
             <div class="nav-actions">
+                <span id="nav-plan-badge"></span>
                 <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
                 <button class="btn-nav" onclick="Auth.logout()">⏏ Sign Out</button>
             </div>
@@ -347,7 +431,16 @@
                     <div class="page-title" id="greeting">My Projects</div>
                     <div class="page-subtitle">Select a project to start or continue your calculations.</div>
                 </div>
-                <button class="btn btn-primary" onclick="openCreateModal()">＋ New Project</button>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="usage-meter-wrap" id="usage-meter-wrap" style="display:none;">
+                        <div class="usage-meter-label">Projects</div>
+                        <div class="usage-bar-track">
+                            <div class="usage-bar-fill" id="proj-bar-fill" style="width:0%"></div>
+                        </div>
+                        <div class="usage-meter-text" id="proj-meter-text">0/1</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="openCreateModal()">＋ New Project</button>
+                </div>
             </div>
 
             <div id="projects-container">
@@ -385,6 +478,35 @@
 
         const user = Auth.currentUser();
         if (user) document.getElementById('greeting').textContent = `${user.name ? user.name + "'s " : ''}Projects`;
+
+        // ── Subscription UI setup ─────────────────────────────────
+        function renderSubscriptionUI() {
+            if (!user) return;
+            const isPro = Subscription.isPro(user.id);
+            const usage = Subscription.usage(user.id);
+
+            // Navbar badge
+            const badge = document.getElementById('nav-plan-badge');
+            if (isPro) {
+                badge.innerHTML = '<span class="pro-badge-nav">⚡ Pro</span>';
+            } else {
+                badge.innerHTML = '<a href="/pricing.html" class="btn-upgrade-nav">⚡ Upgrade to Pro</a>';
+            }
+
+            // Usage meter (only for Free users)
+            const meterWrap = document.getElementById('usage-meter-wrap');
+            if (!isPro) {
+                meterWrap.style.display = 'flex';
+                const pct = Math.min((usage.projects / FREE_LIMITS.projects) * 100, 100);
+                const fill = document.getElementById('proj-bar-fill');
+                fill.style.width = pct + '%';
+                fill.className = 'usage-bar-fill' + (usage.projects >= FREE_LIMITS.projects ? ' full' : '');
+                document.getElementById('proj-meter-text').textContent = `${usage.projects}/${FREE_LIMITS.projects}`;
+            } else {
+                meterWrap.style.display = 'none';
+            }
+        }
+        renderSubscriptionUI();
 
         let editingId = null;
 
@@ -446,6 +568,14 @@
         }
 
         function openCreateModal() {
+            // Free tier limit check
+            if (user && window.Subscription && !Subscription.isPro(user.id)) {
+                const usage = Subscription.usage(user.id);
+                if (usage.projects >= FREE_LIMITS.projects) {
+                    UpgradeModal.show('projects');
+                    return;
+                }
+            }
             editingId = null;
             document.getElementById('proj-name').value = '';
             document.getElementById('proj-desc').value = '';
@@ -486,7 +616,13 @@
                 }
                 closeCreateModal();
                 renderProjects();
-            } catch (e) { alert(e.message); }
+                renderSubscriptionUI();
+            } catch (e) {
+                if (e.message === 'FREE_LIMIT_PROJECTS') {
+                    closeCreateModal();
+                    UpgradeModal.show('projects');
+                } else { alert(e.message); }
+            }
         }
 
         function deleteProject(id, name) {

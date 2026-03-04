@@ -10,6 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
     <script src="js/auth/auth.js"></script>
+    <script src="js/projects/history.js"></script>
+    <script src="js/projects/projects.js"></script>
+    <script src="js/subscription/plans.js"></script>
+    <script src="js/subscription/upgrade-modal.js"></script>
     <link rel="stylesheet" href="css/main.css" />
     <style>
         .page-wrap {
@@ -173,6 +177,135 @@
             margin-top: 6px;
             font-weight: 500;
         }
+
+        /* Subscription section */
+        .sub-plan-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .plan-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .plan-badge.free {
+            background: #F5F5F5;
+            color: #525252;
+            border: 1px solid #E5E5E5;
+        }
+
+        .plan-badge.pro {
+            background: linear-gradient(135deg, #EEF2FF, #F5F3FF);
+            color: #4F46E5;
+            border: 1px solid #C7D2FE;
+        }
+
+        .sub-usage-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .sub-usage-item {
+            background: #FAFAFA;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .sub-usage-item-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .sub-usage-item-count {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .sub-usage-item-count span {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .sub-bar-track {
+            height: 5px;
+            background: #E5E5E5;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .sub-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: var(--accent);
+            transition: width 0.4s;
+        }
+
+        .sub-bar-fill.full {
+            background: #F97316;
+        }
+
+        .sub-bar-fill.unlimited {
+            background: #16A34A;
+            width: 100% !important;
+        }
+
+        .sub-pro-active {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #F0FDF4;
+            border: 1px solid #BBF7D0;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: #15803D;
+            font-weight: 600;
+        }
+
+        .sub-pro-icon {
+            font-size: 1.3rem;
+        }
+
+        .btn-upgrade-profile {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+        }
+
+        .btn-upgrade-profile:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+        }
     </style>
 </head>
 
@@ -206,6 +339,16 @@
                     <div class="email" id="hero-email">—</div>
                     <div class="role" id="hero-role">—</div>
                 </div>
+            </div>
+
+            <!-- Subscription Section -->
+            <div class="profile-section" id="sub-section">
+                <div class="section-title">Subscription</div>
+                <div class="sub-plan-row">
+                    <div id="sub-plan-badge" class="plan-badge free">Free Plan</div>
+                    <div id="sub-cta"></div>
+                </div>
+                <div id="sub-usage-area"></div>
             </div>
 
             <!-- Profile Details -->
@@ -261,7 +404,61 @@
         const user = Auth.currentUser();
         if (!user) Auth.logout();
 
-        // Fill hero
+        // ── Subscription section ─────────────────────────────────
+        function renderSubSection() {
+            const isPro = Subscription.isPro(user.id);
+            const usage = Subscription.usage(user.id);
+            const sub = Subscription.get(user.id);
+
+            // Badge
+            const badge = document.getElementById('sub-plan-badge');
+            badge.className = 'plan-badge ' + (isPro ? 'pro' : 'free');
+            badge.textContent = isPro ? '⚡ Pro Plan' : 'Free Plan';
+
+            // CTA
+            const cta = document.getElementById('sub-cta');
+            if (isPro) {
+                const since = sub.subscribedAt ? new Date(sub.subscribedAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+                cta.innerHTML = `<span style="font-size:0.78rem;color:var(--text-muted);">Active since ${since}</span>`;
+            } else {
+                cta.innerHTML = `<a href="/pricing.html" class="btn-upgrade-profile">⚡ Upgrade to Pro — $59/month</a>`;
+            }
+
+            // Usage area
+            const area = document.getElementById('sub-usage-area');
+            if (isPro) {
+                area.innerHTML = `
+                    <div class="sub-pro-active">
+                        <span class="sub-pro-icon">✨</span>
+                        <div>
+                            <div>You’re on <strong>BeamCalc Pro</strong> — unlimited projects and calculations.</div>
+                            <div style="font-size:0.78rem;margin-top:2px;opacity:0.8;">Thank you for supporting BeamCalc Pro!</div>
+                        </div>
+                    </div>`;
+            } else {
+                const projPct = Math.min((usage.projects / FREE_LIMITS.projects) * 100, 100);
+                const calcPct = Math.min((usage.calculations / FREE_LIMITS.calculations) * 100, 100);
+                const projFull = usage.projects >= FREE_LIMITS.projects;
+                const calcFull = usage.calculations >= FREE_LIMITS.calculations;
+
+                area.innerHTML = `
+                    <div class="sub-usage-grid">
+                        <div class="sub-usage-item">
+                            <div class="sub-usage-item-label">📁 Projects</div>
+                            <div class="sub-usage-item-count">${usage.projects} <span>/ ${FREE_LIMITS.projects}</span></div>
+                            <div class="sub-bar-track"><div class="sub-bar-fill${projFull ? ' full' : ''}" style="width:${projPct}%"></div></div>
+                        </div>
+                        <div class="sub-usage-item">
+                            <div class="sub-usage-item-label">📊 Calculations</div>
+                            <div class="sub-usage-item-count">${usage.calculations} <span>/ ${FREE_LIMITS.calculations}</span></div>
+                            <div class="sub-bar-track"><div class="sub-bar-fill${calcFull ? ' full' : ''}" style="width:${calcPct}%"></div></div>
+                        </div>
+                    </div>`;
+            }
+        }
+        renderSubSection();
+
+        // ── Hero ─────────────────────────────────────────
         function updateHero() {
             const u = Auth.currentUser();
             const initials = (u.name || u.email || '?').charAt(0).toUpperCase();

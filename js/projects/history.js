@@ -26,6 +26,19 @@ const History = (() => {
     }
 
     function save(projectId, name, config, results, summary) {
+        // Free tier: max 5 calculations total across all projects
+        if (window.Subscription && window.FREE_LIMITS && window.Auth) {
+            const uid = Auth.currentUser()?.id;
+            if (uid && !Subscription.isPro(uid)) {
+                const userProjectIds = new Set(
+                    JSON.parse(localStorage.getItem('bcp_projects') || '[]')
+                        .filter(p => p.ownerId === uid)
+                        .map(p => p.id)
+                );
+                const totalCalcs = _all().filter(h => userProjectIds.has(h.projectId)).length;
+                if (totalCalcs >= FREE_LIMITS.calculations) throw new Error('FREE_LIMIT_CALCS');
+            }
+        }
         const all = _all();
         const calc = {
             id: 'calc_' + Date.now() + '_' + Math.random().toString(36).slice(2),
