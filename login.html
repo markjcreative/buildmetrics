@@ -21,21 +21,20 @@
     }
 
     :root {
-      --navy: #071C2C;
-      --navy2: #0B2639;
-      --navy3: #0D2D42;
+      --navy: #0B2639;
+      --navy2: #1A3E58;
       --orange: #F24E24;
-      --orange-hover: #E03A10;
+      --orange-h: #D94010;
       --sky: #AACFDF;
-      --glass: rgba(255, 255, 255, 0.05);
-      --glass-hover: rgba(255, 255, 255, 0.09);
-      --glass-border: rgba(170, 207, 223, 0.18);
-      --glass-strong: rgba(170, 207, 223, 0.30);
-      --text: #F0F6FA;
-      --text-2: #AACFDF;
-      --text-3: rgba(170, 207, 223, 0.55);
-      --red: #F87171;
-      --green: #34D399;
+      --sky-l: #EBF4F9;
+      --sky-m: #CBE4EF;
+      --border: #C6DFE9;
+      --text: #0B2639;
+      --text2: #1A3E58;
+      --muted: #4A7A90;
+      --white: #FFFFFF;
+      --red: #B91C1C;
+      --green: #15803D;
     }
 
     html {
@@ -44,10 +43,7 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background: var(--navy);
-      background-image:
-        radial-gradient(ellipse at 5% 0%, rgba(170, 207, 223, 0.12) 0%, transparent 45%),
-        radial-gradient(ellipse at 95% 100%, rgba(242, 78, 36, 0.10) 0%, transparent 45%);
+      background: var(--sky-l);
       min-height: 100vh;
       display: flex;
       align-items: stretch;
@@ -55,57 +51,44 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Left Brand Panel ──────────────────────────────────────── */
+    /* ── Left Brand Panel — Navy ───────────────────────────────── */
     .brand-panel {
-      width: 480px;
+      width: 460px;
       flex-shrink: 0;
-      background: linear-gradient(160deg, #0B2639 0%, #071828 100%);
-      border-right: 1px solid var(--glass-border);
-      padding: 48px 52px;
+      background: var(--navy);
+      border-right: none;
+      padding: 52px 52px;
       display: flex;
       flex-direction: column;
       position: relative;
       overflow: hidden;
     }
 
-    /* Decorative background elements */
+    /* Orange accent at top */
     .brand-panel::before {
       content: '';
       position: absolute;
-      bottom: -80px;
-      left: -80px;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(242, 78, 36, 0.12) 0%, transparent 70%);
-      pointer-events: none;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: var(--orange);
     }
 
-    .brand-panel::after {
-      content: '';
-      position: absolute;
-      top: 100px;
-      right: -60px;
-      width: 250px;
-      height: 250px;
-      background: radial-gradient(circle, rgba(170, 207, 223, 0.08) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    /* Big decorative beam-arrow mark */
+    /* Decorative large brand mark */
     .brand-deco {
       position: absolute;
-      bottom: 48px;
-      right: -20px;
-      opacity: 0.06;
+      bottom: 40px;
+      right: -30px;
+      opacity: 0.05;
     }
 
     .brand-deco svg {
-      width: 260px;
-      height: 260px;
+      width: 280px;
+      height: 280px;
       fill: white;
     }
 
-    /* Logo mark */
     .brand-logo {
       display: flex;
       align-items: center;
@@ -116,14 +99,14 @@
     }
 
     .brand-logo-mark {
-      width: 44px;
-      height: 44px;
+      width: 46px;
+      height: 46px;
       background: var(--orange);
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 20px rgba(242, 78, 36, 0.40);
+      box-shadow: 0 4px 16px rgba(242, 78, 36, 0.40);
       flex-shrink: 0;
       position: relative;
       overflow: hidden;
@@ -133,12 +116,12 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), transparent 60%);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 60%);
     }
 
     .brand-logo-mark svg {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       fill: white;
       position: relative;
     }
@@ -146,14 +129,14 @@
     .brand-name {
       font-size: 1.05rem;
       font-weight: 800;
-      color: var(--text);
+      color: white;
       letter-spacing: -0.4px;
     }
 
     .brand-tagline {
-      font-size: 0.65rem;
-      color: var(--text-3);
-      letter-spacing: 1px;
+      font-size: 0.63rem;
+      color: rgba(255, 255, 255, 0.60);
+      letter-spacing: 1.2px;
       text-transform: uppercase;
       font-weight: 500;
     }
@@ -166,12 +149,12 @@
     }
 
     .brand-headline {
-      font-size: 2.6rem;
+      font-size: 2.5rem;
       font-weight: 900;
       line-height: 1.1;
       letter-spacing: -1.5px;
-      color: var(--text);
-      margin-bottom: 20px;
+      color: white;
+      margin-bottom: 18px;
     }
 
     .brand-headline span {
@@ -179,11 +162,10 @@
     }
 
     .brand-desc {
-      font-size: 0.9rem;
-      color: var(--text-3);
+      font-size: 0.88rem;
+      color: rgba(255, 255, 255, 0.65);
       line-height: 1.7;
-      margin-bottom: 36px;
-      max-width: 320px;
+      margin-bottom: 32px;
     }
 
     .feature-list {
@@ -196,78 +178,100 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 0.82rem;
-      color: var(--text-2);
+      font-size: 0.83rem;
+      color: rgba(255, 255, 255, 0.80);
     }
 
     .feature-dot {
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--orange);
       flex-shrink: 0;
     }
 
-    /* ── Right Auth Panel ──────────────────────────────────────── */
+    /* ── Right Auth Panel — White ──────────────────────────────── */
     .auth-panel {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 40px 24px;
+      padding: 48px 32px;
+      background: var(--sky-l);
     }
 
     .auth-box {
       width: min(420px, 100%);
     }
 
+    /* Auth card — white */
+    .auth-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 40px;
+      box-shadow: 0 4px 24px rgba(11, 38, 57, 0.10);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--navy), var(--orange));
+    }
+
     /* Tabs */
     .auth-tabs {
       display: flex;
-      border-bottom: 1px solid var(--glass-border);
-      margin-bottom: 32px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 28px;
     }
 
     .auth-tab {
       flex: 1;
       background: transparent;
       border: none;
-      color: var(--text-3);
+      color: var(--muted);
       font-family: 'Inter', sans-serif;
-      font-size: 0.88rem;
+      font-size: 0.9rem;
       font-weight: 600;
       padding: 12px 4px;
       cursor: pointer;
       border-bottom: 2px solid transparent;
       transition: all 0.2s;
       text-align: center;
-      margin-bottom: -1px;
+      margin-bottom: -2px;
     }
 
     .auth-tab.active {
-      color: var(--orange);
+      color: var(--navy);
       border-bottom-color: var(--orange);
     }
 
     .auth-tab:hover:not(.active) {
-      color: var(--text-2);
+      color: var(--text);
     }
 
     .auth-heading {
       font-size: 1.6rem;
       font-weight: 800;
-      letter-spacing: -0.6px;
-      margin-bottom: 6px;
-      color: var(--text);
+      letter-spacing: -0.5px;
+      margin-bottom: 5px;
+      color: var(--navy);
+      /* navy on white */
     }
 
     .auth-sub {
-      font-size: 0.82rem;
-      color: var(--text-3);
-      margin-bottom: 28px;
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin-bottom: 24px;
     }
 
-    /* Forms */
     .auth-form {
       display: none;
     }
@@ -284,64 +288,67 @@
     }
 
     .form-group label {
-      font-size: 0.75rem;
+      font-size: 0.76rem;
       font-weight: 600;
-      color: var(--text-2);
+      color: var(--text2);
+      /* dark navy — readable */
       letter-spacing: 0.2px;
     }
 
     .form-group input {
-      background: rgba(170, 207, 223, 0.06);
-      border: 1px solid var(--glass-border);
+      background: var(--white);
+      border: 1.5px solid var(--border);
       border-radius: 8px;
       color: var(--text);
+      /* navy on white */
       font-family: 'Inter', sans-serif;
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       padding: 12px 14px;
       outline: none;
       transition: all 0.18s;
     }
 
     .form-group input:focus {
-      border-color: var(--sky);
-      background: rgba(170, 207, 223, 0.10);
-      box-shadow: 0 0 0 3px rgba(170, 207, 223, 0.12);
+      border-color: #3D8FAE;
+      box-shadow: 0 0 0 3px rgba(61, 143, 174, 0.15);
+      background: var(--sky-l);
     }
 
     .form-group input::placeholder {
-      color: rgba(170, 207, 223, 0.25);
+      color: #8BAFC0;
     }
 
     /* Alert */
     .auth-alert {
       padding: 10px 14px;
       border-radius: 8px;
-      font-size: 0.82rem;
+      font-size: 0.83rem;
       font-weight: 500;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: none;
     }
 
     .auth-alert.error {
       display: block;
-      background: rgba(248, 113, 113, 0.12);
-      border: 1px solid rgba(248, 113, 113, 0.30);
+      background: #FEE2E2;
+      border: 1px solid rgba(185, 28, 28, 0.25);
       color: var(--red);
     }
 
     .auth-alert.success {
       display: block;
-      background: rgba(52, 211, 153, 0.12);
-      border: 1px solid rgba(52, 211, 153, 0.25);
+      background: #DCFCE7;
+      border: 1px solid rgba(21, 128, 61, 0.25);
       color: var(--green);
     }
 
-    /* Action button */
+    /* Primary button — navy */
     .btn-auth {
       width: 100%;
       padding: 13px;
-      background: var(--orange);
+      background: var(--navy);
       color: white;
+      /* white on navy — WCAG AAA */
       border: none;
       border-radius: 10px;
       font-family: 'Inter', sans-serif;
@@ -349,67 +356,55 @@
       font-weight: 700;
       cursor: pointer;
       transition: all 0.18s;
-      margin-top: 6px;
-      box-shadow: 0 4px 20px rgba(242, 78, 36, 0.35);
+      margin-top: 8px;
+      box-shadow: 0 4px 16px rgba(11, 38, 57, 0.25);
       position: relative;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
+    /* Orange left accent on button */
     .btn-auth::before {
       content: '';
       position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.20), transparent 60%);
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      background: var(--orange);
     }
 
     .btn-auth:hover {
-      background: var(--orange-hover);
+      background: var(--navy2);
       transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(242, 78, 36, 0.45);
+      box-shadow: 0 8px 24px rgba(11, 38, 57, 0.30);
     }
 
     .btn-auth:active {
       transform: translateY(0);
     }
 
-    /* Footer link */
     .auth-footer {
-      margin-top: 22px;
+      margin-top: 20px;
       text-align: center;
       font-size: 0.8rem;
-      color: var(--text-3);
+      color: var(--muted);
     }
 
     .auth-footer a {
-      color: var(--sky);
+      color: var(--navy);
+      /* dark navy — readable on white */
       text-decoration: none;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
     }
 
     .auth-footer a:hover {
+      color: var(--orange);
       text-decoration: underline;
-    }
-
-    /* Divider */
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 20px 0;
-    }
-
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--glass-border);
-    }
-
-    .divider span {
-      font-size: 0.72rem;
-      color: var(--text-3);
     }
 
     /* Responsive */
@@ -419,7 +414,26 @@
       }
 
       body {
-        background-image: radial-gradient(ellipse at 50% 0%, rgba(170, 207, 223, 0.10) 0%, transparent 55%);
+        background: var(--sky-l);
+      }
+
+      .auth-panel {
+        padding: 32px 16px;
+      }
+
+      .auth-card {
+        padding: 32px 24px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .auth-card {
+        padding: 28px 18px;
+        border-radius: 12px;
+      }
+
+      .auth-heading {
+        font-size: 1.4rem;
       }
     }
   </style>
@@ -441,7 +455,6 @@
       </div>
     </div>
 
-    <!-- Decorative large icon -->
     <div class="brand-deco">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 2L5 9h4v5H7l5 8 5-8h-2V9h4L12 2z" />
@@ -457,7 +470,7 @@
           <div class="feature-dot"></div>Multi-span beam analysis with any load type
         </div>
         <div class="feature-item">
-          <div class="feature-dot"></div>SFD, BMD & Deflection diagrams
+          <div class="feature-dot"></div>SFD, BMD &amp; Deflection diagrams
         </div>
         <div class="feature-item">
           <div class="feature-dot"></div>Professional PDF report export
@@ -472,63 +485,64 @@
   <!-- Auth Panel -->
   <div class="auth-panel">
     <div class="auth-box">
+      <div class="auth-card">
 
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
-        <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Create Account</button>
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+          <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Create Account</button>
+        </div>
+
+        <!-- Sign In -->
+        <div class="auth-form active" id="form-login">
+          <div class="auth-heading">Welcome back.</div>
+          <div class="auth-sub">Sign in to access your projects and calculations.</div>
+          <div class="auth-alert" id="login-alert"></div>
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" placeholder="engineer@firm.com" autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+          <button class="btn-auth" id="btn-login" onclick="doLogin()">Sign In →</button>
+          <div class="auth-footer">
+            Don't have an account? <a onclick="switchTab('register')">Create one free</a>
+          </div>
+        </div>
+
+        <!-- Register -->
+        <div class="auth-form" id="form-register">
+          <div class="auth-heading">Create account.</div>
+          <div class="auth-sub">Start building your engineering calculation library.</div>
+          <div class="auth-alert" id="reg-alert"></div>
+          <div class="form-group">
+            <label for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" placeholder="James Smith" autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" placeholder="engineer@firm.com" autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" placeholder="Min 6 characters" autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label for="reg-confirm">Confirm Password</label>
+            <input type="password" id="reg-confirm" placeholder="Repeat password" autocomplete="new-password" />
+          </div>
+          <button class="btn-auth" id="btn-register" onclick="doRegister()">Create Account →</button>
+          <div class="auth-footer">
+            Already have an account? <a onclick="switchTab('login')">Sign in</a>
+          </div>
+        </div>
+
       </div>
-
-      <!-- Sign In -->
-      <div class="auth-form active" id="form-login">
-        <div class="auth-heading" id="heading-text">Welcome back.</div>
-        <div class="auth-sub" id="sub-text">Sign in to access your projects and calculations.</div>
-        <div class="auth-alert" id="login-alert"></div>
-        <div class="form-group">
-          <label for="login-email">Email Address</label>
-          <input type="email" id="login-email" placeholder="engineer@firm.com" autocomplete="email" />
-        </div>
-        <div class="form-group">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
-        </div>
-        <button class="btn-auth" id="btn-login" onclick="doLogin()">Sign In →</button>
-        <div class="auth-footer">
-          Don't have an account? <a onclick="switchTab('register')">Create one free</a>
-        </div>
-      </div>
-
-      <!-- Register -->
-      <div class="auth-form" id="form-register">
-        <div class="auth-heading">Create account.</div>
-        <div class="auth-sub">Start building your engineering calculation library.</div>
-        <div class="auth-alert" id="reg-alert"></div>
-        <div class="form-group">
-          <label for="reg-name">Full Name</label>
-          <input type="text" id="reg-name" placeholder="James Smith" autocomplete="name" />
-        </div>
-        <div class="form-group">
-          <label for="reg-email">Email Address</label>
-          <input type="email" id="reg-email" placeholder="engineer@firm.com" autocomplete="email" />
-        </div>
-        <div class="form-group">
-          <label for="reg-password">Password</label>
-          <input type="password" id="reg-password" placeholder="Min 6 characters" autocomplete="new-password" />
-        </div>
-        <div class="form-group">
-          <label for="reg-confirm">Confirm Password</label>
-          <input type="password" id="reg-confirm" placeholder="Repeat password" autocomplete="new-password" />
-        </div>
-        <button class="btn-auth" id="btn-register" onclick="doRegister()">Create Account →</button>
-        <div class="auth-footer">
-          Already have an account? <a onclick="switchTab('login')">Sign in</a>
-        </div>
-      </div>
-
     </div>
   </div>
 
   <script>
-    // If already logged in, skip to projects
     if (Auth.currentUser()) window.location.replace('/projects.html');
 
     function switchTab(tab) {
@@ -582,7 +596,6 @@
       }
     }
 
-    // Enter key support
     document.addEventListener('keydown', e => {
       if (e.key !== 'Enter') return;
       if (document.getElementById('form-login').classList.contains('active')) doLogin();
