@@ -54,10 +54,6 @@ function initInputPanel() {
     // Reset button
     document.getElementById('btn-reset').addEventListener('click', resetAll);
 
-    // Save/load
-    document.getElementById('btn-save').addEventListener('click', saveSession);
-    document.getElementById('btn-load-session').addEventListener('click', loadSession);
-
     // Unit toggle
     document.getElementById('unit-toggle').addEventListener('change', onUnitToggle);
 
@@ -236,6 +232,8 @@ function runCalculation() {
         document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
         document.getElementById('btn-export-pdf').disabled = false;
         document.getElementById('btn-export-csv').disabled = false;
+        const saveBtn = document.getElementById('btn-save-calc');
+        if (saveBtn) saveBtn.disabled = false;
     } catch (err) {
         showError(err.message);
     }

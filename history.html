@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculation History — BeamCalc Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script src="js/auth/auth.js"></script>
+    <script src="js/projects/history.js"></script>
+    <script src="js/projects/projects.js"></script>
+    <link rel="stylesheet" href="css/main.css" />
+    <style>
+        .page-wrap {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .page-content {
+            flex: 1;
+            padding: 36px 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .breadcrumb a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
+
+        .breadcrumb-sep {
+            color: var(--border-strong);
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .page-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+        }
+
+        /* Calculation list */
+        .calc-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .calc-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 18px 22px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: center;
+            transition: all 0.18s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .calc-card:hover {
+            box-shadow: var(--shadow);
+            border-color: var(--accent-mid);
+        }
+
+        .calc-info {
+            flex: 1;
+        }
+
+        .calc-name {
+            font-size: 0.97rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .calc-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .calc-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .calc-stat {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .calc-stat.moment {
+            background: var(--accent-light);
+            border-color: var(--accent-mid);
+            color: var(--accent);
+        }
+
+        .calc-stat.shear {
+            background: var(--green-tint);
+            border-color: #BBF7D0;
+            color: var(--green);
+        }
+
+        .calc-stat.defl {
+            background: var(--purple-tint);
+            border-color: #DDD6FE;
+            color: var(--purple);
+        }
+
+        .calc-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+
+        .btn-load {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-load:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-del {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-muted);
+            transition: all 0.15s;
+        }
+
+        .btn-del:hover {
+            border-color: var(--red);
+            color: var(--red);
+            background: var(--red-tint);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1E293B;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.25s;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrap">
+
+        <nav id="navbar" role="navigation">
+            <a href="/projects.html" class="nav-brand">
+                <div class="nav-logo">⚙</div>
+                <div>
+                    <div class="nav-title">BeamCalc Pro</div>
+                    <div class="nav-subtitle">Structural Analysis</div>
+                </div>
+            </a>
+            <div class="nav-spacer"></div>
+            <div class="nav-actions">
+                <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
+                <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
+                <button class="btn-nav" onclick="Auth.logout()">⏏ Sign Out</button>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="breadcrumb">
+                <a href="/projects.html">Projects</a>
+                <span class="breadcrumb-sep">›</span>
+                <span id="bc-project-name">—</span>
+            </div>
+
+            <div class="page-header">
+                <div class="page-title" id="project-title">Calculation History</div>
+                <button class="btn btn-primary" id="btn-new-calc">⚡ New Calculation</button>
+            </div>
+            <div class="page-subtitle" id="project-desc"></div>
+
+            <div id="history-container"></div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        Auth.guard();
+
+        const params = new URLSearchParams(location.search);
+        const projectId = params.get('project');
+        if (!projectId) { window.location.href = '/projects.html'; }
+
+        const project = Projects.get(projectId);
+        if (!project) { window.location.href = '/projects.html'; }
+
+        // Set active
+        Projects.setActive(projectId);
+
+        // Breadcrumb + header
+        document.getElementById('bc-project-name').textContent = project.name;
+        document.getElementById('project-title').textContent = project.name;
+        if (project.description) document.getElementById('project-desc').textContent = project.description;
+
+        // New calculation — go to calculator with active project set
+        document.getElementById('btn-new-calc').addEventListener('click', () => {
+            window.location.href = '/index.html';
+        });
+
+        function renderHistory() {
+            const calcs = History.list(projectId);
+            const container = document.getElementById('history-container');
+
+            if (calcs.length === 0) {
+                container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🧮</div>
+          <h3>No calculations yet</h3>
+          <p>Start a new calculation and save it to this project to build your history.</p>
+          <button class="btn btn-primary" onclick="document.getElementById('btn-new-calc').click()">⚡ New Calculation</button>
+        </div>`;
+                return;
+            }
+
+            const list = document.createElement('div');
+            list.className = 'calc-list';
+
+            calcs.forEach(calc => {
+                const date = new Date(calc.savedAt).toLocaleString('en-AU', {
+                    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                const s = calc.summary || {};
+                const moment = s.maxAbsMoment != null ? `${Number(s.maxAbsMoment).toFixed(2)} kNm` : '—';
+                const shear = s.maxAbsShear != null ? `${Number(s.maxAbsShear).toFixed(2)} kN` : '—';
+                const defl = s.maxDeflection != null ? `${(Number(s.maxDeflection) * 1000).toFixed(3)} mm` : '—';
+                const span = calc.config && calc.config.span != null ? `${calc.config.span} m` : '—';
+
+                const card = document.createElement('div');
+                card.className = 'calc-card';
+                card.innerHTML = `
+        <div class="calc-info">
+          <div class="calc-name">${escHtml(calc.name)}</div>
+          <div class="calc-date">Saved ${date} &nbsp;·&nbsp; Span: ${span}</div>
+          <div class="calc-stats">
+            <span class="calc-stat moment">M = ${moment}</span>
+            <span class="calc-stat shear">V = ${shear}</span>
+            <span class="calc-stat defl">δ = ${defl}</span>
+          </div>
+        </div>
+        <div class="calc-actions">
+          <button class="btn-load" onclick="loadCalc('${calc.id}')">Load →</button>
+          <button class="btn-del" onclick="deleteCalc('${calc.id}')" title="Delete">🗑</button>
+        </div>`;
+                list.appendChild(card);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(list);
+        }
+
+        function loadCalc(id) {
+            window.location.href = `/index.html?load=${id}`;
+        }
+
+        function deleteCalc(id) {
+            if (!confirm('Delete this calculation? This cannot be undone.')) return;
+            History.remove(id);
+            renderHistory();
+            showToast('Calculation deleted.');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        function escHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        renderHistory();
+    </script>
+</body>
+
+</html>

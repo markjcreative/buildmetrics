@@ -1,369 +1,433 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Structural Beam Calculator — Professional Edition</title>
-  <meta name="description" content="Professional structural beam calculator for engineers. Compute shear forces, bending moments, reactions and deflections. Download PDF and CSV reports." />
+  <meta name="description"
+    content="Professional structural beam calculator for engineers. Compute shear forces, bending moments, reactions and deflections. Download PDF and CSV reports." />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
 
   <!-- Styles -->
   <link rel="stylesheet" href="css/main.css" />
 
   <!-- CDN Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Auth & Projects -->
+  <script src="js/auth/auth.js"></script>
+  <script src="js/projects/history.js"></script>
+  <script src="js/projects/projects.js"></script>
 </head>
+
 <body>
-<div id="app">
+  <div id="app">
 
-  <!-- ════ NAVBAR ════════════════════════════════════════════════════ -->
-  <nav id="navbar" role="navigation" aria-label="Main navigation">
-    <a href="#" class="nav-brand">
-      <div class="nav-logo">⚙</div>
-      <div>
-        <div class="nav-title">BeamCalc Pro</div>
-        <div class="nav-subtitle">Structural Analysis</div>
-      </div>
-    </a>
-    <div class="nav-spacer"></div>
-    <div class="nav-actions">
-      <div class="unit-switch">
-        <label for="unit-toggle">
-          <span>SI</span>
-          <input type="checkbox" id="unit-toggle" role="switch" aria-label="Toggle unit system" />
-          <span class="toggle-track"></span>
-          <span>Imperial</span>
-        </label>
-      </div>
-      <button class="btn-nav" id="btn-save" title="Save current session">💾 Save</button>
-      <button class="btn-nav" id="btn-load-session" title="Load saved session">📂 Load</button>
-    </div>
-  </nav>
-
-  <!-- ════ MAIN ══════════════════════════════════════════════════════ -->
-  <div id="main-container">
-
-    <!-- ── INPUT PANEL (Left) ──────────────────────────────────────── -->
-    <aside id="input-panel" aria-label="Beam input configuration">
-
-      <!-- Section 1: Beam Properties -->
-      <div class="input-section" id="section-properties">
-        <div class="section-header" onclick="toggleSection('section-properties')">
-          <div class="section-icon">📐</div>
-          <span class="section-title">Beam Properties</span>
-          <span class="section-chevron">▾</span>
+    <!-- ════ NAVBAR ════════════════════════════════════════════════════ -->
+    <nav id="navbar" role="navigation" aria-label="Main navigation">
+      <a href="/projects.html" class="nav-brand">
+        <div class="nav-logo">⚙</div>
+        <div>
+          <div class="nav-title">BeamCalc Pro</div>
+          <div class="nav-subtitle">Structural Analysis</div>
         </div>
-        <div class="section-body">
-          <!-- Material Selector -->
-          <div style="margin-bottom:12px;">
-            <div class="preview-label">Material</div>
-            <div class="material-grid">
-              <button class="material-btn active" data-material="steel">
-                <span class="mat-icon">🔩</span>Steel
-              </button>
-              <button class="material-btn" data-material="timber">
-                <span class="mat-icon">🪵</span>Timber
-              </button>
-              <button class="material-btn" data-material="concrete">
-                <span class="mat-icon">🏗</span>Concrete
-              </button>
-              <button class="material-btn" data-material="custom">
-                <span class="mat-icon">⚙</span>Custom
-              </button>
+      </a>
+      <div class="nav-spacer"></div>
+      <!-- Active project breadcrumb -->
+      <div id="nav-project-badge"
+        style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+        📁 <span id="nav-project-name">—</span>
+      </div>
+      <div class="nav-actions">
+        <div class="unit-switch">
+          <label for="unit-toggle">
+            <span>SI</span>
+            <input type="checkbox" id="unit-toggle" role="switch" aria-label="Toggle unit system" />
+            <span class="toggle-track"></span>
+            <span>Imperial</span>
+          </label>
+        </div>
+        <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
+        <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
+        <button class="btn-nav" id="btn-signout" onclick="Auth.logout()">⏏ Sign Out</button>
+      </div>
+    </nav>
+
+    <!-- ════ MAIN ══════════════════════════════════════════════════════ -->
+    <div id="main-container">
+
+      <!-- ── INPUT PANEL (Left) ──────────────────────────────────────── -->
+      <aside id="input-panel" aria-label="Beam input configuration">
+
+        <!-- Section 1: Beam Properties -->
+        <div class="input-section" id="section-properties">
+          <div class="section-header" onclick="toggleSection('section-properties')">
+            <div class="section-icon">📐</div>
+            <span class="section-title">Beam Properties</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <!-- Material Selector -->
+            <div style="margin-bottom:12px;">
+              <div class="preview-label">Material</div>
+              <div class="material-grid">
+                <button class="material-btn active" data-material="steel">
+                  <span class="mat-icon">🔩</span>Steel
+                </button>
+                <button class="material-btn" data-material="timber">
+                  <span class="mat-icon">🪵</span>Timber
+                </button>
+                <button class="material-btn" data-material="concrete">
+                  <span class="mat-icon">🏗</span>Concrete
+                </button>
+                <button class="material-btn" data-material="custom">
+                  <span class="mat-icon">⚙</span>Custom
+                </button>
+              </div>
             </div>
-          </div>
 
-          <!-- Span -->
-          <div class="form-row">
-            <label for="inp-span">Beam Span</label>
-            <input type="number" id="inp-span" class="inp-num" value="5" min="0.1" step="0.1" />
-            <span class="unit-tag length-unit">m</span>
-          </div>
-
-          <!-- Young's Modulus -->
-          <div class="form-row">
-            <label for="inp-E">E-Modulus</label>
-            <input type="number" id="inp-E" class="inp-num" value="210000000" step="1000000" readonly />
-            <span class="unit-tag">kN/m²</span>
-          </div>
-
-          <!-- Moment of Inertia -->
-          <div class="form-row">
-            <label for="inp-I">Inertia (I)</label>
-            <input type="number" id="inp-I" class="inp-num" value="0.0001" step="0.00001" />
-            <span class="unit-tag">m⁴</span>
-          </div>
-
-          <!-- Area -->
-          <div class="form-row">
-            <label for="inp-A">Area (A)</label>
-            <input type="number" id="inp-A" class="inp-num" value="0.01" step="0.001" />
-            <span class="unit-tag">m²</span>
-          </div>
-
-          <!-- EI Info -->
-          <div style="font-size:0.75rem;color:var(--text-500);margin-top:4px;">
-            💡 Typical steel I-beam: I ≈ 0.0001 to 0.001 m⁴ &nbsp;|&nbsp; E = 210,000,000 kN/m²
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 2: Supports -->
-      <div class="input-section" id="section-supports">
-        <div class="section-header" onclick="toggleSection('section-supports')">
-          <div class="section-icon" style="background:linear-gradient(135deg,#D97706,#F59E0B);">🔗</div>
-          <span class="section-title">Supports</span>
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="section-body">
-          <div style="font-size:0.75rem;color:var(--text-500);margin-bottom:10px;">
-            Add 2+ supports. Position = distance from left end (m).
-          </div>
-          <div id="support-list"></div>
-          <button class="btn-add" onclick="addSupportRow()" id="btn-add-support">+ Add Support</button>
-
-          <!-- Legend -->
-          <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;">
-            <div class="legend-item"><span style="font-size:1rem;">△</span> Pin</div>
-            <div class="legend-item"><span style="font-size:1rem;">○</span> Roller</div>
-            <div class="legend-item"><span style="font-size:1rem;">▬</span> Fixed</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 3: Loads -->
-      <div class="input-section" id="section-loads">
-        <div class="section-header" onclick="toggleSection('section-loads')">
-          <div class="section-icon" style="background:linear-gradient(135deg,#EA580C,#F97316);">⬇</div>
-          <span class="section-title">Applied Loads</span>
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="section-body">
-          <div style="font-size:0.75rem;color:var(--text-500);margin-bottom:10px;">
-            Downward forces are positive. Position measured from left (m).
-          </div>
-          <div id="load-list"></div>
-          <button class="btn-add" id="btn-add-load">+ Add Load</button>
-        </div>
-      </div>
-
-      <!-- Calculate bar -->
-      <div id="calculate-bar">
-        <div id="calc-error" role="alert"></div>
-        <button class="btn btn-primary" id="btn-calculate">⚡ Calculate</button>
-        <div class="calc-actions">
-          <button class="btn btn-secondary btn-ghost" id="btn-reset">↺ Reset</button>
-        </div>
-      </div>
-    </aside>
-
-    <!-- ── RESULTS PANEL (Right) ───────────────────────────────────── -->
-    <main id="results-panel" aria-label="Calculation results">
-
-      <!-- Welcome Banner -->
-      <div id="welcome-banner">
-        <div class="welcome-icon">🏗️</div>
-        <h1 class="welcome-title">Structural Beam Calculator</h1>
-        <p class="welcome-subtitle">
-          Configure your beam properties, supports, and loads in the left panel, then click <strong>Calculate</strong> to instantly generate shear force, bending moment, and deflection diagrams.
-        </p>
-        <div class="feature-chips">
-          <span class="chip">📊 SFD & BMD Diagrams</span>
-          <span class="chip">📉 Deflection Analysis</span>
-          <span class="chip">📄 PDF Reports</span>
-          <span class="chip">⬇ CSV Export</span>
-          <span class="chip">🔩 Steel / Timber / Concrete</span>
-          <span class="chip">🌍 SI & Imperial Units</span>
-        </div>
-      </div>
-
-      <!-- Live Beam Preview -->
-      <div id="preview-container">
-        <div class="preview-label">Live Beam Preview</div>
-        <svg id="svg-preview" xmlns="http://www.w3.org/2000/svg" aria-label="Beam configuration preview"></svg>
-      </div>
-
-      <!-- ── RESULTS (shown after calculation) ── -->
-      <div id="results-section" role="region" aria-label="Calculation results">
-
-        <!-- Summary Badges -->
-        <div class="badges-grid">
-          <div class="badge-card badge-moment">
-            <div class="badge-label">Max Moment</div>
-            <div class="badge-value" id="badge-moment">—</div>
-          </div>
-          <div class="badge-card badge-shear">
-            <div class="badge-label">Max Shear</div>
-            <div class="badge-value" id="badge-shear">—</div>
-          </div>
-          <div class="badge-card badge-deflection">
-            <div class="badge-label">Max Deflection</div>
-            <div class="badge-value" id="badge-deflection">—</div>
-          </div>
-          <div class="badge-card badge-ratio">
-            <div class="badge-label">Span Ratio</div>
-            <div class="badge-value" id="badge-ratio">—</div>
-          </div>
-        </div>
-
-        <!-- Reactions Diagram -->
-        <div class="diagram-card">
-          <div class="diagram-header">
-            <span class="diagram-dot dot-reactions"></span>
-            <span class="diagram-title">Beam Configuration &amp; Reactions</span>
-            <span class="diagram-subtitle">Support reactions (upward = positive)</span>
-          </div>
-          <div class="diagram-body">
-            <svg id="svg-reactions" class="diagram-svg diagram-svg-tall" xmlns="http://www.w3.org/2000/svg" aria-label="Beam reactions diagram"></svg>
-          </div>
-        </div>
-
-        <!-- SFD -->
-        <div class="diagram-card">
-          <div class="diagram-header">
-            <span class="diagram-dot dot-sfd"></span>
-            <span class="diagram-title">Shear Force Diagram (SFD)</span>
-            <span class="diagram-subtitle">V (kN) — hover for values</span>
-          </div>
-          <div class="diagram-body">
-            <svg id="svg-sfd" class="diagram-svg" xmlns="http://www.w3.org/2000/svg" aria-label="Shear force diagram"></svg>
-          </div>
-          <div class="diagram-legend">
-            <div class="legend-item">
-              <div class="legend-swatch" style="background:rgba(34,197,94,0.7)"></div>
-              Positive shear
+            <!-- Span -->
+            <div class="form-row">
+              <label for="inp-span">Beam Span</label>
+              <input type="number" id="inp-span" class="inp-num" value="5" min="0.1" step="0.1" />
+              <span class="unit-tag length-unit">m</span>
             </div>
-            <div class="legend-item">
-              <div class="legend-swatch" style="background:rgba(239,68,68,0.7)"></div>
-              Negative shear
+
+            <!-- Young's Modulus -->
+            <div class="form-row">
+              <label for="inp-E">E-Modulus</label>
+              <input type="number" id="inp-E" class="inp-num" value="210000000" step="1000000" readonly />
+              <span class="unit-tag">kN/m²</span>
+            </div>
+
+            <!-- Moment of Inertia -->
+            <div class="form-row">
+              <label for="inp-I">Inertia (I)</label>
+              <input type="number" id="inp-I" class="inp-num" value="0.0001" step="0.00001" />
+              <span class="unit-tag">m⁴</span>
+            </div>
+
+            <!-- Area -->
+            <div class="form-row">
+              <label for="inp-A">Area (A)</label>
+              <input type="number" id="inp-A" class="inp-num" value="0.01" step="0.001" />
+              <span class="unit-tag">m²</span>
+            </div>
+
+            <!-- EI Info -->
+            <div style="font-size:0.75rem;color:var(--text-500);margin-top:4px;">
+              💡 Typical steel I-beam: I ≈ 0.0001 to 0.001 m⁴ &nbsp;|&nbsp; E = 210,000,000 kN/m²
             </div>
           </div>
         </div>
 
-        <!-- BMD -->
-        <div class="diagram-card">
-          <div class="diagram-header">
-            <span class="diagram-dot dot-bmd"></span>
-            <span class="diagram-title">Bending Moment Diagram (BMD)</span>
-            <span class="diagram-subtitle">M (kNm) — hover for values</span>
+        <!-- Section 2: Supports -->
+        <div class="input-section" id="section-supports">
+          <div class="section-header" onclick="toggleSection('section-supports')">
+            <div class="section-icon" style="background:linear-gradient(135deg,#D97706,#F59E0B);">🔗</div>
+            <span class="section-title">Supports</span>
+            <span class="section-chevron">▾</span>
           </div>
-          <div class="diagram-body">
-            <svg id="svg-bmd" class="diagram-svg" xmlns="http://www.w3.org/2000/svg" aria-label="Bending moment diagram"></svg>
-          </div>
-          <div class="diagram-legend">
-            <div class="legend-item">
-              <div class="legend-swatch" style="background:rgba(34,197,94,0.7)"></div>
-              Sagging (+)
+          <div class="section-body">
+            <div style="font-size:0.75rem;color:var(--text-500);margin-bottom:10px;">
+              Add 2+ supports. Position = distance from left end (m).
             </div>
-            <div class="legend-item">
-              <div class="legend-swatch" style="background:rgba(239,68,68,0.7)"></div>
-              Hogging (−)
-            </div>
-          </div>
-        </div>
+            <div id="support-list"></div>
+            <button class="btn-add" onclick="addSupportRow()" id="btn-add-support">+ Add Support</button>
 
-        <!-- Deflection -->
-        <div class="diagram-card">
-          <div class="diagram-header">
-            <span class="diagram-dot dot-deflection"></span>
-            <span class="diagram-title">Deflection Diagram</span>
-            <span class="diagram-subtitle">δ (m) — hover for values</span>
-          </div>
-          <div class="diagram-body">
-            <svg id="svg-deflection" class="diagram-svg" xmlns="http://www.w3.org/2000/svg" aria-label="Deflection diagram"></svg>
-          </div>
-          <div class="diagram-legend">
-            <div class="legend-item">
-              <div class="legend-swatch" style="background:rgba(168,85,247,0.7)"></div>
-              Deflected shape (exaggerated)
+            <!-- Legend -->
+            <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;">
+              <div class="legend-item"><span style="font-size:1rem;">△</span> Pin</div>
+              <div class="legend-item"><span style="font-size:1rem;">○</span> Roller</div>
+              <div class="legend-item"><span style="font-size:1rem;">▬</span> Fixed</div>
             </div>
           </div>
         </div>
 
-        <!-- Results Summary Table -->
-        <div class="results-card">
-          <div class="results-card-header">
-            <h2 style="font-size:0.9rem;color:var(--text-100);">📋 Detailed Results Summary</h2>
+        <!-- Section 3: Loads -->
+        <div class="input-section" id="section-loads">
+          <div class="section-header" onclick="toggleSection('section-loads')">
+            <div class="section-icon" style="background:linear-gradient(135deg,#EA580C,#F97316);">⬇</div>
+            <span class="section-title">Applied Loads</span>
+            <span class="section-chevron">▾</span>
           </div>
-          <table class="results-table" aria-label="Calculation results table">
-            <thead>
-              <tr>
-                <th>Result</th>
-                <th>Value</th>
-                <th>Location / Notes</th>
-              </tr>
-            </thead>
-            <tbody id="results-table-body"></tbody>
-          </table>
-        </div>
-
-        <!-- Export Section -->
-        <div id="export-section">
-          <div class="export-info">
-            <div class="export-title">📄 Download Report</div>
-            <div class="export-desc">Export a professional engineering report with all inputs, diagrams, and calculations.</div>
-          </div>
-          <div class="export-buttons">
-            <button id="btn-export-pdf" disabled>📄 Download PDF</button>
-            <button id="btn-export-csv" disabled>📊 Download CSV</button>
+          <div class="section-body">
+            <div style="font-size:0.75rem;color:var(--text-500);margin-bottom:10px;">
+              Downward forces are positive. Position measured from left (m).
+            </div>
+            <div id="load-list"></div>
+            <button class="btn-add" id="btn-add-load">+ Add Load</button>
           </div>
         </div>
 
-        <!-- Disclaimer note -->
-        <div style="font-size:0.75rem;color:var(--text-500);text-align:center;padding:8px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
-          ⚠️ <strong>Disclaimer:</strong> Results are for preliminary analysis only. All calculations must be independently verified by a licensed structural engineer before use in design or construction.
+        <!-- Calculate bar -->
+        <div id="calculate-bar">
+          <div id="calc-error" role="alert"></div>
+          <button class="btn btn-primary" id="btn-calculate">⚡ Calculate</button>
+          <div class="calc-actions">
+            <button class="btn btn-secondary btn-ghost" id="btn-reset">↺ Reset</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ── RESULTS PANEL (Right) ───────────────────────────────────── -->
+      <main id="results-panel" aria-label="Calculation results">
+
+        <!-- Welcome Banner -->
+        <div id="welcome-banner">
+          <div class="welcome-icon">🏗️</div>
+          <h1 class="welcome-title">Structural Beam Calculator</h1>
+          <p class="welcome-subtitle">
+            Configure your beam properties, supports, and loads in the left panel, then click <strong>Calculate</strong>
+            to instantly generate shear force, bending moment, and deflection diagrams.
+          </p>
+          <div class="feature-chips">
+            <span class="chip">📊 SFD & BMD Diagrams</span>
+            <span class="chip">📉 Deflection Analysis</span>
+            <span class="chip">📄 PDF Reports</span>
+            <span class="chip">⬇ CSV Export</span>
+            <span class="chip">🔩 Steel / Timber / Concrete</span>
+            <span class="chip">🌍 SI & Imperial Units</span>
+          </div>
         </div>
 
-      </div><!-- end results-section -->
-    </main>
-  </div><!-- end main-container -->
-</div><!-- end app -->
+        <!-- Live Beam Preview -->
+        <div id="preview-container">
+          <div class="preview-label">Live Beam Preview</div>
+          <svg id="svg-preview" xmlns="http://www.w3.org/2000/svg" aria-label="Beam configuration preview"></svg>
+        </div>
 
-<!-- ════ PDF PROJECT INFO MODAL ═════════════════════════════════════ -->
-<div class="modal-overlay" id="pdf-modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
-  <div class="modal-box">
-    <h2 class="modal-title" id="modal-heading">📄 PDF Report Details</h2>
-    <p class="modal-subtitle">These details will appear on the cover page of your engineering report.</p>
-    <div class="modal-field">
-      <label for="modal-project">Project Name</label>
-      <input type="text" id="modal-project" placeholder="e.g. Office Building — Floor Beam B1" />
-    </div>
-    <div class="modal-field">
-      <label for="modal-engineer">Engineer's Name</label>
-      <input type="text" id="modal-engineer" placeholder="e.g. J. Smith, B.Eng (Struct)" />
-    </div>
-    <div class="modal-field">
-      <label for="modal-firm">Firm / Organization</label>
-      <input type="text" id="modal-firm" placeholder="e.g. Smith & Associates Structural Engineers" />
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" id="btn-modal-cancel">Cancel</button>
-      <button class="btn btn-primary" id="btn-modal-confirm">Generate PDF →</button>
+        <!-- ── RESULTS (shown after calculation) ── -->
+        <div id="results-section" role="region" aria-label="Calculation results">
+
+          <!-- Summary Badges -->
+          <div class="badges-grid">
+            <div class="badge-card badge-moment">
+              <div class="badge-label">Max Moment</div>
+              <div class="badge-value" id="badge-moment">—</div>
+            </div>
+            <div class="badge-card badge-shear">
+              <div class="badge-label">Max Shear</div>
+              <div class="badge-value" id="badge-shear">—</div>
+            </div>
+            <div class="badge-card badge-deflection">
+              <div class="badge-label">Max Deflection</div>
+              <div class="badge-value" id="badge-deflection">—</div>
+            </div>
+            <div class="badge-card badge-ratio">
+              <div class="badge-label">Span Ratio</div>
+              <div class="badge-value" id="badge-ratio">—</div>
+            </div>
+          </div>
+
+          <!-- Reactions Diagram -->
+          <div class="diagram-card">
+            <div class="diagram-header">
+              <span class="diagram-dot dot-reactions"></span>
+              <span class="diagram-title">Beam Configuration &amp; Reactions</span>
+              <span class="diagram-subtitle">Support reactions (upward = positive)</span>
+            </div>
+            <div class="diagram-body">
+              <svg id="svg-reactions" class="diagram-svg diagram-svg-tall" xmlns="http://www.w3.org/2000/svg"
+                aria-label="Beam reactions diagram"></svg>
+            </div>
+          </div>
+
+          <!-- SFD -->
+          <div class="diagram-card">
+            <div class="diagram-header">
+              <span class="diagram-dot dot-sfd"></span>
+              <span class="diagram-title">Shear Force Diagram (SFD)</span>
+              <span class="diagram-subtitle">V (kN) — hover for values</span>
+            </div>
+            <div class="diagram-body">
+              <svg id="svg-sfd" class="diagram-svg" xmlns="http://www.w3.org/2000/svg"
+                aria-label="Shear force diagram"></svg>
+            </div>
+            <div class="diagram-legend">
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:rgba(34,197,94,0.7)"></div>
+                Positive shear
+              </div>
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:rgba(239,68,68,0.7)"></div>
+                Negative shear
+              </div>
+            </div>
+          </div>
+
+          <!-- BMD -->
+          <div class="diagram-card">
+            <div class="diagram-header">
+              <span class="diagram-dot dot-bmd"></span>
+              <span class="diagram-title">Bending Moment Diagram (BMD)</span>
+              <span class="diagram-subtitle">M (kNm) — hover for values</span>
+            </div>
+            <div class="diagram-body">
+              <svg id="svg-bmd" class="diagram-svg" xmlns="http://www.w3.org/2000/svg"
+                aria-label="Bending moment diagram"></svg>
+            </div>
+            <div class="diagram-legend">
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:rgba(34,197,94,0.7)"></div>
+                Sagging (+)
+              </div>
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:rgba(239,68,68,0.7)"></div>
+                Hogging (−)
+              </div>
+            </div>
+          </div>
+
+          <!-- Deflection -->
+          <div class="diagram-card">
+            <div class="diagram-header">
+              <span class="diagram-dot dot-deflection"></span>
+              <span class="diagram-title">Deflection Diagram</span>
+              <span class="diagram-subtitle">δ (m) — hover for values</span>
+            </div>
+            <div class="diagram-body">
+              <svg id="svg-deflection" class="diagram-svg" xmlns="http://www.w3.org/2000/svg"
+                aria-label="Deflection diagram"></svg>
+            </div>
+            <div class="diagram-legend">
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:rgba(168,85,247,0.7)"></div>
+                Deflected shape (exaggerated)
+              </div>
+            </div>
+          </div>
+
+          <!-- Results Summary Table -->
+          <div class="results-card">
+            <div class="results-card-header">
+              <h2 style="font-size:0.9rem;color:var(--text-100);">📋 Detailed Results Summary</h2>
+            </div>
+            <table class="results-table" aria-label="Calculation results table">
+              <thead>
+                <tr>
+                  <th>Result</th>
+                  <th>Value</th>
+                  <th>Location / Notes</th>
+                </tr>
+              </thead>
+              <tbody id="results-table-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Export Section -->
+          <div id="export-section">
+            <div class="export-info">
+              <div class="export-title">📄 Download Report</div>
+              <div class="export-desc">Export a professional engineering report with all inputs, diagrams, and
+                calculations.</div>
+            </div>
+            <div class="export-buttons">
+              <button id="btn-export-pdf" disabled>📄 Download PDF</button>
+              <button id="btn-export-csv" disabled>📊 Download CSV</button>
+              <button id="btn-save-calc" disabled
+                style="background:var(--green);color:white;border:none;border-radius:var(--radius-sm);padding:9px 16px;font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.15s;">💾
+                Save Calculation</button>
+            </div>
+          </div>
+
+          <!-- Disclaimer note -->
+          <div
+            style="font-size:0.75rem;color:var(--text-500);text-align:center;padding:8px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+            ⚠️ <strong>Disclaimer:</strong> Results are for preliminary analysis only. All calculations must be
+            independently verified by a licensed structural engineer before use in design or construction.
+          </div>
+
+        </div><!-- end results-section -->
+      </main>
+    </div><!-- end main-container -->
+  </div><!-- end app -->
+
+  <!-- ════ PDF PROJECT INFO MODAL ═════════════════════════════════════ -->
+  <div class="modal-overlay" id="pdf-modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+    <div class="modal-box">
+      <h2 class="modal-title" id="modal-heading">📄 PDF Report Details</h2>
+      <p class="modal-subtitle">These details will appear on the cover page of your engineering report.</p>
+      <div class="modal-field">
+        <label for="modal-project">Project Name</label>
+        <input type="text" id="modal-project" placeholder="e.g. Office Building — Floor Beam B1" />
+      </div>
+      <div class="modal-field">
+        <label for="modal-engineer">Engineer's Name</label>
+        <input type="text" id="modal-engineer" placeholder="e.g. J. Smith, B.Eng (Struct)" />
+      </div>
+      <div class="modal-field">
+        <label for="modal-firm">Firm / Organization</label>
+        <input type="text" id="modal-firm" placeholder="e.g. Smith &amp; Associates Structural Engineers" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="btn-modal-confirm">Generate PDF →</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- ════ SCRIPTS ════════════════════════════════════════════════════ -->
-<script src="js/engine/utils.js"></script>
-<script src="js/engine/solver.js"></script>
-<script src="js/ui/diagrams.js"></script>
-<script src="js/ui/results.js"></script>
-<script src="js/ui/inputPanel.js"></script>
-<script src="js/report/csvExport.js"></script>
-<script src="js/report/pdfReport.js"></script>
-<script src="js/app.js"></script>
+  <!-- ════ SAVE CALCULATION MODAL ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="save-modal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 class="modal-title">💾 Save Calculation</h2>
+      <p class="modal-subtitle">Give this calculation a name so you can find it later.</p>
+      <div id="save-modal-project-name"
+        style="font-size:0.8rem;color:var(--text-muted);margin-bottom:14px;padding:8px 12px;background:var(--bg-subtle);border-radius:6px;">
+      </div>
+      <div class="modal-field">
+        <label for="save-calc-name">Calculation Name</label>
+        <input type="text" id="save-calc-name" placeholder="e.g. Beam B1 — Dead + Live Load Combo" maxlength="80" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-save-cancel"
+          onclick="document.getElementById('save-modal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-confirm">Save →</button>
+      </div>
+    </div>
+  </div>
 
-<script>
-// Global UI helpers
-function toggleSection(id) {
-  const section = document.getElementById(id);
-  section.classList.toggle('collapsed');
-}
-</script>
+  <!-- ════ PROJECT PICKER MODAL ════════════════════════════════════════ -->
+  <div class="modal-overlay" id="proj-picker-modal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 class="modal-title">📁 Select a Project</h2>
+      <p class="modal-subtitle">Your calculation will be saved to this project.</p>
+      <div id="proj-picker-list" style="max-height:240px;overflow-y:auto;margin-bottom:14px;"></div>
+      <div class="modal-field">
+        <label for="new-proj-name">Or create a new project</label>
+        <input type="text" id="new-proj-name" placeholder="New project name" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary"
+          onclick="document.getElementById('proj-picker-modal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" id="btn-create-proj-pick">Create &amp; Select →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SCRIPTS ════════════════════════════════════════════════════ -->
+  <script src="js/engine/utils.js"></script>
+  <script src="js/engine/solver.js"></script>
+  <script src="js/ui/diagrams.js"></script>
+  <script src="js/ui/results.js"></script>
+  <script src="js/ui/inputPanel.js"></script>
+  <script src="js/report/csvExport.js"></script>
+  <script src="js/report/pdfReport.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    // Global UI helpers
+    function toggleSection(id) {
+      const section = document.getElementById(id);
+      section.classList.toggle('collapsed');
+    }
+  </script>
 </body>
+
 </html>

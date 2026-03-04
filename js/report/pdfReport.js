@@ -7,30 +7,62 @@
  * Converts a live SVG DOM element to a PNG data URL via Blob + Image.
  * Works with inline gradients, fills, and CSS-styled SVG content.
  */
+/**
+ * Converts a live SVG DOM element to a PNG data URL via base64 data URI.
+ * Using base64 data URI (not Blob URL) avoids canvas cross-origin taint issues
+ * that prevent diagrams from rendering in jsPDF.
+ */
 function svgToDataURL(svgEl) {
     return new Promise((resolve, reject) => {
         try {
-            // Clone so we can set explicit dimensions without affecting the page
             const clone = svgEl.cloneNode(true);
             const bbox = svgEl.getBoundingClientRect();
-            clone.setAttribute('width', bbox.width || 600);
-            clone.setAttribute('height', bbox.height || 210);
-            clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            const w = Math.max(bbox.width || 600, 100);
+            const h = Math.max(bbox.height || 210, 60);
 
-            // Inline a white background rect at the start
+            clone.setAttribute('width', w);
+            clone.setAttribute('height', h);
+            clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+            // Ensure viewBox is set for proper scaling
+            if (!clone.getAttribute('viewBox')) {
+                clone.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            }
+
+            // Inline white background
             const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
             bgRect.setAttribute('x', '0'); bgRect.setAttribute('y', '0');
-            bgRect.setAttribute('width', '100%'); bgRect.setAttribute('height', '100%');
+            bgRect.setAttribute('width', w); bgRect.setAttribute('height', h);
             bgRect.setAttribute('fill', '#ffffff');
             clone.insertBefore(bgRect, clone.firstChild);
 
+            // Inline computed font-family on all text elements (avoids missing font issue)
+            clone.querySelectorAll('text').forEach(t => {
+                if (!t.getAttribute('font-family')) {
+                    t.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                }
+            });
+
             const serialized = new XMLSerializer().serializeToString(clone);
-            const blob = new Blob([serialized], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
+            // Use base64 data URI — avoids canvas taint restriction vs Blob URLs
+            const b64 = btoa(unescape(encodeURIComponent(serialized)));
+            const dataUri = `data:image/svg+xml;base64,${b64}`;
+
             const img = new Image();
-            img.onload = () => { URL.revokeObjectURL(url); resolve(url); };
-            img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
-            img.src = url;
+            img.onload = () => {
+                const scale = 2; // retina quality
+                const cvs = document.createElement('canvas');
+                cvs.width = w * scale;
+                cvs.height = h * scale;
+                const ctx = cvs.getContext('2d');
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, cvs.width, cvs.height);
+                ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
+                resolve(cvs.toDataURL('image/png'));
+            };
+            img.onerror = (e) => reject(new Error('SVG image load failed'));
+            img.src = dataUri;
         } catch (e) {
             reject(e);
         }
@@ -410,25 +442,19 @@ async function exportPDF(results, config, projectInfo) {
         y += 7;
 
         try {
-            const dataUrl = await svgToDataURL(el);
-            const tempImg = new Image();
-            await new Promise((res, rej) => { tempImg.onload = res; tempImg.onerror = rej; tempImg.src = dataUrl; });
-            const cvs = document.createElement('canvas');
-            cvs.width = el.clientWidth * 2;
-            cvs.height = el.clientHeight * 2;
-            const ctx = cvs.getContext('2d');
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, cvs.width, cvs.height);
-            ctx.drawImage(tempImg, 0, 0, cvs.width, cvs.height);
-            const img = cvs.toDataURL('image/png');
-            const imgH = Math.min((cvs.height / cvs.width) * COL, 52);
+            // svgToDataURL now returns a PNG data URL directly from canvas
+            const pngDataUrl = await svgToDataURL(el);
+            const bbox = el.getBoundingClientRect();
+            const aspectRatio = bbox.height / Math.max(bbox.width, 1);
+            const imgH = Math.min(aspectRatio * COL, 52);
             rect(ML, y, COL, imgH, WHITE, LIGHT);
-            doc.addImage(img, 'PNG', ML, y, COL, imgH);
+            doc.addImage(pngDataUrl, 'PNG', ML, y, COL, imgH);
             y += imgH + 6;
         } catch (e) {
+            console.warn('Diagram render failed:', d.id, e);
             rect(ML, y, COL, 20, [252, 252, 252], LIGHT);
             f(7.5, 'normal', LIGHT);
-            doc.text('Diagram not available in this environment.', ML + 4, y + 12);
+            doc.text('Diagram could not be rendered.', ML + 4, y + 12);
             y += 24;
         }
     }

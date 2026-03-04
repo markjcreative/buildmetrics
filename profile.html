@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile — BeamCalc Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script src="js/auth/auth.js"></script>
+    <link rel="stylesheet" href="css/main.css" />
+    <style>
+        .page-wrap {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .page-content {
+            flex: 1;
+            padding: 40px;
+            max-width: 640px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 36px;
+        }
+
+        .profile-section {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px 30px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group.full {
+            grid-column: 1/-1;
+        }
+
+        .form-group label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-group input {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            padding: 10px 13px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .alert {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .alert.error {
+            display: block;
+            background: var(--red-tint);
+            border: 1px solid #FECACA;
+            color: var(--red);
+        }
+
+        .alert.success {
+            display: block;
+            background: var(--green-tint);
+            border: 1px solid #BBF7D0;
+            color: var(--green);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 18px;
+        }
+
+        .avatar {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: white;
+            font-weight: 700;
+            margin-bottom: 14px;
+            flex-shrink: 0;
+        }
+
+        .profile-hero {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            background: linear-gradient(135deg, #F8F7FF, #EEF2FF);
+            border: 1px solid var(--accent-mid);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            margin-bottom: 20px;
+        }
+
+        .profile-hero-info .name {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .profile-hero-info .email {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .profile-hero-info .role {
+            font-size: 0.78rem;
+            color: var(--accent);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrap">
+
+        <nav id="navbar" role="navigation">
+            <a href="/projects.html" class="nav-brand">
+                <div class="nav-logo">⚙</div>
+                <div>
+                    <div class="nav-title">BeamCalc Pro</div>
+                    <div class="nav-subtitle">Structural Analysis</div>
+                </div>
+            </a>
+            <div class="nav-spacer"></div>
+            <div class="nav-actions">
+                <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
+                <button class="btn-nav" onclick="Auth.logout()">⏏ Sign Out</button>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="page-title">Profile</div>
+            <div class="page-subtitle">Manage your account details and engineering credentials.</div>
+
+            <!-- Hero -->
+            <div class="profile-hero">
+                <div class="avatar" id="avatar-initials">?</div>
+                <div class="profile-hero-info">
+                    <div class="name" id="hero-name">—</div>
+                    <div class="email" id="hero-email">—</div>
+                    <div class="role" id="hero-role">—</div>
+                </div>
+            </div>
+
+            <!-- Profile Details -->
+            <div class="profile-section">
+                <div class="section-title">Personal Information</div>
+                <div class="alert" id="profile-alert"></div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="prof-name">Full Name</label>
+                        <input type="text" id="prof-name" placeholder="e.g. James Smith" />
+                    </div>
+                    <div class="form-group">
+                        <label for="prof-designation">Designation</label>
+                        <input type="text" id="prof-designation" placeholder="e.g. B.Eng (Structural)" />
+                    </div>
+                    <div class="form-group full">
+                        <label for="prof-company">Company / Firm</label>
+                        <input type="text" id="prof-company" placeholder="e.g. Smith & Associates Engineers" />
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="saveProfile()">Save Changes →</button>
+                </div>
+            </div>
+
+            <!-- Reset Password -->
+            <div class="profile-section">
+                <div class="section-title">Change Password</div>
+                <div class="alert" id="pw-alert"></div>
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label for="pw-current">Current Password</label>
+                        <input type="password" id="pw-current" placeholder="Enter your current password" />
+                    </div>
+                    <div class="form-group">
+                        <label for="pw-new">New Password</label>
+                        <input type="password" id="pw-new" placeholder="Min. 6 characters" />
+                    </div>
+                    <div class="form-group">
+                        <label for="pw-confirm">Confirm New Password</label>
+                        <input type="password" id="pw-confirm" placeholder="Repeat new password" />
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="changePassword()">Update Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        Auth.guard();
+        const user = Auth.currentUser();
+        if (!user) Auth.logout();
+
+        // Fill hero
+        function updateHero() {
+            const u = Auth.currentUser();
+            const initials = (u.name || u.email || '?').charAt(0).toUpperCase();
+            document.getElementById('avatar-initials').textContent = initials;
+            document.getElementById('hero-name').textContent = u.name || '—';
+            document.getElementById('hero-email').textContent = u.email;
+            const role = [u.designation, u.company].filter(Boolean).join(' — ');
+            document.getElementById('hero-role').textContent = role || 'No designation set';
+        }
+
+        // Fill form
+        function fillForm() {
+            const u = Auth.currentUser();
+            document.getElementById('prof-name').value = u.name || '';
+            document.getElementById('prof-designation').value = u.designation || '';
+            document.getElementById('prof-company').value = u.company || '';
+        }
+
+        fillForm();
+        updateHero();
+
+        function showAlert(id, msg, type = 'error') {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'alert ' + type;
+            setTimeout(() => { el.className = 'alert'; }, 4000);
+        }
+
+        async function saveProfile() {
+            const name = document.getElementById('prof-name').value.trim();
+            const designation = document.getElementById('prof-designation').value.trim();
+            const company = document.getElementById('prof-company').value.trim();
+            if (!name) { showAlert('profile-alert', 'Full name is required.'); return; }
+            try {
+                await Auth.updateProfile({ name, designation, company });
+                fillForm();
+                updateHero();
+                showAlert('profile-alert', '✓ Profile updated successfully.', 'success');
+            } catch (e) {
+                showAlert('profile-alert', e.message);
+            }
+        }
+
+        async function changePassword() {
+            const curr = document.getElementById('pw-current').value;
+            const newPw = document.getElementById('pw-new').value;
+            const conf = document.getElementById('pw-confirm').value;
+            if (!curr || !newPw || !conf) { showAlert('pw-alert', 'Please fill in all password fields.'); return; }
+            if (newPw !== conf) { showAlert('pw-alert', 'New passwords do not match.'); return; }
+            try {
+                await Auth.resetPassword(curr, newPw);
+                document.getElementById('pw-current').value = '';
+                document.getElementById('pw-new').value = '';
+                document.getElementById('pw-confirm').value = '';
+                showAlert('pw-alert', '✓ Password changed successfully.', 'success');
+            } catch (e) {
+                showAlert('pw-alert', e.message);
+            }
+        }
+    </script>
+</body>
+
+</html>

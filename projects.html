@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Projects — BeamCalc Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script src="js/auth/auth.js"></script>
+    <script src="js/projects/history.js"></script>
+    <script src="js/projects/projects.js"></script>
+    <link rel="stylesheet" href="css/main.css" />
+    <style>
+        .page-wrap {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .page-content {
+            flex: 1;
+            padding: 36px 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        /* New project card */
+        .project-card-new {
+            border: 2px dashed var(--border-strong);
+            border-radius: var(--radius-lg);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            color: var(--text-muted);
+            min-height: 172px;
+        }
+
+        .project-card-new:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .project-card-new .plus {
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .project-card-new .new-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Project card */
+        .project-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            min-height: 172px;
+        }
+
+        .project-card:hover {
+            box-shadow: var(--shadow);
+            border-color: var(--accent-mid);
+            transform: translateY(-2px);
+        }
+
+        .project-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .project-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .project-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .project-meta {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: auto;
+        }
+
+        .project-meta-item {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-icon {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.15s;
+            color: var(--text-muted);
+        }
+
+        .btn-icon:hover {
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+        }
+
+        .btn-icon.danger:hover {
+            border-color: var(--red);
+            color: var(--red);
+            background: var(--red-tint);
+        }
+
+        .calc-count-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--accent-light);
+            color: var(--accent);
+            border: 1px solid var(--accent-mid);
+            border-radius: 20px;
+            padding: 2px 9px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 0.85rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            width: 460px;
+            box-shadow: var(--shadow-lg);
+            animation: popIn 0.2s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .modal-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .modal-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 14px;
+        }
+
+        .modal-field label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .modal-field input,
+        .modal-field textarea {
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            outline: none;
+            transition: border-color 0.15s;
+            resize: none;
+        }
+
+        .modal-field input:focus,
+        .modal-field textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1E293B;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.25s;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrap">
+
+        <!-- Navbar -->
+        <nav id="navbar" role="navigation">
+            <a href="/projects.html" class="nav-brand">
+                <div class="nav-logo">⚙</div>
+                <div>
+                    <div class="nav-title">BeamCalc Pro</div>
+                    <div class="nav-subtitle">Structural Analysis</div>
+                </div>
+            </a>
+            <div class="nav-spacer"></div>
+            <div class="nav-actions">
+                <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
+                <button class="btn-nav" onclick="Auth.logout()">⏏ Sign Out</button>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="page-header">
+                <div>
+                    <div class="page-title" id="greeting">My Projects</div>
+                    <div class="page-subtitle">Select a project to start or continue your calculations.</div>
+                </div>
+                <button class="btn btn-primary" onclick="openCreateModal()">＋ New Project</button>
+            </div>
+
+            <div id="projects-container">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- New/Edit Project Modal -->
+    <div class="modal-overlay" id="create-modal">
+        <div class="modal-box">
+            <div class="modal-title" id="modal-heading-text">New Project</div>
+            <div class="modal-sub">Give your project a name to organise your calculations.</div>
+            <div class="modal-field">
+                <label for="proj-name">Project Name *</label>
+                <input type="text" id="proj-name" placeholder="e.g. Office Building — Level 3 Beams" maxlength="80" />
+            </div>
+            <div class="modal-field">
+                <label for="proj-desc">Description (optional)</label>
+                <textarea id="proj-desc" rows="2"
+                    placeholder="e.g. Secondary beam grid at Level 3, grid B-D"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
+                <button class="btn btn-primary" id="modal-confirm-btn" onclick="confirmProject()">Create Project
+                    →</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        Auth.guard();
+
+        const user = Auth.currentUser();
+        if (user) document.getElementById('greeting').textContent = `${user.name ? user.name + "'s " : ''}Projects`;
+
+        let editingId = null;
+
+        function renderProjects() {
+            const projects = Projects.list();
+            const container = document.getElementById('projects-container');
+
+            if (projects.length === 0) {
+                container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📁</div>
+          <h3>No projects yet</h3>
+          <p>Create your first project to start organising your beam calculations.</p>
+        </div>`;
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'projects-grid';
+
+            // New project card first
+            const newCard = document.createElement('div');
+            newCard.className = 'project-card-new';
+            newCard.onclick = openCreateModal;
+            newCard.innerHTML = `<div class="plus">＋</div><div class="new-label">New Project</div>`;
+            grid.appendChild(newCard);
+
+            projects.forEach(proj => {
+                const calcCount = History.count(proj.id);
+                const updated = new Date(proj.updatedAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                const card = document.createElement('div');
+                card.className = 'project-card';
+                card.innerHTML = `
+        <div class="project-card-top">
+          <div class="project-name">${escHtml(proj.name)}</div>
+          <div class="project-actions">
+            <button class="btn-icon" title="Edit" onclick="event.stopPropagation(); editProject('${proj.id}')">✏️</button>
+            <button class="btn-icon danger" title="Delete" onclick="event.stopPropagation(); deleteProject('${proj.id}', '${escHtml(proj.name)}')">🗑</button>
+          </div>
+        </div>
+        ${proj.description ? `<div class="project-desc">${escHtml(proj.description)}</div>` : ''}
+        <div class="project-meta">
+          <span class="calc-count-badge">📊 ${calcCount} calculation${calcCount !== 1 ? 's' : ''}</span>
+          <span class="project-meta-item">🕐 ${updated}</span>
+        </div>`;
+
+                card.onclick = () => openProject(proj.id);
+                grid.appendChild(card);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(grid);
+        }
+
+        function openProject(id) {
+            Projects.setActive(id);
+            window.location.href = `/history.html?project=${id}`;
+        }
+
+        function openCreateModal() {
+            editingId = null;
+            document.getElementById('proj-name').value = '';
+            document.getElementById('proj-desc').value = '';
+            document.getElementById('modal-heading-text').textContent = 'New Project';
+            document.getElementById('modal-confirm-btn').textContent = 'Create Project →';
+            document.getElementById('create-modal').classList.add('open');
+            setTimeout(() => document.getElementById('proj-name').focus(), 100);
+        }
+
+        function editProject(id) {
+            const proj = Projects.get(id);
+            if (!proj) return;
+            editingId = id;
+            document.getElementById('proj-name').value = proj.name;
+            document.getElementById('proj-desc').value = proj.description || '';
+            document.getElementById('modal-heading-text').textContent = 'Edit Project';
+            document.getElementById('modal-confirm-btn').textContent = 'Save Changes →';
+            document.getElementById('create-modal').classList.add('open');
+            setTimeout(() => document.getElementById('proj-name').focus(), 100);
+        }
+
+        function closeCreateModal() {
+            document.getElementById('create-modal').classList.remove('open');
+            editingId = null;
+        }
+
+        function confirmProject() {
+            const name = document.getElementById('proj-name').value.trim();
+            const desc = document.getElementById('proj-desc').value.trim();
+            if (!name) { document.getElementById('proj-name').focus(); return; }
+            try {
+                if (editingId) {
+                    Projects.update(editingId, { name, description: desc });
+                    showToast('Project updated.');
+                } else {
+                    Projects.create(name, desc);
+                    showToast('Project created!');
+                }
+                closeCreateModal();
+                renderProjects();
+            } catch (e) { alert(e.message); }
+        }
+
+        function deleteProject(id, name) {
+            if (!confirm(`Delete project "${name}" and all its calculations?\n\nThis cannot be undone.`)) return;
+            Projects.remove(id);
+            renderProjects();
+            showToast('Project deleted.');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        function escHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Keyboard: Enter in modal
+        document.getElementById('proj-name').addEventListener('keydown', e => { if (e.key === 'Enter') confirmProject(); });
+
+        // Close modal on overlay click
+        document.getElementById('create-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeCreateModal(); });
+
+        renderProjects();
+    </script>
+</body>
+
+</html>
