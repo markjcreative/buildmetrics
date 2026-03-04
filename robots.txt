@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://beam-calculator-red.vercel.app/sitemap.xml
