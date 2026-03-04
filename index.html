@@ -32,7 +32,11 @@
     <!-- ════ NAVBAR ════════════════════════════════════════════════════ -->
     <nav id="navbar" role="navigation" aria-label="Main navigation">
       <a href="/projects.html" class="nav-brand">
-        <div class="nav-logo">⚙</div>
+        <div class="nav-logo">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L5 9h4v5H7l5 8 5-8h-2V9h4L12 2z" />
+          </svg>
+        </div>
         <div>
           <div class="nav-title">BeamCalc Pro</div>
           <div class="nav-subtitle">Structural Analysis</div>
@@ -41,7 +45,7 @@
       <div class="nav-spacer"></div>
       <!-- Active project breadcrumb -->
       <div id="nav-project-badge"
-        style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+        style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--glass-border);border-radius:6px;padding:4px 12px;background:var(--glass);backdrop-filter:blur(8px);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
         📁 <span id="nav-project-name">—</span>
       </div>
       <div class="nav-actions">

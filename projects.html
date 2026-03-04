@@ -56,7 +56,7 @@
 
         /* New project card */
         .project-card-new {
-            border: 2px dashed var(--border-strong);
+            border: 2px dashed var(--glass-strong);
             border-radius: var(--radius-lg);
             padding: 32px 24px;
             display: flex;
@@ -66,7 +66,8 @@
             gap: 10px;
             cursor: pointer;
             transition: all 0.2s;
-            background: white;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
             color: var(--text-muted);
             min-height: 172px;
         }
@@ -87,10 +88,10 @@
             font-weight: 600;
         }
 
-        /* Project card */
+        /* Project card — glassmorphism */
         .project-card {
-            background: white;
-            border: 1px solid var(--border);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
             padding: 22px 24px;
             display: flex;
@@ -100,12 +101,26 @@
             box-shadow: var(--shadow-sm);
             cursor: pointer;
             min-height: 172px;
+            backdrop-filter: blur(16px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-strong), transparent);
         }
 
         .project-card:hover {
             box-shadow: var(--shadow);
-            border-color: var(--accent-mid);
-            transform: translateY(-2px);
+            border-color: var(--glass-strong);
+            transform: translateY(-3px);
+            background: var(--glass-hover);
         }
 
         .project-card-top {
@@ -153,9 +168,9 @@
         .btn-icon {
             width: 28px;
             height: 28px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--glass-border);
             border-radius: 6px;
-            background: white;
+            background: var(--glass);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -166,7 +181,7 @@
         }
 
         .btn-icon:hover {
-            border-color: var(--border-strong);
+            border-color: var(--glass-strong);
             color: var(--text-primary);
         }
 
@@ -210,12 +225,13 @@
             font-size: 0.85rem;
         }
 
-        /* Modal */
+        /* Modal — inherits from main.css but define local ones */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(7, 28, 44, 0.75);
+            backdrop-filter: blur(8px);
             z-index: 500;
             align-items: center;
             justify-content: center;
@@ -226,12 +242,25 @@
         }
 
         .modal-box {
-            background: white;
-            border-radius: var(--radius-lg);
+            background: rgba(13, 45, 66, 0.96);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
             padding: 32px;
-            width: 460px;
+            width: min(460px, 94vw);
             box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(24px);
             animation: popIn 0.2s ease;
+            position: relative;
+        }
+
+        .modal-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-strong), transparent);
         }
 
         @keyframes popIn {
@@ -247,8 +276,9 @@
         }
 
         .modal-title {
-            font-size: 1.15rem;
-            font-weight: 700;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-primary);
             margin-bottom: 6px;
         }
 
@@ -273,20 +303,28 @@
 
         .modal-field input,
         .modal-field textarea {
-            border: 1.5px solid var(--border);
+            border: 1px solid var(--glass-border);
             border-radius: 8px;
+            background: rgba(170, 207, 223, 0.06);
+            color: var(--text-primary);
             padding: 10px 12px;
             font-family: 'Inter', sans-serif;
             font-size: 0.88rem;
             outline: none;
-            transition: border-color 0.15s;
+            transition: all 0.15s;
             resize: none;
         }
 
         .modal-field input:focus,
         .modal-field textarea:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+            border-color: var(--sky);
+            background: rgba(170, 207, 223, 0.10);
+            box-shadow: 0 0 0 3px rgba(170, 207, 223, 0.12);
+        }
+
+        .modal-field input::placeholder,
+        .modal-field textarea::placeholder {
+            color: var(--text-disabled);
         }
 
         .modal-actions {
@@ -296,18 +334,18 @@
             margin-top: 20px;
         }
 
-        /* Toast */
         #toast {
             position: fixed;
             bottom: 24px;
             right: 24px;
-            background: #1E293B;
-            color: white;
+            background: rgba(7, 28, 44, 0.95);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
             padding: 12px 20px;
             border-radius: 8px;
             font-size: 0.82rem;
             font-weight: 500;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(12px);
             opacity: 0;
             transform: translateY(10px);
             transition: all 0.25s;
@@ -328,7 +366,11 @@
         <!-- Navbar -->
         <nav id="navbar" role="navigation">
             <a href="/projects.html" class="nav-brand">
-                <div class="nav-logo">⚙</div>
+                <div class="nav-logo">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L5 9h4v5H7l5 8 5-8h-2V9h4L12 2z" />
+                    </svg>
+                </div>
                 <div>
                     <div class="nav-title">BeamCalc Pro</div>
                     <div class="nav-subtitle">Structural Analysis</div>
