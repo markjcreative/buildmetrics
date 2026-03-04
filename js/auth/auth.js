@@ -114,7 +114,50 @@ const Auth = (() => {
         return true;
     }
 
-    return { register, login, logout, currentUser, guard, updateProfile, resetPassword };
+    async function loginWithGoogle(payload) {
+        /**
+         * payload = decoded Google JWT fields:
+         * { sub, email, name, picture }
+         */
+        const { sub, email, name } = payload;
+        if (!sub || !email) throw new Error('Invalid Google credentials.');
+
+        const users = getUsers();
+
+        // 1. Try to find by googleSub
+        let user = users.find(u => u.googleSub === sub);
+
+        // 2. Try to find by email (link existing email account)
+        if (!user) {
+            user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+            if (user) {
+                // Link the Google sub to this account
+                user.googleSub = sub;
+                saveUsers(users);
+            }
+        }
+
+        // 3. Create a new account
+        if (!user) {
+            user = {
+                id: 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                email: email.toLowerCase().trim(),
+                name: (name || email.split('@')[0]).trim(),
+                hash: null,          // no password for Google users
+                googleSub: sub,
+                designation: '',
+                company: '',
+                createdAt: new Date().toISOString()
+            };
+            users.push(user);
+            saveUsers(users);
+        }
+
+        _setSession(user);
+        return user;
+    }
+
+    return { register, login, loginWithGoogle, logout, currentUser, guard, updateProfile, resetPassword };
 })();
 
 window.Auth = Auth;

@@ -178,7 +178,7 @@
             font-weight: 500;
         }
 
-        /* Subscription section */
+        /* Subscription & Billing */
         .sub-plan-row {
             display: flex;
             align-items: center;
@@ -209,11 +209,56 @@
             border: 1px solid #C7D2FE;
         }
 
+        .plan-badge.cancelled {
+            background: #FFF7ED;
+            color: #C2410C;
+            border: 1px solid #FED7AA;
+        }
+
+        .sub-meta-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+            padding: 14px 18px;
+            background: #FAFAFA;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .sub-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sub-meta-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .sub-meta-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sub-meta-value.warn {
+            color: #C2410C;
+        }
+
+        .sub-meta-value.green {
+            color: #16A34A;
+        }
+
         .sub-usage-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 14px;
-            margin-top: 18px;
+            margin-top: 14px;
         }
 
         .sub-usage-item {
@@ -261,27 +306,91 @@
             background: #F97316;
         }
 
-        .sub-bar-fill.unlimited {
-            background: #16A34A;
-            width: 100% !important;
+        .billing-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 22px 0 10px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
         }
 
-        .sub-pro-active {
-            display: flex;
+        .billing-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .billing-table th {
+            text-align: left;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 0 10px 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .billing-table td {
+            padding: 10px;
+            border-bottom: 1px solid #F5F5F5;
+            color: var(--text-secondary);
+            vertical-align: middle;
+        }
+
+        .billing-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .billing-badge {
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            background: #F0FDF4;
-            border: 1px solid #BBF7D0;
-            border-radius: 10px;
-            padding: 14px 18px;
-            margin-top: 16px;
-            font-size: 0.85rem;
-            color: #15803D;
-            font-weight: 600;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
         }
 
-        .sub-pro-icon {
-            font-size: 1.3rem;
+        .billing-badge.paid {
+            background: #F0FDF4;
+            color: #16A34A;
+            border: 1px solid #BBF7D0;
+        }
+
+        .billing-badge.cancelled {
+            background: #FFF7ED;
+            color: #C2410C;
+            border: 1px solid #FED7AA;
+        }
+
+        .billing-empty {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .btn-cancel-sub {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: white;
+            color: #DC2626;
+            border: 1.5px solid #FECACA;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-cancel-sub:hover {
+            background: #FEF2F2;
+            border-color: #DC2626;
         }
 
         .btn-upgrade-profile {
@@ -305,6 +414,67 @@
         .btn-upgrade-profile:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+        }
+
+        #cancel-confirm-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #cancel-confirm-overlay.open {
+            display: flex;
+        }
+
+        .cancel-dialog {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+            animation: popIn 0.2s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .cancel-dialog-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .cancel-dialog-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .cancel-dialog-body {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .cancel-dialog-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
         }
     </style>
 </head>
@@ -341,14 +511,16 @@
                 </div>
             </div>
 
-            <!-- Subscription Section -->
+            <!-- Subscription & Billing Section -->
             <div class="profile-section" id="sub-section">
-                <div class="section-title">Subscription</div>
+                <div class="section-title">Subscription &amp; Billing</div>
+                <div class="alert" id="sub-cancel-alert"></div>
                 <div class="sub-plan-row">
                     <div id="sub-plan-badge" class="plan-badge free">Free Plan</div>
                     <div id="sub-cta"></div>
                 </div>
-                <div id="sub-usage-area"></div>
+                <div id="sub-meta-area"></div>
+                <div id="sub-billing-area"></div>
             </div>
 
             <!-- Profile Details -->
@@ -404,58 +576,140 @@
         const user = Auth.currentUser();
         if (!user) Auth.logout();
 
-        // ── Subscription section ─────────────────────────────────
+        // ── Subscription & Billing section ────────────────────────
         function renderSubSection() {
             const isPro = Subscription.isPro(user.id);
-            const usage = Subscription.usage(user.id);
             const sub = Subscription.get(user.id);
+            const usage = Subscription.usage(user.id);
+            const history = Subscription.getBillingHistory(user.id);
+            const isCancelledPending = sub.cancelAtPeriodEnd && isPro;
 
-            // Badge
+            // ── Plan badge ──
             const badge = document.getElementById('sub-plan-badge');
-            badge.className = 'plan-badge ' + (isPro ? 'pro' : 'free');
-            badge.textContent = isPro ? '⚡ Pro Plan' : 'Free Plan';
+            if (isPro && isCancelledPending) {
+                badge.className = 'plan-badge cancelled';
+                badge.textContent = '⚡ Pro — Cancels Soon';
+            } else if (isPro) {
+                badge.className = 'plan-badge pro';
+                badge.textContent = '⚡ Pro Plan';
+            } else {
+                badge.className = 'plan-badge free';
+                badge.textContent = 'Free Plan';
+            }
 
-            // CTA
+            // ── CTA / Cancel button ──
             const cta = document.getElementById('sub-cta');
-            if (isPro) {
-                const since = sub.subscribedAt ? new Date(sub.subscribedAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-                cta.innerHTML = `<span style="font-size:0.78rem;color:var(--text-muted);">Active since ${since}</span>`;
+            if (isPro && !isCancelledPending) {
+                cta.innerHTML = `<button class="btn-cancel-sub" onclick="openCancelDialog()">✕ Cancel Subscription</button>`;
+            } else if (isPro && isCancelledPending) {
+                cta.innerHTML = `<span style="font-size:0.78rem;color:#C2410C;">Cancels on ${fmtDate(sub.expiresAt)}</span>`;
             } else {
                 cta.innerHTML = `<a href="/pricing.html" class="btn-upgrade-profile">⚡ Upgrade to Pro — $59/month</a>`;
             }
 
-            // Usage area
-            const area = document.getElementById('sub-usage-area');
+            // ── Meta row (Pro only) ──
+            const metaArea = document.getElementById('sub-meta-area');
             if (isPro) {
-                area.innerHTML = `
-                    <div class="sub-pro-active">
-                        <span class="sub-pro-icon">✨</span>
-                        <div>
-                            <div>You’re on <strong>BeamCalc Pro</strong> — unlimited projects and calculations.</div>
-                            <div style="font-size:0.78rem;margin-top:2px;opacity:0.8;">Thank you for supporting BeamCalc Pro!</div>
+                metaArea.innerHTML = `
+                    <div class="sub-meta-row">
+                        <div class="sub-meta-item">
+                            <div class="sub-meta-label">Plan</div>
+                            <div class="sub-meta-value green">BeamCalc Pro</div>
+                        </div>
+                        <div class="sub-meta-item">
+                            <div class="sub-meta-label">Member Since</div>
+                            <div class="sub-meta-value">${fmtDate(sub.subscribedAt)}</div>
+                        </div>
+                        <div class="sub-meta-item">
+                            <div class="sub-meta-label">${isCancelledPending ? 'Access Until' : 'Next Billing'}</div>
+                            <div class="sub-meta-value ${isCancelledPending ? 'warn' : ''}">${sub.expiresAt ? fmtDate(sub.expiresAt) : '—'}</div>
+                        </div>
+                        ${isCancelledPending ? `
+                        <div class="sub-meta-item">
+                            <div class="sub-meta-label">Cancelled On</div>
+                            <div class="sub-meta-value warn">${fmtDate(sub.cancelledAt)}</div>
+                        </div>` : ''}
+                        <div class="sub-meta-item">
+                            <div class="sub-meta-label">Amount</div>
+                            <div class="sub-meta-value">$${PRO_PRICE_USD} USD/mo</div>
                         </div>
                     </div>`;
             } else {
+                // Free user: usage bars
                 const projPct = Math.min((usage.projects / FREE_LIMITS.projects) * 100, 100);
                 const calcPct = Math.min((usage.calculations / FREE_LIMITS.calculations) * 100, 100);
-                const projFull = usage.projects >= FREE_LIMITS.projects;
-                const calcFull = usage.calculations >= FREE_LIMITS.calculations;
-
-                area.innerHTML = `
+                metaArea.innerHTML = `
                     <div class="sub-usage-grid">
                         <div class="sub-usage-item">
                             <div class="sub-usage-item-label">📁 Projects</div>
                             <div class="sub-usage-item-count">${usage.projects} <span>/ ${FREE_LIMITS.projects}</span></div>
-                            <div class="sub-bar-track"><div class="sub-bar-fill${projFull ? ' full' : ''}" style="width:${projPct}%"></div></div>
+                            <div class="sub-bar-track"><div class="sub-bar-fill${usage.projects >= FREE_LIMITS.projects ? ' full' : ''}" style="width:${projPct}%"></div></div>
                         </div>
                         <div class="sub-usage-item">
                             <div class="sub-usage-item-label">📊 Calculations</div>
                             <div class="sub-usage-item-count">${usage.calculations} <span>/ ${FREE_LIMITS.calculations}</span></div>
-                            <div class="sub-bar-track"><div class="sub-bar-fill${calcFull ? ' full' : ''}" style="width:${calcPct}%"></div></div>
+                            <div class="sub-bar-track"><div class="sub-bar-fill${usage.calculations >= FREE_LIMITS.calculations ? ' full' : ''}" style="width:${calcPct}%"></div></div>
                         </div>
                     </div>`;
             }
+
+            // ── Billing History ──
+            const billingArea = document.getElementById('sub-billing-area');
+            if (history.length > 0) {
+                const rows = history.map(evt => `
+                    <tr>
+                        <td>${fmtDate(evt.date)}</td>
+                        <td style="font-weight:600;color:var(--text-primary);">${evtLabel(evt.type)}</td>
+                        <td>${evt.amount != null ? `$${evt.amount} USD` : '—'}</td>
+                        <td><span class="billing-badge ${evt.status === 'paid' ? 'paid' : 'cancelled'}">${evt.status === 'paid' ? '✓ Paid' : '✕ Cancelled'}</span></td>
+                        <td style="color:var(--text-muted);font-size:0.78rem;">${evt.note || ''}</td>
+                    </tr>`).join('');
+
+                billingArea.innerHTML = `
+                    <div class="billing-title">Billing History</div>
+                    <table class="billing-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Event</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>`;
+            } else if (isPro) {
+                billingArea.innerHTML = `<div class="billing-title">Billing History</div><div class="billing-empty">No billing events yet.</div>`;
+            } else {
+                billingArea.innerHTML = '';
+            }
         }
+
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function evtLabel(type) {
+            return { subscribed: '🎉 Subscribed', renewed: '🔄 Renewed', cancelled: '✕ Cancelled' }[type] || type;
+        }
+
+        function openCancelDialog() {
+            document.getElementById('cancel-confirm-overlay').classList.add('open');
+        }
+
+        function closeCancelDialog() {
+            document.getElementById('cancel-confirm-overlay').classList.remove('open');
+        }
+
+        function confirmCancel() {
+            Subscription.cancel(user.id);
+            closeCancelDialog();
+            renderSubSection();
+            showAlert('profile-alert', '✓ Subscription cancelled. Your Pro access continues until the end of the billing period.', 'success');
+        }
+
         renderSubSection();
 
         // ── Hero ─────────────────────────────────────────
@@ -519,6 +773,26 @@
             }
         }
     </script>
+    <!-- Cancel Subscription Confirmation Dialog -->
+    <div id="cancel-confirm-overlay">
+        <div class="cancel-dialog">
+            <div class="cancel-dialog-icon">⚠️</div>
+            <div class="cancel-dialog-title">Cancel your Pro subscription?</div>
+            <div class="cancel-dialog-body">
+                Your Pro access will continue until the end of your current billing period. After that, your account
+                will revert to the Free plan (1 project, 5 calculations).<br /><br />
+                <strong>You will not be charged again.</strong>
+            </div>
+            <div class="cancel-dialog-actions">
+                <button class="btn btn-secondary" onclick="closeCancelDialog()">Keep Pro</button>
+                <button class="btn"
+                    style="background:#DC2626;color:white;border:none;border-radius:8px;padding:10px 18px;font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;"
+                    onclick="confirmCancel()">
+                    Yes, Cancel Subscription
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
