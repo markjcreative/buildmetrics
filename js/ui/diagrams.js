@@ -2,24 +2,24 @@
  * diagrams.js — SVG diagram rendering for SFD, BMD, Deflection, and Beam Preview
  */
 
-const DIAGRAM_PADDING = { top: 44, right: 32, bottom: 54, left: 72 };
+const DIAGRAM_PADDING = { top: 40, right: 30, bottom: 50, left: 70 };
 const COLORS = {
-    beam: '#0B2639',          /* navy beam body */
-    positive: 'rgba(21,128,61,0.22)',   /* green fill — positive BM */
-    negative: 'rgba(242,78,36,0.20)',   /* orange fill — negative BM */
-    positiveLine: '#15803D',          /* dark green line */
-    negativeLine: '#F24E24',          /* brand orange line */
-    deflection: 'rgba(11,38,57,0.15)',    /* navy fill — deflection */
-    deflectionLine: '#0B2639',          /* navy line */
-    neutral: '#94BACB',          /* sky blue neutral */
-    support: '#0B2639',          /* navy supports */
-    load: '#F24E24',          /* orange loads */
-    moment: '#D97706',          /* amber moment */
-    reaction: '#3D8FAE',          /* sky-dark reactions */
-    grid: 'rgba(11,38,57,0.07)',
-    axis: 'rgba(11,38,57,0.25)',
-    text: '#1A3E58',          /* readable navy text */
-    beamBody: '#0B2639'           /* navy beam */
+    beam: '#4F46E5',
+    positive: 'rgba(22,163,74,0.30)',
+    negative: 'rgba(220,38,38,0.30)',
+    positiveLine: '#16A34A',
+    negativeLine: '#DC2626',
+    deflection: 'rgba(124,58,237,0.28)',
+    deflectionLine: '#7C3AED',
+    neutral: '#94A3B8',
+    support: '#D97706',
+    load: '#EA580C',
+    moment: '#DB2777',
+    reaction: '#0EA5E9',
+    grid: 'rgba(100,116,139,0.12)',
+    axis: 'rgba(100,116,139,0.45)',
+    text: '#475569',
+    beamBody: '#4F46E5'
 };
 
 // ─── Coordinate Helpers ─────────────────────────────────────────────────────
