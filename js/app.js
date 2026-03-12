@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             if (e.message === 'FREE_LIMIT_PROJECTS') {
                 document.getElementById('proj-picker-modal').classList.remove('open');
+                showToast('Free plan limit reached — upgrade to Pro to continue.', 'warning');
                 UpgradeModal.show('projects');
             } else { alert(e.message); }
         }
@@ -120,11 +121,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // ── Welcome animation ────────────────────────────────────────────────
-    setTimeout(() => {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
         const wb = document.getElementById('welcome-banner');
-        wb.style.opacity = '1';
-        wb.style.transform = 'translateY(0)';
-    }, 200);
+        if (wb) { wb.style.opacity = '1'; wb.style.transform = 'translateY(0)'; }
+    }));
+
+    // ── Modal backdrop dismiss ────────────────────────────────────────────
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) {
+                // For pdf-modal, trigger cancel to resolve the pending Promise
+                const cancelBtn = overlay.querySelector('#btn-modal-cancel');
+                if (cancelBtn) cancelBtn.click();
+                else overlay.classList.remove('open');
+            }
+        });
+    });
 });
 
 /* ── Save Calculation Modal ─────────────────────────────────── */
@@ -180,6 +192,7 @@ function doSaveCalc() {
     } catch (e) {
         if (e.message === 'FREE_LIMIT_CALCS') {
             document.getElementById('save-modal').classList.remove('open');
+            showToast('Free plan limit reached — upgrade to Pro to continue.', 'warning');
             UpgradeModal.show('calcs');
         } else {
             alert('Save failed: ' + e.message);
@@ -214,31 +227,33 @@ function restoreCalcState(calc) {
     InputPanel.updateBeamPreview();
 
     // Auto-run the calculation
-    setTimeout(() => {
-        try {
-            window._beamSolverPointLoads = config.loads.filter(l => l.type === 'point');
-            const results = BeamSolver.solveBeam(config);
-            window._lastResults = results;
-            window._lastConfig = config;
-            BeamResults.renderResults(results, config);
-            BeamDiagrams.renderAll(results, config);
-            document.getElementById('results-section').classList.add('visible');
-            document.getElementById('btn-export-pdf').disabled = false;
-            document.getElementById('btn-export-csv').disabled = false;
-            document.getElementById('btn-save-calc').disabled = false;
-        } catch { }
-    }, 300);
+    try {
+        const results = BeamSolver.solveBeam(config);
+        window._lastResults = results;
+        window._lastConfig = config;
+        BeamResults.renderResults(results, config);
+        BeamDiagrams.renderAll(results, config);
+        document.getElementById('results-section').classList.add('visible');
+        document.getElementById('btn-export-pdf').disabled = false;
+        document.getElementById('btn-export-csv').disabled = false;
+        document.getElementById('btn-save-calc').disabled = false;
+    } catch (err) {
+        showToast('Could not restore calculation. Please reconfigure.');
+    }
 }
 
 /* ── Helpers ─────────────────────────────────────────────────── */
-function showToast(msg) {
+function showToast(msg, type = 'default') {
     let t = document.getElementById('app-toast');
     if (!t) {
         t = document.createElement('div');
         t.id = 'app-toast';
-        t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1E293B;color:white;padding:12px 20px;border-radius:8px;font-size:0.82rem;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.25);opacity:0;transform:translateY(10px);transition:all 0.25s;pointer-events:none;z-index:9999;font-family:Inter,sans-serif;';
+        t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:0.82rem;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.25);opacity:0;transform:translateY(10px);transition:all 0.25s;pointer-events:none;z-index:9999;font-family:Inter,sans-serif;';
         document.body.appendChild(t);
     }
+    const isWarning = type === 'warning';
+    t.style.background = isWarning ? '#D97706' : '#1E293B';
+    t.style.color = 'white';
     t.textContent = msg;
     requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateY(0)'; });
     setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 2800);

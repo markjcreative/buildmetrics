@@ -57,6 +57,12 @@ const History = (() => {
     }
 
     function remove(calcId) {
+        const calc = _all().find(h => h.id === calcId);
+        if (calc && window.Projects) {
+            const project = Projects.get(calc.projectId);
+            const uid = window.Auth ? Auth.currentUser()?.id : null;
+            if (project && uid && project.ownerId !== uid) throw new Error('Not authorized.');
+        }
         _save(_all().filter(h => h.id !== calcId));
     }
 

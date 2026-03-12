@@ -393,6 +393,11 @@ h3 {
   color: var(--text-secondary);
 }
 
+.inp-error {
+  border-color: #DC2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+}
+
 .unit-tag {
   font-size: 0.72rem;
   color: var(--text-muted);

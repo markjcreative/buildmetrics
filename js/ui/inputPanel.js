@@ -27,6 +27,7 @@ const SUPPORT_TYPES = {
 
 let loadCounter = 0;
 let supportCounter = 0;
+let _isImperial = false;
 
 function initInputPanel() {
     // Material selector
@@ -212,15 +213,79 @@ function getBeamConfig() {
         loads.push(load);
     });
 
+    // Solver always works in SI — convert back if Imperial mode is active
+    if (_isImperial) {
+        const U = BeamUtils.TO_IMPERIAL;
+        const toSI = v => v; // identity — we divide by factor
+        const si = (v, factor) => v / factor;
+        const siSpan = si(span, U.length);
+        return {
+            span: siSpan,
+            material,
+            E: si(E, U.modulus),
+            I: si(I, U.inertia),
+            A: si(A, U.area),
+            supports: supports.map(s => ({ ...s, position: si(s.position, U.length) })),
+            loads: loads.map(l => {
+                const out = { ...l };
+                if (out.position !== undefined) out.position = si(out.position, U.length);
+                if (out.start !== undefined) out.start = si(out.start, U.length);
+                if (out.end !== undefined) out.end = si(out.end, U.length);
+                if (out.magnitude !== undefined) {
+                    const isDistributed = ['udl', 'partial_udl', 'triangular'].includes(out.type);
+                    out.magnitude = isDistributed ? si(out.magnitude, U.distLoad) : si(out.magnitude, U.force);
+                }
+                if (out.magnitudeStart !== undefined) out.magnitudeStart = si(out.magnitudeStart, U.distLoad);
+                if (out.magnitudeEnd !== undefined) out.magnitudeEnd = si(out.magnitudeEnd, U.distLoad);
+                return out;
+            })
+        };
+    }
+
     return { span, material, E, I, A, supports, loads };
+}
+
+function validateConfig(config) {
+    if (!config.span || config.span <= 0 || isNaN(config.span)) {
+        throw new Error('Span must be a positive number.');
+    }
+    if (!config.E || config.E <= 0 || isNaN(config.E)) {
+        throw new Error("Young's modulus must be a positive number.");
+    }
+    if (!config.I || config.I <= 0 || isNaN(config.I)) {
+        throw new Error('Second moment of area must be a positive number.');
+    }
+    const positions = config.supports.map(s => s.position);
+    for (const s of config.supports) {
+        if (s.position < 0 || s.position > config.span) {
+            throw new Error(`Support at ${s.position} m is outside the beam span (0 – ${config.span} m).`);
+        }
+    }
+    if (new Set(positions).size !== positions.length) {
+        throw new Error('Two supports cannot share the same position.');
+    }
+    for (const l of config.loads) {
+        if (l.start !== undefined && l.end !== undefined && l.start >= l.end) {
+            throw new Error('Load end position must be greater than start position.');
+        }
+        if (l.position !== undefined && (l.position < 0 || l.position > config.span)) {
+            throw new Error(`Load at ${l.position} m is outside the beam span.`);
+        }
+        if (l.start !== undefined && (l.start < 0 || l.start > config.span)) {
+            throw new Error(`Load start at ${l.start} m is outside the beam span.`);
+        }
+        if (l.end !== undefined && (l.end < 0 || l.end > config.span)) {
+            throw new Error(`Load end at ${l.end} m is outside the beam span.`);
+        }
+    }
 }
 
 function runCalculation() {
     const config = getBeamConfig();
+    // Clear any previous error highlight
+    document.querySelectorAll('.inp-error').forEach(el => el.classList.remove('inp-error'));
     try {
-        // Store point loads for the solver's shear builder
-        window._beamSolverPointLoads = config.loads.filter(l => l.type === 'point');
-
+        validateConfig(config);
         const results = BeamSolver.solveBeam(config);
         window._lastResults = results;
         window._lastConfig = config;
@@ -263,12 +328,45 @@ function resetAll() {
 }
 
 function onUnitToggle() {
-    const isImperial = document.getElementById('unit-toggle').checked;
-    document.querySelectorAll('.unit-label').forEach(el => {
-        if (el.classList.contains('length-unit')) el.textContent = isImperial ? 'ft' : 'm';
-        if (el.classList.contains('force-unit')) el.textContent = isImperial ? 'kips' : 'kN';
-        if (el.classList.contains('moment-unit')) el.textContent = isImperial ? 'kip·ft' : 'kNm';
-    });
+    const nowImperial = document.getElementById('unit-toggle').checked;
+    const toImperial = nowImperial && !_isImperial;
+    const toSI = !nowImperial && _isImperial;
+    _isImperial = nowImperial;
+
+    const U = BeamUtils.TO_IMPERIAL;
+
+    function convertField(selector, factor) {
+        document.querySelectorAll(selector).forEach(el => {
+            const v = parseFloat(el.value);
+            if (!isNaN(v)) el.value = BeamUtils.round(toImperial ? v * factor : v / factor, 4);
+        });
+    }
+
+    if (toImperial || toSI) {
+        // Length fields: span, support positions, load positions/extents
+        convertField('#inp-span', U.length);
+        convertField('.inp-support-pos', U.length);
+        convertField('.inp-load-pos', U.length);
+        convertField('.inp-load-start', U.length);
+        convertField('.inp-load-end', U.length);
+        // Force/magnitude fields
+        convertField('.inp-load-mag', U.force);
+        convertField('.inp-load-mag-start', U.distLoad);
+        convertField('.inp-load-mag-end', U.distLoad);
+        // Material properties (E: modulus, I and A we leave as-is — advanced users)
+        convertField('#inp-E', U.modulus);
+        convertField('#inp-I', U.inertia);
+        convertField('#inp-A', U.area);
+    }
+
+    // Update all unit labels
+    const sys = _isImperial ? BeamUtils.UNITS.IMPERIAL : BeamUtils.UNITS.SI;
+    document.querySelectorAll('.unit-label.length-unit').forEach(el => el.textContent = sys.length);
+    document.querySelectorAll('.unit-label.force-unit').forEach(el => el.textContent = sys.force);
+    document.querySelectorAll('.unit-label.moment-unit').forEach(el => el.textContent = sys.moment);
+    document.querySelectorAll('.unit-label.dist-load-unit').forEach(el => el.textContent = sys.distLoad);
+
+    updateBeamPreview();
 }
 
 function updateBeamPreview() {
@@ -277,33 +375,7 @@ function updateBeamPreview() {
     }
 }
 
-function saveSession() {
-    const config = getBeamConfig();
-    localStorage.setItem('beamCalc_session', JSON.stringify(config));
-    const btn = document.getElementById('btn-save');
-    btn.textContent = '✓ Saved';
-    setTimeout(() => { btn.textContent = '💾 Save'; }, 2000);
-}
-
-function loadSession() {
-    const saved = localStorage.getItem('beamCalc_session');
-    if (!saved) { alert('No saved session found.'); return; }
-    const config = JSON.parse(saved);
-    resetAll();
-    document.getElementById('inp-span').value = config.span;
-    document.getElementById('inp-E').value = config.E;
-    document.getElementById('inp-I').value = config.I;
-    document.getElementById('inp-A').value = config.A;
-    document.getElementById('support-list').innerHTML = '';
-    document.getElementById('load-list').innerHTML = '';
-    supportCounter = 0;
-    loadCounter = 0;
-    config.supports.forEach(s => addSupportRow(s.type, s.position));
-    config.loads.forEach(l => addLoadRow(l.type, l));
-    updateBeamPreview();
-}
-
-window.InputPanel = { initInputPanel, getBeamConfig, runCalculation, updateBeamPreview };
+window.InputPanel = { initInputPanel, getBeamConfig, runCalculation, updateBeamPreview, isImperial: () => _isImperial };
 window.onLoadTypeChange = onLoadTypeChange;
 window.removeRow = removeRow;
 window.addSupportRow = addSupportRow;

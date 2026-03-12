@@ -54,7 +54,7 @@ function solveBeam(config) {
     const q = buildLoadArray(xs, loads);
 
     // Build shear force array V(x) — integrate from left, applying reactions
-    const V = buildShearArray(xs, q, dx, reactions, sortedSupports);
+    const V = buildShearArray(xs, q, dx, reactions, sortedSupports, loads);
 
     // Build bending moment array M(x) — integrate V(x)
     const M = buildMomentArray(xs, V, dx, reactions, sortedSupports, loads);
@@ -332,36 +332,12 @@ function buildLoadArray(xs, loads) {
     });
 }
 
-function buildShearArray(xs, q, dx, reactions, supports) {
-    const V = new Array(xs.length).fill(0);
-    // Start from left: V(x) = ΣR_left - integral of q from 0 to x
-    let shear = 0;
-
-    // Include reactions at left boundary
-    const leftReactions = reactions.filter(r => Math.abs(r.position - xs[0]) < 1e-9);
-    leftReactions.forEach(r => { shear -= r.Fy; }); // upward reactions reduce downward shear
-
-    V[0] = shear;
-
-    for (let i = 1; i < xs.length; i++) {
-        const x = xs[i];
-        // Add reactions at this point
-        reactions.forEach(r => {
-            if (x > xs[i - 1] && x <= r.position + 1e-9 && x >= r.position - 1e-9) {
-                shear -= r.Fy;
-            }
-        });
-        // Add point loads from left
-        // (loads are accounted for in the integration)
-        shear += q[i - 1] * dx;
-        V[i] = shear;
-    }
-
-    // Better approach: build from scratch left to right
-    return buildShearFromScratch(xs, q, dx, reactions, supports);
+function buildShearArray(xs, q, dx, reactions, supports, loads) {
+    // Build from scratch left to right
+    return buildShearFromScratch(xs, q, dx, reactions, supports, loads);
 }
 
-function buildShearFromScratch(xs, q, dx, reactions, supports) {
+function buildShearFromScratch(xs, q, dx, reactions, supports, loads) {
     const V = new Array(xs.length).fill(0);
     // Build shear by integrating load and apply point reactions/loads
     // V(x) starts at 0 from far left, increases with loads
@@ -372,10 +348,7 @@ function buildShearFromScratch(xs, q, dx, reactions, supports) {
         if (Math.abs(r.Fy) > 1e-10) events.push({ x: r.position, dV: r.Fy }); // upward = positive
     });
 
-    // Get point loads from config (stored in q doesn't include them)
-    // They're handled via the config.loads; reconstruct
-    // (We'll get them from the closure workaround— pass them as a global or parameter)
-    const pointLoads = window._beamSolverPointLoads || [];
+    const pointLoads = (loads || []).filter(l => l.type === 'point');
     pointLoads.forEach(pl => {
         events.push({ x: pl.position, dV: -pl.magnitude }); // downward load = negative
     });

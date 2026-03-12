@@ -4,32 +4,47 @@
 
 function renderResults(results, config) {
     const { summary, reactions } = results;
+    // config is always in SI — results arrays are in SI
+    const imp = window.InputPanel && InputPanel.isImperial();
+    const U = BeamUtils.TO_IMPERIAL;
+    const sys = imp ? BeamUtils.UNITS.IMPERIAL : BeamUtils.UNITS.SI;
+
+    const cv = (v, quantity) => imp ? BeamUtils.convertValue(v, quantity, true) : v;
+    const fv = (v, d = 3) => BeamUtils.formatValue(v, d);
+
     const span = config.span;
-    const maxDeflMM = (summary.maxDeflection * 1000).toFixed(3);
-    const spanRatio = Math.abs(summary.maxDeflection) > 1e-9
-        ? Math.round(span / Math.abs(summary.maxDeflection))
+    const maxDefl = summary.maxDeflection;
+    // Deflection: SI → mm, Imperial → inches
+    const deflDisplay = imp
+        ? `${fv(cv(maxDefl, 'deflection'), 3)} in`
+        : `${fv(maxDefl * 1000, 3)} mm`;
+    const spanRatio = Math.abs(maxDefl) > 1e-9
+        ? Math.round(span / Math.abs(maxDefl))
         : '∞';
+    const lenUnit = sys.length;
+    const forceUnit = sys.force;
+    const momentUnit = sys.moment;
 
     const tbody = document.getElementById('results-table-body');
     tbody.innerHTML = '';
 
     const rows = [
-        ['Max Positive Moment', `${BeamUtils.formatValue(summary.maxPositiveMoment, 3)} kNm`, `x = ${BeamUtils.formatValue(summary.maxPositiveMomentPos, 2)} m`, 'bm-pos'],
-        ['Max Negative Moment', `${BeamUtils.formatValue(summary.maxNegativeMoment, 3)} kNm`, `x = ${BeamUtils.formatValue(summary.maxNegativeMomentPos, 2)} m`, 'bm-neg'],
-        ['Max Absolute Moment', `${BeamUtils.formatValue(summary.maxAbsMoment, 3)} kNm`, '—', 'highlight'],
-        ['Max Shear Force (+)', `${BeamUtils.formatValue(summary.maxShear, 3)} kN`, `x = ${BeamUtils.formatValue(summary.maxShearPos, 2)} m`, 'shear-pos'],
-        ['Max Shear Force (−)', `${BeamUtils.formatValue(summary.minShear, 3)} kN`, '—', 'shear-neg'],
-        ['Max Shear Absolute', `${BeamUtils.formatValue(summary.maxAbsShear, 3)} kN`, '—', 'highlight'],
-        ['Max Deflection (sag)', `${maxDeflMM} mm`, `x = ${BeamUtils.formatValue(summary.maxDeflectionPos, 2)} m`, 'deflection'],
+        ['Max Positive Moment', `${fv(cv(summary.maxPositiveMoment, 'moment'))} ${momentUnit}`, `x = ${fv(cv(summary.maxPositiveMomentPos, 'length'), 2)} ${lenUnit}`, 'bm-pos'],
+        ['Max Negative Moment', `${fv(cv(summary.maxNegativeMoment, 'moment'))} ${momentUnit}`, `x = ${fv(cv(summary.maxNegativeMomentPos, 'length'), 2)} ${lenUnit}`, 'bm-neg'],
+        ['Max Absolute Moment', `${fv(cv(summary.maxAbsMoment, 'moment'))} ${momentUnit}`, '—', 'highlight'],
+        ['Max Shear Force (+)', `${fv(cv(summary.maxShear, 'force'))} ${forceUnit}`, `x = ${fv(cv(summary.maxShearPos, 'length'), 2)} ${lenUnit}`, 'shear-pos'],
+        ['Max Shear Force (−)', `${fv(cv(summary.minShear, 'force'))} ${forceUnit}`, '—', 'shear-neg'],
+        ['Max Shear Absolute', `${fv(cv(summary.maxAbsShear, 'force'))} ${forceUnit}`, '—', 'highlight'],
+        ['Max Deflection (sag)', deflDisplay, `x = ${fv(cv(summary.maxDeflectionPos, 'length'), 2)} ${lenUnit}`, 'deflection'],
         ['Span/Deflection Ratio', `L / ${spanRatio}`, 'L/300 = serviceability limit (guide)', 'spanratio'],
     ];
 
     // Add reactions
-    reactions.forEach((r, i) => {
+    reactions.forEach(r => {
         rows.push([
-            `Reaction — ${capitalise(r.type)} at ${BeamUtils.formatValue(r.position, 2)}m`,
-            `Fy = ${BeamUtils.formatValue(r.Fy, 3)} kN`,
-            Math.abs(r.M) > 1e-6 ? `M = ${BeamUtils.formatValue(r.M, 3)} kNm` : '—',
+            `Reaction — ${capitalise(r.type)} at ${fv(cv(r.position, 'length'), 2)} ${lenUnit}`,
+            `Fy = ${fv(cv(r.Fy, 'force'))} ${forceUnit}`,
+            Math.abs(r.M) > 1e-6 ? `M = ${fv(cv(r.M, 'moment'))} ${momentUnit}` : '—',
             'reaction'
         ]);
     });
@@ -42,9 +57,9 @@ function renderResults(results, config) {
     });
 
     // Update summary badges
-    document.getElementById('badge-moment').textContent = `${BeamUtils.formatValue(summary.maxAbsMoment, 2)} kNm`;
-    document.getElementById('badge-shear').textContent = `${BeamUtils.formatValue(summary.maxAbsShear, 2)} kN`;
-    document.getElementById('badge-deflection').textContent = `${maxDeflMM} mm`;
+    document.getElementById('badge-moment').textContent = `${fv(cv(summary.maxAbsMoment, 'moment'), 2)} ${momentUnit}`;
+    document.getElementById('badge-shear').textContent = `${fv(cv(summary.maxAbsShear, 'force'), 2)} ${forceUnit}`;
+    document.getElementById('badge-deflection').textContent = deflDisplay;
     document.getElementById('badge-ratio').textContent = `L/${spanRatio}`;
 }
 

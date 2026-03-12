@@ -8,9 +8,16 @@ const Auth = (() => {
     const SESSION_KEY = 'bcp_session';
 
     /* ── Crypto ──────────────────────────────────────────────── */
-    async function hashPassword(password) {
+    function generateSalt() {
+        return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+            .map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function hashPassword(password, salt) {
+        // Fallback to legacy salt for existing accounts that predate per-user salts
+        const effectiveSalt = salt || 'bcp_salt_v1';
         const encoder = new TextEncoder();
-        const data = encoder.encode(password + 'bcp_salt_v1');
+        const data = encoder.encode(password + effectiveSalt);
         const hashBuffer = await crypto.subtle.digest('SHA-256', data);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -33,12 +40,14 @@ const Auth = (() => {
         if (exists) throw new Error('An account with this email already exists.');
         if (password.length < 6) throw new Error('Password must be at least 6 characters.');
 
-        const hash = await hashPassword(password);
+        const salt = generateSalt();
+        const hash = await hashPassword(password, salt);
         const user = {
             id: 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2),
             email: email.toLowerCase().trim(),
             name: name.trim(),
             hash,
+            salt,
             designation: '',
             company: '',
             createdAt: new Date().toISOString()
@@ -51,12 +60,22 @@ const Auth = (() => {
 
     async function login(email, password) {
         const users = getUsers();
-        const user = users.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
-        if (!user) throw new Error('No account found with this email address.');
-        const hash = await hashPassword(password);
+        const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase().trim());
+        if (idx === -1) throw new Error('No account found with this email address.');
+        const user = users[idx];
+        const hash = await hashPassword(password, user.salt);
         if (hash !== user.hash) throw new Error('Incorrect password. Please try again.');
-        _setSession(user);
-        return user;
+
+        // Transparently migrate legacy accounts (no per-user salt) on successful login
+        if (!user.salt) {
+            const newSalt = generateSalt();
+            users[idx].salt = newSalt;
+            users[idx].hash = await hashPassword(password, newSalt);
+            saveUsers(users);
+        }
+
+        _setSession(users[idx]);
+        return users[idx];
     }
 
     function logout() {
@@ -105,59 +124,18 @@ const Auth = (() => {
         const idx = users.findIndex(u => u.id === session.id);
         if (idx === -1) throw new Error('User not found.');
 
-        const oldHash = await hashPassword(oldPassword);
+        const oldHash = await hashPassword(oldPassword, users[idx].salt);
         if (oldHash !== users[idx].hash) throw new Error('Current password is incorrect.');
         if (newPassword.length < 6) throw new Error('New password must be at least 6 characters.');
 
-        users[idx].hash = await hashPassword(newPassword);
+        const newSalt = generateSalt();
+        users[idx].salt = newSalt;
+        users[idx].hash = await hashPassword(newPassword, newSalt);
         saveUsers(users);
         return true;
     }
 
-    async function loginWithGoogle(payload) {
-        /**
-         * payload = decoded Google JWT fields:
-         * { sub, email, name, picture }
-         */
-        const { sub, email, name } = payload;
-        if (!sub || !email) throw new Error('Invalid Google credentials.');
-
-        const users = getUsers();
-
-        // 1. Try to find by googleSub
-        let user = users.find(u => u.googleSub === sub);
-
-        // 2. Try to find by email (link existing email account)
-        if (!user) {
-            user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-            if (user) {
-                // Link the Google sub to this account
-                user.googleSub = sub;
-                saveUsers(users);
-            }
-        }
-
-        // 3. Create a new account
-        if (!user) {
-            user = {
-                id: 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-                email: email.toLowerCase().trim(),
-                name: (name || email.split('@')[0]).trim(),
-                hash: null,          // no password for Google users
-                googleSub: sub,
-                designation: '',
-                company: '',
-                createdAt: new Date().toISOString()
-            };
-            users.push(user);
-            saveUsers(users);
-        }
-
-        _setSession(user);
-        return user;
-    }
-
-    return { register, login, loginWithGoogle, logout, currentUser, guard, updateProfile, resetPassword };
+    return { register, login, logout, currentUser, guard, updateProfile, resetPassword };
 })();
 
 window.Auth = Auth;

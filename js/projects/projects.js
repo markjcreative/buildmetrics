@@ -58,6 +58,7 @@ const Projects = (() => {
         const all = _all();
         const idx = all.findIndex(p => p.id === id);
         if (idx === -1) throw new Error('Project not found.');
+        if (all[idx].ownerId !== _userId()) throw new Error('Not authorized.');
         if (updates.name !== undefined) all[idx].name = updates.name.trim();
         if (updates.description !== undefined) all[idx].description = updates.description.trim();
         all[idx].updatedAt = new Date().toISOString();
@@ -66,10 +67,12 @@ const Projects = (() => {
     }
 
     function remove(id) {
+        const all = _all();
+        const project = all.find(p => p.id === id);
+        if (project && project.ownerId !== _userId()) throw new Error('Not authorized.');
         // Also remove all calculations for this project
         History.deleteByProject(id);
-        const all = _all().filter(p => p.id !== id);
-        _save(all);
+        _save(all.filter(p => p.id !== id));
     }
 
     function setActive(id) {
