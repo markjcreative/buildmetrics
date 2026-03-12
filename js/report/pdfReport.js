@@ -472,20 +472,49 @@ async function exportPDF(results, config, projectInfo) {
 
     sectionHead('Analysis Results Summary', 5);
 
-    // Column headers
-    tableRow(['Result Quantity', 'Value', 'Location / Notes'], [0.42, 0.28, 0.30], true);
+    // Column headers — 4 columns with Pass/Fail check
+    tableRow(['Result Quantity', 'Value', 'Location', 'Check'], [0.40, 0.26, 0.22, 0.12], true);
 
-    const rows = [
-        ['Max Positive Bending Moment', `${BeamUtils.formatValue(results.summary.maxPositiveMoment, 3)} kNm`, `x = ${BeamUtils.formatValue(results.summary.maxPositiveMomentPos, 2)} m`],
-        ['Max Negative Bending Moment', `${BeamUtils.formatValue(results.summary.maxNegativeMoment, 3)} kNm`, `x = ${BeamUtils.formatValue(results.summary.maxNegativeMomentPos, 2)} m`],
-        ['Maximum Absolute Moment', `${BeamUtils.formatValue(results.summary.maxAbsMoment, 3)} kNm`, 'Governing design value'],
-        ['Maximum Shear Force (+)', `${BeamUtils.formatValue(results.summary.maxShear, 3)} kN`, `x = ${BeamUtils.formatValue(results.summary.maxShearPos, 2)} m`],
-        ['Maximum Shear Force (−)', `${BeamUtils.formatValue(results.summary.minShear, 3)} kN`, '—'],
-        ['Maximum Absolute Shear', `${BeamUtils.formatValue(results.summary.maxAbsShear, 3)} kN`, 'Governing design value'],
-        ['Maximum Deflection (sag)', `${(results.summary.maxDeflection * 1000).toFixed(4)} mm`, `x = ${BeamUtils.formatValue(results.summary.maxDeflectionPos, 2)} m`],
-        ['Span / Deflection Ratio', `L / ${Math.abs(results.summary.maxDeflection) > 1e-9 ? Math.round(config.span / Math.abs(results.summary.maxDeflection)) : '∞'}`, 'Serviceability — compare to L/300 or L/360'],
+    /* ── Serviceability checks ─────────────────────────────── */
+    const spanRatio = Math.abs(results.summary.maxDeflection) > 1e-9
+        ? Math.round(config.span / Math.abs(results.summary.maxDeflection))
+        : Infinity;
+    const defl300 = spanRatio >= 300;
+    const defl360 = spanRatio >= 360;
+
+    function passFail(ok) { return ok ? '✓ OK' : '✗ FAIL'; }
+
+    const resultRows4 = [
+        ['Max Positive Bending Moment', `${BeamUtils.formatValue(results.summary.maxPositiveMoment, 3)} kNm`, `x = ${BeamUtils.formatValue(results.summary.maxPositiveMomentPos, 2)} m`, '—'],
+        ['Max Negative Bending Moment', `${BeamUtils.formatValue(results.summary.maxNegativeMoment, 3)} kNm`, `x = ${BeamUtils.formatValue(results.summary.maxNegativeMomentPos, 2)} m`, '—'],
+        ['Maximum Absolute Moment', `${BeamUtils.formatValue(results.summary.maxAbsMoment, 3)} kNm`, 'Governing', '—'],
+        ['Maximum Shear Force (+)', `${BeamUtils.formatValue(results.summary.maxShear, 3)} kN`, `x = ${BeamUtils.formatValue(results.summary.maxShearPos, 2)} m`, '—'],
+        ['Maximum Shear Force (−)', `${BeamUtils.formatValue(results.summary.minShear, 3)} kN`, '—', '—'],
+        ['Maximum Absolute Shear', `${BeamUtils.formatValue(results.summary.maxAbsShear, 3)} kN`, 'Governing', '—'],
+        ['Maximum Deflection (sag)', `${(results.summary.maxDeflection * 1000).toFixed(4)} mm`, `x = ${BeamUtils.formatValue(results.summary.maxDeflectionPos, 2)} m`, '—'],
+        ['Span / Defl Ratio (L/300)', `L / ${spanRatio === Infinity ? '∞' : spanRatio}`, 'L/300 serviceability limit', passFail(defl300)],
+        ['Span / Defl Ratio (L/360)', `L / ${spanRatio === Infinity ? '∞' : spanRatio}`, 'L/360 reduced limit', passFail(defl360)],
     ];
-    rows.forEach(([r, v, n], i) => tableRow([r, v, n], [0.42, 0.28, 0.30], false, i % 2 === 0));
+
+    resultRows4.forEach(([r, v, n, chk], i) => {
+        check(ROW_H + 1);
+        const bg = i % 2 === 0 ? WHITE : [249, 249, 249];
+        rect(ML, y, COL, ROW_H, bg);
+        line(ML, y, ML, y + ROW_H, LIGHT, 0.15);
+        line(pageW - MR, y, pageW - MR, y + ROW_H, LIGHT, 0.15);
+        const cols4 = [0, 0.40, 0.66, 0.88, 1];
+        cols4.slice(1, -1).forEach(c => line(ML + COL * c, y, ML + COL * c, y + ROW_H, LIGHT, 0.1));
+        line(ML, y + ROW_H, pageW - MR, y + ROW_H, LIGHT, 0.15);
+        f(7.5, 'normal', MID); doc.text(r, ML + 2, y + 5, { maxWidth: COL * 0.38 });
+        f(7.5, 'bold', DARK); doc.text(v, ML + COL * 0.40 + 2, y + 5, { maxWidth: COL * 0.24 });
+        f(7.5, 'normal', LIGHT); doc.text(n, ML + COL * 0.66 + 2, y + 5, { maxWidth: COL * 0.21 });
+        // Pass/Fail with colour
+        if (chk === '✓ OK') { f(7.5, 'bold', [5, 150, 105]); }
+        else if (chk === '✗ FAIL') { f(7.5, 'bold', [220, 38, 38]); }
+        else { f(7.5, 'normal', LIGHT); }
+        doc.text(chk, ML + COL * 0.88 + 2, y + 5, { maxWidth: COL * 0.11 });
+        y += ROW_H;
+    });
 
     y += 6;
     sectionHead('Support Reactions', 6);
@@ -502,9 +531,93 @@ async function exportPDF(results, config, projectInfo) {
         return s;
     }, 0);
     const totalReaction = results.reactions.reduce((s, r) => s + r.Fy, 0);
+    const equilError = Math.abs(totalLoad - totalReaction);
     kvRow('Total Applied Load', BeamUtils.formatValue(totalLoad, 3), 'kN', false);
     kvRow('Total Vertical Reaction', BeamUtils.formatValue(totalReaction, 3), 'kN', true);
-    kvRow('Equilibrium Error', BeamUtils.formatValue(Math.abs(totalLoad - totalReaction), 6), 'kN (should be ≈ 0)', false);
+    kvRow('Equilibrium Error', BeamUtils.formatValue(equilError, 6), `kN  ${equilError < 0.01 ? '✓ OK' : '✗ Check inputs'}`, false);
+
+    /* ═════════════════════════════════════════════════════════
+       PAGE 5 — CALCULATION WORKINGS
+    ═════════════════════════════════════════════════════════ */
+    doc.addPage();
+    drawHeader();
+    drawFooter();
+    y = 35;
+
+    sectionHead('Calculation Workings', 8);
+
+    /* ── Helper: print a formula line ─────────────────────── */
+    function formulaLine(label, formula, result, shade = false) {
+        check(9);
+        const bg = shade ? [249, 249, 249] : WHITE;
+        rect(ML, y, COL, 9, bg);
+        line(ML, y, ML, y + 9, LIGHT, 0.15);
+        line(pageW - MR, y, pageW - MR, y + 9, LIGHT, 0.15);
+        line(ML, y + 9, pageW - MR, y + 9, LIGHT, 0.15);
+        f(7.5, 'normal', MID); doc.text(label, ML + 3, y + 6, { maxWidth: COL * 0.32 });
+        f(8, 'normal', [79, 70, 229]); doc.text(formula, ML + COL * 0.34 + 3, y + 6, { maxWidth: COL * 0.38 });
+        f(8, 'bold', DARK); doc.text(result, ML + COL * 0.74 + 3, y + 6, { maxWidth: COL * 0.24 });
+        y += 9;
+    }
+
+    /* ── Flexural Rigidity ────────────────────────────────── */
+    check(20);
+    f(8, 'bold', BLACK); doc.text('Flexural Rigidity', ML, y); y += 7;
+    const EI = config.E * config.I;
+    formulaLine('EI =', `E × I  =  ${config.E.toLocaleString()} × ${config.I}`, `${BeamUtils.formatValue(EI, 2)} kNm²`, false);
+    y += 3;
+
+    /* ── Deflection Calculations ──────────────────────────── */
+    check(24);
+    f(8, 'bold', BLACK); doc.text('Deflection', ML, y); y += 7;
+    const maxDeflMm = results.summary.maxDeflection * 1000;
+    const L300 = (config.span / 300) * 1000;
+    const L360 = (config.span / 360) * 1000;
+    formulaLine('δ_max =', 'Numerical integration (500 stations)', `${maxDeflMm.toFixed(4)} mm`, false);
+    formulaLine('L/300 limit =', `${config.span} / 300`, `${L300.toFixed(2)} mm  →  ${Math.abs(maxDeflMm) <= L300 ? '✓ PASS' : '✗ FAIL'}`, true);
+    formulaLine('L/360 limit =', `${config.span} / 360`, `${L360.toFixed(2)} mm  →  ${Math.abs(maxDeflMm) <= L360 ? '✓ PASS' : '✗ FAIL'}`, false);
+    y += 3;
+
+    /* ── Bending Moment Workings ──────────────────────────── */
+    check(24);
+    f(8, 'bold', BLACK); doc.text('Bending Moment', ML, y); y += 7;
+    formulaLine('M_max+ =', 'Numerical integration of shear diagram', `${BeamUtils.formatValue(results.summary.maxPositiveMoment, 3)} kNm`, false);
+    formulaLine('M_max− =', 'Numerical integration of shear diagram', `${BeamUtils.formatValue(results.summary.maxNegativeMoment, 3)} kNm`, true);
+    formulaLine('M_abs =', 'max(|M+|, |M−|)', `${BeamUtils.formatValue(results.summary.maxAbsMoment, 3)} kNm`, false);
+    y += 3;
+
+    /* ── Shear Force Workings ─────────────────────────────── */
+    check(20);
+    f(8, 'bold', BLACK); doc.text('Shear Force', ML, y); y += 7;
+    formulaLine('V_max+ =', 'Stiffness matrix + influence lines', `${BeamUtils.formatValue(results.summary.maxShear, 3)} kN`, false);
+    formulaLine('V_max− =', 'Stiffness matrix + influence lines', `${BeamUtils.formatValue(results.summary.minShear, 3)} kN`, true);
+    formulaLine('V_abs =', 'max(|V+|, |V−|)', `${BeamUtils.formatValue(results.summary.maxAbsShear, 3)} kN`, false);
+    y += 3;
+
+    /* ── Reaction Summary ─────────────────────────────────── */
+    check(16 + results.reactions.length * 9);
+    f(8, 'bold', BLACK); doc.text('Support Reactions (Stiffness Method)', ML, y); y += 7;
+    results.reactions.forEach((r, i) => {
+        const posStr = `x = ${BeamUtils.formatValue(r.position, 2)} m`;
+        const fyStr = `Fy = ${BeamUtils.formatValue(r.Fy, 3)} kN`;
+        const mStr = Math.abs(r.M) > 1e-6 ? `  M = ${BeamUtils.formatValue(r.M, 3)} kNm` : '';
+        formulaLine(`${cap(r.type)} at ${posStr}`, 'Direct stiffness assembly', fyStr + mStr, i % 2 === 1);
+    });
+    y += 3;
+
+    /* ── Note on method ───────────────────────────────────── */
+    check(18);
+    y += 4;
+    rect(ML, y, COL, 14, [248, 247, 255], LIGHT);
+    f(7, 'bold', [79, 70, 229]); doc.text('Analysis Method Note', ML + 4, y + 5);
+    f(7, 'normal', MID);
+    doc.text(
+        'Results are computed using a direct stiffness matrix approach with 500-point numerical integration over the beam span. ' +
+        'Point loads, UDLs, partial UDLs, triangular loads and applied moments are all supported. ' +
+        'This is a linear-elastic analysis. Geometric non-linearity and plastic redistribution are not considered.',
+        ML + 4, y + 10, { maxWidth: COL - 8 }
+    );
+    y += 18;
 
     /* ── Final page numbers ──────────────────────────────────── */
     const total = doc.getNumberOfPages();

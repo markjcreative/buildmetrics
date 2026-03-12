@@ -34,12 +34,6 @@ const Projects = (() => {
         if (!uid) throw new Error('Not logged in.');
         if (!name.trim()) throw new Error('Project name is required.');
 
-        // Free tier: max 1 project
-        if (window.Subscription && window.FREE_LIMITS && !Subscription.isPro(uid)) {
-            const count = list().length;
-            if (count >= FREE_LIMITS.projects) throw new Error('FREE_LIMIT_PROJECTS');
-        }
-
         const project = {
             id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2),
             ownerId: uid,

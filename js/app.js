@@ -79,11 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Re-open save modal now that we have a project
             openSaveCalcModal();
         } catch (e) {
-            if (e.message === 'FREE_LIMIT_PROJECTS') {
-                document.getElementById('proj-picker-modal').classList.remove('open');
-                showToast('Free plan limit reached — upgrade to Pro to continue.', 'warning');
-                UpgradeModal.show('projects');
-            } else { alert(e.message); }
+            { alert(e.message); }
         }
     });
 
@@ -190,13 +186,7 @@ function doSaveCalc() {
         document.getElementById('save-modal').classList.remove('open');
         showToast(`✓ Saved to "${proj.name}"`);
     } catch (e) {
-        if (e.message === 'FREE_LIMIT_CALCS') {
-            document.getElementById('save-modal').classList.remove('open');
-            showToast('Free plan limit reached — upgrade to Pro to continue.', 'warning');
-            UpgradeModal.show('calcs');
-        } else {
-            alert('Save failed: ' + e.message);
-        }
+        alert('Save failed: ' + e.message);
     }
 }
 
