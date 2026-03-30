@@ -64,6 +64,7 @@
         </div>
         <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
         <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
+        <div id="nav-more-container"></div>
         <button class="btn-nav" id="btn-signout" onclick="Auth.logout()">⏏ Sign Out</button>
       </div>
     </nav>
@@ -589,6 +590,7 @@
   <script src="js/ui/inputPanel.js"></script>
   <script src="js/report/csvExport.js"></script>
   <script src="js/report/pdfReport.js"></script>
+  <script src="js/ui/navDropdown.js"></script>
   <script src="js/app.js"></script>
 
   <script>
@@ -597,6 +599,9 @@
       const section = document.getElementById(id);
       section.classList.toggle('collapsed');
     }
+    document.addEventListener('DOMContentLoaded', () => {
+      NavDropdown.init('nav-more-container');
+    });
   </script>
 </body>
 

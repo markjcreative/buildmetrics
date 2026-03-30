@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RC Slab Design — BuildMetrics</title>
+  <meta name="description" content="Eurocode 2 RC slab design calculator">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/calcs.css">
+  <style>
+    body { margin: 0; background: var(--bg-page); }
+    .calc-page-wrap { min-height: 100vh; display: flex; flex-direction: column; }
+    #navbar { position: sticky; top: 0; z-index: 100; }
+    .calc-main { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 60px); }
+
+    .util-ring-track { fill: none; stroke: #E4E4E7; stroke-width: 8; }
+    .util-ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dasharray 0.6s ease, stroke 0.4s; }
+
+    .check-row-pass td:last-child { color: #15803D; font-weight: 600; }
+    .check-row-fail td:last-child { color: #DC2626; font-weight: 600; }
+    .warn-banner {
+      padding: 10px 14px;
+      background: #FEF9C3;
+      color: #854D0E;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      font-weight: 500;
+      border-left: 3px solid #EAB308;
+    }
+  </style>
+</head>
+<body>
+<div class="calc-page-wrap">
+
+  <!-- Navbar -->
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <a href="/projects.html" class="nav-brand">
+      <div class="nav-logo">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="30" height="30" rx="7" fill="#2563EB"/>
+          <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
+          <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
+          <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
+          <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="nav-title">BuildMetrics</div>
+        <div class="nav-subtitle">RC Slab Design</div>
+      </div>
+    </a>
+    <div class="nav-spacer"></div>
+    <div class="nav-actions">
+      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">&#128193; Projects</a>
+      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">&#128100; Profile</a>
+      <div id="nav-more-container"></div>
+      <button class="btn-nav" onclick="Auth.logout()">&#9167; Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="calc-main">
+
+    <!-- INPUT PANEL -->
+    <div id="calc-input-panel">
+      <div class="calc-input-header">
+        <span style="font-size:1.3rem">&#9636;</span>
+        <span class="calc-input-title">RC Slab Design (EC2)</span>
+      </div>
+
+      <!-- Geometry -->
+      <div class="input-section">
+        <div class="section-header" onclick="toggleSec('sec-geom')">
+          Slab Geometry <span id="sec-geom-arrow">&#9662;</span>
+        </div>
+        <div class="section-body" id="sec-geom">
+          <div class="form-row">
+            <label>Span L (m)</label>
+            <input type="number" id="inp-span" value="5.0" min="0.5" max="20" step="0.1">
+          </div>
+          <div class="form-row">
+            <label>Slab Thickness h (mm)</label>
+            <input type="number" id="inp-thickness" value="200" min="50" max="800" step="5">
+            <span class="unit-tag">Overall depth</span>
+          </div>
+          <div class="form-row">
+            <label>Design Strip Width (m)</label>
+            <input type="number" id="inp-width" value="1.0" min="0.1" max="10" step="0.1">
+            <span class="unit-tag">Typically 1.0 m</span>
+          </div>
+          <div class="form-row">
+            <label>Support Conditions</label>
+            <select id="inp-support">
+              <option value="simply_supported">Simply Supported</option>
+              <option value="continuous_end">Continuous &#8212; End Span</option>
+              <option value="continuous_int" selected>Continuous &#8212; Interior Span</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Materials -->
+      <div class="input-section">
+        <div class="section-header" onclick="toggleSec('sec-mat')">
+          Materials <span id="sec-mat-arrow">&#9662;</span>
+        </div>
+        <div class="section-body" id="sec-mat">
+          <div class="form-row">
+            <label>Concrete Grade f<sub>ck</sub> (MPa)</label>
+            <select id="inp-fck">
+              <option value="20">C20/25</option>
+              <option value="25">C25/30</option>
+              <option value="30" selected>C30/37</option>
+              <option value="35">C35/45</option>
+              <option value="40">C40/50</option>
+              <option value="45">C45/55</option>
+              <option value="50">C50/60</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Rebar Yield f<sub>yk</sub> (MPa)</label>
+            <select id="inp-fyk">
+              <option value="500" selected>B500B &#8212; 500 MPa</option>
+              <option value="460">B460 &#8212; 460 MPa</option>
+              <option value="410">Grade 410</option>
+              <option value="250">Mild Steel &#8212; 250 MPa</option>
+            </select>
+          </div>
+          <div class="form-row-inline">
+            <div class="form-row">
+              <label>Cover c (mm)</label>
+              <input type="number" id="inp-cover" value="25" min="10" max="80" step="1">
+            </div>
+            <div class="form-row">
+              <label>Bar Diameter (mm)</label>
+              <select id="inp-bardia">
+                <option value="8">T8</option>
+                <option value="10">T10</option>
+                <option value="12" selected>T12</option>
+                <option value="16">T16</option>
+                <option value="20">T20</option>
+                <option value="25">T25</option>
+                <option value="32">T32</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="input-section">
+        <div class="section-header" onclick="toggleSec('sec-load')">
+          Applied Loading <span id="sec-load-arrow">&#9662;</span>
+        </div>
+        <div class="section-body" id="sec-load">
+          <div class="form-row">
+            <label>Permanent Load G<sub>k</sub> (kN/m&#178;)</label>
+            <input type="number" id="inp-gk" value="1.5" min="0" step="0.1">
+            <span class="unit-tag">Excl. self-weight</span>
+          </div>
+          <div class="form-row">
+            <label>Variable Load Q<sub>k</sub> (kN/m&#178;)</label>
+            <input type="number" id="inp-qk" value="3.0" min="0" step="0.1">
+            <span class="unit-tag">Imposed load</span>
+          </div>
+          <div class="form-row">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <input type="checkbox" id="inp-selfweight" checked style="width:auto;margin:0">
+              Include Self-Weight (&#947; = 24 kN/m&#179;)
+            </label>
+          </div>
+          <div style="padding:8px 0;font-size:0.78rem;color:var(--text-muted);border-top:1px solid var(--border);margin-top:4px" id="load-hint">
+            ULS: w<sub>Ed</sub> = 1.35G<sub>k</sub> + 1.5Q<sub>k</sub>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="calc-action-bar">
+        <button class="btn-primary" style="flex:1" onclick="runCalc()">
+          &#9889; Calculate
+        </button>
+        <button class="btn-secondary" id="btn-save" onclick="CalcShared.openSaveModal('save-modal')" title="Save calculation">
+          &#128190; Save
+        </button>
+        <button class="btn-ghost" onclick="resetCalc()" title="Reset">&#8635;</button>
+      </div>
+    </div>
+
+    <!-- RESULTS PANEL -->
+    <div id="calc-results-panel">
+
+      <!-- Welcome state -->
+      <div class="calc-welcome" id="results-welcome">
+        <div class="calc-welcome-icon">&#9636;</div>
+        <h3>RC Slab Design Calculator</h3>
+        <p>Enter slab geometry, materials, and loading, then click Calculate to design the flexural reinforcement to EC2.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px">
+          <span style="font-size:0.78rem;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:99px;font-weight:600">EC2 EN 1992-1-1</span>
+          <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">Flexure &amp; Shear</span>
+          <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">Deflection Check (l/d)</span>
+          <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">Simply Supported &amp; Continuous</span>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="results-content" style="display:none;flex-direction:column;gap:20px">
+
+        <!-- Warning banner (doubly reinforced) -->
+        <div id="warn-banner" class="warn-banner" style="display:none"></div>
+
+        <!-- Gauge + key badges -->
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <!-- Gauge card (flexure utilisation) -->
+          <div class="calc-results-card" style="min-width:200px;flex:0 0 auto">
+            <div class="card-header">Flexure Utilisation</div>
+            <div class="util-gauge-wrap">
+              <svg class="util-gauge-svg" width="90" height="90" viewBox="0 0 90 90">
+                <circle class="util-ring-track" cx="45" cy="45" r="36"/>
+                <circle class="util-ring-fill" id="util-ring" cx="45" cy="45" r="36"
+                  stroke-dasharray="0 226" stroke="#2563EB"/>
+              </svg>
+              <div class="util-gauge-info">
+                <div class="util-gauge-value" id="util-pct">&#8212;%</div>
+                <div class="util-gauge-label" id="util-status">&#8212;</div>
+                <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px">K / K<sub>limit</sub></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key result badges -->
+          <div style="flex:1;display:flex;flex-direction:column;gap:12px">
+            <div class="calc-badges">
+              <div class="calc-badge">
+                <div class="calc-badge-label">M<sub>Ed</sub></div>
+                <div class="calc-badge-value" id="badge-MEd">&#8212;</div>
+                <div class="calc-badge-unit">kNm/m</div>
+              </div>
+              <div class="calc-badge">
+                <div class="calc-badge-label">V<sub>Ed</sub></div>
+                <div class="calc-badge-value" id="badge-VEd">&#8212;</div>
+                <div class="calc-badge-unit">kN/m</div>
+              </div>
+              <div class="calc-badge">
+                <div class="calc-badge-label">As,req</div>
+                <div class="calc-badge-value" id="badge-Asreq">&#8212;</div>
+                <div class="calc-badge-unit">mm&#178;/m</div>
+              </div>
+              <div class="calc-badge">
+                <div class="calc-badge-label">Spacing</div>
+                <div class="calc-badge-value" id="badge-spacing">&#8212;</div>
+                <div class="calc-badge-unit">mm c/c</div>
+              </div>
+            </div>
+
+            <!-- Check pills -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <span id="pill-flexure" style="font-size:0.78rem;padding:4px 12px;border-radius:99px;font-weight:600;background:var(--bg-subtle);color:var(--text-muted)">Flexure</span>
+              <span id="pill-shear" style="font-size:0.78rem;padding:4px 12px;border-radius:99px;font-weight:600;background:var(--bg-subtle);color:var(--text-muted)">Shear</span>
+              <span id="pill-deflection" style="font-size:0.78rem;padding:4px 12px;border-radius:99px;font-weight:600;background:var(--bg-subtle);color:var(--text-muted)">Deflection</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed results table -->
+        <div class="calc-results-card">
+          <div class="card-header">Analysis Results</div>
+          <table class="calc-results-table">
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Unit</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody id="results-table-body">
+              <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Run calculation to see results</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Design checks table -->
+        <div class="calc-results-card">
+          <div class="card-header">Design Checks</div>
+          <table class="calc-results-table">
+            <thead>
+              <tr>
+                <th>Check</th>
+                <th>Demand</th>
+                <th>Capacity</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="checks-table-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Reinforcement summary -->
+        <div class="calc-results-card">
+          <div class="card-header">Reinforcement Summary</div>
+          <table class="calc-results-table">
+            <tbody id="rebar-table-body"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Save Modal -->
+<div class="calc-modal-overlay" id="save-modal">
+  <div class="calc-modal-box">
+    <h3>&#128190; Save Calculation</h3>
+    <div class="form-row">
+      <label>Calculation Name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. Ground Floor Slab S1" maxlength="80">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-ghost" onclick="document.getElementById('save-modal').classList.remove('open')">Cancel</button>
+      <button class="btn-primary" data-save-submit onclick="doSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="../js/auth/auth.js"></script>
+<script src="../js/projects/history.js"></script>
+<script src="../js/projects/projects.js"></script>
+<script src="../js/subscription/plans.js"></script>
+<script src="../js/subscription/upgrade-modal.js"></script>
+<script src="../js/ui/navDropdown.js"></script>
+<script src="../js/ui/calcShared.js"></script>
+<script src="../js/data/materials.js"></script>
+<script src="../js/engine/slabSolver.js"></script>
+
+<script>
+let currentResults = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!Auth.guard()) return;
+  NavDropdown.init('nav-more-container');
+  updateLoadHint();
+
+  CalcShared.loadFromUrl((config, results) => {
+    restoreState(config);
+    if (results) showResults(results);
+  });
+
+  CalcShared.loadTemplateFromUrl((config) => restoreState(config));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.calc-modal-overlay.open').forEach(m => m.classList.remove('open'));
+    }
+  });
+
+  document.getElementById('save-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('save-modal')) {
+      document.getElementById('save-modal').classList.remove('open');
+    }
+  });
+
+  // Update load hint on input changes
+  ['inp-gk', 'inp-qk', 'inp-thickness', 'inp-selfweight'].forEach(id => {
+    document.getElementById(id).addEventListener('change', updateLoadHint);
+    document.getElementById(id).addEventListener('input', updateLoadHint);
+  });
+});
+
+function updateLoadHint() {
+  const gk = parseFloat(document.getElementById('inp-gk').value) || 0;
+  const qk = parseFloat(document.getElementById('inp-qk').value) || 0;
+  const h = parseFloat(document.getElementById('inp-thickness').value) || 0;
+  const sw = document.getElementById('inp-selfweight').checked;
+  const sw_kPa = sw ? (h / 1000) * 24 : 0;
+  const gk_total = gk + sw_kPa;
+  const wEd = (1.35 * gk_total + 1.5 * qk).toFixed(2);
+  document.getElementById('load-hint').innerHTML =
+    'w<sub>Ed</sub> = 1.35 &times; ' + gk_total.toFixed(2) + ' + 1.5 &times; ' + qk.toFixed(2) + ' = <strong>' + wEd + ' kN/m&#178;</strong>';
+}
+
+function toggleSec(id) {
+  const body = document.getElementById(id);
+  body.style.display = body.style.display === 'none' ? '' : 'none';
+}
+
+function getConfig() {
+  return {
+    span: parseFloat(document.getElementById('inp-span').value),
+    thickness: parseFloat(document.getElementById('inp-thickness').value),
+    width: parseFloat(document.getElementById('inp-width').value),
+    fck: parseFloat(document.getElementById('inp-fck').value),
+    fyk: parseFloat(document.getElementById('inp-fyk').value),
+    cover: parseFloat(document.getElementById('inp-cover').value),
+    barDia: parseFloat(document.getElementById('inp-bardia').value),
+    gk: parseFloat(document.getElementById('inp-gk').value),
+    qk: parseFloat(document.getElementById('inp-qk').value),
+    supportType: document.getElementById('inp-support').value,
+    selfWeight: document.getElementById('inp-selfweight').checked,
+  };
+}
+
+function restoreState(config) {
+  if (!config) return;
+  if (config.span !== undefined) document.getElementById('inp-span').value = config.span;
+  if (config.thickness !== undefined) document.getElementById('inp-thickness').value = config.thickness;
+  if (config.width !== undefined) document.getElementById('inp-width').value = config.width;
+  if (config.fck !== undefined) document.getElementById('inp-fck').value = config.fck;
+  if (config.fyk !== undefined) document.getElementById('inp-fyk').value = config.fyk;
+  if (config.cover !== undefined) document.getElementById('inp-cover').value = config.cover;
+  if (config.barDia !== undefined) document.getElementById('inp-bardia').value = config.barDia;
+  if (config.gk !== undefined) document.getElementById('inp-gk').value = config.gk;
+  if (config.qk !== undefined) document.getElementById('inp-qk').value = config.qk;
+  if (config.supportType) document.getElementById('inp-support').value = config.supportType;
+  if (config.selfWeight !== undefined) document.getElementById('inp-selfweight').checked = config.selfWeight;
+  updateLoadHint();
+}
+
+function runCalc() {
+  const config = getConfig();
+
+  if (!config.span || config.span <= 0) {
+    CalcShared.showToast('Please enter a valid span.', 'error'); return;
+  }
+  if (!config.thickness || config.thickness <= 0) {
+    CalcShared.showToast('Please enter a valid slab thickness.', 'error'); return;
+  }
+  if (config.cover >= config.thickness) {
+    CalcShared.showToast('Cover must be less than slab thickness.', 'error'); return;
+  }
+
+  const results = SlabSolver.solve(config);
+  currentResults = results;
+  showResults(results);
+}
+
+function setPill(id, pass, label) {
+  const el = document.getElementById(id);
+  if (pass) {
+    el.style.background = '#DCFCE7';
+    el.style.color = '#15803D';
+    el.textContent = '\u2713 ' + label;
+  } else {
+    el.style.background = '#FEE2E2';
+    el.style.color = '#DC2626';
+    el.textContent = '\u2717 ' + label;
+  }
+}
+
+function showResults(r) {
+  document.getElementById('results-welcome').style.display = 'none';
+  const rc = document.getElementById('results-content');
+  rc.style.display = 'flex';
+
+  // Warning banner
+  const warnBanner = document.getElementById('warn-banner');
+  if (r.warnings && r.warnings.length > 0) {
+    warnBanner.style.display = '';
+    warnBanner.textContent = '\u26a0 ' + r.warnings.join(' | ');
+  } else {
+    warnBanner.style.display = 'none';
+  }
+
+  // Gauge (K / K_limit)
+  const kUtil = Math.min(r.K / r.K_limit, 1.5); // cap at 150% for visual
+  const kPct = Math.min((r.K / r.K_limit) * 100, 100);
+  const circumference = 2 * Math.PI * 36;
+  const fill = (kPct / 100) * circumference;
+  const ring = document.getElementById('util-ring');
+  ring.setAttribute('stroke-dasharray', fill + ' ' + (circumference - fill));
+  const flexPass = !r.doublyReinforced;
+  const gaugeColor = flexPass ? '#16A34A' : '#DC2626';
+  ring.setAttribute('stroke', gaugeColor);
+  document.getElementById('util-pct').textContent = (r.K / r.K_limit * 100).toFixed(1) + '%';
+  document.getElementById('util-pct').style.color = gaugeColor;
+  document.getElementById('util-status').innerHTML = CalcShared.passBadge(flexPass && r.pass);
+
+  // Badges
+  document.getElementById('badge-MEd').textContent = CalcShared.fmt(r.MEd, 2);
+  document.getElementById('badge-VEd').textContent = CalcShared.fmt(r.VEd, 2);
+  document.getElementById('badge-Asreq').textContent = CalcShared.fmt(r.As_req, 0);
+  document.getElementById('badge-spacing').textContent = r.spacing;
+
+  // Check pills
+  setPill('pill-flexure', !r.doublyReinforced, 'Flexure');
+  setPill('pill-shear', r.shearPass, 'Shear');
+  setPill('pill-deflection', r.deflPass, 'Deflection');
+
+  // Support type label
+  const supportLabels = {
+    simply_supported: 'Simply Supported',
+    continuous_end: 'Continuous \u2014 End Span',
+    continuous_int: 'Continuous \u2014 Interior',
+  };
+  const supportLabel = supportLabels[r.supportType] || r.supportType;
+
+  // Detailed results table
+  const tb = document.getElementById('results-table-body');
+  const rows = [
+    ['Design ULS load w\u1d07\u1d05', CalcShared.fmt(r.wEd, 2), 'kN/m\u00b2', ''],
+    ['Total permanent load G\u1d0b', CalcShared.fmt(r.Gk_total, 2), 'kN/m\u00b2', 'Incl. self-weight: ' + r.sw_kPa + ' kN/m\u00b2'],
+    ['Design moment M\u1d07\u1d05', CalcShared.fmt(r.MEd, 2), 'kNm/m', 'At midspan'],
+    ['Design shear V\u1d07\u1d05', CalcShared.fmt(r.VEd, 2), 'kN/m', 'At support'],
+    ['Effective depth d', r.d, 'mm', 'h \u2212 cover \u2212 \u00f8/2'],
+    ['K factor', CalcShared.fmt(r.K, 4), '\u2014', 'K\u2097\u1d35\u1d3a\u1d35\u1d1b = ' + r.K_limit],
+    ['Lever arm z', CalcShared.fmt(r.z, 1), 'mm', '\u2264 0.95d'],
+    ['Design concrete f\u1d04\u1d05', CalcShared.fmt(r.fcd, 1), 'MPa', 'f\u1d04\u1d0b / \u03b3\u1d04 = f\u1d04\u1d0b / 1.5'],
+    ['Design steel f\u02b8\u1d05', CalcShared.fmt(r.fyd, 1), 'MPa', 'f\u02b8\u1d0b / \u03b3\u02e2 = f\u02b8\u1d0b / 1.15'],
+    ['Reinf. ratio \u03c1', CalcShared.fmt(r.rho, 3), '%', 'As,prov / (1000 \u00d7 d)'],
+    ['Support conditions', supportLabel, '\u2014', ''],
+  ];
+  tb.innerHTML = rows.map(([p, v, u, n]) =>
+    '<tr><td>' + p + '</td><td class="mono">' + v + '</td><td style="color:var(--text-muted)">' + u + '</td><td style="color:var(--text-muted);font-size:0.78rem">' + n + '</td></tr>'
+  ).join('');
+
+  // Checks table
+  const ctb = document.getElementById('checks-table-body');
+  ctb.innerHTML = [
+    {
+      check: 'Flexure (K \u2264 K\u2097\u1d35\u1d3a\u1d35\u1d1b)',
+      demand: 'K = ' + CalcShared.fmt(r.K, 4),
+      capacity: 'K\u2097\u1d35\u1d3a\u1d35\u1d1b = ' + r.K_limit,
+      pass: !r.doublyReinforced,
+    },
+    {
+      check: 'Shear (V\u1d07\u1d05 \u2264 V\u1dba\u1d05,c)',
+      demand: 'V\u1d07\u1d05 = ' + r.VEd + ' kN/m',
+      capacity: 'V\u1dba\u1d05,c = ' + r.VRd_c + ' kN/m',
+      pass: r.shearPass,
+    },
+    {
+      check: 'Deflection (l/d \u2264 limit)',
+      demand: 'l/d = ' + r.actualRatio,
+      capacity: 'Limit = ' + CalcShared.fmt(r.allowedRatio, 1),
+      pass: r.deflPass,
+    },
+    {
+      check: 'Min. steel (As,req \u2265 As,min)',
+      demand: 'As,req = ' + r.As_req + ' mm\u00b2/m',
+      capacity: 'As,min = ' + r.As_min + ' mm\u00b2/m',
+      pass: r.As_req >= r.As_min,
+    },
+    {
+      check: 'Max. steel (As,prov \u2264 As,max)',
+      demand: 'As,prov = ' + r.As_prov + ' mm\u00b2/m',
+      capacity: 'As,max = ' + r.As_max + ' mm\u00b2/m',
+      pass: r.As_prov <= r.As_max,
+    },
+  ].map(row => {
+    const cls = row.pass ? 'check-row-pass' : 'check-row-fail';
+    const resultText = row.pass ? '\u2713 PASS' : '\u2717 FAIL';
+    return '<tr class="' + cls + '"><td>' + row.check + '</td><td class="mono">' + row.demand + '</td><td class="mono">' + row.capacity + '</td><td>' + resultText + '</td></tr>';
+  }).join('');
+
+  // Rebar summary
+  const rtb = document.getElementById('rebar-table-body');
+  rtb.innerHTML = [
+    ['Required tension steel As,req', r.As_req + ' mm\u00b2/m', ''],
+    ['Minimum steel As,min', r.As_min + ' mm\u00b2/m', 'EC2 cl. 9.2.1.1'],
+    ['Provided steel As,prov', r.As_prov + ' mm\u00b2/m', CalcShared.passBadge(r.As_prov >= r.As_req)],
+    ['Bar size', 'T' + r.barDia, ''],
+    ['Spacing', r.spacing + ' mm c/c', r.spacing <= 300 ? CalcShared.passBadge(true, '\u2264 300mm max') : CalcShared.passBadge(false, '> 300mm')],
+    ['Overall result', '', CalcShared.passBadge(r.pass)],
+  ].map(([p, v, c]) =>
+    '<tr><td>' + p + '</td><td class="mono">' + v + '</td><td>' + c + '</td></tr>'
+  ).join('');
+}
+
+function resetCalc() {
+  currentResults = null;
+  document.getElementById('results-welcome').style.display = '';
+  document.getElementById('results-content').style.display = 'none';
+}
+
+function doSave() {
+  if (!currentResults) {
+    CalcShared.showToast('Run a calculation first.', 'error');
+    return;
+  }
+  const name = document.getElementById('save-calc-name').value.trim() || 'Slab Calc';
+  const config = getConfig();
+  const summary = {
+    MEd: currentResults.MEd,
+    As_req: currentResults.As_req,
+    spacing: currentResults.spacing,
+    pass: currentResults.pass,
+  };
+  CalcShared.saveCalc('slab', name, config, currentResults, summary);
+  document.getElementById('save-modal').classList.remove('open');
+  document.getElementById('save-calc-name').value = '';
+}
+</script>
+</body>
+</html>

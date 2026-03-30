@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Assistant — BuildMetrics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/main.css" />
+
+    <!-- Markdown + sanitisation -->
+    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+
+    <style>
+        /* ── Page layout ─────────────────────────────────────────── */
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Navbar overrides for full-height layout ─────────────── */
+        #navbar {
+            flex-shrink: 0;
+        }
+
+        /* ── Main split ──────────────────────────────────────────── */
+        .ai-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* ── Sidebar ─────────────────────────────────────────────── */
+        .ai-sidebar {
+            width: 280px;
+            background: #F8FAFC;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .ai-sidebar-top {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .btn-new-chat {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: background 0.15s;
+        }
+
+        .btn-new-chat:hover {
+            background: var(--accent-hover);
+        }
+
+        .conv-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .conv-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            user-select: none;
+            transition: background 0.12s;
+        }
+
+        .conv-item:hover {
+            background: #EFF6FF;
+        }
+
+        .conv-item.active {
+            background: #DBEAFE;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .conv-list-empty {
+            padding: 16px 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .ai-sidebar-api {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .api-key-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 6px;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .api-key-input:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-save-key {
+            width: 100%;
+            margin-top: 6px;
+            padding: 8px;
+            background: #10B981;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: inherit;
+            transition: background 0.15s;
+        }
+
+        .btn-save-key:hover {
+            background: #059669;
+        }
+
+        /* ── Chat area ───────────────────────────────────────────── */
+        .ai-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .chat-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .chat-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* ── Message rows ────────────────────────────────────────── */
+        .msg-row {
+            display: flex;
+            gap: 12px;
+            max-width: 820px;
+        }
+
+        .msg-row.user-row {
+            flex-direction: row-reverse;
+            align-self: flex-end;
+        }
+
+        .msg-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .msg-avatar.ai-av {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .msg-avatar.user-av {
+            background: #E2E8F0;
+            color: var(--text-primary);
+        }
+
+        .msg-bubble {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            max-width: 680px;
+        }
+
+        .msg-bubble.ai-bubble {
+            background: #F8FAFC;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-top-left-radius: 2px;
+        }
+
+        .msg-bubble.user-bubble {
+            background: var(--accent);
+            color: #fff;
+            border-top-right-radius: 2px;
+        }
+
+        /* Markdown content inside AI bubbles */
+        .msg-bubble.ai-bubble pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.82rem;
+            margin: 8px 0;
+        }
+
+        .msg-bubble.ai-bubble code {
+            background: #E2E8F0;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .msg-bubble.ai-bubble pre code {
+            background: transparent;
+            padding: 0;
+            font-size: inherit;
+        }
+
+        .msg-bubble.ai-bubble strong {
+            color: var(--accent);
+        }
+
+        .msg-bubble.ai-bubble h1,
+        .msg-bubble.ai-bubble h2,
+        .msg-bubble.ai-bubble h3 {
+            font-size: 1em;
+            margin: 8px 0 4px;
+        }
+
+        .msg-bubble.ai-bubble p {
+            margin: 0 0 8px;
+        }
+
+        .msg-bubble.ai-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .msg-bubble.ai-bubble ul,
+        .msg-bubble.ai-bubble ol {
+            padding-left: 20px;
+            margin: 4px 0 8px;
+        }
+
+        .msg-bubble.ai-bubble li {
+            margin-bottom: 2px;
+        }
+
+        .msg-bubble.ai-bubble blockquote {
+            border-left: 3px solid var(--border-strong);
+            margin: 8px 0;
+            padding: 4px 12px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* ── Typing indicator ────────────────────────────────────── */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 4px 0;
+            align-items: center;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: bounce 1.2s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30%            { transform: translateY(-8px); }
+        }
+
+        /* ── Error bubble ────────────────────────────────────────── */
+        .msg-bubble.error-bubble {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            color: #DC2626;
+            border-top-left-radius: 2px;
+        }
+
+        /* ── Quick actions ───────────────────────────────────────── */
+        .quick-actions {
+            padding: 12px 24px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-top: 1px solid #F1F5F9;
+            background: #FAFAFA;
+            flex-shrink: 0;
+        }
+
+        .qa-btn {
+            padding: 7px 14px;
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+            transition: background 0.12s;
+        }
+
+        .qa-btn:hover {
+            background: #DBEAFE;
+        }
+
+        /* ── Input bar ───────────────────────────────────────────── */
+        .chat-input-bar {
+            padding: 16px 24px;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-shrink: 0;
+        }
+
+        .chat-textarea {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            resize: none;
+            min-height: 44px;
+            max-height: 160px;
+            line-height: 1.5;
+            outline: none;
+            overflow-y: auto;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .chat-textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-send {
+            width: 44px;
+            height: 44px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.15s;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        .btn-send:disabled {
+            background: #94A3B8;
+            cursor: not-allowed;
+        }
+
+        /* ── Pro gate overlay ────────────────────────────────────── */
+        .pro-gate-overlay {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #FAFAFA;
+        }
+
+        .pro-gate-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 48px;
+            text-align: center;
+            max-width: 480px;
+        }
+
+        .pro-gate-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            line-height: 1;
+        }
+
+        .pro-gate-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .pro-gate-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .btn-upgrade-ai {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+            box-shadow: 0 2px 10px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-upgrade-ai:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.4);
+        }
+
+        /* ── Toast ───────────────────────────────────────────────── */
+        #ai-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 10px 18px;
+            background: #1e293b;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        #ai-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ════ NAVBAR ════════════════════════════════════════════════════ -->
+    <nav id="navbar" role="navigation" aria-label="Main navigation">
+        <a href="/projects.html" class="nav-brand">
+            <div class="nav-logo">
+                <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="30" height="30" rx="7" fill="#2563EB"/>
+                    <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
+                    <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
+                    <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
+                    <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
+                </svg>
+            </div>
+            <div>
+                <div class="nav-title">BuildMetrics</div>
+                <div class="nav-subtitle">Structural Analysis</div>
+            </div>
+        </a>
+        <div class="nav-spacer"></div>
+        <div class="nav-actions">
+            <div id="nav-more-container"></div>
+            <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
+            <button class="btn-nav" onclick="Auth.logout()">⏏ Sign Out</button>
+        </div>
+    </nav>
+
+    <!-- ════ BODY ════════════════════════════════════════════════════ -->
+    <div class="ai-body" id="ai-body">
+
+        <!-- Sidebar -->
+        <aside class="ai-sidebar">
+            <div class="ai-sidebar-top">
+                <button class="btn-new-chat" id="btn-new-chat">+ New Chat</button>
+            </div>
+
+            <div class="conv-list" id="conv-list">
+                <div class="conv-list-empty">No conversations yet</div>
+            </div>
+
+            <div class="ai-sidebar-api">
+                <div class="api-key-label">OpenAI API Key</div>
+                <input
+                    type="password"
+                    class="api-key-input"
+                    id="api-key-input"
+                    placeholder="sk-..."
+                    autocomplete="off"
+                    spellcheck="false"
+                />
+                <button class="btn-save-key" id="btn-save-key">Save Key</button>
+            </div>
+        </aside>
+
+        <!-- Chat panel -->
+        <section class="ai-chat" id="ai-chat">
+            <div class="chat-header">
+                <h2 id="chat-title">New Conversation</h2>
+            </div>
+
+            <div class="chat-messages" id="chat-messages"></div>
+
+            <div class="quick-actions" id="quick-actions">
+                <button class="qa-btn" data-qa="beam">Beam design check</button>
+                <button class="qa-btn" data-qa="column">Column buckling</button>
+                <button class="qa-btn" data-qa="loads">Load combinations</button>
+                <button class="qa-btn" data-qa="ec3">EC3 section classification</button>
+                <button class="qa-btn" data-qa="punching">Punching shear EC2</button>
+                <button class="qa-btn" data-qa="footing">Footing bearing</button>
+            </div>
+
+            <div class="chat-input-bar">
+                <textarea
+                    class="chat-textarea"
+                    id="chat-textarea"
+                    placeholder="Ask a structural engineering question..."
+                    rows="1"
+                ></textarea>
+                <button class="btn-send" id="btn-send" title="Send message" disabled>
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.5 9L2.5 2.5L5.5 9M15.5 9L2.5 15.5L5.5 9M15.5 9H5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Toast notification -->
+    <div id="ai-toast"></div>
+
+    <!-- Scripts — order matters -->
+    <script src="/js/auth/auth.js"></script>
+    <script src="/js/projects/projects.js"></script>
+    <script src="/js/projects/history.js"></script>
+    <script src="/js/subscription/plans.js"></script>
+    <script src="/js/subscription/upgrade-modal.js"></script>
+    <script src="/js/ui/navDropdown.js"></script>
+    <script src="/js/ai/aiStorage.js"></script>
+    <script src="/js/ai/aiAssistant.js"></script>
+
+    <script>
+    (function () {
+        'use strict';
+
+        // ── Quick action prompts ──────────────────────────────────────
+        const QA_PROMPTS = {
+            beam:     'I have a simply supported steel beam, span 6m, carrying a UDL of 15 kN/m (including self-weight). Section 305\u00d7165\u00d740 UB in S355 steel. Perform a moment capacity check to EC3.',
+            column:   'Check an S275 203\u00d7203\u00d746 UC column, effective length 3.5m, carrying NEd = 450 kN. Verify against EC3 EN 1993-1-1 column buckling.',
+            loads:    'What are the Eurocode ULS load combinations for a structure with Gk = 20 kN/m\u00b2 dead load, Qk = 5 kN/m\u00b2 imposed, and Wk = 3 kN/m\u00b2 wind?',
+            ec3:      'Explain section classification for steel sections under EC3, with the limits for Class 1, 2, 3, and 4 sections for flanges and webs in bending.',
+            punching: 'Calculate the punching shear check for a 250mm RC flat slab, C30/37 concrete, column 350\u00d7350mm, with a column load of NEd = 800 kN. Use EC2 EN 1992-1-1.',
+            footing:  'Design a pad footing for a column load of N = 600 kN on soil with allowable bearing pressure of 100 kN/m\u00b2. Column size 300\u00d7300mm. What is the minimum footing size?',
+        };
+
+        // ── Welcome message ───────────────────────────────────────────
+        const WELCOME_MD = `Welcome to **BuildMetrics AI** \u2014 your structural engineering assistant.
+
+I can help you with:
+- \u2705 Beam, column, slab, and foundation design checks
+- \u2705 Eurocode 2, 3, 7 calculations with step-by-step workings
+- \u2705 Load combinations (EC0, ACI 318)
+- \u2705 Section properties and material properties
+- \u2705 Code compliance questions
+
+**To get started:** Type your engineering question below, or click one of the quick action buttons.
+
+> \u26a0\ufe0f Always verify results with a qualified structural engineer before use in practice.`;
+
+        // ── State ─────────────────────────────────────────────────────
+        let currentConvId = null;
+        let isSending = false;
+        let renderThrottleTimer = null;
+
+        // ── DOM refs ──────────────────────────────────────────────────
+        const elBody        = document.getElementById('ai-body');
+        const elConvList    = document.getElementById('conv-list');
+        const elChatTitle   = document.getElementById('chat-title');
+        const elMessages    = document.getElementById('chat-messages');
+        const elTextarea    = document.getElementById('chat-textarea');
+        const elBtnSend     = document.getElementById('btn-send');
+        const elBtnNewChat  = document.getElementById('btn-new-chat');
+        const elApiKeyInput = document.getElementById('api-key-input');
+        const elBtnSaveKey  = document.getElementById('btn-save-key');
+        const elToast       = document.getElementById('ai-toast');
+
+        // ── Utilities ─────────────────────────────────────────────────
+        function showToast(msg, duration = 2500) {
+            elToast.textContent = msg;
+            elToast.classList.add('show');
+            clearTimeout(elToast._timer);
+            elToast._timer = setTimeout(() => elToast.classList.remove('show'), duration);
+        }
+
+        function renderMarkdown(text) {
+            if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
+                // CDN not yet loaded — return escaped plain text
+                return '<p>' + text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>';
+            }
+            return DOMPurify.sanitize(marked.parse(text));
+        }
+
+        function scrollToBottom() {
+            elMessages.scrollTop = elMessages.scrollHeight;
+        }
+
+        // ── Sidebar rendering ─────────────────────────────────────────
+        function renderConvList() {
+            const convs = AiStorage.getAll();
+            if (!convs.length) {
+                elConvList.innerHTML = '<div class="conv-list-empty">No conversations yet</div>';
+                return;
+            }
+            elConvList.innerHTML = convs.map(c => {
+                const active = c.id === currentConvId ? ' active' : '';
+                const title = c.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return `<div class="conv-item${active}" data-id="${c.id}">${title}</div>`;
+            }).join('');
+
+            elConvList.querySelectorAll('.conv-item').forEach(el => {
+                el.addEventListener('click', () => loadConversation(el.dataset.id));
+            });
+        }
+
+        // ── Message rendering ─────────────────────────────────────────
+        function renderUserBubble(text) {
+            const row = document.createElement('div');
+            row.className = 'msg-row user-row';
+            const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            row.innerHTML = `
+                <div class="msg-avatar user-av">U</div>
+                <div class="msg-bubble user-bubble">${escaped}</div>
+            `;
+            elMessages.appendChild(row);
+            return row;
+        }
+
+        function renderAiBubble(html, isTyping = false) {
+            const row = document.createElement('div');
+            row.className = 'msg-row';
+            const bubbleClass = isTyping ? 'msg-bubble ai-bubble' : 'msg-bubble ai-bubble';
+            row.innerHTML = `<div class="msg-avatar ai-av">AI</div><div class="${bubbleClass}"></div>`;
+            const bubble = row.querySelector('.msg-bubble');
+            if (isTyping) {
+                bubble.innerHTML = `<div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>`;
+            } else {
+                bubble.innerHTML = html;
+            }
+            elMessages.appendChild(row);
+            scrollToBottom();
+            return { row, bubble };
+        }
+
+        function renderErrorBubble(message) {
+            const row = document.createElement('div');
+            row.className = 'msg-row';
+            const escaped = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            row.innerHTML = `
+                <div class="msg-avatar ai-av">AI</div>
+                <div class="msg-bubble error-bubble">\u26a0 ${escaped}</div>
+            `;
+            elMessages.appendChild(row);
+            scrollToBottom();
+            return row;
+        }
+
+        function renderAllMessages(conv) {
+            elMessages.innerHTML = '';
+            if (!conv || !conv.messages.length) {
+                // Show welcome message for empty conversations
+                renderAiBubble(renderMarkdown(WELCOME_MD));
+                return;
+            }
+            conv.messages.forEach(msg => {
+                if (msg.role === 'user') {
+                    renderUserBubble(msg.content);
+                } else if (msg.role === 'assistant') {
+                    renderAiBubble(renderMarkdown(msg.content));
+                }
+            });
+            scrollToBottom();
+        }
+
+        // ── Load conversation ─────────────────────────────────────────
+        function loadConversation(id) {
+            currentConvId = id;
+            const conv = AiStorage.get(id);
+            elChatTitle.textContent = conv ? conv.title : 'Conversation';
+            renderAllMessages(conv);
+            renderConvList();
+        }
+
+        // ── New chat ──────────────────────────────────────────────────
+        function startNewChat() {
+            const conv = AiStorage.create();
+            currentConvId = conv.id;
+            elChatTitle.textContent = 'New Conversation';
+            elMessages.innerHTML = '';
+            renderAiBubble(renderMarkdown(WELCOME_MD));
+            renderConvList();
+        }
+
+        // ── Send message ──────────────────────────────────────────────
+        function handleSend() {
+            const text = elTextarea.value.trim();
+            if (!text || isSending) return;
+
+            const apiKey = AiStorage.getApiKey();
+            if (!apiKey) {
+                renderErrorBubble('Please save your OpenAI API key in the sidebar to use the AI assistant.');
+                return;
+            }
+
+            // Ensure we have an active conversation
+            if (!currentConvId) {
+                const conv = AiStorage.create();
+                currentConvId = conv.id;
+            }
+
+            isSending = true;
+            elBtnSend.disabled = true;
+            elTextarea.disabled = true;
+
+            // Store and render user message
+            AiStorage.addMessage(currentConvId, 'user', text);
+            renderUserBubble(text);
+            scrollToBottom();
+
+            // Update sidebar title (may have changed from auto-title)
+            const updatedConv = AiStorage.get(currentConvId);
+            if (updatedConv) {
+                elChatTitle.textContent = updatedConv.title;
+            }
+            renderConvList();
+
+            // Clear textarea
+            elTextarea.value = '';
+            elTextarea.style.height = 'auto';
+
+            // Show typing indicator
+            const { row: typingRow, bubble: typingBubble } = renderAiBubble(null, true);
+
+            // Build message history for API (role + content only)
+            const conv = AiStorage.get(currentConvId);
+            const messages = conv
+                ? conv.messages
+                    .filter(m => m.role === 'user' || m.role === 'assistant')
+                    .map(m => ({ role: m.role, content: m.content }))
+                : [{ role: 'user', content: text }];
+
+            let fullText = '';
+            let firstChunk = true;
+            let lastRender = 0;
+
+            AiAssistant.sendMessage(
+                apiKey,
+                messages,
+                // onChunk
+                function (delta) {
+                    fullText += delta;
+
+                    if (firstChunk) {
+                        firstChunk = false;
+                        // Replace typing indicator with real bubble
+                        typingBubble.innerHTML = '';
+                    }
+
+                    // Throttle markdown re-renders to avoid flicker
+                    const now = Date.now();
+                    if (now - lastRender >= 100) {
+                        lastRender = now;
+                        typingBubble.innerHTML = renderMarkdown(fullText);
+                        scrollToBottom();
+                    }
+                },
+                // onDone
+                function () {
+                    // Final render
+                    clearTimeout(renderThrottleTimer);
+                    typingBubble.innerHTML = renderMarkdown(fullText);
+                    scrollToBottom();
+
+                    // Persist to storage
+                    AiStorage.addMessage(currentConvId, 'assistant', fullText);
+
+                    // Refresh sidebar (title may have updated)
+                    renderConvList();
+
+                    isSending = false;
+                    elBtnSend.disabled = false;
+                    elTextarea.disabled = false;
+                    elTextarea.focus();
+                },
+                // onError
+                function (err) {
+                    // Replace or remove typing indicator
+                    typingRow.remove();
+                    renderErrorBubble(err.message || 'An unexpected error occurred.');
+
+                    isSending = false;
+                    elBtnSend.disabled = false;
+                    elTextarea.disabled = false;
+                    elTextarea.focus();
+                }
+            );
+        }
+
+        // ── Pro gate ──────────────────────────────────────────────────
+        function showProGate() {
+            elBody.innerHTML = `
+                <div class="pro-gate-overlay">
+                    <div class="pro-gate-card">
+                        <div class="pro-gate-icon">\uD83D\uDD12</div>
+                        <div class="pro-gate-title">AI Assistant &mdash; Pro Feature</div>
+                        <div class="pro-gate-desc">
+                            The BuildMetrics AI Assistant gives you instant access to code-compliant structural
+                            engineering calculations, Eurocode workings, and expert guidance &mdash; powered by GPT-4o.<br><br>
+                            Upgrade to <strong>BuildMetrics Pro</strong> to unlock unlimited AI conversations.
+                        </div>
+                        <button class="btn-upgrade-ai" id="pro-gate-upgrade-btn">
+                            \u2728 Upgrade to Pro &rarr;
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('pro-gate-upgrade-btn').addEventListener('click', function () {
+                if (window.UpgradeModal) {
+                    UpgradeModal.show('generic');
+                } else {
+                    window.location.href = '/pricing.html';
+                }
+            });
+        }
+
+        // ── Init ──────────────────────────────────────────────────────
+        function initAiAssistant() {
+            // Configure marked
+            if (typeof marked !== 'undefined') {
+                marked.setOptions({ breaks: true, gfm: true });
+            } else {
+                // marked may load after DOMContentLoaded due to defer — configure on use
+                window.addEventListener('load', function () {
+                    if (typeof marked !== 'undefined') {
+                        marked.setOptions({ breaks: true, gfm: true });
+                    }
+                });
+            }
+
+            // Load saved API key
+            elApiKeyInput.value = AiStorage.getApiKey();
+
+            // Load conversations
+            const convs = AiStorage.getAll();
+            if (convs.length > 0) {
+                loadConversation(convs[0].id);
+            } else {
+                startNewChat();
+            }
+
+            // ── Event: New Chat button ────────────────────────────────
+            elBtnNewChat.addEventListener('click', function () {
+                if (isSending) return;
+                startNewChat();
+            });
+
+            // ── Event: Save API key ───────────────────────────────────
+            elBtnSaveKey.addEventListener('click', function () {
+                const key = elApiKeyInput.value.trim();
+                AiStorage.setApiKey(key);
+                showToast(key ? 'API key saved' : 'API key cleared');
+            });
+
+            // ── Event: Textarea input (auto-resize + enable send) ─────
+            elTextarea.addEventListener('input', function () {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 160) + 'px';
+                elBtnSend.disabled = !this.value.trim() || isSending;
+            });
+
+            // ── Event: Textarea keydown (Enter to send, Shift+Enter newline)
+            elTextarea.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!elBtnSend.disabled) handleSend();
+                }
+            });
+
+            // ── Event: Send button ────────────────────────────────────
+            elBtnSend.addEventListener('click', function () {
+                if (!elBtnSend.disabled) handleSend();
+            });
+
+            // ── Event: Quick action buttons ───────────────────────────
+            document.querySelectorAll('.qa-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const prompt = QA_PROMPTS[btn.dataset.qa];
+                    if (prompt) {
+                        elTextarea.value = prompt;
+                        elTextarea.style.height = 'auto';
+                        elTextarea.style.height = Math.min(elTextarea.scrollHeight, 160) + 'px';
+                        elBtnSend.disabled = false;
+                        elTextarea.focus();
+                    }
+                });
+            });
+        }
+
+        // ── Bootstrap ─────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function () {
+            // Auth guard
+            const user = Auth.currentUser ? Auth.currentUser() : null;
+            if (!user) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // Init nav dropdown
+            if (window.NavDropdown) {
+                NavDropdown.init('nav-more-container');
+            }
+
+            // Pro gate check — use Subscription.isPro with current user id
+            const userId = user.id || user.uid || null;
+            const isPro = userId
+                ? (window.Subscription ? Subscription.isPro(userId) : false)
+                : false;
+
+            if (!isPro) {
+                showProGate();
+                return;
+            }
+
+            initAiAssistant();
+        });
+
+    }());
+    </script>
+
+</body>
+</html>

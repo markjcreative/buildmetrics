@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pad Footing Design — BuildMetrics</title>
+  <meta name="description" content="EC2/EC7 pad footing design calculator. Size the footing, check bearing, punching shear and wide-beam shear, design reinforcement." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/calcs.css" />
+
+  <!-- Auth & Projects (must load before page scripts) -->
+  <script src="../js/auth/auth.js"></script>
+  <script src="../js/projects/history.js"></script>
+  <script src="../js/projects/projects.js"></script>
+</head>
+
+<body>
+<div id="app" class="calc-page-wrap">
+
+  <!-- ════ NAVBAR ════════════════════════════════════════════════════ -->
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <a href="/projects.html" class="nav-brand">
+      <div class="nav-logo">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="30" height="30" rx="7" fill="#2563EB"/>
+          <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
+          <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
+          <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
+          <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="nav-title">BuildMetrics</div>
+        <div class="nav-subtitle">Structural Analysis</div>
+      </div>
+    </a>
+    <div class="nav-spacer"></div>
+    <div id="nav-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+      📁 <span id="nav-project-name">—</span>
+    </div>
+    <div class="nav-actions">
+      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
+      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
+      <div id="nav-more-container"></div>
+      <button class="btn-nav" id="btn-signout" onclick="Auth.logout()">⏏ Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- ════ MAIN ══════════════════════════════════════════════════════ -->
+  <div class="calc-main">
+
+    <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
+    <aside id="calc-input-panel" aria-label="Footing inputs">
+
+      <div class="calc-input-header">
+        <span style="font-size:1.2rem;">🏗</span>
+        <span class="calc-input-title">Pad Footing Design</span>
+      </div>
+
+      <!-- Section 1: Applied Loads -->
+      <div class="input-section" id="sec-loads">
+        <div class="section-header" onclick="toggleSection('sec-loads')">
+          <span>⬇ Applied Loads</span>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <label for="inp-Gk">Gk — Permanent load</label>
+            <input type="number" id="inp-Gk" value="500" min="0" step="10" />
+            <span class="unit-tag">kN</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-Qk">Qk — Variable load</label>
+            <input type="number" id="inp-Qk" value="250" min="0" step="10" />
+            <span class="unit-tag">kN</span>
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">
+            ULS factored: N<sub>Ed</sub> = 1.35G<sub>k</sub> + 1.5Q<sub>k</sub>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Foundation Geometry -->
+      <div class="input-section" id="sec-geometry">
+        <div class="section-header" onclick="toggleSection('sec-geometry')">
+          <span>📐 Foundation Geometry</span>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <label for="inp-col-size">Column size (square)</label>
+            <input type="number" id="inp-col-size" value="300" min="100" step="25" />
+            <span class="unit-tag">mm</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-soil-bearing">Allowable soil bearing</label>
+            <input type="number" id="inp-soil-bearing" value="150" min="10" step="10" />
+            <span class="unit-tag">kN/m²</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-footing-type">Footing type</label>
+            <select id="inp-footing-type" onchange="toggleAspect()">
+              <option value="square">Square</option>
+              <option value="rectangular">Rectangular</option>
+            </select>
+          </div>
+          <div class="form-row" id="row-aspect" style="display:none;">
+            <label for="inp-aspect">Aspect ratio (L/B)</label>
+            <input type="number" id="inp-aspect" value="1.5" min="1.0" max="4.0" step="0.1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Concrete Design -->
+      <div class="input-section" id="sec-concrete">
+        <div class="section-header" onclick="toggleSection('sec-concrete')">
+          <span>🔩 Concrete Design</span>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <label for="inp-fck">Concrete grade fck</label>
+            <select id="inp-fck">
+              <option value="25">C25/30</option>
+              <option value="30" selected>C30/37</option>
+              <option value="35">C35/45</option>
+              <option value="40">C40/50</option>
+            </select>
+            <span class="unit-tag">N/mm²</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-fyk">fyk — Rebar yield</label>
+            <input type="number" id="inp-fyk" value="500" min="400" max="600" step="50" />
+            <span class="unit-tag">N/mm² (B500B)</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-cover">Nominal cover</label>
+            <input type="number" id="inp-cover" value="75" min="25" max="150" step="5" />
+            <span class="unit-tag">mm</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-bar-dia">Bar diameter</label>
+            <select id="inp-bar-dia">
+              <option value="12">T12</option>
+              <option value="16" selected>T16</option>
+              <option value="20">T20</option>
+              <option value="25">T25</option>
+              <option value="32">T32</option>
+            </select>
+            <span class="unit-tag">mm</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-foot-thick">Footing thickness</label>
+            <input type="number" id="inp-foot-thick" value="500" min="200" max="2000" step="50" />
+            <span class="unit-tag">mm</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action bar -->
+      <div class="calc-action-bar">
+        <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;">⚡ Calculate</button>
+        <button class="btn btn-secondary" onclick="resetCalc()" title="Reset inputs">↺</button>
+        <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save calculation" disabled>💾</button>
+      </div>
+    </aside>
+
+    <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
+    <main id="calc-results-panel" aria-label="Footing results">
+
+      <!-- Welcome state -->
+      <div id="calc-welcome" class="calc-welcome">
+        <div class="calc-welcome-icon">🏗</div>
+        <h3>Pad Footing Calculator</h3>
+        <p>Enter column loads and foundation geometry, then click <strong>Calculate</strong> to size the footing and check EC2/EC7 compliance.</p>
+      </div>
+
+      <!-- Results (hidden until first calc) -->
+      <div id="calc-results" style="display:none;">
+
+        <!-- Summary badges -->
+        <div class="calc-badges" id="badges">
+          <div class="calc-badge">
+            <div class="calc-badge-label">Footing Size</div>
+            <div class="calc-badge-value" id="badge-size">—</div>
+            <div class="calc-badge-unit">m × m</div>
+          </div>
+          <div class="calc-badge">
+            <div class="calc-badge-label">Bearing Pressure</div>
+            <div class="calc-badge-value" id="badge-bearing">—</div>
+            <div class="calc-badge-unit">kN/m²</div>
+          </div>
+          <div class="calc-badge">
+            <div class="calc-badge-label">As,req x-dir</div>
+            <div class="calc-badge-value" id="badge-asx">—</div>
+            <div class="calc-badge-unit">mm²/m</div>
+          </div>
+          <div class="calc-badge">
+            <div class="calc-badge-label">As,req y-dir</div>
+            <div class="calc-badge-value" id="badge-asy">—</div>
+            <div class="calc-badge-unit">mm²/m</div>
+          </div>
+        </div>
+
+        <!-- Pass/Fail checks -->
+        <div class="calc-results-card">
+          <div class="card-header">Design Checks</div>
+          <table class="calc-results-table" aria-label="Design checks">
+            <thead>
+              <tr><th>Check</th><th>Status</th><th>Detail</th></tr>
+            </thead>
+            <tbody id="checks-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Detailed results table -->
+        <div class="calc-results-card">
+          <div class="card-header">Detailed Results</div>
+          <table class="calc-results-table" aria-label="Detailed footing results">
+            <thead>
+              <tr><th>Parameter</th><th>Value</th><th>Notes</th></tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Footing plan diagram -->
+        <div class="calc-diagram-card">
+          <div class="card-header">Footing Plan — Top Reinforcement Layout</div>
+          <div class="calc-diagram-body">
+            <svg id="footing-svg" width="320" height="280" viewBox="0 0 320 280" aria-label="Footing plan diagram" style="max-width:100%;"></svg>
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+          ⚠️ <strong>Disclaimer:</strong> Preliminary design only. All calculations must be verified by a licensed structural engineer.
+        </div>
+      </div>
+    </main>
+  </div><!-- calc-main -->
+</div><!-- app -->
+
+<!-- Save modal -->
+<div class="calc-modal-overlay" id="save-calc-modal">
+  <div class="calc-modal-box">
+    <h3>💾 Save Calculation</h3>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Give this footing design a name.</p>
+    <div class="form-row">
+      <label for="save-calc-name">Calculation name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. Column C1 — Pad Footing" maxlength="80" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-secondary modal-close" onclick="document.getElementById('save-calc-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" data-save-submit>Save →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="../js/engine/utils.js"></script>
+<script src="../js/engine/footingSolver.js"></script>
+<script src="../js/ui/navDropdown.js"></script>
+<script src="../js/ui/calcShared.js"></script>
+<script src="../js/projects/history.js" onerror="void 0"></script>
+
+<script>
+  // ── UI helpers ──────────────────────────────────────────────────
+  function toggleSection(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  function toggleAspect() {
+    const rect = document.getElementById('inp-footing-type').value === 'rectangular';
+    document.getElementById('row-aspect').style.display = rect ? '' : 'none';
+  }
+
+  // ── State ───────────────────────────────────────────────────────
+  let lastResults = null;
+  let lastConfig  = null;
+
+  // ── Collect inputs ──────────────────────────────────────────────
+  function collectConfig() {
+    return {
+      Gk:          +document.getElementById('inp-Gk').value,
+      Qk:          +document.getElementById('inp-Qk').value,
+      columnW:     +document.getElementById('inp-col-size').value,
+      colH:        +document.getElementById('inp-col-size').value,
+      soilBearing: +document.getElementById('inp-soil-bearing').value,
+      footingType: document.getElementById('inp-footing-type').value,
+      aspectRatio: +document.getElementById('inp-aspect').value,
+      fck:         +document.getElementById('inp-fck').value,
+      fyk:         +document.getElementById('inp-fyk').value,
+      cover:       +document.getElementById('inp-cover').value,
+      barDia:      +document.getElementById('inp-bar-dia').value,
+      footThick:   +document.getElementById('inp-foot-thick').value,
+    };
+  }
+
+  // ── Run calculation ─────────────────────────────────────────────
+  function runCalc() {
+    const config  = collectConfig();
+    const results = FootingSolver.solve(config);
+    lastConfig    = config;
+    lastResults   = results;
+
+    document.getElementById('calc-welcome').style.display  = 'none';
+    document.getElementById('calc-results').style.display  = '';
+    document.getElementById('btn-save').disabled           = false;
+
+    renderBadges(results);
+    renderChecks(results);
+    renderTable(results, config);
+    renderDiagram(results, config);
+  }
+
+  function resetCalc() {
+    lastResults = null; lastConfig = null;
+    document.getElementById('calc-welcome').style.display = '';
+    document.getElementById('calc-results').style.display = 'none';
+    document.getElementById('btn-save').disabled = true;
+  }
+
+  // ── Render helpers ──────────────────────────────────────────────
+  function renderBadges(r) {
+    document.getElementById('badge-size').textContent    = r.B + ' × ' + r.L;
+    document.getElementById('badge-bearing').textContent = CalcShared.fmt(r.grossBearingPressure, 1);
+    document.getElementById('badge-asx').textContent     = r.rebar_x.As_req;
+    document.getElementById('badge-asy').textContent     = r.rebar_y.As_req;
+  }
+
+  function renderChecks(r) {
+    const rows = [
+      { label: 'Soil Bearing',       pass: r.bearingPass,  detail: CalcShared.fmt(r.grossBearingPressure,1) + ' ≤ ' + r.soilBearing + ' kN/m²' },
+      { label: 'Punching Shear',     pass: r.punchPass,    detail: 'V<sub>Ed</sub>=' + r.VEd_punch + ' kN, V<sub>Rd</sub>=' + r.VRd_punch + ' kN' },
+      { label: 'Wide Beam Shear',    pass: r.shearPass,    detail: 'V<sub>Ed</sub>=' + r.VEd_shear + ' kN, V<sub>Rd</sub>=' + r.VRd_shear + ' kN' },
+      { label: 'Bending (x) K',     pass: r.rebar_x.K < 0.167, detail: 'K=' + r.rebar_x.K + ' (max 0.167)' },
+      { label: 'Bending (y) K',     pass: r.rebar_y.K < 0.167, detail: 'K=' + r.rebar_y.K + ' (max 0.167)' },
+    ];
+    document.getElementById('checks-body').innerHTML = rows.map(row =>
+      `<tr>
+        <td>${row.label}</td>
+        <td>${CalcShared.passBadge(row.pass)}</td>
+        <td>${row.detail}</td>
+      </tr>`
+    ).join('');
+  }
+
+  function renderTable(r, c) {
+    const rows = [
+      ['Design standard',      'EC2 / EC7', ''],
+      ['Total service load',   (c.Gk + c.Qk) + ' kN', 'G<sub>k</sub> + Q<sub>k</sub>'],
+      ['ULS factored N<sub>Ed</sub>', r.NEd + ' kN', '1.35G<sub>k</sub> + 1.5Q<sub>k</sub>'],
+      ['Footing dimensions',   r.B + ' m × ' + r.L + ' m', 'B × L'],
+      ['Footing thickness h',  r.h + ' mm', ''],
+      ['Effective depth d',    r.d + ' mm', 'h − cover − ∅/2'],
+      ['Gross bearing pressure',  r.grossBearingPressure + ' kN/m²', r.bearingPass ? '✓ ≤ ' + c.soilBearing : '✗ EXCEEDS allowable'],
+      ['ULS design pressure q<sub>Ed</sub>', r.q_Ed + ' kN/m²', ''],
+      ['M<sub>Ed,x</sub>/m',   r.MEd_x + ' kNm/m', 'Bending at column face (x)'],
+      ['M<sub>Ed,y</sub>/m',   r.MEd_y + ' kNm/m', 'Bending at column face (y)'],
+      ['A<sub>s,req</sub> x',  r.rebar_x.As_req + ' mm²/m', 'z=' + r.rebar_x.z + ' mm'],
+      ['A<sub>s,req</sub> y',  r.rebar_y.As_req + ' mm²/m', 'z=' + r.rebar_y.z + ' mm'],
+      ['Bar ∅ / spacing x',    'T' + r.barDia + ' @ ' + r.spacing_x + ' mm', 'A<sub>s,prov</sub>=' + r.As_prov_x + ' mm²/m'],
+      ['Bar ∅ / spacing y',    'T' + r.barDia + ' @ ' + r.spacing_y + ' mm', 'A<sub>s,prov</sub>=' + r.As_prov_y + ' mm²/m'],
+      ['V<sub>Ed</sub> punch', r.VEd_punch + ' kN', ''],
+      ['V<sub>Rd,c</sub> punch', r.VRd_punch + ' kN', ''],
+      ['V<sub>Ed</sub> shear', r.VEd_shear + ' kN', ''],
+      ['V<sub>Rd,c</sub> shear', r.VRd_shear + ' kN', ''],
+      ['f<sub>cd</sub>',       r.fcd + ' N/mm²', ''],
+      ['f<sub>yd</sub>',       r.fyd + ' N/mm²', ''],
+    ];
+    document.getElementById('results-body').innerHTML = rows.map(([p, v, n]) =>
+      `<tr><td>${p}</td><td class="mono">${v}</td><td style="color:var(--text-muted);font-size:0.8rem;">${n}</td></tr>`
+    ).join('');
+  }
+
+  // ── SVG plan diagram ────────────────────────────────────────────
+  function renderDiagram(r, c) {
+    const svg    = document.getElementById('footing-svg');
+    const W = 320, H = 280;
+    const pad = 36;
+    const drawW  = W - pad * 2;
+    const drawH  = H - pad * 2 - 20;
+
+    // Scale: fit B (x) and L (y)
+    const scaleX = drawW / r.B;
+    const scaleY = drawH / r.L;
+    const scale  = Math.min(scaleX, scaleY);
+
+    const fw = r.B * scale;  // footing width px
+    const fl = r.L * scale;  // footing length px
+    const ox = (W - fw) / 2;
+    const oy = (H - fl) / 2 + 10;
+
+    // Column
+    const colW_px = (c.columnW / 1000) * scale;
+    const colH_px = (c.columnW / 1000) * scale;
+    const cx_px   = ox + fw / 2;
+    const cy_px   = oy + fl / 2;
+
+    // Overhangs
+    const ovhX = (r.B * 1000 - c.columnW) / 2 / 1000 * scale;
+    const ovhY = (r.L * 1000 - c.columnW) / 2 / 1000 * scale;
+
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+
+    svg.innerHTML = `
+      <!-- Footing outline -->
+      <rect x="${ox}" y="${oy}" width="${fw}" height="${fl}"
+            fill="#EFF6FF" stroke="#2563EB" stroke-width="2" rx="2"/>
+
+      <!-- Rebar grid (x-direction) -->
+      ${Array.from({length:6}, (_,i) => {
+        const y = oy + fl * (i+1) / 7;
+        return `<line x1="${ox+4}" y1="${y}" x2="${ox+fw-4}" y2="${y}" stroke="#93C5FD" stroke-width="1" stroke-dasharray="4 3"/>`;
+      }).join('')}
+      <!-- Rebar grid (y-direction) -->
+      ${Array.from({length:6}, (_,i) => {
+        const x = ox + fw * (i+1) / 7;
+        return `<line x1="${x}" y1="${oy+4}" x2="${x}" y2="${oy+fl-4}" stroke="#BFDBFE" stroke-width="1" stroke-dasharray="4 3"/>`;
+      }).join('')}
+
+      <!-- Column footprint -->
+      <rect x="${cx_px - colW_px/2}" y="${cy_px - colH_px/2}"
+            width="${colW_px}" height="${colH_px}"
+            fill="#1E40AF" rx="2"/>
+      <text x="${cx_px}" y="${cy_px + 4}" text-anchor="middle"
+            font-size="8" fill="white" font-family="Inter,sans-serif">${c.columnW}×${c.columnW}</text>
+
+      <!-- Overhang dimension arrows - x -->
+      <line x1="${ox}" y1="${oy + fl + 16}" x2="${cx_px - colW_px/2}" y2="${oy + fl + 16}" stroke="#64748B" stroke-width="1" marker-end="url(#arr)" marker-start="url(#arrl)"/>
+      <text x="${ox + ovhX/2}" y="${oy + fl + 28}" text-anchor="middle" font-size="9" fill="#64748B" font-family="Inter,sans-serif">${CalcShared.fmt(r.B/2 - c.columnW/2000, 3)}m</text>
+
+      <!-- B dimension -->
+      <text x="${W/2}" y="${oy - 10}" text-anchor="middle" font-size="10" font-weight="600" fill="#1E40AF" font-family="Inter,sans-serif">B = ${r.B}m</text>
+      <!-- L dimension -->
+      <text x="${ox - 4}" y="${oy + fl/2}" text-anchor="end" dominant-baseline="middle" font-size="10" font-weight="600" fill="#1E40AF" font-family="Inter,sans-serif">L=${r.L}m</text>
+
+      <!-- Legend -->
+      <rect x="8" y="${H-22}" width="10" height="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+      <text x="22" y="${H-14}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Footing</text>
+      <rect x="68" y="${H-22}" width="10" height="10" fill="#1E40AF"/>
+      <text x="82" y="${H-14}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Column</text>
+      <line x1="128" y1="${H-17}" x2="148" y2="${H-17}" stroke="#93C5FD" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text x="152" y="${H-14}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Rebar</text>
+    `;
+  }
+
+  // ── Save modal ──────────────────────────────────────────────────
+  function openSave() {
+    if (!lastResults) return;
+    CalcShared.openSaveModal('save-calc-modal');
+  }
+
+  // ── Init ────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    Auth.guard();
+    NavDropdown.init('nav-more-container');
+    CalcShared.renderProjectBadge('nav-project-badge');
+
+    CalcShared.initSaveModal('save-calc-modal', 'footing', () => {
+      if (!lastResults) return null;
+      return {
+        config: lastConfig,
+        results: lastResults,
+        summary: 'Footing ' + lastResults.B + 'm×' + lastResults.L + 'm, ' +
+                 (lastResults.pass ? 'PASS' : 'FAIL')
+      };
+    });
+
+    CalcShared.loadFromUrl((cfg) => {
+      if (!cfg) return;
+      Object.entries(cfg).forEach(([k, v]) => {
+        const el = document.querySelector('[id="inp-' + k + '"]');
+        if (el) el.value = v;
+      });
+      runCalc();
+    });
+  });
+</script>
+</body>
+</html>

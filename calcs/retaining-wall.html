@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retaining Wall Stability — BuildMetrics</title>
+  <meta name="description" content="Gravity retaining wall stability calculator. Check overturning, sliding, bearing pressure and eccentricity per EC7." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/calcs.css" />
+
+  <!-- Auth & Projects -->
+  <script src="../js/auth/auth.js"></script>
+  <script src="../js/projects/history.js"></script>
+  <script src="../js/projects/projects.js"></script>
+</head>
+
+<body>
+<div id="app" class="calc-page-wrap">
+
+  <!-- ════ NAVBAR ════════════════════════════════════════════════════ -->
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <a href="/projects.html" class="nav-brand">
+      <div class="nav-logo">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="30" height="30" rx="7" fill="#2563EB"/>
+          <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
+          <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
+          <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
+          <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="nav-title">BuildMetrics</div>
+        <div class="nav-subtitle">Structural Analysis</div>
+      </div>
+    </a>
+    <div class="nav-spacer"></div>
+    <div id="nav-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+      📁 <span id="nav-project-name">—</span>
+    </div>
+    <div class="nav-actions">
+      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
+      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
+      <div id="nav-more-container"></div>
+      <button class="btn-nav" id="btn-signout" onclick="Auth.logout()">⏏ Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- ════ MAIN ══════════════════════════════════════════════════════ -->
+  <div class="calc-main">
+
+    <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
+    <aside id="calc-input-panel" aria-label="Retaining wall inputs">
+
+      <div class="calc-input-header">
+        <span style="font-size:1.2rem;">🧱</span>
+        <span class="calc-input-title">Retaining Wall Stability</span>
+      </div>
+
+      <!-- Section 1: Wall Geometry -->
+      <div class="input-section" id="sec-wall-geom">
+        <div class="section-header" onclick="toggleSection('sec-wall-geom')">
+          <span>📐 Wall Geometry</span>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <label for="inp-H">Retained height H</label>
+            <input type="number" id="inp-H" value="3.0" min="0.5" max="15" step="0.1" oninput="syncHeel()" />
+            <span class="unit-tag">m</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-base-width">Base width B</label>
+            <input type="number" id="inp-base-width" value="2.4" min="0.5" step="0.1" oninput="syncHeel()" />
+            <span class="unit-tag">m</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-toe">Toe length</label>
+            <input type="number" id="inp-toe" value="0.6" min="0" step="0.05" oninput="syncHeel()" />
+            <span class="unit-tag">m</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-stem-thick">Stem thickness</label>
+            <input type="number" id="inp-stem-thick" value="0.3" min="0.1" step="0.05" oninput="syncHeel()" />
+            <span class="unit-tag">m</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-heel">Heel length (auto)</label>
+            <input type="number" id="inp-heel" value="1.5" readonly
+                   style="background:var(--bg-subtle);color:var(--text-muted);" />
+            <span class="unit-tag">m = B − toe − stem</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-base-thick">Base thickness</label>
+            <input type="number" id="inp-base-thick" value="0.4" min="0.1" step="0.05" />
+            <span class="unit-tag">m</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Soil Properties -->
+      <div class="input-section" id="sec-soil">
+        <div class="section-header" onclick="toggleSection('sec-soil')">
+          <span>🪨 Soil Properties</span>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <label for="inp-soil-density">Soil density γ</label>
+            <input type="number" id="inp-soil-density" value="1800" min="1400" max="2200" step="50" />
+            <span class="unit-tag">kg/m³</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-phi">Friction angle φ</label>
+            <input type="number" id="inp-phi" value="30" min="10" max="45" step="1" />
+            <span class="unit-tag">degrees</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-surcharge">Surcharge on retained side</label>
+            <input type="number" id="inp-surcharge" value="5" min="0" step="1" />
+            <span class="unit-tag">kN/m²</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Material Properties -->
+      <div class="input-section" id="sec-material">
+        <div class="section-header" onclick="toggleSection('sec-material')">
+          <span>🔩 Material Properties</span>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <label for="inp-wall-density">Wall concrete density</label>
+            <input type="number" id="inp-wall-density" value="24" min="20" max="30" step="0.5" />
+            <span class="unit-tag">kN/m³</span>
+          </div>
+          <div class="form-row">
+            <label for="inp-mu">Friction coefficient μ</label>
+            <input type="number" id="inp-mu" value="0.5" min="0.2" max="0.8" step="0.05" />
+            <span class="unit-tag">base/soil</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Bearing -->
+      <div class="input-section" id="sec-bearing">
+        <div class="section-header" onclick="toggleSection('sec-bearing')">
+          <span>🏗 Bearing Capacity</span>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="form-row">
+            <label for="inp-allow-bearing">Allowable soil bearing</label>
+            <input type="number" id="inp-allow-bearing" value="100" min="10" step="10" />
+            <span class="unit-tag">kN/m²</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action bar -->
+      <div class="calc-action-bar">
+        <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;">⚡ Calculate</button>
+        <button class="btn btn-secondary" onclick="resetCalc()" title="Reset">↺</button>
+        <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save" disabled>💾</button>
+      </div>
+    </aside>
+
+    <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
+    <main id="calc-results-panel" aria-label="Retaining wall results">
+
+      <!-- Welcome state -->
+      <div id="calc-welcome" class="calc-welcome">
+        <div class="calc-welcome-icon">🧱</div>
+        <h3>Retaining Wall Stability Calculator</h3>
+        <p>Enter wall geometry, soil properties, and bearing capacity, then click <strong>Calculate</strong> to check stability against overturning, sliding, and bearing failure.</p>
+      </div>
+
+      <!-- Results -->
+      <div id="calc-results" style="display:none;">
+
+        <!-- Error banner -->
+        <div id="calc-error-banner" style="display:none;padding:10px 14px;background:var(--red-tint);border:1px solid var(--red);border-radius:var(--radius);color:var(--red);font-size:0.85rem;font-weight:500;"></div>
+
+        <!-- Summary badges -->
+        <div class="calc-badges">
+          <div class="calc-badge">
+            <div class="calc-badge-label">FOS Overturning</div>
+            <div class="calc-badge-value" id="badge-fos-ot">—</div>
+            <div class="calc-badge-unit">min 1.5</div>
+          </div>
+          <div class="calc-badge">
+            <div class="calc-badge-label">FOS Sliding</div>
+            <div class="calc-badge-value" id="badge-fos-sl">—</div>
+            <div class="calc-badge-unit">min 1.5</div>
+          </div>
+          <div class="calc-badge">
+            <div class="calc-badge-label">Max Bearing</div>
+            <div class="calc-badge-value" id="badge-qmax">—</div>
+            <div class="calc-badge-unit">kN/m²</div>
+          </div>
+          <div class="calc-badge">
+            <div class="calc-badge-label">Eccentricity</div>
+            <div class="calc-badge-value" id="badge-ecc">—</div>
+            <div class="calc-badge-unit">m (limit B/6)</div>
+          </div>
+        </div>
+
+        <!-- Pass/fail checks -->
+        <div class="calc-results-card">
+          <div class="card-header">Stability Checks</div>
+          <table class="calc-results-table">
+            <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
+            <tbody id="checks-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Detailed results table -->
+        <div class="calc-results-card">
+          <div class="card-header">Detailed Results — Earth Pressures &amp; Moments</div>
+          <table class="calc-results-table">
+            <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+            <tbody id="results-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Weight components -->
+        <div class="calc-results-card">
+          <div class="card-header">Weight Components (per metre run)</div>
+          <table class="calc-results-table">
+            <thead><tr><th>Component</th><th>W (kN/m)</th><th>x from toe (m)</th><th>Moment (kNm/m)</th></tr></thead>
+            <tbody id="weights-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Cross-section diagram -->
+        <div class="calc-diagram-card">
+          <div class="card-header">Wall Cross-Section</div>
+          <div class="calc-diagram-body">
+            <svg id="wall-svg" width="360" height="300" viewBox="0 0 360 300" aria-label="Retaining wall cross-section" style="max-width:100%;"></svg>
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+          ⚠️ <strong>Disclaimer:</strong> Preliminary stability check only. Verify by a licensed geotechnical/structural engineer.
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Save modal -->
+<div class="calc-modal-overlay" id="save-calc-modal">
+  <div class="calc-modal-box">
+    <h3>💾 Save Calculation</h3>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Give this retaining wall check a name.</p>
+    <div class="form-row">
+      <label for="save-calc-name">Calculation name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. RW-1 Boundary Wall" maxlength="80" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="document.getElementById('save-calc-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" data-save-submit>Save →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="../js/engine/utils.js"></script>
+<script src="../js/engine/retainingWallSolver.js"></script>
+<script src="../js/ui/navDropdown.js"></script>
+<script src="../js/ui/calcShared.js"></script>
+
+<script>
+  function toggleSection(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  function syncHeel() {
+    const B    = +document.getElementById('inp-base-width').value || 0;
+    const toe  = +document.getElementById('inp-toe').value || 0;
+    const stem = +document.getElementById('inp-stem-thick').value || 0;
+    document.getElementById('inp-heel').value = Math.max(0, +(B - toe - stem).toFixed(3));
+  }
+
+  let lastResults = null, lastConfig = null;
+
+  function collectConfig() {
+    const B    = +document.getElementById('inp-base-width').value;
+    const toe  = +document.getElementById('inp-toe').value;
+    const stem = +document.getElementById('inp-stem-thick').value;
+    return {
+      H:           +document.getElementById('inp-H').value,
+      baseWidth:   B,
+      toeLength:   toe,
+      stemThick:   stem,
+      heelLength:  Math.max(0, +(B - toe - stem).toFixed(3)),
+      baseThick:   +document.getElementById('inp-base-thick').value,
+      soilDensity: +document.getElementById('inp-soil-density').value,
+      phi:         +document.getElementById('inp-phi').value,
+      surcharge:   +document.getElementById('inp-surcharge').value,
+      wallDensity: +document.getElementById('inp-wall-density').value,
+      mu:          +document.getElementById('inp-mu').value,
+      soilBearing: +document.getElementById('inp-allow-bearing').value,
+    };
+  }
+
+  function runCalc() {
+    const config  = collectConfig();
+    const results = RetainingWallSolver.solve(config);
+
+    document.getElementById('calc-welcome').style.display = 'none';
+    document.getElementById('calc-results').style.display = '';
+    document.getElementById('btn-save').disabled = false;
+
+    const errBanner = document.getElementById('calc-error-banner');
+    if (results.error) {
+      errBanner.style.display = '';
+      errBanner.textContent = '⚠ ' + results.error;
+      return;
+    }
+    errBanner.style.display = 'none';
+
+    lastConfig = config; lastResults = results;
+    renderBadges(results);
+    renderChecks(results, config);
+    renderTable(results, config);
+    renderWeights(results);
+    renderDiagram(results, config);
+  }
+
+  function resetCalc() {
+    lastResults = null; lastConfig = null;
+    document.getElementById('calc-welcome').style.display = '';
+    document.getElementById('calc-results').style.display = 'none';
+    document.getElementById('btn-save').disabled = true;
+    syncHeel();
+  }
+
+  function renderBadges(r) {
+    document.getElementById('badge-fos-ot').textContent = CalcShared.fmt(r.FOS_overturning, 2);
+    document.getElementById('badge-fos-sl').textContent = CalcShared.fmt(r.FOS_sliding, 2);
+    document.getElementById('badge-qmax').textContent   = CalcShared.fmt(r.q_max, 1);
+    document.getElementById('badge-ecc').textContent    = CalcShared.fmt(r.eccentricity, 3);
+
+    // Colour code badge values
+    ['badge-fos-ot','badge-fos-sl'].forEach(id => {
+      const el = document.getElementById(id);
+      el.style.color = +el.textContent >= 1.5 ? 'var(--green)' : 'var(--red)';
+    });
+  }
+
+  function renderChecks(r, c) {
+    const rows = [
+      { label: 'Overturning',  pass: r.overturningPass, detail: 'FOS = ' + CalcShared.fmt(r.FOS_overturning,2) + ' (min 1.5)' },
+      { label: 'Sliding',      pass: r.slidingPass,     detail: 'FOS = ' + CalcShared.fmt(r.FOS_sliding,2) + ' (min 1.5), F<sub>r</sub>=' + r.Fr + ' kN/m' },
+      { label: 'Bearing',      pass: r.bearingPass,     detail: 'q<sub>max</sub>=' + r.q_max + ' ≤ ' + c.soilBearing + ' kN/m²' },
+      { label: 'No tension',   pass: r.tensionPass,     detail: 'q<sub>min</sub>=' + r.q_min + ' kN/m² (≥0 required)' },
+      { label: 'Eccentricity', pass: Math.abs(r.eccentricity) <= r.e_limit, detail: '|e|=' + Math.abs(r.eccentricity).toFixed(3) + ' ≤ B/6=' + r.e_limit + ' m' },
+    ];
+    document.getElementById('checks-body').innerHTML = rows.map(row =>
+      `<tr><td>${row.label}</td><td>${CalcShared.passBadge(row.pass)}</td><td>${row.detail}</td></tr>`
+    ).join('');
+  }
+
+  function renderTable(r, c) {
+    const rows = [
+      ['Active pressure coefficient K<sub>a</sub>', r.Ka, 'Rankine: tan²(45−φ/2)'],
+      ['Passive pressure coefficient K<sub>p</sub>', r.Kp, 'Rankine: tan²(45+φ/2)'],
+      ['Soil unit weight γ<sub>s</sub>', CalcShared.fmt(c.soilDensity*9.81/1000,2) + ' kN/m³', ''],
+      ['Pa (triangular, soil)', r.Pa_soil + ' kN/m', ''],
+      ['Pa (rectangular, surcharge)', r.Pa_surcharge + ' kN/m', ''],
+      ['Pa total (horizontal)', r.Pa_total + ' kN/m', 'Acts at y=' + r.ya_resultant + ' m from base'],
+      ['Overturning moment M<sub>o</sub>', r.Mo + ' kNm/m', 'About toe'],
+      ['Stabilising moment M<sub>s</sub>', r.Ms + ' kNm/m', 'About toe'],
+      ['Total vertical weight W', r.W_total + ' kN/m', ''],
+      ['Friction resistance F<sub>r</sub>', r.Fr + ' kN/m', 'μ × W'],
+      ['FOS overturning', r.FOS_overturning, 'M<sub>s</sub>/M<sub>o</sub>'],
+      ['FOS sliding', r.FOS_sliding, 'F<sub>r</sub>/P<sub>a</sub>'],
+      ['Resultant from toe x<sub>R</sub>', CalcShared.fmt((r.Ms-r.Mo)/r.W_total,3) + ' m', ''],
+      ['Eccentricity e', r.eccentricity + ' m', 'B/2 − x<sub>R</sub>'],
+      ['Eccentricity limit B/6', r.e_limit + ' m', ''],
+      ['q<sub>max</sub>', r.q_max + ' kN/m²', ''],
+      ['q<sub>min</sub>', r.q_min + ' kN/m²', ''],
+      ['Toe moment M<sub>toe</sub>', r.M_toe + ' kNm/m', 'For base slab design'],
+      ['Heel moment M<sub>heel</sub>', r.M_heel + ' kNm/m', 'For base slab design'],
+    ];
+    document.getElementById('results-body').innerHTML = rows.map(([p,v,n]) =>
+      `<tr><td>${p}</td><td class="mono">${v}</td><td style="color:var(--text-muted);font-size:0.8rem;">${n}</td></tr>`
+    ).join('');
+  }
+
+  function renderWeights(r) {
+    let html = r.weights.map(w =>
+      `<tr><td>${w.label}</td><td class="mono">${w.W}</td><td class="mono">${w.x}</td><td class="mono">${CalcShared.fmt(w.W*w.x,2)}</td></tr>`
+    ).join('');
+    html += `<tr style="font-weight:700;background:var(--bg-subtle);">
+      <td>TOTAL</td><td class="mono">${r.W_total}</td><td>—</td><td class="mono">${CalcShared.fmt(r.Ms,2)}</td>
+    </tr>`;
+    document.getElementById('weights-body').innerHTML = html;
+  }
+
+  // ── Cross-section SVG ──────────────────────────────────────────
+  function renderDiagram(r, c) {
+    const svg = document.getElementById('wall-svg');
+    const W = 360, H = 300;
+    const pad = 40;
+
+    // Geometry
+    const B     = c.baseWidth;
+    const bT    = c.baseThick;
+    const toe   = c.toeLength;
+    const stem  = c.stemThick;
+    const heel  = c.heelLength;
+    const Ht    = c.H;
+    const stemH = Ht - bT;
+
+    // Scale to fit
+    const scaleX = (W - pad * 2) / B;
+    const scaleY = (H - pad * 2) / Ht;
+    const scale  = Math.min(scaleX, scaleY) * 0.85;
+
+    const ox = pad + (W - pad*2 - B*scale)/2;
+    const oy = pad + (H - pad*2 - Ht*scale)/2;
+
+    // Pixel coords
+    const baseX = ox;
+    const baseY = oy + stemH * scale;
+    const baseW = B * scale;
+    const basePx = bT * scale;
+
+    const stemX  = ox + toe * scale;
+    const stemW  = stem * scale;
+    const stemPx = stemH * scale;
+    const groundY = oy; // top of retained height
+
+    // Earth pressure arrow scale
+    const Pa_scale = 30 / Math.max(r.Pa_total, 1);
+    const paTop = Ka_arrow_len(r.Pa_surcharge, Pa_scale);
+    const paBot = Ka_arrow_len(r.Pa_soil + r.Pa_surcharge, Pa_scale);
+
+    function Ka_arrow_len(p, s) { return p * s; }
+
+    const arrowX = ox + B * scale + 8;
+
+    svg.innerHTML = `
+      <!-- Ground level (retained side) -->
+      <line x1="${stemX}" y1="${groundY}" x2="${arrowX + 40}" y2="${groundY}" stroke="#92400E" stroke-width="1" stroke-dasharray="6 3"/>
+      <!-- Surcharge hatching -->
+      <rect x="${stemX + stemW}" y="${groundY - 12}" width="${heel * scale}" height="12" fill="#FEF3C7" stroke="#D97706" stroke-width="1"/>
+      <text x="${stemX + stemW + heel * scale / 2}" y="${groundY - 3}" text-anchor="middle" font-size="8" fill="#92400E" font-family="Inter,sans-serif">${c.surcharge} kN/m²</text>
+
+      <!-- Base slab -->
+      <rect x="${baseX}" y="${baseY}" width="${baseW}" height="${basePx}"
+            fill="#BFDBFE" stroke="#2563EB" stroke-width="1.5"/>
+
+      <!-- Stem -->
+      <rect x="${stemX}" y="${oy}" width="${stemW}" height="${stemPx}"
+            fill="#93C5FD" stroke="#2563EB" stroke-width="1.5"/>
+
+      <!-- Soil on heel (hatching) -->
+      <rect x="${stemX + stemW}" y="${groundY}" width="${heel * scale}" height="${stemPx}"
+            fill="url(#soil-hatch)" stroke="#92400E" stroke-width="0.5" opacity="0.5"/>
+      <defs>
+        <pattern id="soil-hatch" patternUnits="userSpaceOnUse" width="8" height="8">
+          <path d="M0,8 L8,0 M-2,2 L2,-2 M6,10 L10,6" stroke="#92400E" stroke-width="1" opacity="0.6"/>
+        </pattern>
+      </defs>
+
+      <!-- Toe label -->
+      <text x="${baseX + toe * scale / 2}" y="${baseY + basePx + 14}" text-anchor="middle" font-size="8" fill="#1E40AF" font-family="Inter,sans-serif">${c.toeLength}m</text>
+      <!-- Stem label -->
+      <text x="${stemX + stemW / 2}" y="${baseY + basePx + 14}" text-anchor="middle" font-size="8" fill="#1E40AF" font-family="Inter,sans-serif">${c.stemThick}m</text>
+      <!-- Heel label -->
+      <text x="${stemX + stemW + heel * scale / 2}" y="${baseY + basePx + 14}" text-anchor="middle" font-size="8" fill="#1E40AF" font-family="Inter,sans-serif">${c.heelLength}m</text>
+      <!-- B label -->
+      <text x="${baseX + baseW / 2}" y="${baseY + basePx + 26}" text-anchor="middle" font-size="9" font-weight="600" fill="#2563EB" font-family="Inter,sans-serif">B = ${B}m</text>
+
+      <!-- H dimension arrow -->
+      <line x1="${ox - 12}" y1="${groundY}" x2="${ox - 12}" y2="${baseY}" stroke="#64748B" stroke-width="1"/>
+      <text x="${ox - 24}" y="${(groundY + baseY) / 2 + 4}" text-anchor="middle" font-size="9" font-weight="600" fill="#64748B" font-family="Inter,sans-serif" transform="rotate(-90,${ox-24},${(groundY+baseY)/2+4})">H=${Ht}m</text>
+
+      <!-- Earth pressure arrows -->
+      <line x1="${arrowX}" y1="${groundY}" x2="${arrowX + paTop}" y2="${groundY}" stroke="#DC2626" stroke-width="1.5" marker-end="url(#arr-red)"/>
+      <line x1="${arrowX}" y1="${baseY}" x2="${arrowX + paBot}" y2="${baseY}" stroke="#DC2626" stroke-width="1.5" marker-end="url(#arr-red)"/>
+      <line x1="${arrowX}" y1="${groundY}" x2="${arrowX}" y2="${baseY}" stroke="#DC2626" stroke-width="1"/>
+      <text x="${arrowX + 2}" y="${(groundY + baseY) / 2 - 4}" font-size="8" fill="#DC2626" font-family="Inter,sans-serif">P<tspan baseline-shift="sub" font-size="6">a</tspan></text>
+      <text x="${arrowX + 2}" y="${(groundY + baseY) / 2 + 8}" font-size="8" fill="#DC2626" font-family="Inter,sans-serif">${r.Pa_total} kN/m</text>
+
+      <defs>
+        <marker id="arr-red" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L6,3 Z" fill="#DC2626"/>
+        </marker>
+      </defs>
+
+      <!-- Legend -->
+      <rect x="8" y="${H-22}" width="10" height="10" fill="#93C5FD" stroke="#2563EB" stroke-width="1"/>
+      <text x="22" y="${H-14}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Concrete</text>
+      <line x1="76" y1="${H-17}" x2="86" y2="${H-17}" stroke="#DC2626" stroke-width="2"/>
+      <text x="90" y="${H-14}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Earth pressure</text>
+    `;
+  }
+
+  function openSave() {
+    if (!lastResults) return;
+    CalcShared.openSaveModal('save-calc-modal');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    Auth.guard();
+    NavDropdown.init('nav-more-container');
+    CalcShared.renderProjectBadge('nav-project-badge');
+    syncHeel();
+
+    CalcShared.initSaveModal('save-calc-modal', 'retaining-wall', () => {
+      if (!lastResults) return null;
+      return {
+        config: lastConfig,
+        results: lastResults,
+        summary: 'RW H=' + lastConfig.H + 'm B=' + lastConfig.baseWidth + 'm — ' +
+                 (lastResults.pass ? 'PASS' : 'FAIL')
+      };
+    });
+
+    CalcShared.loadFromUrl((cfg) => {
+      if (!cfg) return;
+      const map = {
+        H:'inp-H', baseWidth:'inp-base-width', toeLength:'inp-toe',
+        stemThick:'inp-stem-thick', baseThick:'inp-base-thick',
+        soilDensity:'inp-soil-density', phi:'inp-phi', surcharge:'inp-surcharge',
+        wallDensity:'inp-wall-density', mu:'inp-mu', soilBearing:'inp-allow-bearing'
+      };
+      Object.entries(map).forEach(([k,id]) => {
+        if (cfg[k] !== undefined) document.getElementById(id).value = cfg[k];
+      });
+      syncHeel();
+      runCalc();
+    });
+  });
+</script>
+</body>
+</html>

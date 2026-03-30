@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Standards Library — BuildMetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body { margin: 0; background: var(--bg-page); }
+    .page-wrap { min-height: 100vh; display: flex; flex-direction: column; }
+    .page-content { max-width: 1200px; margin: 0 auto; padding: 32px 24px; width: 100%; box-sizing: border-box; flex: 1; }
+
+    /* ── Page header ── */
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+    .page-header p { font-size: 0.88rem; color: var(--text-muted); margin: 0; }
+
+    /* ── Main tabs ── */
+    .main-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
+    .main-tab { padding: 10px 20px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.15s, border-color 0.15s; user-select: none; }
+    .main-tab:hover { color: var(--text-primary); }
+    .main-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── Search bar ── */
+    .search-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .search-input-wrap { position: relative; flex: 1; max-width: 380px; }
+    .search-input-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .search-input { width: 100%; padding: 8px 12px 8px 34px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.83rem; font-family: 'Inter', sans-serif; color: var(--text-primary); background: var(--bg-surface); outline: none; transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
+    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    .search-input::placeholder { color: var(--text-muted); }
+    .result-count { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+
+    /* ── Sub-tabs (section types) ── */
+    .sub-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .sub-tab { padding: 5px 14px; border-radius: 99px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-secondary); transition: all 0.15s; user-select: none; }
+    .sub-tab:hover { border-color: var(--accent-mid); color: var(--accent); }
+    .sub-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* ── Table ── */
+    .table-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-surface); box-shadow: var(--shadow-sm); }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .data-table thead { background: var(--bg-subtle); border-bottom: 2px solid var(--border); }
+    .data-table th { padding: 10px 14px; text-align: left; font-weight: 700; color: var(--text-secondary); white-space: nowrap; cursor: pointer; user-select: none; letter-spacing: 0.3px; font-size: 0.73rem; text-transform: uppercase; }
+    .data-table th:hover { color: var(--accent); }
+    .data-table th .sort-arrow { display: inline-block; margin-left: 4px; opacity: 0.4; font-size: 0.65rem; }
+    .data-table th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+    .data-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover { background: var(--bg-subtle); }
+    .data-table td.desig { font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--accent); }
+    .data-table td.text { font-family: 'Inter', sans-serif; }
+    .no-results { padding: 40px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+
+    /* ── Materials tab ── */
+    .materials-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .material-group { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .material-group-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--bg-subtle); }
+    .material-group-icon { font-size: 1.2rem; }
+    .material-group-title { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
+    .material-group-std { font-size: 0.7rem; color: var(--text-muted); margin-top: 1px; }
+    .material-rows { display: flex; flex-direction: column; }
+    .material-row { padding: 10px 18px; border-bottom: 1px solid var(--border); transition: background 0.12s; }
+    .material-row:last-child { border-bottom: none; }
+    .material-row:hover { background: var(--bg-subtle); }
+    .mat-grade { font-weight: 700; font-size: 0.82rem; color: var(--text-primary); margin-bottom: 5px; }
+    .mat-props { display: flex; flex-wrap: wrap; gap: 6px; }
+    .mat-prop { display: inline-flex; align-items: center; gap: 4px; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 7px; font-size: 0.68rem; }
+    .mat-prop-label { color: var(--text-muted); font-weight: 500; }
+    .mat-prop-value { color: var(--text-primary); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .mat-search-empty { padding: 32px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+
+    /* ── Loads tab ── */
+    .loads-intro { background: var(--accent-light); border: 1px solid var(--accent-mid); border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 16px; font-size: 0.8rem; color: var(--accent); }
+    .loads-intro strong { font-weight: 700; }
+    .cat-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; background: var(--accent); color: white; flex-shrink: 0; }
+    .qk-range { font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .page-content { padding: 20px 16px; }
+      .data-table th, .data-table td { padding: 8px 10px; }
+      .materials-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- ── Navbar ── -->
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <a href="/projects.html" class="nav-brand">
+      <div class="nav-logo">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="7" fill="#2563EB"/><rect x="8" y="7" width="3" height="16" rx="1" fill="white"/><rect x="8" y="7" width="11" height="3" rx="1" fill="white"/><rect x="8" y="14" width="9" height="3" rx="1" fill="white"/><rect x="8" y="20" width="11" height="3" rx="1" fill="white"/></svg>
+      </div>
+      <div>
+        <div class="nav-title">BuildMetrics</div>
+        <div class="nav-subtitle">Standards</div>
+      </div>
+    </a>
+    <div class="nav-spacer"></div>
+    <div class="nav-actions">
+      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
+      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
+      <div id="nav-more-container"></div>
+      <button class="btn-nav" onclick="Auth.logout()">⏏ Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="page-content">
+
+    <div class="page-header">
+      <h1>📐 Engineering Standards Library</h1>
+      <p>Steel section tables, material grade properties, and EN 1991 imposed load reference data.</p>
+    </div>
+
+    <!-- ── Main tabs ── -->
+    <div class="main-tabs" id="main-tabs">
+      <div class="main-tab active" data-panel="sections">Sections</div>
+      <div class="main-tab" data-panel="materials">Materials</div>
+      <div class="main-tab" data-panel="loads">Imposed Loads</div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PANEL: SECTIONS
+    ══════════════════════════════════════════ -->
+    <div class="tab-panel active" id="panel-sections">
+
+      <div class="search-wrap">
+        <div class="search-input-wrap">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3" stroke-linecap="round"/>
+          </svg>
+          <input type="text" id="sections-search" class="search-input" placeholder="Search designation (e.g. 356x171, 219.1…)">
+        </div>
+        <span class="result-count" id="sections-count"></span>
+      </div>
+
+      <div class="sub-tabs" id="section-sub-tabs">
+        <div class="sub-tab active" data-stype="UB">UB — Universal Beams</div>
+        <div class="sub-tab" data-stype="UC">UC — Universal Columns</div>
+        <div class="sub-tab" data-stype="CHS">CHS — Circular Hollow</div>
+        <div class="sub-tab" data-stype="RHS">RHS — Rectangular Hollow</div>
+        <div class="sub-tab" data-stype="SHS">SHS — Square Hollow</div>
+      </div>
+
+      <div class="table-wrap" id="sections-table-wrap">
+        <table class="data-table" id="sections-table">
+          <thead id="sections-thead"></thead>
+          <tbody id="sections-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PANEL: MATERIALS
+    ══════════════════════════════════════════ -->
+    <div class="tab-panel" id="panel-materials">
+
+      <div class="search-wrap">
+        <div class="search-input-wrap">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3" stroke-linecap="round"/>
+          </svg>
+          <input type="text" id="materials-search" class="search-input" placeholder="Search grade (e.g. S355, C30, B500)…">
+        </div>
+        <span class="result-count" id="materials-count"></span>
+      </div>
+
+      <div class="materials-grid" id="materials-grid"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PANEL: IMPOSED LOADS
+    ══════════════════════════════════════════ -->
+    <div class="tab-panel" id="panel-loads">
+
+      <div class="loads-intro">
+        <strong>EN 1991-1-1:2002</strong> — Characteristic imposed loads for buildings. qk = distributed load (kN/m²), Qk = concentrated load (kN).
+        Values given as recommended min–max ranges; National Annexes may specify single values.
+      </div>
+
+      <div class="search-wrap">
+        <div class="search-input-wrap">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3" stroke-linecap="round"/>
+          </svg>
+          <input type="text" id="loads-search" class="search-input" placeholder="Search category or description…">
+        </div>
+        <span class="result-count" id="loads-count"></span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="loads-table">
+          <thead>
+            <tr>
+              <th style="width:44px">Cat</th>
+              <th>Sub</th>
+              <th>Description</th>
+              <th>qk (kN/m²)</th>
+              <th>Qk (kN)</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="loads-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</div><!-- /page-wrap -->
+
+<!-- ── Scripts ── -->
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/subscription/upgrade-modal.js"></script>
+<script src="/js/ui/navDropdown.js"></script>
+<script src="/js/data/steelSections.js"></script>
+<script src="/js/data/materials.js"></script>
+<script src="/js/data/imposedLoads.js"></script>
+<script>
+/* ════════════════════════════════════════════
+   SECTIONS TAB
+════════════════════════════════════════════ */
+const SECTION_COLS = {
+  UB: [
+    { key: 'designation', label: 'Designation',  fmt: null,    cls: 'desig' },
+    { key: 'mass',        label: 'Mass (kg/m)',   fmt: 'f1' },
+    { key: 'h',           label: 'h (mm)',        fmt: 'f1' },
+    { key: 'b',           label: 'b (mm)',        fmt: 'f1' },
+    { key: 'A',           label: 'A (cm²)',       fmt: 'f1' },
+    { key: 'Ixx',         label: 'Ixx (cm⁴)',    fmt: 'f0' },
+    { key: 'Zxx',         label: 'Zxx (cm³)',    fmt: 'f1' },
+    { key: 'rxx',         label: 'rxx (cm)',      fmt: 'f2' },
+    { key: 'Iyy',         label: 'Iyy (cm⁴)',    fmt: 'f0' },
+    { key: 'Zyy',         label: 'Zyy (cm³)',    fmt: 'f1' },
+    { key: 'J',           label: 'J (cm⁴)',       fmt: 'f2' },
+  ],
+  UC: [
+    { key: 'designation', label: 'Designation',  fmt: null,    cls: 'desig' },
+    { key: 'mass',        label: 'Mass (kg/m)',   fmt: 'f1' },
+    { key: 'h',           label: 'h (mm)',        fmt: 'f1' },
+    { key: 'b',           label: 'b (mm)',        fmt: 'f1' },
+    { key: 'A',           label: 'A (cm²)',       fmt: 'f1' },
+    { key: 'Ixx',         label: 'Ixx (cm⁴)',    fmt: 'f0' },
+    { key: 'Zxx',         label: 'Zxx (cm³)',    fmt: 'f1' },
+    { key: 'rxx',         label: 'rxx (cm)',      fmt: 'f2' },
+    { key: 'Iyy',         label: 'Iyy (cm⁴)',    fmt: 'f0' },
+    { key: 'Zyy',         label: 'Zyy (cm³)',    fmt: 'f1' },
+    { key: 'J',           label: 'J (cm⁴)',       fmt: 'f2' },
+  ],
+  CHS: [
+    { key: 'designation', label: 'Designation',  fmt: null,    cls: 'desig' },
+    { key: 'mass',        label: 'Mass (kg/m)',   fmt: 'f2' },
+    { key: 'd',           label: 'd (mm)',        fmt: 'f1' },
+    { key: 't',           label: 't (mm)',        fmt: 'f1' },
+    { key: 'A',           label: 'A (cm²)',       fmt: 'f2' },
+    { key: 'Ixx',         label: 'I (cm⁴)',      fmt: 'f1' },
+    { key: 'Zxx',         label: 'Z (cm³)',       fmt: 'f2' },
+    { key: 'rxx',         label: 'r (cm)',        fmt: 'f3' },
+    { key: 'J',           label: 'J (cm⁴)',       fmt: 'f1' },
+  ],
+  RHS: [
+    { key: 'designation', label: 'Designation',  fmt: null,    cls: 'desig' },
+    { key: 'mass',        label: 'Mass (kg/m)',   fmt: 'f2' },
+    { key: 'H',           label: 'H (mm)',        fmt: 'f0' },
+    { key: 'B',           label: 'B (mm)',        fmt: 'f0' },
+    { key: 't',           label: 't (mm)',        fmt: 'f1' },
+    { key: 'A',           label: 'A (cm²)',       fmt: 'f2' },
+    { key: 'Ixx',         label: 'Ixx (cm⁴)',    fmt: 'f1' },
+    { key: 'Zxx',         label: 'Zxx (cm³)',    fmt: 'f2' },
+    { key: 'rxx',         label: 'rxx (cm)',      fmt: 'f3' },
+    { key: 'Iyy',         label: 'Iyy (cm⁴)',    fmt: 'f1' },
+    { key: 'Zyy',         label: 'Zyy (cm³)',    fmt: 'f2' },
+    { key: 'J',           label: 'J (cm⁴)',       fmt: 'f1' },
+  ],
+  SHS: [
+    { key: 'designation', label: 'Designation',  fmt: null,    cls: 'desig' },
+    { key: 'mass',        label: 'Mass (kg/m)',   fmt: 'f2' },
+    { key: 'H',           label: 'H (mm)',        fmt: 'f0' },
+    { key: 't',           label: 't (mm)',        fmt: 'f1' },
+    { key: 'A',           label: 'A (cm²)',       fmt: 'f2' },
+    { key: 'Ixx',         label: 'I (cm⁴)',      fmt: 'f1' },
+    { key: 'Zxx',         label: 'Z (cm³)',       fmt: 'f2' },
+    { key: 'rxx',         label: 'r (cm)',        fmt: 'f3' },
+    { key: 'J',           label: 'J (cm⁴)',       fmt: 'f1' },
+  ],
+};
+
+let activeSectionType = 'UB';
+let sectionSortKey = null;
+let sectionSortAsc = true;
+let sectionSearchTerm = '';
+
+function fmt(val, spec) {
+  if (val == null || val === undefined) return '—';
+  if (spec === 'f0') return Number(val).toFixed(0);
+  if (spec === 'f1') return Number(val).toFixed(1);
+  if (spec === 'f2') return Number(val).toFixed(2);
+  if (spec === 'f3') return Number(val).toFixed(3);
+  return val;
+}
+
+function renderSectionsTable() {
+  const cols = SECTION_COLS[activeSectionType];
+  const allRows = (window.SteelSections || {})[activeSectionType] || [];
+  const term = sectionSearchTerm.trim().toLowerCase();
+  let rows = term ? allRows.filter(r => r.designation.toLowerCase().includes(term)) : allRows;
+
+  if (sectionSortKey) {
+    rows = [...rows].sort((a, b) => {
+      const va = sectionSortKey === 'designation' ? a[sectionSortKey] : Number(a[sectionSortKey]);
+      const vb = sectionSortKey === 'designation' ? b[sectionSortKey] : Number(b[sectionSortKey]);
+      if (va < vb) return sectionSortAsc ? -1 : 1;
+      if (va > vb) return sectionSortAsc ? 1 : -1;
+      return 0;
+    });
+  }
+
+  // thead
+  const thead = document.getElementById('sections-thead');
+  thead.innerHTML = '<tr>' + cols.map(c => {
+    const sorted = sectionSortKey === c.key;
+    const arrow = sorted ? (sectionSortAsc ? '▲' : '▼') : '▲';
+    return `<th class="${sorted ? 'sorted' : ''}" data-key="${c.key}">${c.label}<span class="sort-arrow">${arrow}</span></th>`;
+  }).join('') + '</tr>';
+
+  // tbody
+  const tbody = document.getElementById('sections-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="${cols.length}" class="no-results">No sections match "${term}"</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(r =>
+      '<tr>' + cols.map(c => {
+        const v = c.fmt ? fmt(r[c.key], c.fmt) : (r[c.key] ?? '—');
+        return `<td class="${c.cls || ''}">${v}</td>`;
+      }).join('') + '</tr>'
+    ).join('');
+  }
+
+  document.getElementById('sections-count').textContent = rows.length + ' section' + (rows.length !== 1 ? 's' : '');
+
+  // Sort click handler
+  thead.querySelectorAll('th').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      if (sectionSortKey === key) {
+        sectionSortAsc = !sectionSortAsc;
+      } else {
+        sectionSortKey = key;
+        sectionSortAsc = key === 'designation';
+      }
+      renderSectionsTable();
+    });
+  });
+}
+
+/* ════════════════════════════════════════════
+   MATERIALS TAB
+════════════════════════════════════════════ */
+const MAT_META = {
+  steel: {
+    icon: '⚙️',
+    title: 'Structural Steel',
+    std: 'BS EN 10025 / ASTM / IS',
+    props: [
+      { key: 'fy',      label: 'fy',       unit: 'MPa' },
+      { key: 'fu',      label: 'fu',       unit: 'MPa' },
+      { key: 'E',       label: 'E',        unit: 'MPa' },
+      { key: 'density', label: 'ρ',        unit: 'kg/m³' },
+    ]
+  },
+  concrete: {
+    icon: '🧱',
+    title: 'Concrete',
+    std: 'BS EN 1992 (Eurocode 2) / ACI / IS',
+    props: [
+      { key: 'fck',     label: 'fck',      unit: 'MPa' },
+      { key: 'fctm',    label: 'fctm',     unit: 'MPa' },
+      { key: 'Ecm',     label: 'Ecm',      unit: 'MPa' },
+      { key: 'density', label: 'ρ',        unit: 'kg/m³' },
+    ]
+  },
+  rebar: {
+    icon: '🔗',
+    title: 'Reinforcement Bar',
+    std: 'BS EN 1992 / ACI 318 / IS 1786',
+    props: [
+      { key: 'fyk',     label: 'fyk',      unit: 'MPa' },
+      { key: 'E',       label: 'E',        unit: 'MPa' },
+    ]
+  },
+  timber: {
+    icon: '🪵',
+    title: 'Timber',
+    std: 'BS EN 1995 (Eurocode 5)',
+    props: [
+      { key: 'fm_k',    label: 'fm,k',     unit: 'MPa' },
+      { key: 'E0mean',  label: 'E0,mean',  unit: 'MPa' },
+      { key: 'density', label: 'ρ',        unit: 'kg/m³' },
+    ]
+  },
+};
+
+function renderMaterials(searchTerm) {
+  const term = (searchTerm || '').trim().toLowerCase();
+  const grid = document.getElementById('materials-grid');
+  const mats = window.EngineeringMaterials || {};
+  let totalVisible = 0;
+
+  const html = Object.entries(MAT_META).map(([matKey, meta]) => {
+    const grades = mats[matKey] || {};
+    const filteredGrades = Object.entries(grades).filter(([k, v]) =>
+      !term ||
+      k.toLowerCase().includes(term) ||
+      (v.label || '').toLowerCase().includes(term)
+    );
+    if (!filteredGrades.length) return '';
+    totalVisible += filteredGrades.length;
+
+    const rowsHtml = filteredGrades.map(([gradeKey, grade]) => {
+      const propsHtml = meta.props.map(p => {
+        const val = grade[p.key];
+        if (val == null) return '';
+        return `<span class="mat-prop"><span class="mat-prop-label">${p.label}</span><span class="mat-prop-value">${Number(val).toLocaleString()}</span><span class="mat-prop-label">${p.unit}</span></span>`;
+      }).join('');
+      return `<div class="material-row">
+        <div class="mat-grade">${grade.label || gradeKey}</div>
+        <div class="mat-props">${propsHtml}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="material-group">
+      <div class="material-group-header">
+        <span class="material-group-icon">${meta.icon}</span>
+        <div>
+          <div class="material-group-title">${meta.title}</div>
+          <div class="material-group-std">${meta.std}</div>
+        </div>
+      </div>
+      <div class="material-rows">${rowsHtml}</div>
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = html || '<div class="mat-search-empty">No materials match your search.</div>';
+  document.getElementById('materials-count').textContent = totalVisible + ' grade' + (totalVisible !== 1 ? 's' : '');
+}
+
+/* ════════════════════════════════════════════
+   IMPOSED LOADS TAB
+════════════════════════════════════════════ */
+const CAT_COLORS = {
+  A: '#16A34A', B: '#2563EB', C: '#D97706', D: '#DC2626',
+  E: '#7C3AED', F: '#0891B2', G: '#0E7490', H: '#6B7280', I: '#059669', K: '#B45309'
+};
+
+function renderLoads(searchTerm) {
+  const term = (searchTerm || '').trim().toLowerCase();
+  const loads = window.ImposedLoads || [];
+  const filtered = term ? loads.filter(r =>
+    (r.category || r.cat || '').toLowerCase().includes(term) ||
+    (r.subCategory || r.subcategory || '').toLowerCase().includes(term) ||
+    r.description.toLowerCase().includes(term) ||
+    (r.notes || '').toLowerCase().includes(term)
+  ) : loads;
+
+  const tbody = document.getElementById('loads-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="no-results">No results for "${term}"</td></tr>`;
+    document.getElementById('loads-count').textContent = '0 entries';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(r => {
+    const catKey = (r.category || r.cat || '?');
+    const color = CAT_COLORS[catKey.charAt(0)] || '#2563EB';
+    const displayCat = catKey.length <= 2 ? catKey : catKey.charAt(0);
+    const qkStr = (r.qk_min != null && r.qk_max != null && r.qk_min !== r.qk_max)
+      ? `${Number(r.qk_min).toFixed(2)} – ${Number(r.qk_max).toFixed(2)}`
+      : (r.qk_min != null ? (r.qk_min === 0 ? '—' : Number(r.qk_min).toFixed(2)) : '—');
+    const QkVal = r.Qk != null ? r.Qk : (r.Qk_min != null ? r.Qk_min : null);
+    const QkMaxVal = r.Qk_max != null ? r.Qk_max : null;
+    const QkStr = QkVal != null
+      ? (QkMaxVal != null && QkMaxVal !== QkVal ? `${Number(QkVal).toFixed(0)} – ${Number(QkMaxVal).toFixed(0)}` : Number(QkVal).toFixed(0))
+      : '—';
+    const subCat = r.subCategory || r.subcategory || '';
+    return `<tr>
+      <td><span class="cat-badge" style="background:${color}">${displayCat}</span></td>
+      <td class="text" style="font-family:'JetBrains Mono',monospace;font-weight:600;font-size:0.73rem;color:var(--text-secondary)">${subCat}</td>
+      <td class="text" style="white-space:normal;min-width:200px">${r.description}</td>
+      <td class="qk-range">${qkStr}</td>
+      <td class="qk-range">${QkStr}</td>
+      <td class="text" style="color:var(--text-muted);font-size:0.72rem;white-space:normal;min-width:140px">${r.notes || ''}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('loads-count').textContent = filtered.length + ' entr' + (filtered.length !== 1 ? 'ies' : 'y');
+}
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  if (!Auth.guard()) return;
+  NavDropdown.init('nav-more-container');
+
+  // Main tab switching
+  document.getElementById('main-tabs').addEventListener('click', e => {
+    const tab = e.target.closest('.main-tab');
+    if (!tab) return;
+    document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+  });
+
+  // Section sub-tabs
+  document.getElementById('section-sub-tabs').addEventListener('click', e => {
+    const tab = e.target.closest('.sub-tab');
+    if (!tab) return;
+    document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeSectionType = tab.dataset.stype;
+    sectionSortKey = null;
+    sectionSortAsc = true;
+    renderSectionsTable();
+  });
+
+  // Sections search
+  document.getElementById('sections-search').addEventListener('input', e => {
+    sectionSearchTerm = e.target.value;
+    renderSectionsTable();
+  });
+
+  // Materials search
+  document.getElementById('materials-search').addEventListener('input', e => {
+    renderMaterials(e.target.value);
+  });
+
+  // Loads search
+  document.getElementById('loads-search').addEventListener('input', e => {
+    renderLoads(e.target.value);
+  });
+
+  // Initial renders
+  renderSectionsTable();
+  renderMaterials('');
+  renderLoads('');
+});
+</script>
+</body>
+</html>

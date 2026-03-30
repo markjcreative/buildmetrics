@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Engineering Tools — BuildMetrics</title>
+  <meta name="description" content="Fast-access engineering calculators: unit converter, weight calculator, section properties, load combinations, and wind load.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/calcs.css">
+  <style>
+    body { margin: 0; background: var(--bg-page); }
+    .page-wrap { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── Tools main layout ── */
+    .tools-main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; flex: 1; width: 100%; box-sizing: border-box; }
+
+    .tools-header { margin-bottom: 32px; }
+    .tools-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
+    .tools-header p { font-size: 0.88rem; color: var(--text-secondary); margin: 0; }
+
+    /* ── Top-level tab bar ── */
+    .tools-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; border-bottom: 2px solid var(--border); padding-bottom: 0; }
+    .tools-tab { padding: 10px 18px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; background: none; border-top: none; border-left: none; border-right: none; transition: color 0.15s, border-color 0.15s; user-select: none; font-family: 'Inter', sans-serif; }
+    .tools-tab:hover { color: var(--text-primary); }
+    .tools-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── Tool panels ── */
+    .tool-panel { display: none; }
+    .tool-panel.active { display: block; }
+
+    /* ── Tool card ── */
+    .tool-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 24px; }
+    .tool-card h2 { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 20px; display: flex; align-items: center; gap: 8px; }
+
+    /* ── Form elements ── */
+    .form-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 140px; }
+    .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
+    .form-group input, .form-group select {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 0.85rem; font-family: 'Inter', sans-serif; color: var(--text-primary);
+      background: var(--bg-surface); outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%; box-sizing: border-box;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+
+    /* ── Result box ── */
+    .tool-result-box {
+      background: var(--bg-page); border: 2px solid var(--accent); border-radius: 8px;
+      padding: 16px 20px; font-size: 1.5rem; font-weight: 700; color: var(--accent);
+      margin: 16px 0; font-family: 'JetBrains Mono', monospace; min-height: 56px;
+    }
+    .tool-result-box .result-unit { font-size: 0.95rem; font-weight: 500; color: var(--text-secondary); margin-left: 8px; }
+    .tool-result-box.placeholder { color: var(--text-muted); font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; }
+
+    /* ── Sub-tabs ── */
+    .sub-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+    .sub-tab { padding: 5px 14px; border-radius: 99px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-secondary); transition: all 0.15s; user-select: none; font-family: 'Inter', sans-serif; }
+    .sub-tab:hover { border-color: var(--accent-mid); color: var(--accent); }
+    .sub-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .sub-panel { display: none; }
+    .sub-panel.active { display: block; }
+
+    /* ── Swap button ── */
+    .btn-swap { padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-surface); color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.15s; align-self: flex-end; white-space: nowrap; }
+    .btn-swap:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+    /* ── Quick-ref table ── */
+    .qr-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 8px; }
+    .qr-table th { text-align: left; padding: 7px 10px; background: var(--bg-subtle); color: var(--text-secondary); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid var(--border); }
+    .qr-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+    .qr-table tr:last-child td { border-bottom: none; }
+    .qr-table tbody tr:hover { background: var(--bg-subtle); }
+
+    /* ── Results table (section props / load combos) ── */
+    .results-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .results-table th { text-align: left; padding: 9px 14px; background: var(--bg-subtle); color: var(--text-secondary); font-weight: 700; font-size: 0.73rem; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid var(--border); }
+    .results-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+    .results-table td.mono { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+    .results-table tr:last-child td { border-bottom: none; }
+    .results-table tr.governing { background: #EFF6FF; font-weight: 700; }
+    .results-table tr.governing td { color: var(--accent); }
+
+    /* ── Wind load results grid ── */
+    .wind-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 16px; }
+    .wind-result-item { background: var(--bg-page); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+    .wind-result-label { font-size: 0.73rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+    .wind-result-value { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+    .wind-result-value.accent { color: var(--accent); }
+    .wind-result-unit { font-size: 0.73rem; color: var(--text-muted); margin-left: 4px; font-family: 'Inter', sans-serif; font-weight: 500; }
+
+    /* ── Standard toggle ── */
+    .standard-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; width: fit-content; margin-bottom: 20px; }
+    .std-btn { padding: 7px 20px; font-size: 0.83rem; font-weight: 600; cursor: pointer; border: none; background: var(--bg-surface); color: var(--text-secondary); font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .std-btn.active { background: var(--accent); color: #fff; }
+    .std-btn:first-child { border-right: 1px solid var(--border); }
+
+    /* ── Shape selector ── */
+    .shape-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .shape-btn { padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-secondary); font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .shape-btn:hover { border-color: var(--accent-mid); color: var(--accent); }
+    .shape-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* ── Dimension inputs per shape ── */
+    .shape-inputs { display: none; }
+    .shape-inputs.active { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .dim-group { display: flex; flex-direction: column; gap: 4px; min-width: 100px; }
+    .dim-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
+    .dim-group input { padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; color: var(--text-primary); background: var(--bg-surface); outline: none; width: 110px; box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; }
+    .dim-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+
+    /* ── Info/hint ── */
+    .hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .tools-main { padding: 20px 16px; }
+      .tool-card { padding: 18px; }
+      .form-row { flex-direction: column; }
+      .form-group { min-width: auto; }
+      .wind-results { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- ── Navbar ── -->
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <a href="/projects.html" class="nav-brand">
+      <div class="nav-logo">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="30" height="30" rx="7" fill="#2563EB"/>
+          <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
+          <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
+          <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
+          <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="nav-title">BuildMetrics</div>
+        <div class="nav-subtitle">Quick Tools</div>
+      </div>
+    </a>
+    <div class="nav-spacer"></div>
+    <div class="nav-actions">
+      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
+      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
+      <div id="nav-more-container"></div>
+      <button class="btn-nav" id="nav-logout-btn">⏏ Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main class="tools-main">
+
+    <div class="tools-header">
+      <h1>🔧 Quick Engineering Tools</h1>
+      <p>Fast-access calculators and conversion tools for everyday structural engineering tasks.</p>
+    </div>
+
+    <!-- ── Tab bar ── -->
+    <div class="tools-tabs" id="tools-tabs">
+      <button class="tools-tab active" data-panel="unit-converter">Unit Converter</button>
+      <button class="tools-tab" data-panel="weight-calc">Weight Calculator</button>
+      <button class="tools-tab" data-panel="section-props">Section Properties</button>
+      <button class="tools-tab" data-panel="load-combos">Load Combinations</button>
+      <button class="tools-tab" data-panel="wind-load">Wind Load</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PANEL 1: UNIT CONVERTER
+    ══════════════════════════════════════════════════════════ -->
+    <div class="tool-panel active" id="panel-unit-converter">
+      <div class="tool-card">
+        <h2>⇄ Unit Converter</h2>
+        <div class="form-row">
+          <div class="form-group" style="max-width:200px;">
+            <label for="uc-category">Category</label>
+            <select id="uc-category"></select>
+          </div>
+        </div>
+        <div class="form-row" style="align-items:flex-end;">
+          <div class="form-group">
+            <label for="uc-value">Value</label>
+            <input type="number" id="uc-value" value="1" step="any">
+          </div>
+          <div class="form-group">
+            <label for="uc-from">From</label>
+            <select id="uc-from"></select>
+          </div>
+          <div class="form-group" style="flex:0;min-width:auto;">
+            <label>&nbsp;</label>
+            <button class="btn-swap" id="uc-swap">Swap ⇄</button>
+          </div>
+          <div class="form-group">
+            <label for="uc-to">To</label>
+            <select id="uc-to"></select>
+          </div>
+        </div>
+        <div class="tool-result-box" id="uc-result">—</div>
+        <p class="hint">Select a category and units, then enter a value to convert.</p>
+      </div>
+
+      <div class="tool-card">
+        <h2>📋 Common Conversions Quick Reference</h2>
+        <table class="qr-table">
+          <thead>
+            <tr><th>From</th><th>To</th><th>Factor</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1 kN</td><td>0.1019 tf</td><td>÷ 9.80665</td><td>Force</td></tr>
+            <tr><td>1 kN/m²</td><td>0.1020 tf/m²</td><td>÷ 9.80665</td><td>Pressure</td></tr>
+            <tr><td>1 MPa</td><td>10.197 kgf/cm²</td><td>÷ 0.0980665</td><td>Stress</td></tr>
+            <tr><td>1 kip</td><td>4.448 kN</td><td>× 4.448</td><td>Force</td></tr>
+            <tr><td>1 kip·ft</td><td>1.356 kN·m</td><td>× 1.356</td><td>Moment</td></tr>
+            <tr><td>1 psi</td><td>6.895 kPa</td><td>× 6.895</td><td>Pressure</td></tr>
+            <tr><td>1 ksi</td><td>6.895 MPa</td><td>× 6.895</td><td>Stress</td></tr>
+            <tr><td>1 ft</td><td>304.8 mm</td><td>× 304.8</td><td>Length</td></tr>
+            <tr><td>1 in</td><td>25.4 mm</td><td>× 25.4</td><td>Length</td></tr>
+            <tr><td>1 m</td><td>3.281 ft</td><td>× 3.281</td><td>Length</td></tr>
+            <tr><td>1 in⁴</td><td>416,231 mm⁴</td><td>× 416,231</td><td>2nd Moment</td></tr>
+            <tr><td>1 in³</td><td>16,387 mm³</td><td>× 16,387</td><td>Section Modulus</td></tr>
+            <tr><td>1 t</td><td>1,000 kg</td><td>× 1,000</td><td>Mass</td></tr>
+            <tr><td>1 short ton</td><td>0.9072 t</td><td>× 0.9072</td><td>Mass</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PANEL 2: WEIGHT CALCULATOR
+    ══════════════════════════════════════════════════════════ -->
+    <div class="tool-panel" id="panel-weight-calc">
+      <div class="tool-card">
+        <h2>⚖️ Weight Calculator</h2>
+
+        <div class="sub-tabs" id="wc-sub-tabs">
+          <button class="sub-tab active" data-wpanel="wc-steel-section">Steel Section</button>
+          <button class="sub-tab" data-wpanel="wc-steel-plate">Steel Plate</button>
+          <button class="sub-tab" data-wpanel="wc-concrete">Concrete</button>
+          <button class="sub-tab" data-wpanel="wc-rebar">Rebar</button>
+        </div>
+
+        <!-- Steel Section -->
+        <div class="sub-panel active" id="wc-steel-section">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wc-sec-type">Section Type</label>
+              <select id="wc-sec-type">
+                <option value="UB">UB — Universal Beam</option>
+                <option value="UC">UC — Universal Column</option>
+                <option value="CHS">CHS — Circular Hollow</option>
+                <option value="RHS">RHS — Rectangular Hollow</option>
+                <option value="SHS">SHS — Square Hollow</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="wc-sec-desig">Designation</label>
+              <select id="wc-sec-desig"></select>
+            </div>
+            <div class="form-group">
+              <label for="wc-sec-len">Length (m)</label>
+              <input type="number" id="wc-sec-len" value="6" step="0.1" min="0">
+            </div>
+          </div>
+          <div class="tool-result-box" id="wc-sec-result">—</div>
+          <p class="hint">Section area looked up from SteelSections database. Density = 7,850 kg/m³.</p>
+        </div>
+
+        <!-- Steel Plate -->
+        <div class="sub-panel" id="wc-steel-plate">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wc-pl-len">Length (m)</label>
+              <input type="number" id="wc-pl-len" value="1" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+              <label for="wc-pl-wid">Width (m)</label>
+              <input type="number" id="wc-pl-wid" value="1" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+              <label for="wc-pl-thk">Thickness (mm)</label>
+              <input type="number" id="wc-pl-thk" value="10" step="1" min="0">
+            </div>
+          </div>
+          <div class="tool-result-box" id="wc-pl-result">—</div>
+        </div>
+
+        <!-- Concrete -->
+        <div class="sub-panel" id="wc-concrete">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wc-con-len">Length (m)</label>
+              <input type="number" id="wc-con-len" value="5" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+              <label for="wc-con-wid">Width (m)</label>
+              <input type="number" id="wc-con-wid" value="0.3" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+              <label for="wc-con-dep">Depth (m)</label>
+              <input type="number" id="wc-con-dep" value="0.5" step="0.01" min="0">
+            </div>
+          </div>
+          <div class="tool-result-box" id="wc-con-result">—</div>
+          <p class="hint">Reinforced concrete density = 2,400 kg/m³.</p>
+        </div>
+
+        <!-- Rebar -->
+        <div class="sub-panel" id="wc-rebar">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wc-rb-dia">Diameter (mm)</label>
+              <select id="wc-rb-dia">
+                <option value="6">6</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+                <option value="12" selected>12</option>
+                <option value="16">16</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="32">32</option>
+                <option value="40">40</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="wc-rb-len">Length per bar (m)</label>
+              <input type="number" id="wc-rb-len" value="6" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+              <label for="wc-rb-cnt">Count</label>
+              <input type="number" id="wc-rb-cnt" value="10" step="1" min="1">
+            </div>
+          </div>
+          <div class="tool-result-box" id="wc-rb-result">—</div>
+          <p class="hint">Using density = 7,850 kg/m³ and circular cross-section.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PANEL 3: SECTION PROPERTIES
+    ══════════════════════════════════════════════════════════ -->
+    <div class="tool-panel" id="panel-section-props">
+      <div class="tool-card">
+        <h2>📐 Section Properties Calculator</h2>
+        <p class="hint" style="margin-bottom:16px;">All dimensions in mm. Outputs: A (mm²), I (mm⁴), Z (mm³), r (mm).</p>
+
+        <div class="shape-selector" id="shape-selector">
+          <button class="shape-btn active" data-shape="rectangle">Rectangle</button>
+          <button class="shape-btn" data-shape="circle">Circle</button>
+          <button class="shape-btn" data-shape="hollow_rectangle">Hollow Rectangle (RHS)</button>
+          <button class="shape-btn" data-shape="hollow_circle">Hollow Circle (CHS)</button>
+          <button class="shape-btn" data-shape="I_section">I-Section</button>
+          <button class="shape-btn" data-shape="T_section">T-Section</button>
+          <button class="shape-btn" data-shape="angle">Angle</button>
+        </div>
+
+        <!-- Rectangle -->
+        <div class="shape-inputs active" id="si-rectangle">
+          <div class="dim-group"><label>b — Width (mm)</label><input type="number" class="sp-dim" id="sp-rect-b" value="200" min="0" step="1"></div>
+          <div class="dim-group"><label>d — Depth (mm)</label><input type="number" class="sp-dim" id="sp-rect-d" value="400" min="0" step="1"></div>
+        </div>
+
+        <!-- Circle -->
+        <div class="shape-inputs" id="si-circle">
+          <div class="dim-group"><label>d — Diameter (mm)</label><input type="number" class="sp-dim" id="sp-circ-d" value="200" min="0" step="1"></div>
+        </div>
+
+        <!-- Hollow Rectangle (RHS) -->
+        <div class="shape-inputs" id="si-hollow_rectangle">
+          <div class="dim-group"><label>B — Width (mm)</label><input type="number" class="sp-dim" id="sp-rhs-b" value="150" min="0" step="1"></div>
+          <div class="dim-group"><label>D — Depth (mm)</label><input type="number" class="sp-dim" id="sp-rhs-d" value="250" min="0" step="1"></div>
+          <div class="dim-group"><label>t — Thickness (mm)</label><input type="number" class="sp-dim" id="sp-rhs-t" value="8" min="0" step="0.5"></div>
+        </div>
+
+        <!-- Hollow Circle (CHS) -->
+        <div class="shape-inputs" id="si-hollow_circle">
+          <div class="dim-group"><label>D — Outer Dia (mm)</label><input type="number" class="sp-dim" id="sp-chs-D" value="200" min="0" step="1"></div>
+          <div class="dim-group"><label>t — Thickness (mm)</label><input type="number" class="sp-dim" id="sp-chs-t" value="8" min="0" step="0.5"></div>
+        </div>
+
+        <!-- I-Section -->
+        <div class="shape-inputs" id="si-I_section">
+          <div class="dim-group"><label>bf — Flange width (mm)</label><input type="number" class="sp-dim" id="sp-is-bf" value="150" min="0" step="1"></div>
+          <div class="dim-group"><label>tf — Flange thk (mm)</label><input type="number" class="sp-dim" id="sp-is-tf" value="12" min="0" step="0.5"></div>
+          <div class="dim-group"><label>hw — Web height (mm)</label><input type="number" class="sp-dim" id="sp-is-hw" value="276" min="0" step="1"></div>
+          <div class="dim-group"><label>tw — Web thk (mm)</label><input type="number" class="sp-dim" id="sp-is-tw" value="8" min="0" step="0.5"></div>
+        </div>
+
+        <!-- T-Section -->
+        <div class="shape-inputs" id="si-T_section">
+          <div class="dim-group"><label>bf — Flange width (mm)</label><input type="number" class="sp-dim" id="sp-ts-bf" value="200" min="0" step="1"></div>
+          <div class="dim-group"><label>tf — Flange thk (mm)</label><input type="number" class="sp-dim" id="sp-ts-tf" value="15" min="0" step="0.5"></div>
+          <div class="dim-group"><label>hw — Web height (mm)</label><input type="number" class="sp-dim" id="sp-ts-hw" value="185" min="0" step="1"></div>
+          <div class="dim-group"><label>tw — Web thk (mm)</label><input type="number" class="sp-dim" id="sp-ts-tw" value="10" min="0" step="0.5"></div>
+        </div>
+
+        <!-- Angle -->
+        <div class="shape-inputs" id="si-angle">
+          <div class="dim-group"><label>b — Horizontal leg (mm)</label><input type="number" class="sp-dim" id="sp-ang-b" value="100" min="0" step="1"></div>
+          <div class="dim-group"><label>d — Vertical leg (mm)</label><input type="number" class="sp-dim" id="sp-ang-d" value="100" min="0" step="1"></div>
+          <div class="dim-group"><label>t — Thickness (mm)</label><input type="number" class="sp-dim" id="sp-ang-t" value="10" min="0" step="0.5"></div>
+        </div>
+
+        <div id="sp-results-wrap" style="margin-top:20px;"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PANEL 4: LOAD COMBINATIONS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="tool-panel" id="panel-load-combos">
+      <div class="tool-card">
+        <h2>📊 Load Combinations</h2>
+
+        <div class="standard-toggle">
+          <button class="std-btn active" id="lc-std-ec" data-std="EC">Eurocode EN 1990</button>
+          <button class="std-btn" id="lc-std-aci" data-std="ACI">ACI 318</button>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="lc-gk">G<sub>k</sub> — Dead / Permanent (kN/m or kN/m²)</label>
+            <input type="number" id="lc-gk" value="10" step="0.1" min="0">
+          </div>
+          <div class="form-group">
+            <label for="lc-qk">Q<sub>k</sub> — Imposed / Live (kN/m or kN/m²)</label>
+            <input type="number" id="lc-qk" value="5" step="0.1" min="0">
+          </div>
+          <div class="form-group">
+            <label for="lc-wk">W<sub>k</sub> — Wind (kN/m or kN/m²)</label>
+            <input type="number" id="lc-wk" value="3" step="0.1" min="0">
+          </div>
+          <div class="form-group">
+            <label for="lc-sk">S<sub>k</sub> — Snow (kN/m or kN/m²)</label>
+            <input type="number" id="lc-sk" value="1.5" step="0.1" min="0">
+          </div>
+        </div>
+
+        <div id="lc-results"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PANEL 5: WIND LOAD
+    ══════════════════════════════════════════════════════════ -->
+    <div class="tool-panel" id="panel-wind-load">
+      <div class="tool-card">
+        <h2>💨 Wind Load Calculator (EC1)</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="wl-vb">Basic Wind Speed v<sub>b</sub> (m/s)</label>
+            <input type="number" id="wl-vb" value="27" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label for="wl-z">Reference Height z (m)</label>
+            <input type="number" id="wl-z" value="10" step="0.5" min="0.1">
+          </div>
+          <div class="form-group">
+            <label for="wl-terrain">Terrain Category</label>
+            <select id="wl-terrain">
+              <option value="0">0 — Sea, coastal (&lt; 1 km)</option>
+              <option value="I">I — Lakes, flat open country</option>
+              <option value="II" selected>II — Low vegetation (default)</option>
+              <option value="III">III — Regular cover, woodland</option>
+              <option value="IV">IV — Urban, at least 15% cover</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="wl-struct">Structure Type</label>
+            <select id="wl-struct">
+              <option value="wall">Vertical Wall</option>
+              <option value="roof_flat">Flat Roof</option>
+              <option value="roof_pitch">Pitched Roof</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="wl-cpe">C<sub>pe</sub> — External Pressure Coeff.</label>
+            <input type="number" id="wl-cpe" value="0.8" step="0.05">
+          </div>
+          <div class="form-group">
+            <label for="wl-cpi">C<sub>pi</sub> — Internal Pressure Coeff.</label>
+            <input type="number" id="wl-cpi" value="-0.3" step="0.05">
+          </div>
+          <div class="form-group">
+            <label for="wl-rho">Air Density ρ (kg/m³)</label>
+            <input type="number" id="wl-rho" value="1.25" step="0.01">
+          </div>
+        </div>
+
+        <div id="wl-results" class="wind-results"></div>
+        <p class="hint" style="margin-top:12px;">Based on EN 1991-1-4. w<sub>e</sub> = q<sub>b</sub> × c<sub>e</sub> × (c<sub>pe</sub> + c<sub>pi</sub>).</p>
+      </div>
+    </div>
+
+  </main>
+
+</div><!-- .page-wrap -->
+
+<!-- ── Scripts ── -->
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/subscription/upgrade-modal.js"></script>
+<script src="/js/ui/navDropdown.js"></script>
+<script src="/js/data/steelSections.js"></script>
+<script src="/js/tools/unitConverter.js"></script>
+<script src="/js/tools/weightCalcs.js"></script>
+<script src="/js/tools/sectionProps.js"></script>
+<script src="/js/tools/loadCombinations.js"></script>
+<script src="/js/tools/windLoad.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// Auth guard & bootstrap
+// ════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const user = Auth.getUser();
+  if (!user) { window.location.href = '/login.html'; return; }
+  document.getElementById('nav-logout-btn').addEventListener('click', () => {
+    Auth.logout();
+    window.location.href = '/login.html';
+  });
+  if (typeof NavDropdown !== 'undefined') NavDropdown.init('nav-more-container');
+  initTools();
+});
+
+// ════════════════════════════════════════════════════════════════
+// Tab switching (top-level)
+// ════════════════════════════════════════════════════════════════
+function initTabBar(tabsId, panelPrefix, btnClass) {
+  const tabs = document.querySelectorAll('#' + tabsId + ' .' + btnClass);
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const panelId = 'panel-' + tab.dataset.panel;
+      document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById(panelId);
+      if (target) target.classList.add('active');
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// Main init
+// ════════════════════════════════════════════════════════════════
+function initTools() {
+  initTabBar('tools-tabs', 'panel-', 'tools-tab');
+  initUnitConverter();
+  initWeightCalc();
+  initSectionProps();
+  initLoadCombos();
+  initWindLoad();
+}
+
+// ════════════════════════════════════════════════════════════════
+// 1. UNIT CONVERTER
+// ════════════════════════════════════════════════════════════════
+function initUnitConverter() {
+  const catSel  = document.getElementById('uc-category');
+  const fromSel = document.getElementById('uc-from');
+  const toSel   = document.getElementById('uc-to');
+  const valInp  = document.getElementById('uc-value');
+  const resultEl = document.getElementById('uc-result');
+  const swapBtn = document.getElementById('uc-swap');
+
+  const categories = UnitConverter.getCategories();
+
+  // Populate category dropdown
+  categories.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat.name;
+    opt.textContent = cat.name;
+    catSel.appendChild(opt);
+  });
+
+  function populateUnits(catName) {
+    const cat = categories.find(c => c.name === catName);
+    if (!cat) return;
+    const prevFrom = fromSel.value;
+    const prevTo   = toSel.value;
+    fromSel.innerHTML = '';
+    toSel.innerHTML   = '';
+    cat.units.forEach(u => {
+      fromSel.appendChild(new Option(u, u));
+      toSel.appendChild(new Option(u, u));
+    });
+    // Restore previous selections if they still exist
+    if (cat.units.includes(prevFrom)) fromSel.value = prevFrom;
+    // Default: select second unit for 'to' to make conversion meaningful
+    if (cat.units.includes(prevTo) && prevTo !== fromSel.value) {
+      toSel.value = prevTo;
+    } else if (cat.units.length > 1) {
+      toSel.selectedIndex = 1;
+    }
+  }
+
+  function doConvert() {
+    const val = parseFloat(valInp.value);
+    const cat = catSel.value;
+    const from = fromSel.value;
+    const to   = toSel.value;
+    if (isNaN(val) || !cat || !from || !to) {
+      resultEl.textContent = '—';
+      return;
+    }
+    try {
+      const res = UnitConverter.convert(val, from, to, cat);
+      resultEl.innerHTML = fmtNum(res.result) + '<span class="result-unit">' + escHtml(to) + '</span>';
+      resultEl.classList.remove('placeholder');
+    } catch(e) {
+      resultEl.textContent = 'Error: ' + e.message;
+    }
+  }
+
+  catSel.addEventListener('change', () => { populateUnits(catSel.value); doConvert(); });
+  fromSel.addEventListener('change', doConvert);
+  toSel.addEventListener('change', doConvert);
+  valInp.addEventListener('input', doConvert);
+
+  swapBtn.addEventListener('click', () => {
+    const tmp = fromSel.value;
+    fromSel.value = toSel.value;
+    toSel.value = tmp;
+    doConvert();
+  });
+
+  // Init with first category
+  populateUnits(categories[0].name);
+  doConvert();
+}
+
+// ════════════════════════════════════════════════════════════════
+// 2. WEIGHT CALCULATOR
+// ════════════════════════════════════════════════════════════════
+function initWeightCalc() {
+  // Sub-tabs
+  document.querySelectorAll('#wc-sub-tabs .sub-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#wc-sub-tabs .sub-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('#panel-weight-calc .sub-panel').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById(btn.dataset.wpanel);
+      if (target) target.classList.add('active');
+    });
+  });
+
+  // Steel section: populate designations when type changes
+  const secType  = document.getElementById('wc-sec-type');
+  const secDesig = document.getElementById('wc-sec-desig');
+  const secLen   = document.getElementById('wc-sec-len');
+  const secRes   = document.getElementById('wc-sec-result');
+
+  function populateDesig(type) {
+    secDesig.innerHTML = '';
+    if (typeof SteelSections !== 'undefined' && SteelSections[type]) {
+      SteelSections[type].forEach(s => {
+        secDesig.appendChild(new Option(s.designation, s.designation));
+      });
+    }
+  }
+
+  function calcSteelSection() {
+    const type = secType.value;
+    const desig = secDesig.value;
+    const len = parseFloat(secLen.value);
+    if (!desig || isNaN(len) || len <= 0) { secRes.textContent = '—'; return; }
+    try {
+      const r = WeightCalcs.steelSectionWeight(desig, len);
+      secRes.innerHTML = fmtNum(r.mass_kg) + ' <span class="result-unit">kg</span> &nbsp;|&nbsp; '
+        + fmtNum(r.mass_t, 4) + ' <span class="result-unit">t</span>';
+    } catch(e) {
+      secRes.textContent = e.message;
+    }
+  }
+
+  secType.addEventListener('change', () => { populateDesig(secType.value); calcSteelSection(); });
+  secDesig.addEventListener('change', calcSteelSection);
+  secLen.addEventListener('input', calcSteelSection);
+  populateDesig(secType.value);
+  calcSteelSection();
+
+  // Steel plate
+  function calcPlate() {
+    const l = parseFloat(document.getElementById('wc-pl-len').value);
+    const w = parseFloat(document.getElementById('wc-pl-wid').value);
+    const t = parseFloat(document.getElementById('wc-pl-thk').value);
+    const el = document.getElementById('wc-pl-result');
+    if ([l,w,t].some(isNaN) || l<=0||w<=0||t<=0) { el.textContent='—'; return; }
+    const r = WeightCalcs.steelPlateWeight(l, w, t);
+    el.innerHTML = fmtNum(r.mass_kg) + ' <span class="result-unit">kg</span> &nbsp;|&nbsp; '
+      + fmtNum(r.mass_t, 4) + ' <span class="result-unit">t</span>';
+  }
+  ['wc-pl-len','wc-pl-wid','wc-pl-thk'].forEach(id => document.getElementById(id).addEventListener('input', calcPlate));
+  calcPlate();
+
+  // Concrete
+  function calcConcrete() {
+    const l = parseFloat(document.getElementById('wc-con-len').value);
+    const w = parseFloat(document.getElementById('wc-con-wid').value);
+    const d = parseFloat(document.getElementById('wc-con-dep').value);
+    const el = document.getElementById('wc-con-result');
+    if ([l,w,d].some(isNaN)||l<=0||w<=0||d<=0) { el.textContent='—'; return; }
+    const r = WeightCalcs.concreteVolume(l, w, d);
+    el.innerHTML = fmtNum(r.volume_m3, 3) + ' <span class="result-unit">m³</span> &nbsp;|&nbsp; '
+      + fmtNum(r.mass_kg) + ' <span class="result-unit">kg</span> &nbsp;|&nbsp; '
+      + fmtNum(r.mass_t, 3) + ' <span class="result-unit">t</span>';
+  }
+  ['wc-con-len','wc-con-wid','wc-con-dep'].forEach(id => document.getElementById(id).addEventListener('input', calcConcrete));
+  calcConcrete();
+
+  // Rebar
+  function calcRebar() {
+    const dia  = parseFloat(document.getElementById('wc-rb-dia').value);
+    const len  = parseFloat(document.getElementById('wc-rb-len').value);
+    const cnt  = parseInt(document.getElementById('wc-rb-cnt').value);
+    const el   = document.getElementById('wc-rb-result');
+    if ([dia,len,cnt].some(isNaN)||dia<=0||len<=0||cnt<=0) { el.textContent='—'; return; }
+    const r = WeightCalcs.rebarWeight(dia, len, cnt);
+    el.innerHTML = fmtNum(r.mass_kg, 2) + ' <span class="result-unit">kg</span> &nbsp;|&nbsp; '
+      + fmtNum(r.mass_t, 4) + ' <span class="result-unit">t</span>'
+      + ' &nbsp;(' + fmtNum(r.mass_kg / cnt, 3) + ' kg/bar)';
+  }
+  ['wc-rb-dia','wc-rb-len','wc-rb-cnt'].forEach(id => document.getElementById(id).addEventListener('input', calcRebar));
+  ['wc-rb-dia','wc-rb-len','wc-rb-cnt'].forEach(id => document.getElementById(id).addEventListener('change', calcRebar));
+  calcRebar();
+}
+
+// ════════════════════════════════════════════════════════════════
+// 3. SECTION PROPERTIES
+// ════════════════════════════════════════════════════════════════
+function initSectionProps() {
+  let currentShape = 'rectangle';
+
+  const shapeBtns = document.querySelectorAll('#shape-selector .shape-btn');
+  shapeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      shapeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentShape = btn.dataset.shape;
+      // Show matching inputs
+      document.querySelectorAll('.shape-inputs').forEach(el => el.classList.remove('active'));
+      const si = document.getElementById('si-' + currentShape);
+      if (si) si.classList.add('active');
+      calcSectionProps();
+    });
+  });
+
+  // Wire all dim inputs
+  document.querySelectorAll('.sp-dim').forEach(inp => inp.addEventListener('input', calcSectionProps));
+
+  function getDims(shape) {
+    const g = id => parseFloat(document.getElementById(id).value) || 0;
+    switch(shape) {
+      case 'rectangle':        return { b: g('sp-rect-b'), d: g('sp-rect-d') };
+      case 'circle':           return { d: g('sp-circ-d') };
+      case 'hollow_rectangle': return { B: g('sp-rhs-b'), D: g('sp-rhs-d'), t: g('sp-rhs-t') };
+      case 'hollow_circle':    return { D: g('sp-chs-D'), t: g('sp-chs-t') };
+      case 'I_section':        return { bf: g('sp-is-bf'), tf: g('sp-is-tf'), hw: g('sp-is-hw'), tw: g('sp-is-tw') };
+      case 'T_section':        return { bf: g('sp-ts-bf'), tf: g('sp-ts-tf'), hw: g('sp-ts-hw'), tw: g('sp-ts-tw') };
+      case 'angle':            return { b: g('sp-ang-b'), d: g('sp-ang-d'), t: g('sp-ang-t') };
+      default: return {};
+    }
+  }
+
+  function calcSectionProps() {
+    const wrap = document.getElementById('sp-results-wrap');
+    const dims = getDims(currentShape);
+    try {
+      const r = SectionProps.calculate(currentShape, dims);
+      wrap.innerHTML = renderSPTable(r, currentShape);
+    } catch(e) {
+      wrap.innerHTML = '<p style="color:var(--red);font-size:0.82rem;">' + escHtml(e.message) + '</p>';
+    }
+  }
+
+  function renderSPTable(r, shape) {
+    const rows = [];
+    const add = (label, val, unit) => {
+      if (val !== undefined && !isNaN(val)) {
+        rows.push(`<tr><td>${label}</td><td class="mono">${fmtNum(val, 4)}</td><td style="color:var(--text-muted);font-size:0.78rem;">${unit}</td></tr>`);
+      }
+    };
+
+    add('Cross-sectional Area (A)', r.A, 'mm²');
+    if (r.ybar !== undefined) add('Centroid y̅ from bottom', r.ybar, 'mm');
+    if (r.xbar !== undefined) add('Centroid x̅ from left', r.xbar, 'mm');
+    add('I<sub>xx</sub> — 2nd Moment (major)', r.Ixx, 'mm⁴');
+    add('I<sub>yy</sub> — 2nd Moment (minor)', r.Iyy, 'mm⁴');
+    if (r.Ztop !== undefined)    add('Z<sub>top</sub> — Elastic Modulus (top)', r.Ztop, 'mm³');
+    if (r.Zbottom !== undefined) add('Z<sub>bottom</sub> — Elastic Modulus (bottom)', r.Zbottom, 'mm³');
+    if (r.Zxx !== undefined && r.Ztop === undefined) add('Z<sub>xx</sub> — Elastic Modulus (major)', r.Zxx, 'mm³');
+    if (r.Zyy !== undefined) add('Z<sub>yy</sub> — Elastic Modulus (minor)', r.Zyy, 'mm³');
+    add('r<sub>xx</sub> — Radius of Gyration (major)', r.rxx, 'mm');
+    add('r<sub>yy</sub> — Radius of Gyration (minor)', r.ryy, 'mm');
+
+    return `<table class="results-table">
+      <thead><tr><th>Property</th><th>Value</th><th>Unit</th></tr></thead>
+      <tbody>${rows.join('')}</tbody>
+    </table>`;
+  }
+
+  calcSectionProps();
+}
+
+// ════════════════════════════════════════════════════════════════
+// 4. LOAD COMBINATIONS
+// ════════════════════════════════════════════════════════════════
+function initLoadCombos() {
+  let currentStd = 'EC';
+
+  document.querySelectorAll('.std-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.std-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentStd = btn.dataset.std;
+      calcLoadCombos();
+    });
+  });
+
+  ['lc-gk','lc-qk','lc-wk','lc-sk'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calcLoadCombos);
+  });
+
+  function calcLoadCombos() {
+    const loads = {
+      Gk: parseFloat(document.getElementById('lc-gk').value) || 0,
+      Qk: parseFloat(document.getElementById('lc-qk').value) || 0,
+      Wk: parseFloat(document.getElementById('lc-wk').value) || 0,
+      Sk: parseFloat(document.getElementById('lc-sk').value) || 0
+    };
+    const res = LoadCombinations.calculate(loads, currentStd);
+    renderLoadCombos(res);
+  }
+
+  function renderLoadCombos(res) {
+    const wrap = document.getElementById('lc-results');
+    let html = '';
+
+    html += '<h3 style="font-size:0.88rem;font-weight:700;color:var(--text-secondary);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.4px;">ULS Combinations</h3>';
+    html += '<table class="results-table" style="margin-bottom:20px;">';
+    html += '<thead><tr><th>#</th><th>Combination</th><th>Design Value</th></tr></thead><tbody>';
+    res.uls.forEach((c, i) => {
+      html += `<tr class="${c.governing ? 'governing' : ''}">
+        <td style="color:var(--text-muted);font-size:0.78rem;">${i+1}</td>
+        <td>${escHtml(c.label)}</td>
+        <td class="mono">${fmtNum(c.value, 3)}${c.governing ? ' ★' : ''}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+
+    if (res.sls && res.sls.length) {
+      html += '<h3 style="font-size:0.88rem;font-weight:700;color:var(--text-secondary);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.4px;">SLS Combinations</h3>';
+      html += '<table class="results-table">';
+      html += '<thead><tr><th>#</th><th>Combination</th><th>Design Value</th></tr></thead><tbody>';
+      res.sls.forEach((c, i) => {
+        html += `<tr class="${c.governing ? 'governing' : ''}">
+          <td style="color:var(--text-muted);font-size:0.78rem;">${i+1}</td>
+          <td>${escHtml(c.label)}</td>
+          <td class="mono">${fmtNum(c.value, 3)}${c.governing ? ' ★' : ''}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+    }
+
+    wrap.innerHTML = html;
+  }
+
+  calcLoadCombos();
+}
+
+// ════════════════════════════════════════════════════════════════
+// 5. WIND LOAD
+// ════════════════════════════════════════════════════════════════
+function initWindLoad() {
+  ['wl-vb','wl-z','wl-terrain','wl-struct','wl-cpe','wl-cpi','wl-rho'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', calcWindLoad);
+      el.addEventListener('change', calcWindLoad);
+    }
+  });
+
+  function calcWindLoad() {
+    const config = {
+      vb:              parseFloat(document.getElementById('wl-vb').value) || 0,
+      terrainCategory: document.getElementById('wl-terrain').value,
+      z:               parseFloat(document.getElementById('wl-z').value) || 0.1,
+      structureType:   document.getElementById('wl-struct').value,
+      cp_e:            parseFloat(document.getElementById('wl-cpe').value),
+      cp_i:            parseFloat(document.getElementById('wl-cpi').value),
+      rho:             parseFloat(document.getElementById('wl-rho').value) || 1.25
+    };
+    const wrap = document.getElementById('wl-results');
+    if (config.vb <= 0 || config.z <= 0) { wrap.innerHTML = ''; return; }
+    try {
+      const r = WindLoad.calculate(config);
+      wrap.innerHTML = [
+        wlItem('q<sub>b</sub>', fmtNum(r.qb_Pa, 2), 'Pa', 'Basic Wind Pressure', false),
+        wlItem('c<sub>r</sub>', fmtNum(r.cr, 4), '—', 'Roughness Factor', false),
+        wlItem('I<sub>v</sub>', fmtNum(r.Iv, 4), '—', 'Turbulence Intensity', false),
+        wlItem('c<sub>e</sub>', fmtNum(r.ce, 4), '—', 'Exposure Factor', false),
+        wlItem('w<sub>e</sub>', fmtNum(r.we_kPa, 3), 'kPa', 'Net Design Pressure', true),
+        wlItem('w<sub>e</sub>', fmtNum(r.we_Pa, 2), 'Pa', 'Net Design Pressure', true),
+        wlItem('w<sub>p</sub>', fmtNum(r.wp_kPa, 3), 'kPa', 'External Only', false),
+      ].join('');
+    } catch(e) {
+      wrap.innerHTML = '<p style="color:var(--red);font-size:0.82rem;grid-column:1/-1;">' + escHtml(e.message) + '</p>';
+    }
+  }
+
+  function wlItem(label, val, unit, title, accent) {
+    return `<div class="wind-result-item">
+      <div class="wind-result-label">${title}</div>
+      <div class="wind-result-value${accent ? ' accent' : ''}">${label} = ${val}<span class="wind-result-unit">${unit}</span></div>
+    </div>`;
+  }
+
+  calcWindLoad();
+}
+
+// ════════════════════════════════════════════════════════════════
+// Utilities
+// ════════════════════════════════════════════════════════════════
+function fmtNum(n, dp) {
+  if (n === undefined || n === null || isNaN(n)) return '—';
+  const abs = Math.abs(n);
+  if (dp !== undefined) return n.toLocaleString('en-GB', { maximumFractionDigits: dp, minimumFractionDigits: 0 });
+  if (abs >= 1e9)  return n.toLocaleString('en-GB', { maximumFractionDigits: 2 });
+  if (abs >= 1e6)  return n.toLocaleString('en-GB', { maximumFractionDigits: 2 });
+  if (abs >= 1000) return n.toLocaleString('en-GB', { maximumFractionDigits: 2 });
+  if (abs >= 1)    return n.toLocaleString('en-GB', { maximumFractionDigits: 4 });
+  if (abs >= 0.001) return n.toLocaleString('en-GB', { maximumFractionDigits: 6 });
+  return n.toExponential(4);
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

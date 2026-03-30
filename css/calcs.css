@@ -1,0 +1,376 @@
+/* BuildMetrics — Shared Calc Page Styles (calcs/*.html) */
+
+/* ── Layout ── */
+.calc-page-wrap {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--bg-page);
+}
+
+.calc-main {
+    display: flex;
+    flex: 1;
+    gap: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* ── Input Panel ── */
+#calc-input-panel {
+    width: 360px;
+    min-width: 320px;
+    max-width: 400px;
+    flex-shrink: 0;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 40px;
+}
+
+/* ── Results Panel ── */
+#calc-results-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── Badges grid ── */
+.calc-badges {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.calc-badge {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.calc-badge-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+.calc-badge-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.1;
+}
+
+.calc-badge-unit {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+/* ── Results table card ── */
+.calc-results-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.calc-results-card .card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-subtle);
+}
+
+.calc-results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+}
+
+.calc-results-table th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-subtle);
+}
+
+.calc-results-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+}
+
+.calc-results-table tr:last-child td { border-bottom: none; }
+.calc-results-table tr:hover td { background: var(--bg-subtle); }
+
+.calc-results-table td.mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+/* Pass/Fail badges */
+.bm-pass, .bm-fail {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.bm-pass { background: #DCFCE7; color: #15803D; }
+.bm-fail { background: #FEE2E2; color: #DC2626; }
+
+/* ── Input section (mirrors index.html) ── */
+.calc-input-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-subtle);
+}
+
+.calc-input-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.input-section {
+    border-bottom: 1px solid var(--border);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: background 0.15s;
+    user-select: none;
+}
+
+.section-header:hover { background: var(--bg-subtle); }
+
+.section-body {
+    padding: 12px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-row label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.form-row input, .form-row select {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-row input:focus, .form-row select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+}
+
+.form-row .unit-tag {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.form-row-inline {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+/* ── Calculate button area ── */
+.calc-action-bar {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-surface);
+    display: flex;
+    gap: 8px;
+    position: sticky;
+    bottom: 0;
+}
+
+/* ── Diagram SVG area ── */
+.calc-diagram-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.calc-diagram-card .card-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-subtle);
+}
+
+.calc-diagram-body {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 120px;
+}
+
+/* ── Welcome / empty state ── */
+.calc-welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 40px;
+    gap: 16px;
+    color: var(--text-muted);
+}
+
+.calc-welcome-icon {
+    font-size: 3rem;
+    line-height: 1;
+}
+
+.calc-welcome h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.calc-welcome p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 280px;
+    line-height: 1.5;
+}
+
+/* ── Utilisation gauge ── */
+.util-gauge-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+}
+
+.util-gauge-svg { flex-shrink: 0; }
+
+.util-gauge-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.util-gauge-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+}
+
+.util-gauge-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ── Save Modal ── */
+.calc-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.calc-modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.calc-modal-box {
+    background: var(--bg-surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: 28px;
+    width: 360px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: bm-pop 0.2s ease;
+}
+
+.calc-modal-box h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .calc-main { flex-direction: column; }
+    #calc-input-panel { width: 100%; max-width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+}

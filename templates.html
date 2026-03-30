@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Templates — BuildMetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body { margin: 0; background: var(--bg-page); }
+    .page-wrap { min-height: 100vh; display: flex; flex-direction: column; }
+    .page-content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; width: 100%; box-sizing: border-box; }
+
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+    .page-header p { font-size: 0.88rem; color: var(--text-muted); margin: 0; }
+
+    /* Filter tabs */
+    .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+    .filter-tab { padding: 6px 16px; border-radius: 99px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-secondary); transition: all 0.15s; user-select: none; }
+    .filter-tab:hover { border-color: var(--accent-mid); color: var(--accent); }
+    .filter-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* Template grid */
+    .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+
+    /* Template card */
+    .template-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; display: flex; flex-direction: column; gap: 12px; transition: box-shadow 0.15s, transform 0.15s; box-shadow: var(--shadow-sm); }
+    .template-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+
+    .template-card-top { display: flex; align-items: flex-start; gap: 12px; }
+    .template-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+    .template-card-info { flex: 1; min-width: 0; }
+    .template-name { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .template-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+    .template-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .type-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 0.68rem; font-weight: 700; }
+    .tag-chip { padding: 2px 7px; border-radius: 99px; font-size: 0.65rem; font-weight: 500; background: var(--bg-subtle); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .template-load-btn { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--accent-light); border: 1px solid var(--accent-mid); border-radius: var(--radius); text-decoration: none; font-size: 0.82rem; font-weight: 600; color: var(--accent); transition: background 0.15s, color 0.15s; margin-top: auto; }
+    .template-load-btn:hover { background: var(--accent); color: white; }
+
+    .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.88rem; }
+    .badge-count { font-weight: 400; opacity: 0.7; }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <a href="/projects.html" class="nav-brand">
+      <div class="nav-logo">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="7" fill="#2563EB"/><rect x="8" y="7" width="3" height="16" rx="1" fill="white"/><rect x="8" y="7" width="11" height="3" rx="1" fill="white"/><rect x="8" y="14" width="9" height="3" rx="1" fill="white"/><rect x="8" y="20" width="11" height="3" rx="1" fill="white"/></svg>
+      </div>
+      <div>
+        <div class="nav-title">BuildMetrics</div>
+        <div class="nav-subtitle">Templates</div>
+      </div>
+    </a>
+    <div class="nav-spacer"></div>
+    <div class="nav-actions">
+      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
+      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
+      <div id="nav-more-container"></div>
+      <button class="btn-nav" onclick="Auth.logout()">⏏ Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="page-content">
+    <div class="page-header">
+      <h1>📋 Calculation Templates</h1>
+      <p>Pre-configured calculations for common engineering scenarios. Select a template to pre-fill the calculator.</p>
+    </div>
+
+    <div class="filter-tabs" id="filter-tabs">
+      <div class="filter-tab active" data-cat="All">All <span id="count-all" class="badge-count"></span></div>
+      <div class="filter-tab" data-cat="Residential">Residential</div>
+      <div class="filter-tab" data-cat="Commercial">Commercial</div>
+      <div class="filter-tab" data-cat="Foundation">Foundation</div>
+      <div class="filter-tab" data-cat="Infrastructure">Infrastructure</div>
+    </div>
+
+    <div class="template-grid" id="template-grid">
+      <div class="empty-state">Loading templates…</div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/subscription/upgrade-modal.js"></script>
+<script src="/js/ui/navDropdown.js"></script>
+<script src="/js/data/templates.js"></script>
+<script>
+const TYPE_COLORS = {
+  beam: '#2563EB', column: '#D97706', slab: '#16A34A',
+  footing: '#7C3AED', retaining_wall: '#DC2626', connection: '#0891B2'
+};
+const TYPE_LABELS = {
+  beam: 'Beam', column: 'Column', slab: 'Slab',
+  footing: 'Footing', retaining_wall: 'Retaining Wall', connection: 'Connection'
+};
+
+let activeCategory = 'All';
+
+function renderTemplates(category) {
+  const grid = document.getElementById('template-grid');
+  const templates = (window.CalcTemplates || []).filter(t =>
+    category === 'All' || t.category === category ||
+    (category === 'Foundation' && (t.calcType === 'footing' || t.calcType === 'retaining_wall'))
+  );
+
+  if (!templates.length) {
+    grid.innerHTML = '<div class="empty-state">No templates in this category</div>';
+    return;
+  }
+
+  grid.innerHTML = templates.map(tpl => {
+    const color = TYPE_COLORS[tpl.calcType] || '#2563EB';
+    const label = TYPE_LABELS[tpl.calcType] || tpl.calcType;
+    const tags = (tpl.tags || []).slice(0, 3).map(t => `<span class="tag-chip">${t}</span>`).join('');
+    const href = tpl.href + '?template=' + tpl.id;
+    return `
+      <div class="template-card" data-cat="${tpl.category}">
+        <div class="template-card-top">
+          <div class="template-icon">${tpl.icon}</div>
+          <div class="template-card-info">
+            <div class="template-name">${tpl.name}</div>
+            <div class="template-desc">${tpl.description}</div>
+          </div>
+        </div>
+        <div class="template-meta">
+          <span class="type-badge" style="background:${color}20;color:${color};border:1px solid ${color}40">${label}</span>
+          <span class="tag-chip">${tpl.category}</span>
+          ${tags}
+        </div>
+        <a href="${href}" class="template-load-btn">Load Template <span>→</span></a>
+      </div>`;
+  }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!Auth.guard()) return;
+  NavDropdown.init('nav-more-container');
+
+  // Count badge
+  const all = window.CalcTemplates || [];
+  document.getElementById('count-all').textContent = all.length ? `(${all.length})` : '';
+
+  renderTemplates('All');
+
+  // Filter tabs
+  document.getElementById('filter-tabs').addEventListener('click', e => {
+    const tab = e.target.closest('.filter-tab');
+    if (!tab) return;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeCategory = tab.dataset.cat;
+    renderTemplates(activeCategory);
+  });
+});
+</script>
+</body>
+</html>

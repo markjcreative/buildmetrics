@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connection Design (Bolts &amp; Welds) — BuildMetrics</title>
+  <meta name="description" content="EC3 bolt group and weld group connection calculator. Polar moment method for eccentric bolt groups, unit throat method for weld groups." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/calcs.css" />
+
+  <!-- Auth & Projects -->
+  <script src="../js/auth/auth.js"></script>
+  <script src="../js/projects/history.js"></script>
+  <script src="../js/projects/projects.js"></script>
+
+  <style>
+    /* ── Tab switcher ── */
+    .conn-tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      background: var(--bg-subtle);
+    }
+    .conn-tab {
+      padding: 10px 20px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .conn-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .conn-tab-pane { display: none; }
+    .conn-tab-pane.active { display: contents; }
+
+    /* ── Bolt grid configurator ── */
+    .bolt-grid-preview {
+      display: grid;
+      gap: 4px;
+      justify-content: center;
+      margin: 12px auto;
+    }
+    .bolt-cell {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #BFDBFE;
+      border: 2px solid #2563EB;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .bolt-cell.active { background: #2563EB; }
+    .preset-btn {
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      font-size: 0.78rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .preset-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+  </style>
+</head>
+
+<body>
+<div id="app" class="calc-page-wrap">
+
+  <!-- ════ NAVBAR ════════════════════════════════════════════════════ -->
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <a href="/projects.html" class="nav-brand">
+      <div class="nav-logo">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="30" height="30" rx="7" fill="#2563EB"/>
+          <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
+          <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
+          <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
+          <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="nav-title">BuildMetrics</div>
+        <div class="nav-subtitle">Structural Analysis</div>
+      </div>
+    </a>
+    <div class="nav-spacer"></div>
+    <div id="nav-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+      📁 <span id="nav-project-name">—</span>
+    </div>
+    <div class="nav-actions">
+      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
+      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
+      <div id="nav-more-container"></div>
+      <button class="btn-nav" id="btn-signout" onclick="Auth.logout()">⏏ Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- ════ MAIN ══════════════════════════════════════════════════════ -->
+  <div class="calc-main">
+
+    <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
+    <aside id="calc-input-panel" aria-label="Connection inputs">
+
+      <div class="calc-input-header">
+        <span style="font-size:1.2rem;">🔩</span>
+        <span class="calc-input-title">Connection Design</span>
+      </div>
+
+      <!-- Tab switcher -->
+      <div class="conn-tabs">
+        <div class="conn-tab active" id="tab-bolt-btn" onclick="switchTab('bolt')">🔩 Bolt Group</div>
+        <div class="conn-tab" id="tab-weld-btn" onclick="switchTab('weld')">〰 Weld Group</div>
+      </div>
+
+      <!-- ── BOLT GROUP INPUTS ── -->
+      <div id="bolt-pane">
+        <div class="input-section" id="sec-bolt-loads">
+          <div class="section-header" onclick="toggleSection('sec-bolt-loads')">
+            <span>⬇ Applied Loads</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="bolt-Vx">Vx</label>
+                <input type="number" id="bolt-Vx" value="0" step="5" />
+                <span class="unit-tag">kN</span>
+              </div>
+              <div class="form-row">
+                <label for="bolt-Vy">Vy</label>
+                <input type="number" id="bolt-Vy" value="100" step="5" />
+                <span class="unit-tag">kN</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="bolt-M">In-plane moment M</label>
+              <input type="number" id="bolt-M" value="20" step="1" />
+              <span class="unit-tag">kNm</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section" id="sec-bolt-props">
+          <div class="section-header" onclick="toggleSection('sec-bolt-props')">
+            <span>⚙ Bolt Properties</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="bolt-size">Bolt size</label>
+              <select id="bolt-size">
+                <option value="M12">M12</option>
+                <option value="M16" selected>M16</option>
+                <option value="M20">M20</option>
+                <option value="M24">M24</option>
+                <option value="M30">M30</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="bolt-grade">Bolt grade</label>
+              <select id="bolt-grade">
+                <option value="8.8" selected>Grade 8.8</option>
+                <option value="10.9">Grade 10.9</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="bolt-planes">Shear planes</label>
+              <select id="bolt-planes">
+                <option value="1" selected>1 (single shear)</option>
+                <option value="2">2 (double shear)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section" id="sec-bolt-layout">
+          <div class="section-header" onclick="toggleSection('sec-bolt-layout')">
+            <span>📍 Bolt Layout</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <!-- Presets -->
+            <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Presets</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+              <button class="preset-btn" onclick="applyPreset('2x2')">2×2 @80</button>
+              <button class="preset-btn" onclick="applyPreset('2x3')">2×3 @80</button>
+              <button class="preset-btn" onclick="applyPreset('3x3')">3×3 @80</button>
+              <button class="preset-btn" onclick="applyPreset('4x4')">4×4 @80</button>
+              <button class="preset-btn" onclick="applyPreset('1x4')">Row 4 @80</button>
+              <button class="preset-btn" onclick="applyPreset('1x6')">Row 6 @80</button>
+            </div>
+
+            <!-- Grid configurator -->
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="grid-cols">Columns</label>
+                <input type="number" id="grid-cols" value="2" min="1" max="8" step="1" oninput="buildGrid()" />
+              </div>
+              <div class="form-row">
+                <label for="grid-rows">Rows</label>
+                <input type="number" id="grid-rows" value="2" min="1" max="8" step="1" oninput="buildGrid()" />
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="grid-pitch">Pitch</label>
+              <input type="number" id="grid-pitch" value="80" min="30" max="300" step="10" oninput="buildGrid()" />
+              <span class="unit-tag">mm</span>
+            </div>
+
+            <!-- Live bolt grid preview -->
+            <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin:8px 0 4px;">Layout Preview</div>
+            <div id="bolt-grid-container" style="display:flex;justify-content:center;padding:10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius);">
+              <div id="bolt-grid" class="bolt-grid-preview"></div>
+            </div>
+            <div style="font-size:0.73rem;color:var(--text-muted);margin-top:4px;">Click bolts to toggle individual positions on/off</div>
+
+            <!-- Custom coords override -->
+            <div style="margin-top:10px;">
+              <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">Or enter custom x,y coords</div>
+              <div class="form-row">
+                <label for="bolt-custom-coords">x,y pairs (one per line, mm)</label>
+                <textarea id="bolt-custom-coords" rows="4" placeholder="e.g.&#10;-40,-40&#10;40,-40&#10;-40,40&#10;40,40"
+                  style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:8px;font-family:'JetBrains Mono',monospace;font-size:0.8rem;resize:vertical;"
+                  oninput="onCustomCoordsChange()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- bolt-pane -->
+
+      <!-- ── WELD GROUP INPUTS ── -->
+      <div id="weld-pane" style="display:none;">
+        <div class="input-section" id="sec-weld-loads">
+          <div class="section-header" onclick="toggleSection('sec-weld-loads')">
+            <span>⬇ Applied Loads</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="weld-Vx">Vx</label>
+                <input type="number" id="weld-Vx" value="0" step="5" />
+                <span class="unit-tag">kN</span>
+              </div>
+              <div class="form-row">
+                <label for="weld-Vy">Vy</label>
+                <input type="number" id="weld-Vy" value="150" step="5" />
+                <span class="unit-tag">kN</span>
+              </div>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="weld-N">Axial N</label>
+                <input type="number" id="weld-N" value="0" step="10" />
+                <span class="unit-tag">kN</span>
+              </div>
+              <div class="form-row">
+                <label for="weld-M">Moment M</label>
+                <input type="number" id="weld-M" value="30" step="1" />
+                <span class="unit-tag">kNm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section" id="sec-weld-props">
+          <div class="section-header" onclick="toggleSection('sec-weld-props')">
+            <span>⚙ Weld Properties</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="weld-throat">Throat size a</label>
+              <input type="number" id="weld-throat" value="6" min="3" max="25" step="1" />
+              <span class="unit-tag">mm</span>
+            </div>
+            <div class="form-row">
+              <label for="weld-fu">Steel grade / f<sub>u</sub></label>
+              <select id="weld-fu">
+                <option value="410">S275 (fu = 410 N/mm²)</option>
+                <option value="470">S355 (fu = 470 N/mm²)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section" id="sec-weld-layout">
+          <div class="section-header" onclick="toggleSection('sec-weld-layout')">
+            <span>📐 Weld Layout</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="weld-layout-type">Weld configuration</label>
+              <select id="weld-layout-type" onchange="toggleWeldLayout()">
+                <option value="full-rect">Full rectangle B×H</option>
+                <option value="flanges-only">Top &amp; bottom flanges only</option>
+                <option value="web-only">Web only</option>
+              </select>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="weld-B">B (width)</label>
+                <input type="number" id="weld-B" value="150" min="50" step="10" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="weld-H">H (height)</label>
+                <input type="number" id="weld-H" value="300" min="50" step="10" />
+                <span class="unit-tag">mm</span>
+              </div>
+            </div>
+            <div id="weld-flange-t-row" class="form-row" style="display:none;">
+              <label for="weld-flange-t">Flange thickness</label>
+              <input type="number" id="weld-flange-t" value="12" min="5" step="1" />
+              <span class="unit-tag">mm</span>
+            </div>
+          </div>
+        </div>
+      </div><!-- weld-pane -->
+
+      <!-- Action bar -->
+      <div class="calc-action-bar">
+        <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;">⚡ Calculate</button>
+        <button class="btn btn-secondary" onclick="resetCalc()" title="Reset">↺</button>
+        <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save" disabled>💾</button>
+      </div>
+    </aside>
+
+    <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
+    <main id="calc-results-panel" aria-label="Connection results">
+
+      <!-- Welcome state -->
+      <div id="calc-welcome" class="calc-welcome">
+        <div class="calc-welcome-icon">🔩</div>
+        <h3>Connection Design Calculator</h3>
+        <p>Select bolt group or weld group, configure loads and layout, then click <strong>Calculate</strong> to check utilisation against EC3 capacities.</p>
+      </div>
+
+      <!-- Results -->
+      <div id="calc-results" style="display:none;">
+
+        <!-- Current mode label -->
+        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);padding:4px 0;" id="mode-label"></div>
+
+        <!-- Summary badges -->
+        <div class="calc-badges">
+          <div class="calc-badge" id="badge-wrap-force">
+            <div class="calc-badge-label" id="badge-force-label">Max Bolt Force</div>
+            <div class="calc-badge-value" id="badge-max-force">—</div>
+            <div class="calc-badge-unit">kN</div>
+          </div>
+          <div class="calc-badge">
+            <div class="calc-badge-label" id="badge-cap-label">Capacity</div>
+            <div class="calc-badge-value" id="badge-cap">—</div>
+            <div class="calc-badge-unit" id="badge-cap-unit">kN</div>
+          </div>
+          <div class="calc-badge">
+            <div class="calc-badge-label">Utilisation</div>
+            <div class="calc-badge-value" id="badge-util">—</div>
+            <div class="calc-badge-unit">%</div>
+          </div>
+          <div class="calc-badge">
+            <div class="calc-badge-label">Overall</div>
+            <div class="calc-badge-value" id="badge-pass" style="font-size:1.1rem;">—</div>
+            <div class="calc-badge-unit"></div>
+          </div>
+        </div>
+
+        <!-- Utilisation bar -->
+        <div class="calc-results-card" style="padding:16px;">
+          <div style="font-size:0.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">Utilisation</div>
+          <div style="background:var(--bg-subtle);border-radius:99px;height:12px;overflow:hidden;">
+            <div id="util-bar" style="height:100%;border-radius:99px;transition:width 0.4s,background 0.4s;width:0%;background:var(--green);"></div>
+          </div>
+          <div id="util-bar-label" style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;"></div>
+        </div>
+
+        <!-- Pass/fail -->
+        <div class="calc-results-card">
+          <div class="card-header">Design Check</div>
+          <table class="calc-results-table">
+            <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
+            <tbody id="checks-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Detailed results -->
+        <div class="calc-results-card">
+          <div class="card-header">Detailed Results</div>
+          <table class="calc-results-table">
+            <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+            <tbody id="results-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Bolt group diagram -->
+        <div class="calc-diagram-card" id="bolt-diagram-card">
+          <div class="card-header">Bolt Group Layout</div>
+          <div class="calc-diagram-body">
+            <svg id="bolt-svg" width="300" height="280" viewBox="0 0 300 280" aria-label="Bolt group layout" style="max-width:100%;"></svg>
+          </div>
+        </div>
+
+        <!-- Weld group diagram -->
+        <div class="calc-diagram-card" id="weld-diagram-card" style="display:none;">
+          <div class="card-header">Weld Group Layout</div>
+          <div class="calc-diagram-body">
+            <svg id="weld-svg" width="300" height="280" viewBox="0 0 300 280" aria-label="Weld group layout" style="max-width:100%;"></svg>
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+          ⚠️ <strong>Disclaimer:</strong> Preliminary design tool. Bearing, tearout, block shear checks and detailing requirements must also be verified.
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Save modal -->
+<div class="calc-modal-overlay" id="save-calc-modal">
+  <div class="calc-modal-box">
+    <h3>💾 Save Calculation</h3>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Give this connection check a name.</p>
+    <div class="form-row">
+      <label for="save-calc-name">Calculation name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. Beam-to-column splice — grid 3×3 M20" maxlength="80" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="document.getElementById('save-calc-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" data-save-submit>Save →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="../js/engine/utils.js"></script>
+<script src="../js/engine/connectionSolver.js"></script>
+<script src="../js/ui/navDropdown.js"></script>
+<script src="../js/ui/calcShared.js"></script>
+
+<script>
+  // ── Tab switching ───────────────────────────────────────────────
+  let currentTab = 'bolt';
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('bolt-pane').style.display  = tab === 'bolt' ? '' : 'none';
+    document.getElementById('weld-pane').style.display  = tab === 'weld' ? '' : 'none';
+    document.getElementById('tab-bolt-btn').classList.toggle('active', tab === 'bolt');
+    document.getElementById('tab-weld-btn').classList.toggle('active', tab === 'weld');
+    resetCalc();
+  }
+
+  function toggleSection(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  function toggleWeldLayout() {
+    const t = document.getElementById('weld-layout-type').value;
+    document.getElementById('weld-flange-t-row').style.display = t === 'flanges-only' ? '' : 'none';
+  }
+
+  // ── Bolt grid ───────────────────────────────────────────────────
+  let boltActive = [];   // flat array of booleans, row-major
+
+  function buildGrid(preset) {
+    const cols  = +document.getElementById('grid-cols').value || 2;
+    const rows  = +document.getElementById('grid-rows').value || 2;
+    const n     = cols * rows;
+    boltActive  = Array(n).fill(true);
+
+    const container = document.getElementById('bolt-grid');
+    container.style.gridTemplateColumns = `repeat(${cols}, 22px)`;
+    container.innerHTML = '';
+
+    for (let i = 0; i < n; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'bolt-cell active';
+      cell.dataset.index = i;
+      cell.onclick = () => {
+        boltActive[i] = !boltActive[i];
+        cell.classList.toggle('active', boltActive[i]);
+        document.getElementById('bolt-custom-coords').value = '';
+      };
+      container.appendChild(cell);
+    }
+  }
+
+  function getBoltLayout() {
+    // Check if custom coords have been entered
+    const customTxt = document.getElementById('bolt-custom-coords').value.trim();
+    if (customTxt) {
+      const parsed = customTxt.split('\n').map(line => {
+        const parts = line.split(',').map(s => parseFloat(s.trim()));
+        return (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]))
+          ? { x: parts[0], y: parts[1] } : null;
+      }).filter(Boolean);
+      if (parsed.length > 0) return parsed;
+    }
+
+    // Build from grid
+    const cols  = +document.getElementById('grid-cols').value || 2;
+    const rows  = +document.getElementById('grid-rows').value || 2;
+    const pitch = +document.getElementById('grid-pitch').value || 80;
+
+    const xOffsets = Array.from({length: cols}, (_, c) => (c - (cols-1)/2) * pitch);
+    const yOffsets = Array.from({length: rows}, (_, r) => (r - (rows-1)/2) * pitch);
+
+    const layout = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const idx = r * cols + c;
+        if (boltActive[idx] !== false) {
+          layout.push({ x: xOffsets[c], y: yOffsets[r] });
+        }
+      }
+    }
+    return layout;
+  }
+
+  function applyPreset(name) {
+    const presets = {
+      '2x2': { cols:2, rows:2, pitch:80 },
+      '2x3': { cols:2, rows:3, pitch:80 },
+      '3x3': { cols:3, rows:3, pitch:80 },
+      '4x4': { cols:4, rows:4, pitch:80 },
+      '1x4': { cols:4, rows:1, pitch:80 },
+      '1x6': { cols:6, rows:1, pitch:80 },
+    };
+    const p = presets[name];
+    if (!p) return;
+    document.getElementById('grid-cols').value  = p.cols;
+    document.getElementById('grid-rows').value  = p.rows;
+    document.getElementById('grid-pitch').value = p.pitch;
+    document.getElementById('bolt-custom-coords').value = '';
+    buildGrid();
+  }
+
+  function onCustomCoordsChange() {
+    // Clear grid visual when custom coords typed
+    document.querySelectorAll('.bolt-cell').forEach(c => c.classList.remove('active'));
+  }
+
+  // ── Weld layout builder ─────────────────────────────────────────
+  function getWeldLayout() {
+    const type = document.getElementById('weld-layout-type').value;
+    const B    = +document.getElementById('weld-B').value;
+    const H    = +document.getElementById('weld-H').value;
+    const ft   = +document.getElementById('weld-flange-t').value || 12;
+
+    const hH = H / 2, hB = B / 2;
+
+    if (type === 'full-rect') {
+      return [
+        { x1: -hB, y1: -hH, x2:  hB, y2: -hH },  // bottom
+        { x1:  hB, y1: -hH, x2:  hB, y2:  hH },  // right
+        { x1:  hB, y1:  hH, x2: -hB, y2:  hH },  // top
+        { x1: -hB, y1:  hH, x2: -hB, y2: -hH },  // left
+      ];
+    } else if (type === 'flanges-only') {
+      return [
+        { x1: -hB, y1: -hH, x2: hB, y2: -hH },
+        { x1: -hB, y1:  hH, x2: hB, y2:  hH },
+      ];
+    } else { // web-only
+      return [
+        { x1: 0, y1: -hH, x2: 0, y2: hH },
+      ];
+    }
+  }
+
+  // ── State ───────────────────────────────────────────────────────
+  let lastResults = null, lastConfig = null;
+
+  // ── Run ─────────────────────────────────────────────────────────
+  function runCalc() {
+    let results, config;
+
+    if (currentTab === 'bolt') {
+      const layout = getBoltLayout();
+      if (layout.length < 1) { CalcShared.showToast('No bolts in layout.', 'error'); return; }
+      config = {
+        mode:        'bolt',
+        Vx:          +document.getElementById('bolt-Vx').value,
+        Vy:          +document.getElementById('bolt-Vy').value,
+        M_in_plane:  +document.getElementById('bolt-M').value,
+        boltLayout:  layout,
+        boltSize:    document.getElementById('bolt-size').value,
+        boltGrade:   document.getElementById('bolt-grade').value,
+        shearPlanes: +document.getElementById('bolt-planes').value,
+      };
+      results = ConnectionSolver.solveBoltGroup(config);
+    } else {
+      const weldLayout = getWeldLayout();
+      config = {
+        mode:       'weld',
+        Vx:         +document.getElementById('weld-Vx').value,
+        Vy:         +document.getElementById('weld-Vy').value,
+        N:          +document.getElementById('weld-N').value,
+        M:          +document.getElementById('weld-M').value,
+        weldLayout: weldLayout,
+        throatSize: +document.getElementById('weld-throat').value,
+        fu:         +document.getElementById('weld-fu').value,
+      };
+      results = ConnectionSolver.solveWeldGroup(config);
+    }
+
+    lastConfig  = config;
+    lastResults = results;
+
+    document.getElementById('calc-welcome').style.display = 'none';
+    document.getElementById('calc-results').style.display = '';
+    document.getElementById('btn-save').disabled = false;
+
+    renderResults(results, config);
+  }
+
+  function resetCalc() {
+    lastResults = null; lastConfig = null;
+    document.getElementById('calc-welcome').style.display = '';
+    document.getElementById('calc-results').style.display = 'none';
+    document.getElementById('btn-save').disabled = true;
+  }
+
+  // ── Render ──────────────────────────────────────────────────────
+  function renderResults(r, c) {
+    const isBolt = c.mode === 'bolt';
+    document.getElementById('mode-label').textContent = isBolt ? 'Bolt Group (EC3 polar moment method)' : 'Weld Group (EC3 unit throat method)';
+
+    // Badges
+    if (isBolt) {
+      document.getElementById('badge-force-label').textContent = 'Max Bolt Force';
+      document.getElementById('badge-max-force').textContent   = CalcShared.fmt(r.maxBoltForce, 2);
+      document.getElementById('badge-cap-label').textContent   = 'Bolt Capacity';
+      document.getElementById('badge-cap').textContent         = CalcShared.fmt(r.boltCapacity, 2);
+      document.getElementById('badge-cap-unit').textContent    = 'kN';
+    } else {
+      document.getElementById('badge-force-label').textContent = 'Resultant Stress';
+      document.getElementById('badge-max-force').textContent   = CalcShared.fmt(r.stress_check, 1);
+      document.getElementById('badge-cap-label').textContent   = 'Weld Capacity';
+      document.getElementById('badge-cap').textContent         = CalcShared.fmt(r.capacity, 1);
+      document.getElementById('badge-cap-unit').textContent    = 'N/mm²';
+    }
+
+    document.getElementById('badge-util').textContent = CalcShared.fmt(r.utilisationPct, 1);
+    document.getElementById('badge-pass').innerHTML   = CalcShared.passBadge(r.pass);
+
+    // Utilisation bar
+    const pct = Math.min(100, r.utilisationPct);
+    const barColor = pct < 80 ? 'var(--green)' : pct < 100 ? 'var(--amber)' : 'var(--red)';
+    document.getElementById('util-bar').style.width      = pct + '%';
+    document.getElementById('util-bar').style.background = barColor;
+    document.getElementById('util-bar-label').textContent = CalcShared.fmt(r.utilisationPct, 1) + '% of capacity';
+
+    // Checks table
+    const checks = isBolt ? [
+      { label: 'Bolt shear capacity', pass: r.pass, detail: r.maxBoltForce + ' kN ≤ ' + r.boltCapacity + ' kN (' + c.boltSize + ' ' + c.boltGrade + ')' },
+      { label: 'Group utilisation',   pass: r.pass, detail: r.utilisationPct + '% ≤ 100%' },
+    ] : [
+      { label: 'Weld throat stress', pass: r.pass, detail: CalcShared.fmt(r.stress_check,1) + ' ≤ ' + CalcShared.fmt(r.capacity,1) + ' N/mm²' },
+      { label: 'Utilisation',        pass: r.pass, detail: r.utilisationPct + '% ≤ 100%' },
+    ];
+    document.getElementById('checks-body').innerHTML = checks.map(ch =>
+      `<tr><td>${ch.label}</td><td>${CalcShared.passBadge(ch.pass)}</td><td>${ch.detail}</td></tr>`
+    ).join('');
+
+    // Results table
+    let rows = [];
+    if (isBolt) {
+      rows = [
+        ['Number of bolts n', r.n, ''],
+        ['Centroid x, y', r.cx + ', ' + r.cy + ' mm', ''],
+        ['Polar moment I<sub>p</sub>', r.Ip + ' mm²', ''],
+        ['Direct shear V<sub>x</sub>/n', CalcShared.fmt(c.Vx*1000/r.n,1) + ' N', ''],
+        ['Direct shear V<sub>y</sub>/n', CalcShared.fmt(c.Vy*1000/r.n,1) + ' N', ''],
+        ['In-plane moment M', c.M_in_plane + ' kNm', ''],
+        ['Max bolt resultant force', r.maxBoltForce + ' kN', 'Most stressed bolt'],
+        ['Single-plane bolt capacity', (c.boltSize + ' ' + c.boltGrade), ConnectionSolver.solveBoltGroup && '' || ''],
+        ['Total bolt capacity', r.boltCapacity + ' kN', c.shearPlanes + ' shear plane(s)'],
+        ['Utilisation', r.utilisationPct + '%', r.pass ? 'PASS' : 'FAIL'],
+      ];
+    } else {
+      rows = [
+        ['Total weld length', r.totalLength + ' mm', ''],
+        ['Effective throat area A<sub>w</sub>', r.A_w + ' mm²', 'a × L'],
+        ['Direct axial stress σ', r.sigma_direct + ' N/mm²', ''],
+        ['Bending stress σ<sub>M</sub>', r.sigma_M + ' N/mm²', ''],
+        ['Shear stress τ', r.tau_total + ' N/mm²', ''],
+        ['Resultant √(σ²+3τ²)', r.stress_check + ' N/mm²', 'EC3 combined stress'],
+        ['Weld design capacity f<sub>w</sub>', r.capacity + ' N/mm²', 'f<sub>u</sub>/(√3 × γ<sub>M2</sub>)'],
+        ['Utilisation', r.utilisationPct + '%', r.pass ? 'PASS' : 'FAIL'],
+      ];
+    }
+    document.getElementById('results-body').innerHTML = rows.map(([p,v,n]) =>
+      `<tr><td>${p}</td><td class="mono">${v}</td><td style="color:var(--text-muted);font-size:0.8rem;">${n}</td></tr>`
+    ).join('');
+
+    // Diagrams
+    document.getElementById('bolt-diagram-card').style.display = isBolt ? '' : 'none';
+    document.getElementById('weld-diagram-card').style.display = isBolt ? 'none' : '';
+
+    if (isBolt) renderBoltDiagram(c.boltLayout, r);
+    else renderWeldDiagram(getWeldLayout(), r);
+  }
+
+  // ── SVG: Bolt group ─────────────────────────────────────────────
+  function renderBoltDiagram(layout, r) {
+    const svg = document.getElementById('bolt-svg');
+    const W = 300, H = 280, pad = 40;
+
+    const xs = layout.map(b => b.x), ys = layout.map(b => b.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    const rangeX = Math.max(maxX - minX, 1);
+    const rangeY = Math.max(maxY - minY, 1);
+    const scale  = Math.min((W - pad*2) / rangeX, (H - pad*2) / rangeY) * 0.7;
+    const cx_px  = W / 2, cy_px = H / 2;
+
+    const bx = (x) => cx_px + x * scale;
+    const by = (y) => cy_px - y * scale; // SVG y-axis is inverted
+
+    // Centroid
+    const cxC = r.cx, cyC = r.cy;
+
+    svg.innerHTML = `
+      <!-- Centroid cross -->
+      <line x1="${bx(cxC)-8}" y1="${by(cyC)}" x2="${bx(cxC)+8}" y2="${by(cyC)}" stroke="#DC2626" stroke-width="1.5"/>
+      <line x1="${bx(cxC)}" y1="${by(cyC)-8}" x2="${bx(cxC)}" y2="${by(cyC)+8}" stroke="#DC2626" stroke-width="1.5"/>
+      <text x="${bx(cxC)+10}" y="${by(cyC)-6}" font-size="8" fill="#DC2626" font-family="Inter,sans-serif">CG</text>
+
+      <!-- Bolts -->
+      ${layout.map((b, i) => {
+        const px = bx(b.x), py = by(b.y);
+        return `<circle cx="${px}" cy="${py}" r="8" fill="#BFDBFE" stroke="#2563EB" stroke-width="2"/>
+                <circle cx="${px}" cy="${py}" r="2" fill="#2563EB"/>
+                <text x="${px}" y="${py + 18}" text-anchor="middle" font-size="7.5" fill="#64748B" font-family="JetBrains Mono,monospace">${b.x},${b.y}</text>`;
+      }).join('')}
+
+      <!-- Axes -->
+      <line x1="${cx_px - 20}" y1="${cy_px}" x2="${cx_px + 20}" y2="${cy_px}" stroke="#E2E8F0" stroke-width="1"/>
+      <line x1="${cx_px}" y1="${cy_px - 20}" x2="${cx_px}" y2="${cy_px + 20}" stroke="#E2E8F0" stroke-width="1"/>
+
+      <!-- Legend -->
+      <circle cx="14" cy="${H-14}" r="6" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.5"/>
+      <text x="24" y="${H-10}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Bolt position</text>
+      <line x1="108" y1="${H-18}" x2="118" y2="${H-10}" stroke="#DC2626" stroke-width="1.5"/>
+      <line x1="118" y1="${H-18}" x2="108" y2="${H-10}" stroke="#DC2626" stroke-width="1.5"/>
+      <text x="122" y="${H-10}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Centroid</text>
+    `;
+  }
+
+  // ── SVG: Weld group ─────────────────────────────────────────────
+  function renderWeldDiagram(weldSegs, r) {
+    const svg = document.getElementById('weld-svg');
+    const W = 300, H = 280, pad = 40;
+
+    const allX = weldSegs.flatMap(s => [s.x1, s.x2]);
+    const allY = weldSegs.flatMap(s => [s.y1, s.y2]);
+    const rangeX = Math.max(Math.max(...allX) - Math.min(...allX), 1);
+    const rangeY = Math.max(Math.max(...allY) - Math.min(...allY), 1);
+    const scale  = Math.min((W - pad*2) / rangeX, (H - pad*2) / rangeY) * 0.7;
+    const cx_px  = W / 2, cy_px = H / 2;
+
+    const wx = (x) => cx_px + x * scale;
+    const wy = (y) => cy_px - y * scale;
+
+    const segsHTML = weldSegs.map(s =>
+      `<line x1="${wx(s.x1)}" y1="${wy(s.y1)}" x2="${wx(s.x2)}" y2="${wy(s.y2)}"
+             stroke="#2563EB" stroke-width="4" stroke-linecap="round"/>`
+    ).join('');
+
+    // Centroid of welds (approx midpoint of all segments)
+    const allMx = weldSegs.map(s => (s.x1+s.x2)/2);
+    const allMy = weldSegs.map(s => (s.y1+s.y2)/2);
+    const avgMx = allMx.reduce((a,b)=>a+b,0)/allMx.length;
+    const avgMy = allMy.reduce((a,b)=>a+b,0)/allMy.length;
+
+    svg.innerHTML = `
+      <!-- Weld segments -->
+      ${segsHTML}
+
+      <!-- Centroid -->
+      <line x1="${wx(avgMx)-8}" y1="${wy(avgMy)}" x2="${wx(avgMx)+8}" y2="${wy(avgMy)}" stroke="#DC2626" stroke-width="1.5"/>
+      <line x1="${wx(avgMx)}" y1="${wy(avgMy)-8}" x2="${wx(avgMx)}" y2="${wy(avgMy)+8}" stroke="#DC2626" stroke-width="1.5"/>
+
+      <!-- Labels -->
+      <text x="${W/2}" y="20" text-anchor="middle" font-size="9" font-weight="600" fill="#1E40AF" font-family="Inter,sans-serif">L<tspan baseline-shift="sub" font-size="7">total</tspan> = ${r.totalLength} mm</text>
+      <text x="${W/2}" y="34" text-anchor="middle" font-size="9" fill="#52525B" font-family="Inter,sans-serif">Util = ${r.utilisationPct}%</text>
+
+      <!-- Legend -->
+      <line x1="8" y1="${H-14}" x2="24" y2="${H-14}" stroke="#2563EB" stroke-width="4" stroke-linecap="round"/>
+      <text x="28" y="${H-10}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Fillet weld</text>
+    `;
+  }
+
+  function openSave() {
+    if (!lastResults) return;
+    CalcShared.openSaveModal('save-calc-modal');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    Auth.guard();
+    NavDropdown.init('nav-more-container');
+    CalcShared.renderProjectBadge('nav-project-badge');
+    buildGrid();
+
+    CalcShared.initSaveModal('save-calc-modal', 'connection', () => {
+      if (!lastResults) return null;
+      return {
+        config: lastConfig,
+        results: lastResults,
+        summary: (currentTab === 'bolt' ? 'Bolt group ' : 'Weld group ') +
+                 CalcShared.fmt(lastResults.utilisationPct, 1) + '% — ' +
+                 (lastResults.pass ? 'PASS' : 'FAIL')
+      };
+    });
+
+    CalcShared.loadFromUrl((cfg) => {
+      if (!cfg) return;
+      if (cfg.mode) switchTab(cfg.mode);
+      // Restore would be complex for layout; skip silent restore for connection
+    });
+  });
+</script>
+</body>
+</html>

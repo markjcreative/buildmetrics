@@ -159,3 +159,49 @@ const Subscription = (() => {
 window.Subscription = Subscription;
 window.FREE_LIMITS = FREE_LIMITS;
 window.PRO_PRICE_USD = PRO_PRICE_USD;
+
+/**
+ * Plans — capability gate helpers used by export modules.
+ * Each method returns true when the current user's plan permits the feature.
+ * Falls back to true (allow) if no authenticated user can be determined,
+ * so the UI is never accidentally locked out of exports in anonymous use.
+ */
+const Plans = (() => {
+    function _currentPlan() {
+        // Resolve the logged-in user id from Auth if available.
+        const userId = (window.Auth && Auth.currentUser && Auth.currentUser())
+            ? Auth.currentUser().uid || Auth.currentUser().id || null
+            : null;
+
+        if (!userId) return null;   // no user — treated as allowed (see below)
+
+        const sub = Subscription.get(userId);
+        return sub ? sub.plan : 'free';
+    }
+
+    function _isPaidPlan() {
+        const plan = _currentPlan();
+        // null means we cannot determine the plan — allow by default
+        if (plan === null) return true;
+        return plan === 'pro' || plan === 'enterprise';
+    }
+
+    /** Returns true if the user's plan allows Excel export. */
+    function canExportExcel() {
+        return _isPaidPlan();
+    }
+
+    /** Returns true if the user's plan allows Word export. */
+    function canExportWord() {
+        return _isPaidPlan();
+    }
+
+    /** Returns true if the user's plan allows enhanced PDF export with full workings. */
+    function canExportEnhancedPdf() {
+        return _isPaidPlan();
+    }
+
+    return { canExportExcel, canExportWord, canExportEnhancedPdf };
+})();
+
+window.Plans = Plans;
