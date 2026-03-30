@@ -1,27 +1,27 @@
 /* ──────────────────────────────────────────────────────────
-   BeamCalc Pro — Elevated Light Theme
-   Premium clean light with strong hierarchy & depth
+   Kinecalc — Clean Professional Light Theme
+   White background with indigo accent system
    ────────────────────────────────────────────────────────── */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ─── Design Tokens ─────────────────────────────────────── */
 :root {
   /* Backgrounds */
-  --bg-page: #F7F8FC;
-  --bg-surface: #FFFFFF;
-  --bg-subtle: #F0F2F8;
-  --bg-muted: #E8EAF2;
+  --bg-page: #FFFFFF;
+  --bg-surface: #FAFAFA;
+  --bg-subtle: #F5F5F5;
+  --bg-muted: #EFEFEF;
 
   /* Borders */
-  --border: #E2E5F0;
-  --border-strong: #C8CCE0;
+  --border: #E5E5E5;
+  --border-strong: #D4D4D4;
 
   /* Text */
-  --text-primary: #0F1117;
-  --text-secondary: #44485A;
-  --text-muted: #8B90A8;
-  --text-disabled: #C8CCE0;
+  --text-primary: #111111;
+  --text-secondary: #525252;
+  --text-muted: #A3A3A3;
+  --text-disabled: #D4D4D4;
 
   /* Accent — indigo */
   --accent: #4F46E5;
@@ -29,30 +29,25 @@
   --accent-light: #EEF2FF;
   --accent-mid: #C7D2FE;
 
-  /* Status colours */
-  --green: #059669;
+  /* Status colours — used sparingly */
+  --green: #16A34A;
   --red: #DC2626;
   --amber: #D97706;
   --purple: #7C3AED;
 
   /* Status tints */
-  --green-tint: #ECFDF5;
+  --green-tint: #F0FDF4;
   --red-tint: #FEF2F2;
   --amber-tint: #FFFBEB;
   --purple-tint: #F5F3FF;
 
-  /* Elevated radius */
-  --radius: 10px;
-  --radius-sm: 6px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-
-  /* Elevated shadows */
-  --shadow-xs: 0 1px 2px rgba(15, 17, 23, 0.04);
-  --shadow-sm: 0 1px 4px rgba(15, 17, 23, 0.06), 0 2px 8px rgba(79, 70, 229, 0.04);
-  --shadow: 0 4px 16px rgba(15, 17, 23, 0.08), 0 1px 4px rgba(15, 17, 23, 0.04);
-  --shadow-lg: 0 16px 48px rgba(15, 17, 23, 0.12), 0 4px 12px rgba(15, 17, 23, 0.06);
-  --shadow-accent: 0 8px 24px rgba(79, 70, 229, 0.20);
+  /* Misc */
+  --radius: 8px;
+  --radius-sm: 5px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 /* ─── Reset ─────────────────────────────────────────────── */
@@ -73,10 +68,9 @@ body {
   background: var(--bg-page);
   color: var(--text-primary);
   min-height: 100vh;
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────── */
@@ -100,25 +94,23 @@ body {
 
 /* ─── Typography ────────────────────────────────────────── */
 h1 {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.35rem;
+  font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.6px;
-  line-height: 1.25;
+  letter-spacing: -0.4px;
 }
 
 h2 {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
 }
 
 h3 {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: -0.1px;
 }
 
 /* ─── Layout ────────────────────────────────────────────── */
@@ -133,69 +125,67 @@ h3 {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
-  padding: 0 28px;
-  height: 60px;
+  padding: 0 24px;
+  height: 56px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 1px 0 var(--border), var(--shadow-xs);
 }
 
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   text-decoration: none;
 }
 
 .nav-logo {
-  width: 34px;
-  height: 34px;
-  background: linear-gradient(145deg, #4F46E5 0%, #7C3AED 100%);
-  border-radius: 9px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 17px;
+  font-size: 16px;
   color: white;
   flex-shrink: 0;
-  box-shadow: 0 2px 10px rgba(79, 70, 229, 0.40), 0 1px 3px rgba(79, 70, 229, 0.20);
+  letter-spacing: 0;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
 }
 
 .nav-title {
-  font-size: 0.94rem;
-  font-weight: 800;
+  font-size: 0.92rem;
+  font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.4px;
+  letter-spacing: -0.3px;
 }
 
 .nav-subtitle {
-  font-size: 0.67rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   text-transform: uppercase;
-  font-weight: 500;
 }
 
 .nav-divider {
   width: 1px;
-  height: 22px;
+  height: 20px;
   background: var(--border);
 }
 
 .nav-badge {
-  font-size: 0.69rem;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 500;
   color: var(--accent);
   background: var(--accent-light);
   border: 1px solid var(--accent-mid);
   border-radius: 20px;
-  padding: 3px 10px;
-  letter-spacing: 0.1px;
+  padding: 2px 8px;
+  letter-spacing: 0.2px;
 }
 
 .nav-spacer {
@@ -205,7 +195,7 @@ h3 {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* ─── Unit Toggle ─────────────────────────────────────────── */
@@ -291,7 +281,7 @@ h3 {
 #main-container {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 56px);
 }
 
 /* ─── Input Panel ─────────────────────────────────────────── */
@@ -401,11 +391,6 @@ h3 {
 .inp-num[readonly] {
   background: var(--bg-subtle);
   color: var(--text-secondary);
-}
-
-.inp-error {
-  border-color: #DC2626 !important;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
 }
 
 .unit-tag {

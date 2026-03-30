@@ -1,6 +1,6 @@
 /**
  * history.js — Calculation history management using localStorage
- * BeamCalc Pro | Client-side only
+ * Kinecalc | Client-side only
  */
 
 const History = (() => {

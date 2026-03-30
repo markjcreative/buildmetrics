@@ -79,7 +79,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Re-open save modal now that we have a project
             openSaveCalcModal();
         } catch (e) {
-            { alert(e.message); }
+            if (e.message === 'FREE_LIMIT_PROJECTS') {
+                document.getElementById('proj-picker-modal').classList.remove('open');
+                UpgradeModal.show('projects');
+            } else { alert(e.message); }
         }
     });
 
@@ -117,23 +120,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // ── Welcome animation ────────────────────────────────────────────────
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    setTimeout(() => {
         const wb = document.getElementById('welcome-banner');
-        if (wb) { wb.style.opacity = '1'; wb.style.transform = 'translateY(0)'; }
-    }));
+        wb.style.opacity = '1';
+        wb.style.transform = 'translateY(0)';
+    }, 200);
 
-    // ── Modal backdrop dismiss ────────────────────────────────────────────
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', e => {
-            if (e.target === overlay) {
-                // For pdf-modal, trigger cancel to resolve the pending Promise
-                const cancelBtn = overlay.querySelector('#btn-modal-cancel');
-                if (cancelBtn) cancelBtn.click();
-                else overlay.classList.remove('open');
-            }
-        });
-    });
+    // ── Freehand Sketchpad (Fabric.js) ───────────────────────────────────
+    initSketchpad();
 });
+
+let sketchCanvas = null;
+
+function initSketchpad() {
+    if (typeof fabric === 'undefined') return;
+
+    sketchCanvas = new fabric.Canvas('sketch-canvas', {
+        isDrawingMode: true
+    });
+
+    // Default brush styling
+    sketchCanvas.freeDrawingBrush.color = '#1E293B';
+    sketchCanvas.freeDrawingBrush.width = 3;
+
+    // Tools
+    document.getElementById('btn-sketch-pen').addEventListener('click', () => {
+        sketchCanvas.isDrawingMode = true;
+        sketchCanvas.freeDrawingBrush.color = '#1E293B';
+        sketchCanvas.freeDrawingBrush.width = 3;
+    });
+
+    document.getElementById('btn-sketch-erase').addEventListener('click', () => {
+        // Eraser in fabric can be tricky without an extension, 
+        // A simple approach is to use a white brush, or allow selecting and deleting path objects.
+        // We will make the brush act as an eraser by making it white and thick.
+        sketchCanvas.isDrawingMode = true;
+        sketchCanvas.freeDrawingBrush.color = '#fafafa'; // background color
+        sketchCanvas.freeDrawingBrush.width = 20;
+    });
+
+    document.getElementById('btn-sketch-clear').addEventListener('click', () => {
+        if (confirm('Clear the entire sketchpad?')) {
+            sketchCanvas.clear();
+        }
+    });
+}
 
 /* ── Save Calculation Modal ─────────────────────────────────── */
 function openSaveCalcModal() {
@@ -186,7 +217,12 @@ function doSaveCalc() {
         document.getElementById('save-modal').classList.remove('open');
         showToast(`✓ Saved to "${proj.name}"`);
     } catch (e) {
-        alert('Save failed: ' + e.message);
+        if (e.message === 'FREE_LIMIT_CALCS') {
+            document.getElementById('save-modal').classList.remove('open');
+            UpgradeModal.show('calcs');
+        } else {
+            alert('Save failed: ' + e.message);
+        }
     }
 }
 
@@ -217,33 +253,31 @@ function restoreCalcState(calc) {
     InputPanel.updateBeamPreview();
 
     // Auto-run the calculation
-    try {
-        const results = BeamSolver.solveBeam(config);
-        window._lastResults = results;
-        window._lastConfig = config;
-        BeamResults.renderResults(results, config);
-        BeamDiagrams.renderAll(results, config);
-        document.getElementById('results-section').classList.add('visible');
-        document.getElementById('btn-export-pdf').disabled = false;
-        document.getElementById('btn-export-csv').disabled = false;
-        document.getElementById('btn-save-calc').disabled = false;
-    } catch (err) {
-        showToast('Could not restore calculation. Please reconfigure.');
-    }
+    setTimeout(() => {
+        try {
+            window._beamSolverPointLoads = config.loads.filter(l => l.type === 'point');
+            const results = BeamSolver.solveBeam(config);
+            window._lastResults = results;
+            window._lastConfig = config;
+            BeamResults.renderResults(results, config);
+            BeamDiagrams.renderAll(results, config);
+            document.getElementById('results-section').classList.add('visible');
+            document.getElementById('btn-export-pdf').disabled = false;
+            document.getElementById('btn-export-csv').disabled = false;
+            document.getElementById('btn-save-calc').disabled = false;
+        } catch { }
+    }, 300);
 }
 
 /* ── Helpers ─────────────────────────────────────────────────── */
-function showToast(msg, type = 'default') {
+function showToast(msg) {
     let t = document.getElementById('app-toast');
     if (!t) {
         t = document.createElement('div');
         t.id = 'app-toast';
-        t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:0.82rem;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.25);opacity:0;transform:translateY(10px);transition:all 0.25s;pointer-events:none;z-index:9999;font-family:Inter,sans-serif;';
+        t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1E293B;color:white;padding:12px 20px;border-radius:8px;font-size:0.82rem;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.25);opacity:0;transform:translateY(10px);transition:all 0.25s;pointer-events:none;z-index:9999;font-family:Inter,sans-serif;';
         document.body.appendChild(t);
     }
-    const isWarning = type === 'warning';
-    t.style.background = isWarning ? '#D97706' : '#1E293B';
-    t.style.color = 'white';
     t.textContent = msg;
     requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateY(0)'; });
     setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 2800);

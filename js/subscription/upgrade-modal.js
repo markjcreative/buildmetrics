@@ -1,5 +1,5 @@
 /**
- * upgrade-modal.js — Reusable upgrade gate modal for BeamCalc Pro
+ * upgrade-modal.js — Reusable upgrade gate modal for Kinecalc
  * Injected into the DOM on first call. Shows plan comparison + CTA.
  */
 
@@ -16,7 +16,7 @@ const UpgradeModal = (() => {
             sub: 'Free accounts are limited to <strong>5 saved calculations</strong> total. Upgrade to Pro to save unlimited calculations.',
         },
         generic: {
-            headline: 'Upgrade to BeamCalc Pro',
+            headline: 'Upgrade to Kinecalc Pro',
             sub: 'Unlock unlimited projects, calculations, and premium features.',
         }
     };
@@ -208,7 +208,7 @@ const UpgradeModal = (() => {
                     <button class="um-close" onclick="UpgradeModal.hide()">✕</button>
                     <div class="um-header-icon">⚡</div>
                     <div class="um-headline" id="um-headline">Upgrade to Pro</div>
-                    <div class="um-sub" id="um-sub">Unlock the full power of BeamCalc Pro.</div>
+                    <div class="um-sub" id="um-sub">Unlock the full power of Kinecalc.</div>
                 </div>
                 <div class="um-body">
                     <div class="um-plans">

@@ -9,7 +9,7 @@ function exportCSV(results, config) {
     let csv = '';
 
     // Header
-    csv += `"STRUCTURAL BEAM CALCULATOR — RESULTS REPORT"\n`;
+    csv += `"KINECALC — RESULTS REPORT"\n`;
     csv += `"Generated: ${new Date().toLocaleString()}"\n\n`;
 
     // Beam properties

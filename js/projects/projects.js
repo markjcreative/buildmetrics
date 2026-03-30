@@ -1,6 +1,6 @@
 /**
  * projects.js — Project management using localStorage
- * BeamCalc Pro | Client-side only
+ * Kinecalc | Client-side only
  */
 
 const Projects = (() => {

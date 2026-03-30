@@ -27,7 +27,6 @@ const SUPPORT_TYPES = {
 
 let loadCounter = 0;
 let supportCounter = 0;
-let _isImperial = false;
 
 function initInputPanel() {
     // Material selector
@@ -36,12 +35,31 @@ function initInputPanel() {
             document.querySelectorAll('.material-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const mat = btn.dataset.material;
+
+            // Show/hide specific inputs
+            document.getElementById('custom-dims-group').style.display = (mat === 'timber' || mat === 'concrete') ? 'block' : 'none';
+            document.getElementById('steel-section-group').style.display = (mat === 'steel') ? 'block' : 'none';
+
             if (mat !== 'custom') {
                 document.getElementById('inp-E').value = MATERIAL_PRESETS[mat].E;
             }
             document.getElementById('inp-E').readOnly = (mat !== 'custom');
+
+            // Trigger recalculation of dimensions if timber/concrete
+            if (mat === 'timber' || mat === 'concrete') {
+                updateCustomDimensions();
+            } else if (mat === 'steel') {
+                updateSteelSection();
+            }
         });
     });
+
+    // Custom dimensions listener
+    document.getElementById('inp-b').addEventListener('input', updateCustomDimensions);
+    document.getElementById('inp-d').addEventListener('input', updateCustomDimensions);
+
+    // Steel section listener
+    document.getElementById('inp-steel-sec').addEventListener('change', updateSteelSection);
 
     // Add support button
     document.getElementById('btn-add-support').addEventListener('click', addSupportRow);
@@ -65,6 +83,114 @@ function initInputPanel() {
     addSupportRow('pin', 0);
     addSupportRow('roller', null); // null = will use span
     addLoadRow('point', { position: null, magnitude: 10 }); // default 10kN centre load
+
+    // Init material display
+    updateSteelSection(); // We start with Steel active
+    updateBeamPreview();
+}
+
+function updateCustomDimensions() {
+    const b_mm = parseFloat(document.getElementById('inp-b').value) || 200;
+    const d_mm = parseFloat(document.getElementById('inp-d').value) || 400;
+
+    // Convert to meters
+    const b = b_mm / 1000;
+    const d = d_mm / 1000;
+
+    // Calculate A and I
+    const A = b * d;
+    const I = (b * Math.pow(d, 3)) / 12;
+
+    document.getElementById('inp-A').value = BeamUtils.round(A, 6);
+    document.getElementById('inp-I').value = BeamUtils.round(I, 8);
+    updateBeamPreview();
+}
+
+// Simple lookup for UB properties (Area in m2, I in m4)
+const UB_PROPS = {
+    '203x133x25': { A: 0.00323, I: 0.0000234 },
+    '203x133x30': { A: 0.00382, I: 0.0000289 },
+    '254x102x22': { A: 0.00280, I: 0.0000284 },
+    '254x102x28': { A: 0.00362, I: 0.0000400 },
+    '254x146x31': { A: 0.00397, I: 0.0000441 },
+    '254x146x37': { A: 0.00474, I: 0.0000553 },
+    '305x102x25': { A: 0.00316, I: 0.0000445 },
+    '305x102x33': { A: 0.00416, I: 0.0000650 },
+    '305x165x40': { A: 0.00513, I: 0.0000850 },
+    '305x165x46': { A: 0.00588, I: 0.0000990 },
+    '356x127x33': { A: 0.00418, I: 0.0000823 },
+    '356x127x39': { A: 0.00497, I: 0.0001017 },
+    '356x171x45': { A: 0.00573, I: 0.0001210 },
+    '356x171x51': { A: 0.00646, I: 0.0001410 }
+};
+
+function updateSteelSection() {
+    const sec = document.getElementById('inp-steel-sec').value;
+    if (sec === 'custom') return;
+
+    const props = UB_PROPS[sec];
+    if (props) {
+        document.getElementById('inp-A').value = props.A;
+        document.getElementById('inp-I').value = props.I;
+        updateBeamPreview();
+    }
+}
+
+function applyStructuralSystem() {
+    const sys = document.getElementById('inp-system').value;
+    const span = parseFloat(document.getElementById('inp-span').value) || 5;
+
+    // Clear existing supports
+    document.getElementById('support-list').innerHTML = '';
+    supportCounter = 0;
+
+    // Hide custom add button unless custom is selected
+    document.getElementById('btn-add-support').style.display = (sys === 'custom') ? 'block' : 'none';
+
+    switch (sys) {
+        case 'single_pin':
+            addSupportRow('pin', 0);
+            addSupportRow('roller', span);
+            break;
+        case 'single_fix':
+            addSupportRow('fixed', 0);
+            addSupportRow('fixed', span);
+            break;
+        case 'cantilever':
+            addSupportRow('fixed', 0);
+            break;
+        case 'two_span':
+            addSupportRow('pin', 0);
+            addSupportRow('roller', span / 2);
+            addSupportRow('roller', span);
+            break;
+        case 'three_span':
+            addSupportRow('pin', 0);
+            addSupportRow('roller', span / 3);
+            addSupportRow('roller', (span / 3) * 2);
+            addSupportRow('roller', span);
+            break;
+        case 'multi_span':
+            // Simple default of 4 spans
+            addSupportRow('pin', 0);
+            addSupportRow('roller', span * 0.25);
+            addSupportRow('roller', span * 0.5);
+            addSupportRow('roller', span * 0.75);
+            addSupportRow('roller', span);
+            break;
+        case 'overhang_one':
+            addSupportRow('pin', 0);
+            addSupportRow('roller', span * 0.75);
+            break;
+        case 'overhang_two':
+            addSupportRow('pin', span * 0.25);
+            addSupportRow('roller', span * 0.75);
+            break;
+        case 'custom':
+            addSupportRow('pin', 0);
+            addSupportRow('roller', span);
+            break;
+    }
     updateBeamPreview();
 }
 
@@ -77,16 +203,22 @@ function addSupportRow(type = 'pin', position = 0) {
     const row = document.createElement('div');
     row.className = 'input-row support-row';
     row.id = id;
+
+    // Disable inputs if not 'custom'
+    const sys = document.getElementById('inp-system') ? document.getElementById('inp-system').value : 'custom';
+    const isLocked = (sys !== 'custom');
+    const disabledAttr = isLocked ? 'disabled' : '';
+
     row.innerHTML = `
-    <select class="inp-support-type" onchange="updateBeamPreview()">
+    <select class="inp-support-type" onchange="updateBeamPreview()" ${disabledAttr}>
       ${Object.keys(SUPPORT_TYPES).map(k =>
         `<option value="${k}" ${type === k ? 'selected' : ''}>${SUPPORT_TYPES[k].label}</option>`
     ).join('')}
     </select>
     <label class="field-label">Position</label>
-    <input type="number" class="inp-support-pos inp-num" value="${defaultPos}" min="0" step="0.1" onchange="updateBeamPreview()" />
+    <input type="number" class="inp-support-pos inp-num" value="${defaultPos}" min="0" step="0.1" onchange="updateBeamPreview()" ${isLocked ? 'readonly tabindex="-1"' : ''} />
     <span class="unit-label length-unit">m</span>
-    <button class="btn-remove" onclick="removeRow('${id}')">✕</button>
+    ${isLocked ? '<div style="width:24px;"></div>' : `<button class="btn-remove" onclick="removeRow('${id}')">✕</button>`}
   `;
     list.appendChild(row);
     updateBeamPreview();
@@ -108,7 +240,7 @@ function addLoadRow(type = 'point', defaults = {}) {
         `<option value="${k}" ${type === k ? 'selected' : ''}>${LOAD_TYPES[k].icon} ${LOAD_TYPES[k].label}</option>`
     ).join('')}
       </select>
-      <select class="inp-load-category">
+      <select class="inp-load-category" onchange="checkWindEnvironment()">
         <option value="dead">Dead</option>
         <option value="live">Live</option>
         <option value="wind">Wind</option>
@@ -120,6 +252,24 @@ function addLoadRow(type = 'point', defaults = {}) {
   `;
     list.appendChild(row);
     renderLoadFields(id, type, { position: defaults.position ?? midSpan, magnitude: defaults.magnitude ?? 10, start: 0, end: span, magnitudeStart: 5, magnitudeEnd: 10 });
+    checkWindEnvironment();
+}
+
+function checkWindEnvironment() {
+    let hasWind = false;
+    document.querySelectorAll('.inp-load-category').forEach(el => {
+        if (el.value === 'wind') hasWind = true;
+    });
+
+    const windGroup = document.getElementById('wind-env-group');
+    if (windGroup) {
+        windGroup.style.display = hasWind ? 'block' : 'none';
+
+        // Update unit labels for wind loads to kN/m²?
+        // Actually, typically the load applied to the 1D beam directly is kN/m,
+        // but the plan says "Change Wind Load magnitude to kN/m² (pressure)"
+        // For a 1D beam calculator, pressure needs a tributary width. We'll add this feature now.
+    }
 }
 
 function renderLoadFields(id, type, defaults) {
@@ -144,7 +294,10 @@ function renderLoadFields(id, type, defaults) {
              <input type="number" class="inp-num inp-load-end" value="${defaults.end}" min="0" step="0.1" />`;
     }
     if (fields.includes('magnitude')) {
-        const unit = (type === 'udl' || type === 'partial_udl' || type === 'triangular') ? dUnit : (type === 'moment' ? 'kNm' : fUnit);
+        const isWind = document.querySelector(`#${id} .inp-load-category`)?.value === 'wind';
+        let unit = (type === 'udl' || type === 'partial_udl' || type === 'triangular') ? dUnit : (type === 'moment' ? 'kNm' : fUnit);
+        if (isWind) unit = isImperial ? 'psf' : 'kN/m²';
+
         html += `<label>Magnitude <span class="unit-label">(${unit})</span></label>
              <input type="number" class="inp-num inp-load-mag" value="${defaults.magnitude}" step="0.1" />`;
     }
@@ -157,6 +310,16 @@ function renderLoadFields(id, type, defaults) {
              <input type="number" class="inp-num inp-load-mag-end" value="${defaults.magnitudeEnd}" step="0.1" />`;
     }
     html += '</div>';
+
+    // If wind pressure, add Trib Width
+    const isWind = document.querySelector(`#${id} .inp-load-category`)?.value === 'wind';
+    if (isWind && (type === 'udl' || type === 'partial_udl' || type === 'triangular')) {
+        html += `<div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+             <label style="font-size:0.75rem;">Trib Width (${lUnit})</label>
+             <input type="number" class="inp-num inp-load-trib" value="1.0" step="0.1" style="width:60px;" />
+         </div>`;
+    }
+
     container.innerHTML = html;
 }
 
@@ -165,21 +328,41 @@ function onLoadTypeChange(id) {
     const type = row.querySelector('.inp-load-type').value;
     const span = parseFloat(document.getElementById('inp-span').value) || 5;
     renderLoadFields(id, type, { position: span / 2, magnitude: 10, start: 0, end: span, magnitudeStart: 5, magnitudeEnd: 10 });
+    checkWindEnvironment();
 }
 
 function removeRow(id) {
     const el = document.getElementById(id);
     if (el) el.remove();
+    checkWindEnvironment();
     updateBeamPreview();
 }
 
 function getBeamConfig() {
     const span = parseFloat(document.getElementById('inp-span').value);
+    const standard = document.getElementById('inp-standard') ? document.getElementById('inp-standard').value : 'eurocode_bs';
+
     const matBtn = document.querySelector('.material-btn.active');
     const material = matBtn ? matBtn.dataset.material : 'steel';
     const E = parseFloat(document.getElementById('inp-E').value);
     const I = parseFloat(document.getElementById('inp-I').value);
     const A = parseFloat(document.getElementById('inp-A').value);
+
+    let sectionName = 'Custom';
+    let isLatRestrained = true;
+
+    if (material === 'steel') {
+        const sel = document.getElementById('inp-steel-sec');
+        if (sel) sectionName = sel.options[sel.selectedIndex].text;
+
+        const ltbSel = document.getElementById('inp-ltb');
+        if (ltbSel) isLatRestrained = ltbSel.value === 'restrained';
+
+    } else if (material === 'timber' || material === 'concrete') {
+        const b = document.getElementById('inp-b') ? document.getElementById('inp-b').value : 200;
+        const d = document.getElementById('inp-d') ? document.getElementById('inp-d').value : 400;
+        sectionName = `${b}x${d}mm`;
+    }
 
     // Supports
     const supports = [];
@@ -188,6 +371,13 @@ function getBeamConfig() {
         const position = parseFloat(row.querySelector('.inp-support-pos').value);
         if (!isNaN(position)) supports.push({ type, position });
     });
+
+    // Wind Environment Data
+    const windEnv = {
+        location: document.getElementById('inp-wind-location') ? document.getElementById('inp-wind-location').value : '',
+        elevation: document.getElementById('inp-wind-elev') ? parseFloat(document.getElementById('inp-wind-elev').value) : null,
+        distToSea: document.getElementById('inp-wind-dist') ? parseFloat(document.getElementById('inp-wind-dist').value) : null
+    };
 
     // Loads
     const loads = [];
@@ -210,82 +400,27 @@ function getBeamConfig() {
         if (magStartEl) load.magnitudeStart = parseFloat(magStartEl.value);
         if (magEndEl) load.magnitudeEnd = parseFloat(magEndEl.value);
 
+        // Adjust distributed loads if Wind category with Trib Width
+        const tribEl = row.querySelector('.inp-load-trib');
+        if (category === 'wind' && tribEl) {
+            const tribWidth = parseFloat(tribEl.value) || 1.0;
+            if (load.magnitude != null) load.magnitude *= tribWidth;
+            if (load.magnitudeStart != null) load.magnitudeStart *= tribWidth;
+            if (load.magnitudeEnd != null) load.magnitudeEnd *= tribWidth;
+        }
+
         loads.push(load);
     });
 
-    // Solver always works in SI — convert back if Imperial mode is active
-    if (_isImperial) {
-        const U = BeamUtils.TO_IMPERIAL;
-        const toSI = v => v; // identity — we divide by factor
-        const si = (v, factor) => v / factor;
-        const siSpan = si(span, U.length);
-        return {
-            span: siSpan,
-            material,
-            E: si(E, U.modulus),
-            I: si(I, U.inertia),
-            A: si(A, U.area),
-            supports: supports.map(s => ({ ...s, position: si(s.position, U.length) })),
-            loads: loads.map(l => {
-                const out = { ...l };
-                if (out.position !== undefined) out.position = si(out.position, U.length);
-                if (out.start !== undefined) out.start = si(out.start, U.length);
-                if (out.end !== undefined) out.end = si(out.end, U.length);
-                if (out.magnitude !== undefined) {
-                    const isDistributed = ['udl', 'partial_udl', 'triangular'].includes(out.type);
-                    out.magnitude = isDistributed ? si(out.magnitude, U.distLoad) : si(out.magnitude, U.force);
-                }
-                if (out.magnitudeStart !== undefined) out.magnitudeStart = si(out.magnitudeStart, U.distLoad);
-                if (out.magnitudeEnd !== undefined) out.magnitudeEnd = si(out.magnitudeEnd, U.distLoad);
-                return out;
-            })
-        };
-    }
-
-    return { span, material, E, I, A, supports, loads };
-}
-
-function validateConfig(config) {
-    if (!config.span || config.span <= 0 || isNaN(config.span)) {
-        throw new Error('Span must be a positive number.');
-    }
-    if (!config.E || config.E <= 0 || isNaN(config.E)) {
-        throw new Error("Young's modulus must be a positive number.");
-    }
-    if (!config.I || config.I <= 0 || isNaN(config.I)) {
-        throw new Error('Second moment of area must be a positive number.');
-    }
-    const positions = config.supports.map(s => s.position);
-    for (const s of config.supports) {
-        if (s.position < 0 || s.position > config.span) {
-            throw new Error(`Support at ${s.position} m is outside the beam span (0 – ${config.span} m).`);
-        }
-    }
-    if (new Set(positions).size !== positions.length) {
-        throw new Error('Two supports cannot share the same position.');
-    }
-    for (const l of config.loads) {
-        if (l.start !== undefined && l.end !== undefined && l.start >= l.end) {
-            throw new Error('Load end position must be greater than start position.');
-        }
-        if (l.position !== undefined && (l.position < 0 || l.position > config.span)) {
-            throw new Error(`Load at ${l.position} m is outside the beam span.`);
-        }
-        if (l.start !== undefined && (l.start < 0 || l.start > config.span)) {
-            throw new Error(`Load start at ${l.start} m is outside the beam span.`);
-        }
-        if (l.end !== undefined && (l.end < 0 || l.end > config.span)) {
-            throw new Error(`Load end at ${l.end} m is outside the beam span.`);
-        }
-    }
+    return { span, standard, material, sectionName, isLatRestrained, E, I, A, supports, loads, windEnv };
 }
 
 function runCalculation() {
     const config = getBeamConfig();
-    // Clear any previous error highlight
-    document.querySelectorAll('.inp-error').forEach(el => el.classList.remove('inp-error'));
     try {
-        validateConfig(config);
+        // Store point loads for the solver's shear builder
+        window._beamSolverPointLoads = config.loads.filter(l => l.type === 'point');
+
         const results = BeamSolver.solveBeam(config);
         window._lastResults = results;
         window._lastConfig = config;
@@ -321,52 +456,20 @@ function resetAll() {
     document.getElementById('inp-I').value = 0.0001;
     document.getElementById('inp-A').value = 0.01;
     document.getElementById('results-section').classList.remove('visible');
-    addSupportRow('pin', 0);
-    addSupportRow('roller', null);
+
+    document.getElementById('inp-system').value = 'single_pin';
+    applyStructuralSystem();
     addLoadRow('point', { position: 2.5, magnitude: 10 });
     updateBeamPreview();
 }
 
 function onUnitToggle() {
-    const nowImperial = document.getElementById('unit-toggle').checked;
-    const toImperial = nowImperial && !_isImperial;
-    const toSI = !nowImperial && _isImperial;
-    _isImperial = nowImperial;
-
-    const U = BeamUtils.TO_IMPERIAL;
-
-    function convertField(selector, factor) {
-        document.querySelectorAll(selector).forEach(el => {
-            const v = parseFloat(el.value);
-            if (!isNaN(v)) el.value = BeamUtils.round(toImperial ? v * factor : v / factor, 4);
-        });
-    }
-
-    if (toImperial || toSI) {
-        // Length fields: span, support positions, load positions/extents
-        convertField('#inp-span', U.length);
-        convertField('.inp-support-pos', U.length);
-        convertField('.inp-load-pos', U.length);
-        convertField('.inp-load-start', U.length);
-        convertField('.inp-load-end', U.length);
-        // Force/magnitude fields
-        convertField('.inp-load-mag', U.force);
-        convertField('.inp-load-mag-start', U.distLoad);
-        convertField('.inp-load-mag-end', U.distLoad);
-        // Material properties (E: modulus, I and A we leave as-is — advanced users)
-        convertField('#inp-E', U.modulus);
-        convertField('#inp-I', U.inertia);
-        convertField('#inp-A', U.area);
-    }
-
-    // Update all unit labels
-    const sys = _isImperial ? BeamUtils.UNITS.IMPERIAL : BeamUtils.UNITS.SI;
-    document.querySelectorAll('.unit-label.length-unit').forEach(el => el.textContent = sys.length);
-    document.querySelectorAll('.unit-label.force-unit').forEach(el => el.textContent = sys.force);
-    document.querySelectorAll('.unit-label.moment-unit').forEach(el => el.textContent = sys.moment);
-    document.querySelectorAll('.unit-label.dist-load-unit').forEach(el => el.textContent = sys.distLoad);
-
-    updateBeamPreview();
+    const isImperial = document.getElementById('unit-toggle').checked;
+    document.querySelectorAll('.unit-label').forEach(el => {
+        if (el.classList.contains('length-unit')) el.textContent = isImperial ? 'ft' : 'm';
+        if (el.classList.contains('force-unit')) el.textContent = isImperial ? 'kips' : 'kN';
+        if (el.classList.contains('moment-unit')) el.textContent = isImperial ? 'kip·ft' : 'kNm';
+    });
 }
 
 function updateBeamPreview() {
@@ -375,8 +478,35 @@ function updateBeamPreview() {
     }
 }
 
-window.InputPanel = { initInputPanel, getBeamConfig, runCalculation, updateBeamPreview, isImperial: () => _isImperial };
+function saveSession() {
+    const config = getBeamConfig();
+    localStorage.setItem('beamCalc_session', JSON.stringify(config));
+    const btn = document.getElementById('btn-save');
+    btn.textContent = '✓ Saved';
+    setTimeout(() => { btn.textContent = '💾 Save'; }, 2000);
+}
+
+function loadSession() {
+    const saved = localStorage.getItem('beamCalc_session');
+    if (!saved) { alert('No saved session found.'); return; }
+    const config = JSON.parse(saved);
+    resetAll();
+    document.getElementById('inp-span').value = config.span;
+    document.getElementById('inp-E').value = config.E;
+    document.getElementById('inp-I').value = config.I;
+    document.getElementById('inp-A').value = config.A;
+    document.getElementById('support-list').innerHTML = '';
+    document.getElementById('load-list').innerHTML = '';
+    supportCounter = 0;
+    loadCounter = 0;
+    config.supports.forEach(s => addSupportRow(s.type, s.position));
+    config.loads.forEach(l => addLoadRow(l.type, l));
+    updateBeamPreview();
+}
+
+window.InputPanel = { initInputPanel, getBeamConfig, runCalculation, updateBeamPreview };
 window.onLoadTypeChange = onLoadTypeChange;
 window.removeRow = removeRow;
 window.addSupportRow = addSupportRow;
 window.addLoadRow = addLoadRow;
+window.applyStructuralSystem = applyStructuralSystem;

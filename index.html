@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Structural Beam Calculator — Professional Edition</title>
+  <title>Kinecalc — Professional Structural Calculator</title>
   <meta name="description"
     content="Professional structural beam calculator for engineers. Compute shear forces, bending moments, reactions and deflections. Download PDF and CSV reports." />
 
@@ -20,6 +20,7 @@
 
   <!-- CDN Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <!-- Auth & Projects -->
   <script src="js/auth/auth.js"></script>
   <script src="js/projects/history.js"></script>
@@ -34,7 +35,7 @@
       <a href="/projects.html" class="nav-brand">
         <div class="nav-logo">⚙</div>
         <div>
-          <div class="nav-title">BeamCalc Pro</div>
+          <div class="nav-title">Kinecalc</div>
           <div class="nav-subtitle">Structural Analysis</div>
         </div>
       </a>
@@ -73,6 +74,18 @@
             <span class="section-chevron">▾</span>
           </div>
           <div class="section-body">
+            <!-- Design Standard -->
+            <div class="form-row" style="margin-bottom: 16px;">
+              <label for="inp-standard">Design Standard</label>
+              <select id="inp-standard"
+                style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-family: 'Inter', sans-serif;">
+                <option value="eurocode_bs">British Eurocodes (BS EN)</option>
+                <option value="eurocode_ms">Malaysian Eurocodes (MS EN)</option>
+                <option value="us_codes">US Codes (AISC / ACI)</option>
+                <option value="indian_codes">Indian Codes (IS 800 / IS 456)</option>
+              </select>
+            </div>
+
             <!-- Material Selector -->
             <div style="margin-bottom:12px;">
               <div class="preview-label">Material</div>
@@ -97,6 +110,59 @@
               <label for="inp-span">Beam Span</label>
               <input type="number" id="inp-span" class="inp-num" value="5" min="0.1" step="0.1" />
               <span class="unit-tag length-unit">m</span>
+            </div>
+
+            <!-- Custom Dimensions (Timber/Concrete) -->
+            <div id="custom-dims-group"
+              style="display:none; margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.02); border-radius: 6px;">
+              <div style="font-size: 0.75rem; font-weight: 600; margin-bottom: 8px;">Section Dimensions</div>
+              <div class="form-row">
+                <label for="inp-b">Width (b)</label>
+                <input type="number" id="inp-b" class="inp-num" value="200" step="10" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-d">Depth (d)</label>
+                <input type="number" id="inp-d" class="inp-num" value="400" step="10" />
+                <span class="unit-tag">mm</span>
+              </div>
+            </div>
+
+            <!-- Steel Section Selector (Steel) -->
+            <div id="steel-section-group"
+              style="margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.02); border-radius: 6px;">
+              <div style="font-size: 0.75rem; font-weight: 600; margin-bottom: 8px;">Standard UB / UC</div>
+              <div class="form-row">
+                <label for="inp-steel-sec">Section</label>
+                <select id="inp-steel-sec"
+                  style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-family: 'Inter', sans-serif;">
+                  <option value="custom">Custom Values</option>
+                  <optgroup label="Universal Beams (UB)">
+                    <option value="203x133x25">203 × 133 × 25</option>
+                    <option value="203x133x30">203 × 133 × 30</option>
+                    <option value="254x102x22">254 × 102 × 22</option>
+                    <option value="254x102x28">254 × 102 × 28</option>
+                    <option value="254x146x31">254 × 146 × 31</option>
+                    <option value="254x146x37">254 × 146 × 37</option>
+                    <option value="305x102x25">305 × 102 × 25</option>
+                    <option value="305x102x33">305 × 102 × 33</option>
+                    <option value="305x165x40">305 × 165 × 40</option>
+                    <option value="305x165x46">305 × 165 × 46</option>
+                    <option value="356x127x33">356 × 127 × 33</option>
+                    <option value="356x127x39">356 × 127 × 39</option>
+                    <option value="356x171x45">356 × 171 × 45</option>
+                    <option value="356x171x51">356 × 171 × 51</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="form-row" style="margin-top: 6px;">
+                <label for="inp-ltb">Lateral Restraint</label>
+                <select id="inp-ltb"
+                  style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-family: 'Inter', sans-serif;">
+                  <option value="restrained">Fully Restrained</option>
+                  <option value="unrestrained">Unrestrained (LTB occurs)</option>
+                </select>
+              </div>
             </div>
 
             <!-- Young's Modulus -->
@@ -127,19 +193,39 @@
           </div>
         </div>
 
-        <!-- Section 2: Supports -->
+        <!-- Section 2: Structural System -->
         <div class="input-section" id="section-supports">
           <div class="section-header" onclick="toggleSection('section-supports')">
             <div class="section-icon" style="background:linear-gradient(135deg,#D97706,#F59E0B);">🔗</div>
-            <span class="section-title">Supports</span>
+            <span class="section-title">Structural System</span>
             <span class="section-chevron">▾</span>
           </div>
           <div class="section-body">
             <div style="font-size:0.75rem;color:var(--text-500);margin-bottom:10px;">
-              Add 2+ supports. Position = distance from left end (m).
+              Select a predefined structural arrangement. Position = distance from left end (m).
             </div>
+
+            <!-- System Type Dropdown -->
+            <div class="form-row" style="margin-bottom: 12px;">
+              <label for="inp-system" style="min-width: 80px;">System</label>
+              <select id="inp-system"
+                style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-family: 'Inter', sans-serif;"
+                onchange="applyStructuralSystem()">
+                <option value="single_pin">Single Span – Simply Supported</option>
+                <option value="single_fix">Single Span – Fixed Ends</option>
+                <option value="cantilever">Single Span – Cantilever (Left Fixed)</option>
+                <option value="two_span">Two-Span Continuous Beam</option>
+                <option value="three_span">Three-Span Continuous Beam</option>
+                <option value="multi_span">Multi-Span Continuous Beam...</option>
+                <option value="overhang_one">Overhanging Beam (One End)</option>
+                <option value="overhang_two">Overhanging Beam (Both Ends)</option>
+                <option value="custom">Custom (Manual Placement)</option>
+              </select>
+            </div>
+
             <div id="support-list"></div>
-            <button class="btn-add" onclick="addSupportRow()" id="btn-add-support">+ Add Support</button>
+            <button class="btn-add" onclick="addSupportRow()" id="btn-add-support" style="display:none;">+ Add Custom
+              Support</button>
 
             <!-- Legend -->
             <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;">
@@ -161,6 +247,28 @@
             <div style="font-size:0.75rem;color:var(--text-500);margin-bottom:10px;">
               Downward forces are positive. Position measured from left (m).
             </div>
+
+            <!-- Wind Environment (Optional) -->
+            <div id="wind-env-group"
+              style="margin-bottom: 16px; padding: 10px; background: rgba(0,0,0,0.02); border-radius: 6px; display: none;">
+              <div style="font-size: 0.75rem; font-weight: 600; margin-bottom: 8px;">Wind Parameters</div>
+              <div class="form-row">
+                <label for="inp-wind-location">Geolocation</label>
+                <input type="text" id="inp-wind-location" class="inp-text" placeholder="e.g. London, UK"
+                  style="width:120px; border:1px solid var(--border); border-radius:4px; padding:4px;" />
+              </div>
+              <div class="form-row">
+                <label for="inp-wind-elev">Elevation</label>
+                <input type="number" id="inp-wind-elev" class="inp-num" value="10" step="1" />
+                <span class="unit-tag">m</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-wind-dist">Dist to Sea</label>
+                <input type="number" id="inp-wind-dist" class="inp-num" value="50" step="5" />
+                <span class="unit-tag">km</span>
+              </div>
+            </div>
+
             <div id="load-list"></div>
             <button class="btn-add" id="btn-add-load">+ Add Load</button>
           </div>
@@ -182,7 +290,7 @@
         <!-- Welcome Banner -->
         <div id="welcome-banner">
           <div class="welcome-icon">🏗️</div>
-          <h1 class="welcome-title">Structural Beam Calculator</h1>
+          <h1 class="welcome-title">Welcome to Kinecalc</h1>
           <p class="welcome-subtitle">
             Configure your beam properties, supports, and loads in the left panel, then click <strong>Calculate</strong>
             to instantly generate shear force, bending moment, and deflection diagrams.
@@ -285,6 +393,27 @@
             </div>
           </div>
 
+          <!-- Freehand Sketching -->
+          <div class="diagram-card" id="sketch-card">
+            <div class="diagram-header" style="justify-content: space-between;">
+              <div>
+                <span class="diagram-dot" style="background:var(--purple)"></span>
+                <span class="diagram-title">Conceptual Sketchpad</span>
+                <span class="diagram-subtitle">Freehand markups and frame concepts (saves with project)</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-secondary btn-sm" id="btn-sketch-pen">✏️ Pen</button>
+                <button class="btn btn-secondary btn-sm" id="btn-sketch-erase">🩹 Eraser</button>
+                <button class="btn btn-secondary btn-sm" id="btn-sketch-clear" style="color:var(--red);">🗑 Clear
+                  All</button>
+              </div>
+            </div>
+            <div class="diagram-body"
+              style="padding: 1px; background: #fafafa; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; display: flex; justify-content: center;">
+              <canvas id="sketch-canvas" width="800" height="400" style="border:none; cursor: crosshair;"></canvas>
+            </div>
+          </div>
+
           <!-- Deflection -->
           <div class="diagram-card">
             <div class="diagram-header">
@@ -319,6 +448,28 @@
               </thead>
               <tbody id="results-table-body"></tbody>
             </table>
+          </div>
+
+          <!-- RC Design / BBS -->
+          <div class="diagram-card" id="rc-design-card" style="margin-top: 24px;">
+            <div class="diagram-header" style="justify-content: space-between;">
+              <div>
+                <span class="diagram-dot" style="background:#52525B;"></span>
+                <span class="diagram-title">RC Design / Bar Bending Schedule</span>
+                <span class="diagram-subtitle">Configure reinforcement and auto-generate steel weights</span>
+              </div>
+              <button class="btn btn-secondary btn-sm"
+                onclick="alert('RC/BBS Module is under development. Coming soon!')">⚙️ Configure BBS</button>
+            </div>
+            <div class="diagram-body"
+              style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.9rem; background: #FAFAFA; border: 1px dashed var(--border); border-radius: 6px;">
+              <div style="font-size: 2rem; margin-bottom: 8px;">🏗️</div>
+              <div><b>Reinforced Concrete Module</b></div>
+              <div style="margin-top: 4px; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Calculate rebar requirements based on BMD/SFD envelopes, and automatically tally bent lengths and
+                tonnages.
+              </div>
+            </div>
           </div>
 
           <!-- Export Section -->

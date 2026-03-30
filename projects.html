@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Projects — BeamCalc Pro</title>
+    <title>Projects — Kinecalc</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -331,7 +331,7 @@
             <a href="/projects.html" class="nav-brand">
                 <div class="nav-logo">⚙</div>
                 <div>
-                    <div class="nav-title">BeamCalc Pro</div>
+                    <div class="nav-title">Kinecalc</div>
                     <div class="nav-subtitle">Structural Analysis</div>
                 </div>
             </a>
@@ -345,8 +345,9 @@
         <div class="page-content">
             <div class="page-header">
                 <div>
-                    <div class="page-title" id="greeting">My Projects</div>
-                    <div class="page-subtitle">Select a project to start or continue your calculations.</div>
+                    <div class="page-title" id="greeting">Design & Document Register</div>
+                    <div class="page-subtitle">Centralised storage for your structural calculations, sketches, and
+                        documents.</div>
                 </div>
                 <button class="btn btn-primary" onclick="openCreateModal()">＋ New Project</button>
             </div>
@@ -385,7 +386,7 @@
         Auth.guard();
 
         const user = Auth.currentUser();
-        if (user) document.getElementById('greeting').textContent = `${user.name ? user.name + "'s " : ''}Projects`;
+        if (user) document.getElementById('greeting').textContent = `${user.name ? user.name + "'s " : ''}Design Register`;
 
         let editingId = null;
 

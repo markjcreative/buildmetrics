@@ -132,7 +132,7 @@ async function exportPDF(results, config, projectInfo) {
         rect(0, 0, 4, 22, ACCENT);
 
         f(9, 'bold', ACCENT);
-        doc.text('BEAMCALC PRO', 9, 8.5);
+        doc.text('KINECALC', 9, 8.5);
 
         f(7.5, 'normal', MID);
         doc.text(`Project: ${projectInfo.projectName || 'Untitled'}`, 9, 14.5);
@@ -270,9 +270,7 @@ async function exportPDF(results, config, projectInfo) {
 
     // App wordmark
     f(22, 'bold', WHITE);
-    doc.text('BEAMCALC', 20, 28);
-    f(22, 'normal', [180, 200, 255]);
-    doc.text('PRO', 20 + doc.getTextWidth('BEAMCALC') + 4, 28);
+    doc.text('KINECALC', 20, 28);
 
     f(9, 'normal', [150, 170, 210]);
     doc.text('Structural Analysis Report', 20, 40);
@@ -350,7 +348,7 @@ async function exportPDF(results, config, projectInfo) {
     y = pageH - 28;
     line(ML, y, pageW - MR, y, XLIGHT, 0.4);
     f(7.5, 'bold', ACCENT);
-    doc.text('BeamCalc Pro  •  Structural Analysis Software', ML, y + 7);
+    doc.text('Kinecalc  •  Structural Analysis Software', ML, y + 7);
     f(7, 'normal', LIGHT);
     doc.text('Generated: ' + new Date().toISOString().slice(0, 19).replace('T', '  '), pageW - MR, y + 7, { align: 'right' });
 
@@ -382,12 +380,14 @@ async function exportPDF(results, config, projectInfo) {
 
     /* — Section 1: Beam Properties — */
     sectionHead('Beam Properties', 1);
+    kvRow('Design Standard', cap(config.standard.replace('_', ' ')), '', true);
     kvRow('Beam Span', config.span, 'm', false);
     kvRow('Material', cap(config.material), '', true);
-    kvRow("Young's Modulus ( E )", config.E.toLocaleString(), 'kN/m²', false);
-    kvRow('Moment of Inertia ( I )', config.I, 'm⁴', true);
-    kvRow('Cross-Section Area ( A )', config.A, 'm²', false);
-    kvRow('Flexural Rigidity ( EI )', (config.E * config.I).toLocaleString(), 'kNm²', true);
+    kvRow('Section', config.sectionName, config.material === 'steel' && config.isLatRestrained ? '(Restrained)' : '', false);
+    kvRow("Young's Modulus ( E )", config.E.toLocaleString(), 'kN/m²', true);
+    kvRow('Moment of Inertia ( I )', config.I, 'm⁴', false);
+    kvRow('Cross-Section Area ( A )', config.A, 'm²', true);
+    kvRow('Flexural Rigidity ( EI )', (config.E * config.I).toLocaleString(), 'kNm²', false);
     y += 4;
 
     /* — Section 2: Support Conditions — */
@@ -400,6 +400,21 @@ async function exportPDF(results, config, projectInfo) {
 
     /* — Section 3: Applied Loading — */
     sectionHead('Applied Loading', 3);
+
+    if (config.windEnv && (config.windEnv.location || config.windEnv.elevation)) {
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('Wind Environment Parameters:', 14, y);
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(9);
+        let envText = '';
+        if (config.windEnv.location) envText += `Location: ${config.windEnv.location}    `;
+        if (config.windEnv.elevation) envText += `Elevation: ${config.windEnv.elevation} m    `;
+        if (config.windEnv.distToSea) envText += `Distance to Sea: ${config.windEnv.distToSea} km`;
+        doc.text(envText, 14, y + 6);
+        y += 12;
+    }
+
     tableRow(['Load Type', 'Category', 'Position / Range (m)', 'Magnitude'], [0.22, 0.18, 0.32, 0.28], true);
     config.loads.forEach((l, i) => {
         const range = l.position != null ? `x = ${l.position} m` : `${l.start} m → ${l.end} m`;
@@ -629,7 +644,7 @@ async function exportPDF(results, config, projectInfo) {
         }
     }
 
-    doc.save(`BeamCalcPro_Report_${Date.now()}.pdf`);
+    doc.save(`Kinecalc_Report_${Date.now()}.pdf`);
 }
 
 /* ── Helpers ────────────────────────────────────────────── */

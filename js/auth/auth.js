@@ -1,6 +1,6 @@
 /**
  * auth.js — Client-side authentication using SubtleCrypto + localStorage
- * BeamCalc Pro | No backend required
+ * Kinecalc | No backend required
  */
 
 const Auth = (() => {

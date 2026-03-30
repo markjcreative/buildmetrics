@@ -1,5 +1,5 @@
 /**
- * plans.js — Subscription plan management for BeamCalc Pro
+ * plans.js — Subscription plan management for Kinecalc
  * Stores plan state in localStorage. Stripe will be wired in later.
  */
 
