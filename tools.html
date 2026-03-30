@@ -509,7 +509,7 @@
 // ════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   Sidebar.init();
-  const user = Auth.getUser();
+  const user = Auth.currentUser();
   if (!user) { window.location.href = '/login.html'; return; }
   initTools();
 });

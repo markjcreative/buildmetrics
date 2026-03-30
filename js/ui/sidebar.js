@@ -29,7 +29,7 @@ const Sidebar = (() => {
     const skipAuth = opts.skipAuth || false;
 
     // Auth guard
-    const user = (window.Auth && Auth.getUser) ? Auth.getUser() : null;
+    const user = (window.Auth && Auth.currentUser) ? Auth.currentUser() : null;
     if (!skipAuth && !user) {
       window.location.href = '/login.html';
       return;

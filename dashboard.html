@@ -273,7 +273,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       Sidebar.init();
 
-      const user = Auth.getUser();
+      const user = Auth.currentUser();
 
       // Greeting
       const hour = new Date().getHours();
