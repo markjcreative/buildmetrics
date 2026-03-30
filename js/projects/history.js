@@ -1,6 +1,6 @@
 /**
  * history.js — Calculation history management using localStorage
- * Kinecalc | Client-side only
+ * BuildMetrics | Client-side only
  */
 
 const History = (() => {

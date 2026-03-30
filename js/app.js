@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             await PDFReport.exportPDF(window._lastResults, window._lastConfig, projectInfo);
         } catch (e) {
-            alert('PDF generation failed: ' + e.message);
+            showToast('PDF generation failed: ' + e.message, 'error');
         }
         btn.textContent = '📄 Download PDF';
         btn.disabled = false;
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (e.message === 'FREE_LIMIT_PROJECTS') {
                 document.getElementById('proj-picker-modal').classList.remove('open');
                 UpgradeModal.show('projects');
-            } else { alert(e.message); }
+            } else { showToast(e.message, 'error'); }
         }
     });
 
@@ -122,9 +122,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ── Welcome animation ────────────────────────────────────────────────
     setTimeout(() => {
         const wb = document.getElementById('welcome-banner');
-        wb.style.opacity = '1';
-        wb.style.transform = 'translateY(0)';
+        if (wb) { wb.style.opacity = '1'; wb.style.transform = 'translateY(0)'; }
     }, 200);
+
+    // ── Escape key closes any open modal ────────────────────────────────
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+        if (typeof UpgradeModal !== 'undefined') UpgradeModal.hide();
+    });
 
     // ── Freehand Sketchpad (Fabric.js) ───────────────────────────────────
     initSketchpad();
@@ -209,8 +215,8 @@ window.pickProject = function (id) {
 function doSaveCalc() {
     const name = document.getElementById('save-calc-name').value.trim() || 'Untitled Calculation';
     const proj = Projects.getActive();
-    if (!proj) { alert('Please select a project first.'); return; }
-    if (!window._lastResults || !window._lastConfig) { alert('No calculation to save yet.'); return; }
+    if (!proj) { showToast('Please select a project first.', 'error'); return; }
+    if (!window._lastResults || !window._lastConfig) { showToast('No calculation to save yet.', 'error'); return; }
 
     try {
         History.save(proj.id, name, window._lastConfig, window._lastResults, window._lastResults.summary);
@@ -221,7 +227,7 @@ function doSaveCalc() {
             document.getElementById('save-modal').classList.remove('open');
             UpgradeModal.show('calcs');
         } else {
-            alert('Save failed: ' + e.message);
+            showToast('Save failed: ' + e.message, 'error');
         }
     }
 }
@@ -265,22 +271,24 @@ function restoreCalcState(calc) {
             document.getElementById('btn-export-pdf').disabled = false;
             document.getElementById('btn-export-csv').disabled = false;
             document.getElementById('btn-save-calc').disabled = false;
+            const tabs = document.getElementById('results-tabs');
+            if (tabs) tabs.classList.add('visible');
         } catch { }
     }, 300);
 }
 
 /* ── Helpers ─────────────────────────────────────────────────── */
-function showToast(msg) {
-    let t = document.getElementById('app-toast');
-    if (!t) {
-        t = document.createElement('div');
-        t.id = 'app-toast';
-        t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1E293B;color:white;padding:12px 20px;border-radius:8px;font-size:0.82rem;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.25);opacity:0;transform:translateY(10px);transition:all 0.25s;pointer-events:none;z-index:9999;font-family:Inter,sans-serif;';
-        document.body.appendChild(t);
-    }
-    t.textContent = msg;
-    requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateY(0)'; });
-    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 2800);
+function showToast(msg, type = 'default') {
+    const icons = { default: 'ℹ', success: '✓', error: '⚠' };
+    const t = document.createElement('div');
+    t.className = `bm-toast bm-toast--${type}`;
+    t.innerHTML = `<span class="bm-toast-icon">${icons[type] || icons.default}</span>${escHtml(msg)}`;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => { requestAnimationFrame(() => { t.classList.add('show'); }); });
+    setTimeout(() => {
+        t.classList.remove('show');
+        setTimeout(() => t.remove(), 250);
+    }, 3000);
 }
 
 function escHtml(s) {

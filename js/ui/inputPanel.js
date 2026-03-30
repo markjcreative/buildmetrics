@@ -480,15 +480,23 @@ function updateBeamPreview() {
 
 function saveSession() {
     const config = getBeamConfig();
-    localStorage.setItem('beamCalc_session', JSON.stringify(config));
+    // Migrate legacy key on write
+    localStorage.removeItem('beamCalc_session');
+    localStorage.setItem('bm_session', JSON.stringify(config));
     const btn = document.getElementById('btn-save');
     btn.textContent = '✓ Saved';
     setTimeout(() => { btn.textContent = '💾 Save'; }, 2000);
 }
 
 function loadSession() {
-    const saved = localStorage.getItem('beamCalc_session');
-    if (!saved) { alert('No saved session found.'); return; }
+    // Migrate legacy key on first read
+    const legacy = localStorage.getItem('beamCalc_session');
+    if (legacy && !localStorage.getItem('bm_session')) {
+        localStorage.setItem('bm_session', legacy);
+        localStorage.removeItem('beamCalc_session');
+    }
+    const saved = localStorage.getItem('bm_session');
+    if (!saved) { showToast('No saved session found.', 'error'); return; }
     const config = JSON.parse(saved);
     resetAll();
     document.getElementById('inp-span').value = config.span;

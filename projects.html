@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Projects — Kinecalc</title>
+    <title>Projects — BuildMetrics</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -329,9 +329,17 @@
         <!-- Navbar -->
         <nav id="navbar" role="navigation">
             <a href="/projects.html" class="nav-brand">
-                <div class="nav-logo">⚙</div>
+                <div class="nav-logo">
+                  <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="30" height="30" rx="7" fill="#2563EB"/>
+                    <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
+                    <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
+                    <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
+                    <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
+                  </svg>
+                </div>
                 <div>
-                    <div class="nav-title">Kinecalc</div>
+                    <div class="nav-title">BuildMetrics</div>
                     <div class="nav-subtitle">Structural Analysis</div>
                 </div>
             </a>
@@ -489,7 +497,7 @@
                 closeCreateModal();
                 renderProjects();
             } catch (e) {
-                alert(e.message);
+                showToast(e.message, 'error');
             }
         }
 
@@ -500,12 +508,20 @@
             showToast('Project deleted.');
         }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2800);
+        function showToast(msg, type = 'default') {
+            const icons = { default: 'ℹ', success: '✓', error: '⚠' };
+            const t = document.createElement('div');
+            t.className = `bm-toast bm-toast--${type}`;
+            t.innerHTML = `<span class="bm-toast-icon">${icons[type] || icons.default}</span>${escHtml(msg)}`;
+            document.body.appendChild(t);
+            requestAnimationFrame(() => { requestAnimationFrame(() => { t.classList.add('show'); }); });
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, 3000);
         }
+
+        // Escape key closes modal
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeCreateModal();
+        });
 
         function escHtml(s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

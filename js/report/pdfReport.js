@@ -132,7 +132,7 @@ async function exportPDF(results, config, projectInfo) {
         rect(0, 0, 4, 22, ACCENT);
 
         f(9, 'bold', ACCENT);
-        doc.text('KINECALC', 9, 8.5);
+        doc.text('BUILDMETRICS', 9, 8.5);
 
         f(7.5, 'normal', MID);
         doc.text(`Project: ${projectInfo.projectName || 'Untitled'}`, 9, 14.5);
@@ -270,7 +270,7 @@ async function exportPDF(results, config, projectInfo) {
 
     // App wordmark
     f(22, 'bold', WHITE);
-    doc.text('KINECALC', 20, 28);
+    doc.text('BUILDMETRICS', 20, 28);
 
     f(9, 'normal', [150, 170, 210]);
     doc.text('Structural Analysis Report', 20, 40);
@@ -348,7 +348,7 @@ async function exportPDF(results, config, projectInfo) {
     y = pageH - 28;
     line(ML, y, pageW - MR, y, XLIGHT, 0.4);
     f(7.5, 'bold', ACCENT);
-    doc.text('Kinecalc  •  Structural Analysis Software', ML, y + 7);
+    doc.text('BuildMetrics  •  Structural Analysis Software', ML, y + 7);
     f(7, 'normal', LIGHT);
     doc.text('Generated: ' + new Date().toISOString().slice(0, 19).replace('T', '  '), pageW - MR, y + 7, { align: 'right' });
 
@@ -644,7 +644,7 @@ async function exportPDF(results, config, projectInfo) {
         }
     }
 
-    doc.save(`Kinecalc_Report_${Date.now()}.pdf`);
+    doc.save(`BuildMetrics_Report_${projectInfo && projectInfo.projectName ? projectInfo.projectName.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40) + '_' : ''}${Date.now()}.pdf`);
 }
 
 /* ── Helpers ────────────────────────────────────────────── */

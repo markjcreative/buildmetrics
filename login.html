@@ -4,14 +4,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign In — Kinecalc</title>
+  <title>Sign In — BuildMetrics</title>
   <meta name="description"
-    content="Sign in or create your Kinecalc account to access professional structural beam analysis tools." />
+    content="Sign in or create your BuildMetrics account to access professional structural analysis tools." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://beam-calculator-red.vercel.app/login.html" />
-  <meta property="og:title" content="Sign In — Kinecalc" />
+  <meta property="og:title" content="Sign In — BuildMetrics" />
   <meta property="og:description"
-    content="Professional structural beam analysis tools for engineers. Sign in to access shear force, bending moment diagrams and PDF reports." />
+    content="Professional structural analysis tools for engineers. Sign in to access shear force, bending moment diagrams and PDF reports." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://beam-calculator-red.vercel.app/login.html" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -65,7 +65,7 @@
     /* ── Brand Panel (left) ── */
     .brand-panel {
       width: 42%;
-      background: linear-gradient(145deg, #3730A3 0%, #4F46E5 40%, #7C3AED 100%);
+      background: linear-gradient(145deg, #1E3A8A 0%, #2563EB 45%, #1D4ED8 100%);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -272,7 +272,7 @@
 
     .form-group input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
     .form-group input::placeholder {
@@ -328,7 +328,7 @@
     .btn-auth:hover {
       background: var(--accent-hover);
       transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.30);
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.30);
     }
 
     .btn-auth:active {
@@ -364,9 +364,17 @@
     <!-- Brand Panel -->
     <div class="brand-panel">
       <div class="brand-logo">
-        <div class="brand-logo-icon">⚙</div>
+        <div class="brand-logo-icon">
+          <svg width="44" height="44" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="30" height="30" rx="8" fill="rgba(255,255,255,0.20)"/>
+            <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
+            <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
+            <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
+            <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
+          </svg>
+        </div>
         <div>
-          <div class="brand-logo-text">Kinecalc</div>
+          <div class="brand-logo-text">BuildMetrics</div>
           <div class="brand-logo-sub">Structural Analysis</div>
         </div>
       </div>
@@ -452,7 +460,7 @@
         </form>
 
         <div class="auth-footer" id="auth-footer">
-          New to Kinecalc? <a href="#" onclick="switchTab('register'); return false;"
+          New to BuildMetrics? <a href="#" onclick="switchTab('register'); return false;"
             style="color:var(--accent);font-weight:600;text-decoration:none;">Create a free account</a>
         </div>
       </div>
@@ -476,7 +484,7 @@
         ? 'Sign in to access your projects and calculations.'
         : 'Start organising your structural calculations today.';
       document.getElementById('auth-footer').innerHTML = isLogin
-        ? 'New to Kinecalc? <a href="#" onclick="switchTab(\'register\'); return false;" style="color:var(--accent);font-weight:600;text-decoration:none;">Create a free account</a>'
+        ? 'New to BuildMetrics? <a href="#" onclick="switchTab(\'register\'); return false;" style="color:var(--accent);font-weight:600;text-decoration:none;">Create a free account</a>'
         : 'Already have an account? <a href="#" onclick="switchTab(\'login\'); return false;" style="color:var(--accent);font-weight:600;text-decoration:none;">Sign in</a>';
       clearAlert();
     }

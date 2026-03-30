@@ -1,6 +1,6 @@
 /**
  * projects.js — Project management using localStorage
- * Kinecalc | Client-side only
+ * BuildMetrics | Client-side only
  */
 
 const Projects = (() => {

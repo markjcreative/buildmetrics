@@ -1,5 +1,5 @@
 /**
- * plans.js — Subscription plan management for Kinecalc
+ * plans.js — Subscription plan management for BuildMetrics
  * Stores plan state in localStorage. Stripe will be wired in later.
  */
 
