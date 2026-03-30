@@ -7,10 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
   <style>
-    body { margin: 0; background: var(--bg-page); }
-    .page-wrap { min-height: 100vh; display: flex; flex-direction: column; }
-    .page-content { max-width: 1200px; margin: 0 auto; padding: 32px 24px; width: 100%; box-sizing: border-box; flex: 1; }
+    .page-body { max-width: 1200px; margin: 0 auto; padding: 32px 24px; width: 100%; box-sizing: border-box; }
 
     /* ── Page header ── */
     .page-header { margin-bottom: 24px; }
@@ -79,7 +78,7 @@
 
     /* ── Responsive ── */
     @media (max-width: 768px) {
-      .page-content { padding: 20px 16px; }
+      .page-body { padding: 20px 16px; }
       .data-table th, .data-table td { padding: 8px 10px; }
       .materials-grid { grid-template-columns: 1fr; }
     }
@@ -90,130 +89,123 @@
   </style>
 </head>
 <body>
-<div class="page-wrap">
-
-  <!-- ── Navbar ── -->
-  <nav id="navbar" role="navigation" aria-label="Main navigation">
-    <a href="/projects.html" class="nav-brand">
-      <div class="nav-logo">
-        <svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="7" fill="#2563EB"/><rect x="8" y="7" width="3" height="16" rx="1" fill="white"/><rect x="8" y="7" width="11" height="3" rx="1" fill="white"/><rect x="8" y="14" width="9" height="3" rx="1" fill="white"/><rect x="8" y="20" width="11" height="3" rx="1" fill="white"/></svg>
+<div id="app-shell">
+  <aside id="sidebar"></aside>
+  <div id="page-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Standards Library</div>
       </div>
-      <div>
-        <div class="nav-title">BuildMetrics</div>
-        <div class="nav-subtitle">Standards</div>
-      </div>
-    </a>
-    <div class="nav-spacer"></div>
-    <div class="nav-actions">
-      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
-      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
-      <div id="nav-more-container"></div>
-      <button class="btn-nav" onclick="Auth.logout()">⏏ Sign Out</button>
-    </div>
-  </nav>
-
-  <div class="page-content">
-
-    <div class="page-header">
-      <h1>📐 Engineering Standards Library</h1>
-      <p>Steel section tables, material grade properties, and EN 1991 imposed load reference data.</p>
-    </div>
-
-    <!-- ── Main tabs ── -->
-    <div class="main-tabs" id="main-tabs">
-      <div class="main-tab active" data-panel="sections">Sections</div>
-      <div class="main-tab" data-panel="materials">Materials</div>
-      <div class="main-tab" data-panel="loads">Imposed Loads</div>
-    </div>
-
-    <!-- ══════════════════════════════════════════
-         PANEL: SECTIONS
-    ══════════════════════════════════════════ -->
-    <div class="tab-panel active" id="panel-sections">
-
-      <div class="search-wrap">
-        <div class="search-input-wrap">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3" stroke-linecap="round"/>
-          </svg>
-          <input type="text" id="sections-search" class="search-input" placeholder="Search designation (e.g. 356x171, 219.1…)">
+      <div class="topbar-actions">
+        <div class="topbar-kbd" onclick="if(window.CmdPalette) CmdPalette.open()">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <kbd>⌘K</kbd>
         </div>
-        <span class="result-count" id="sections-count"></span>
-      </div>
-
-      <div class="sub-tabs" id="section-sub-tabs">
-        <div class="sub-tab active" data-stype="UB">UB — Universal Beams</div>
-        <div class="sub-tab" data-stype="UC">UC — Universal Columns</div>
-        <div class="sub-tab" data-stype="CHS">CHS — Circular Hollow</div>
-        <div class="sub-tab" data-stype="RHS">RHS — Rectangular Hollow</div>
-        <div class="sub-tab" data-stype="SHS">SHS — Square Hollow</div>
-      </div>
-
-      <div class="table-wrap" id="sections-table-wrap">
-        <table class="data-table" id="sections-table">
-          <thead id="sections-thead"></thead>
-          <tbody id="sections-tbody"></tbody>
-        </table>
       </div>
     </div>
+    <div class="page-body">
 
-    <!-- ══════════════════════════════════════════
-         PANEL: MATERIALS
-    ══════════════════════════════════════════ -->
-    <div class="tab-panel" id="panel-materials">
+      <div class="page-header">
+        <h1>📐 Engineering Standards Library</h1>
+        <p>Steel section tables, material grade properties, and EN 1991 imposed load reference data.</p>
+      </div>
 
-      <div class="search-wrap">
-        <div class="search-input-wrap">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3" stroke-linecap="round"/>
-          </svg>
-          <input type="text" id="materials-search" class="search-input" placeholder="Search grade (e.g. S355, C30, B500)…">
+      <!-- ── Main tabs ── -->
+      <div class="main-tabs" id="main-tabs">
+        <div class="main-tab active" data-panel="sections">Sections</div>
+        <div class="main-tab" data-panel="materials">Materials</div>
+        <div class="main-tab" data-panel="loads">Imposed Loads</div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           PANEL: SECTIONS
+      ══════════════════════════════════════════ -->
+      <div class="tab-panel active" id="panel-sections">
+
+        <div class="search-wrap">
+          <div class="search-input-wrap">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3" stroke-linecap="round"/>
+            </svg>
+            <input type="text" id="sections-search" class="search-input" placeholder="Search designation (e.g. 356x171, 219.1…)">
+          </div>
+          <span class="result-count" id="sections-count"></span>
         </div>
-        <span class="result-count" id="materials-count"></span>
-      </div>
 
-      <div class="materials-grid" id="materials-grid"></div>
-    </div>
-
-    <!-- ══════════════════════════════════════════
-         PANEL: IMPOSED LOADS
-    ══════════════════════════════════════════ -->
-    <div class="tab-panel" id="panel-loads">
-
-      <div class="loads-intro">
-        <strong>EN 1991-1-1:2002</strong> — Characteristic imposed loads for buildings. qk = distributed load (kN/m²), Qk = concentrated load (kN).
-        Values given as recommended min–max ranges; National Annexes may specify single values.
-      </div>
-
-      <div class="search-wrap">
-        <div class="search-input-wrap">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3" stroke-linecap="round"/>
-          </svg>
-          <input type="text" id="loads-search" class="search-input" placeholder="Search category or description…">
+        <div class="sub-tabs" id="section-sub-tabs">
+          <div class="sub-tab active" data-stype="UB">UB — Universal Beams</div>
+          <div class="sub-tab" data-stype="UC">UC — Universal Columns</div>
+          <div class="sub-tab" data-stype="CHS">CHS — Circular Hollow</div>
+          <div class="sub-tab" data-stype="RHS">RHS — Rectangular Hollow</div>
+          <div class="sub-tab" data-stype="SHS">SHS — Square Hollow</div>
         </div>
-        <span class="result-count" id="loads-count"></span>
+
+        <div class="table-wrap" id="sections-table-wrap">
+          <table class="data-table" id="sections-table">
+            <thead id="sections-thead"></thead>
+            <tbody id="sections-tbody"></tbody>
+          </table>
+        </div>
       </div>
 
-      <div class="table-wrap">
-        <table class="data-table" id="loads-table">
-          <thead>
-            <tr>
-              <th style="width:44px">Cat</th>
-              <th>Sub</th>
-              <th>Description</th>
-              <th>qk (kN/m²)</th>
-              <th>Qk (kN)</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody id="loads-tbody"></tbody>
-        </table>
-      </div>
-    </div>
+      <!-- ══════════════════════════════════════════
+           PANEL: MATERIALS
+      ══════════════════════════════════════════ -->
+      <div class="tab-panel" id="panel-materials">
 
+        <div class="search-wrap">
+          <div class="search-input-wrap">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3" stroke-linecap="round"/>
+            </svg>
+            <input type="text" id="materials-search" class="search-input" placeholder="Search grade (e.g. S355, C30, B500)…">
+          </div>
+          <span class="result-count" id="materials-count"></span>
+        </div>
+
+        <div class="materials-grid" id="materials-grid"></div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           PANEL: IMPOSED LOADS
+      ══════════════════════════════════════════ -->
+      <div class="tab-panel" id="panel-loads">
+
+        <div class="loads-intro">
+          <strong>EN 1991-1-1:2002</strong> — Characteristic imposed loads for buildings. qk = distributed load (kN/m²), Qk = concentrated load (kN).
+          Values given as recommended min–max ranges; National Annexes may specify single values.
+        </div>
+
+        <div class="search-wrap">
+          <div class="search-input-wrap">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3" stroke-linecap="round"/>
+            </svg>
+            <input type="text" id="loads-search" class="search-input" placeholder="Search category or description…">
+          </div>
+          <span class="result-count" id="loads-count"></span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table" id="loads-table">
+            <thead>
+              <tr>
+                <th style="width:44px">Cat</th>
+                <th>Sub</th>
+                <th>Description</th>
+                <th>qk (kN/m²)</th>
+                <th>Qk (kN)</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="loads-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /page-body -->
   </div><!-- /page-content -->
-</div><!-- /page-wrap -->
+</div><!-- /app-shell -->
 
 <!-- ── Scripts ── -->
 <script src="/js/auth/auth.js"></script>
@@ -221,7 +213,8 @@
 <script src="/js/projects/history.js"></script>
 <script src="/js/subscription/plans.js"></script>
 <script src="/js/subscription/upgrade-modal.js"></script>
-<script src="/js/ui/navDropdown.js"></script>
+<script src="/js/ui/sidebar.js"></script>
+<script src="/js/ui/cmdPalette.js"></script>
 <script src="/js/data/steelSections.js"></script>
 <script src="/js/data/materials.js"></script>
 <script src="/js/data/imposedLoads.js"></script>
@@ -508,8 +501,8 @@ function renderLoads(searchTerm) {
    INIT
 ════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
+  Sidebar.init();
   if (!Auth.guard()) return;
-  NavDropdown.init('nav-more-container');
 
   // Main tab switching
   document.getElementById('main-tabs').addEventListener('click', e => {

@@ -7,14 +7,10 @@
   <meta name="description" content="Eurocode 3 column buckling design calculator">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/main.css">
-  <link rel="stylesheet" href="../css/calcs.css">
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/sidebar.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
   <style>
-    body { margin: 0; background: var(--bg-page); }
-    .calc-page-wrap { min-height: 100vh; display: flex; flex-direction: column; }
-    #navbar { position: sticky; top: 0; z-index: 100; }
-    .calc-main { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 60px); }
-
     .util-ring-track { fill: none; stroke: #E4E4E7; stroke-width: 8; }
     .util-ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dasharray 0.6s ease, stroke 0.4s; }
 
@@ -22,258 +18,257 @@
   </style>
 </head>
 <body>
-<div class="calc-page-wrap">
+<div id="app-shell">
+  <aside id="sidebar"></aside>
+  <div id="page-content" style="display:flex;flex-direction:column;overflow:hidden">
 
-  <!-- Navbar -->
-  <nav id="navbar" role="navigation" aria-label="Main navigation">
-    <a href="/projects.html" class="nav-brand">
-      <div class="nav-logo">
-        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="30" height="30" rx="7" fill="#2563EB"/>
-          <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
-          <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
-          <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
-          <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
-        </svg>
-      </div>
-      <div>
-        <div class="nav-title">BuildMetrics</div>
-        <div class="nav-subtitle">Column Design</div>
-      </div>
-    </a>
-    <div class="nav-spacer"></div>
-    <div class="nav-actions">
-      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">&#128193; Projects</a>
-      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">&#128100; Profile</a>
-      <div id="nav-more-container"></div>
-      <button class="btn-nav" onclick="Auth.logout()">&#9167; Sign Out</button>
-    </div>
-  </nav>
-
-  <div class="calc-main">
-
-    <!-- INPUT PANEL -->
-    <div id="calc-input-panel">
-      <div class="calc-input-header">
-        <span style="font-size:1.3rem">&#127959;</span>
-        <span class="calc-input-title">Column Design (EC3)</span>
-      </div>
-
-      <!-- Member Properties -->
-      <div class="input-section">
-        <div class="section-header" onclick="toggleSec('sec-member')">
-          Member Properties <span id="sec-member-arrow">&#9662;</span>
+    <!-- Topbar with breadcrumb -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">
+          <a href="/dashboard.html">Dashboard</a>
+          <span class="sep">›</span>
+          <span>Column Design</span>
         </div>
-        <div class="section-body" id="sec-member">
-          <div class="form-row">
-            <label>Section Type</label>
-            <select id="sectionType" onchange="onSectionTypeChange()">
-              <option value="UC">UC (Universal Column)</option>
-              <option value="UB">UB (Universal Beam)</option>
-              <option value="CHS">CHS (Circular Hollow)</option>
-              <option value="RHS">RHS (Rectangular Hollow)</option>
-              <option value="SHS">SHS (Square Hollow)</option>
-              <option value="custom">Custom Section</option>
-            </select>
+      </div>
+      <div class="topbar-actions">
+        <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+          📁 <span id="calc-project-name">—</span>
+        </div>
+        <div class="topbar-kbd" onclick="if(window.CmdPalette) CmdPalette.open()">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <kbd>⌘K</kbd>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calc layout (full remaining height) -->
+    <div class="page-body-calc">
+
+      <!-- INPUT PANEL -->
+      <div id="calc-input-panel">
+        <div class="calc-input-header">
+          <span style="font-size:1.3rem">&#127959;</span>
+          <span class="calc-input-title">Column Design (EC3)</span>
+        </div>
+
+        <!-- Member Properties -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-member')">
+            Member Properties <span id="sec-member-arrow">&#9662;</span>
           </div>
-          <div class="form-row" id="row-section-select">
-            <label>Section Designation</label>
-            <select id="sectionDesig" onchange="onSectionDesigChange()">
-              <option value="">&#8212; Select section &#8212;</option>
-            </select>
-          </div>
-          <div class="form-row-inline">
+          <div class="section-body" id="sec-member">
             <div class="form-row">
-              <label>Area A (cm&#178;)</label>
-              <input type="number" id="inp-A" value="93.1" min="0.1" step="0.1">
+              <label>Section Type</label>
+              <select id="sectionType" onchange="onSectionTypeChange()">
+                <option value="UC">UC (Universal Column)</option>
+                <option value="UB">UB (Universal Beam)</option>
+                <option value="CHS">CHS (Circular Hollow)</option>
+                <option value="RHS">RHS (Rectangular Hollow)</option>
+                <option value="SHS">SHS (Square Hollow)</option>
+                <option value="custom">Custom Section</option>
+              </select>
+            </div>
+            <div class="form-row" id="row-section-select">
+              <label>Section Designation</label>
+              <select id="sectionDesig" onchange="onSectionDesigChange()">
+                <option value="">&#8212; Select section &#8212;</option>
+              </select>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label>Area A (cm&#178;)</label>
+                <input type="number" id="inp-A" value="93.1" min="0.1" step="0.1">
+              </div>
+              <div class="form-row">
+                <label>I<sub>yy</sub> (cm&#8308;) minor</label>
+                <input type="number" id="inp-Iyy" value="3910" min="0.1" step="1">
+              </div>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label>I<sub>xx</sub> (cm&#8308;) major</label>
+                <input type="number" id="inp-Ixx" value="11400" min="0.1" step="1">
+              </div>
+              <div class="form-row">
+                <label>f<sub>y</sub> (N/mm&#178;)</label>
+                <select id="inp-fy" onchange="onFyChange()">
+                  <option value="275">S275 &#8212; 275 MPa</option>
+                  <option value="355" selected>S355 &#8212; 355 MPa</option>
+                  <option value="460">S460 &#8212; 460 MPa</option>
+                  <option value="250">A36 &#8212; 250 MPa</option>
+                  <option value="345">A572-50 &#8212; 345 MPa</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row" id="row-fy-custom" style="display:none">
+              <label>Custom f<sub>y</sub> (N/mm&#178;)</label>
+              <input type="number" id="inp-fy-custom" value="355" min="100" max="690">
+            </div>
+          </div>
+        </div>
+
+        <!-- Column Geometry -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-geom')">
+            Column Geometry <span id="sec-geom-arrow">&#9662;</span>
+          </div>
+          <div class="section-body" id="sec-geom">
+            <div class="form-row">
+              <label>Column Height L (m)</label>
+              <input type="number" id="inp-length" value="4.0" min="0.1" max="100" step="0.1" oninput="updateKeffHint()">
             </div>
             <div class="form-row">
-              <label>I<sub>yy</sub> (cm&#8308;) minor</label>
-              <input type="number" id="inp-Iyy" value="3910" min="0.1" step="1">
-            </div>
-          </div>
-          <div class="form-row-inline">
-            <div class="form-row">
-              <label>I<sub>xx</sub> (cm&#8308;) major</label>
-              <input type="number" id="inp-Ixx" value="11400" min="0.1" step="1">
-            </div>
-            <div class="form-row">
-              <label>f<sub>y</sub> (N/mm&#178;)</label>
-              <select id="inp-fy" onchange="onFyChange()">
-                <option value="275">S275 &#8212; 275 MPa</option>
-                <option value="355" selected>S355 &#8212; 355 MPa</option>
-                <option value="460">S460 &#8212; 460 MPa</option>
-                <option value="250">A36 &#8212; 250 MPa</option>
-                <option value="345">A572-50 &#8212; 345 MPa</option>
+              <label>Effective Length Factor k</label>
+              <select id="inp-keff" onchange="updateKeffHint()">
+                <option value="0.5">0.5 &#8212; Both ends fixed (theoretical)</option>
+                <option value="0.7">0.7 &#8212; One end fixed, one pinned</option>
+                <option value="1.0" selected>1.0 &#8212; Both ends pinned</option>
+                <option value="1.2">1.2 &#8212; Recommended for pinned-pinned</option>
+                <option value="2.0">2.0 &#8212; Cantilever (fixed-free)</option>
                 <option value="custom">Custom</option>
               </select>
             </div>
+            <div class="form-row" id="row-keff-custom" style="display:none">
+              <label>Custom k factor</label>
+              <input type="number" id="inp-keff-custom" value="1.0" min="0.1" max="5" step="0.1" oninput="updateKeffHint()">
+            </div>
+            <div style="padding:8px 0;font-size:0.78rem;color:var(--text-muted);border-top:1px solid var(--border);margin-top:4px" id="keff-hint">
+              Effective length Le = 1.0 &times; 4.0 = 4.0 m
+            </div>
           </div>
-          <div class="form-row" id="row-fy-custom" style="display:none">
-            <label>Custom f<sub>y</sub> (N/mm&#178;)</label>
-            <input type="number" id="inp-fy-custom" value="355" min="100" max="690">
+        </div>
+
+        <!-- Applied Load -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-load')">
+            Applied Load <span id="sec-load-arrow">&#9662;</span>
           </div>
+          <div class="section-body" id="sec-load">
+            <div class="form-row">
+              <label>Design Axial Force N<sub>Ed</sub> (kN)</label>
+              <input type="number" id="inp-NEd" value="500" min="0" step="10">
+              <span class="unit-tag">ULS factored load</span>
+            </div>
+            <div class="form-row">
+              <label>Design Axis</label>
+              <select id="inp-axis">
+                <option value="both" selected>Both axes (governing)</option>
+                <option value="minor">Minor axis (z-z)</option>
+                <option value="major">Major axis (y-y)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="calc-action-bar">
+          <button class="btn-primary" style="flex:1" onclick="runCalc()">
+            &#9889; Calculate
+          </button>
+          <button class="btn-secondary" id="btn-save" onclick="CalcShared.openSaveModal('save-modal')" title="Save calculation">
+            &#128190; Save
+          </button>
+          <button class="btn-ghost" onclick="resetCalc()" title="Reset">&#8635;</button>
         </div>
       </div>
 
-      <!-- Column Geometry -->
-      <div class="input-section">
-        <div class="section-header" onclick="toggleSec('sec-geom')">
-          Column Geometry <span id="sec-geom-arrow">&#9662;</span>
-        </div>
-        <div class="section-body" id="sec-geom">
-          <div class="form-row">
-            <label>Column Height L (m)</label>
-            <input type="number" id="inp-length" value="4.0" min="0.1" max="100" step="0.1" oninput="updateKeffHint()">
-          </div>
-          <div class="form-row">
-            <label>Effective Length Factor k</label>
-            <select id="inp-keff" onchange="updateKeffHint()">
-              <option value="0.5">0.5 &#8212; Both ends fixed (theoretical)</option>
-              <option value="0.7">0.7 &#8212; One end fixed, one pinned</option>
-              <option value="1.0" selected>1.0 &#8212; Both ends pinned</option>
-              <option value="1.2">1.2 &#8212; Recommended for pinned-pinned</option>
-              <option value="2.0">2.0 &#8212; Cantilever (fixed-free)</option>
-              <option value="custom">Custom</option>
-            </select>
-          </div>
-          <div class="form-row" id="row-keff-custom" style="display:none">
-            <label>Custom k factor</label>
-            <input type="number" id="inp-keff-custom" value="1.0" min="0.1" max="5" step="0.1" oninput="updateKeffHint()">
-          </div>
-          <div style="padding:8px 0;font-size:0.78rem;color:var(--text-muted);border-top:1px solid var(--border);margin-top:4px" id="keff-hint">
-            Effective length Le = 1.0 &times; 4.0 = 4.0 m
+      <!-- RESULTS PANEL -->
+      <div id="calc-results-panel">
+
+        <!-- Welcome state -->
+        <div class="calc-welcome" id="results-welcome">
+          <div class="calc-welcome-icon">&#127959;</div>
+          <h3>Column Design Calculator</h3>
+          <p>Enter member properties and applied load, then click Calculate to check EC3 column buckling resistance.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px">
+            <span style="font-size:0.78rem;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:99px;font-weight:600">EC3 EN 1993-1-1</span>
+            <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">Buckling Curves a0/a/b/c/d</span>
+            <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">Perry-Robertson Method</span>
           </div>
         </div>
-      </div>
 
-      <!-- Applied Load -->
-      <div class="input-section">
-        <div class="section-header" onclick="toggleSec('sec-load')">
-          Applied Load <span id="sec-load-arrow">&#9662;</span>
-        </div>
-        <div class="section-body" id="sec-load">
-          <div class="form-row">
-            <label>Design Axial Force N<sub>Ed</sub> (kN)</label>
-            <input type="number" id="inp-NEd" value="500" min="0" step="10">
-            <span class="unit-tag">ULS factored load</span>
-          </div>
-          <div class="form-row">
-            <label>Design Axis</label>
-            <select id="inp-axis">
-              <option value="both" selected>Both axes (governing)</option>
-              <option value="minor">Minor axis (z-z)</option>
-              <option value="major">Major axis (y-y)</option>
-            </select>
-          </div>
-        </div>
-      </div>
+        <!-- Results -->
+        <div id="results-content" style="display:none;flex-direction:column;gap:20px">
 
-      <!-- Action Bar -->
-      <div class="calc-action-bar">
-        <button class="btn-primary" style="flex:1" onclick="runCalc()">
-          &#9889; Calculate
-        </button>
-        <button class="btn-secondary" id="btn-save" onclick="CalcShared.openSaveModal('save-modal')" title="Save calculation">
-          &#128190; Save
-        </button>
-        <button class="btn-ghost" onclick="resetCalc()" title="Reset">&#8635;</button>
-      </div>
-    </div>
-
-    <!-- RESULTS PANEL -->
-    <div id="calc-results-panel">
-
-      <!-- Welcome state -->
-      <div class="calc-welcome" id="results-welcome">
-        <div class="calc-welcome-icon">&#127959;</div>
-        <h3>Column Design Calculator</h3>
-        <p>Enter member properties and applied load, then click Calculate to check EC3 column buckling resistance.</p>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px">
-          <span style="font-size:0.78rem;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:99px;font-weight:600">EC3 EN 1993-1-1</span>
-          <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">Buckling Curves a0/a/b/c/d</span>
-          <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">Perry-Robertson Method</span>
-        </div>
-      </div>
-
-      <!-- Results -->
-      <div id="results-content" style="display:none;flex-direction:column;gap:20px">
-
-        <!-- Utilisation gauge + key results -->
-        <div style="display:flex;gap:16px;flex-wrap:wrap">
-          <!-- Gauge card -->
-          <div class="calc-results-card" style="min-width:200px;flex:0 0 auto">
-            <div class="card-header">Utilisation Ratio</div>
-            <div class="util-gauge-wrap">
-              <svg class="util-gauge-svg" width="90" height="90" viewBox="0 0 90 90">
-                <circle class="util-ring-track" cx="45" cy="45" r="36"/>
-                <circle class="util-ring-fill" id="util-ring" cx="45" cy="45" r="36"
-                  stroke-dasharray="0 226" stroke="#2563EB"/>
-              </svg>
-              <div class="util-gauge-info">
-                <div class="util-gauge-value" id="util-pct">&#8212;%</div>
-                <div class="util-gauge-label" id="util-status">&#8212;</div>
-                <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px" id="util-detail">N<sub>Ed</sub> / N<sub>b,Rd</sub></div>
+          <!-- Utilisation gauge + key results -->
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <!-- Gauge card -->
+            <div class="calc-results-card" style="min-width:200px;flex:0 0 auto">
+              <div class="card-header">Utilisation Ratio</div>
+              <div class="util-gauge-wrap">
+                <svg class="util-gauge-svg" width="90" height="90" viewBox="0 0 90 90">
+                  <circle class="util-ring-track" cx="45" cy="45" r="36"/>
+                  <circle class="util-ring-fill" id="util-ring" cx="45" cy="45" r="36"
+                    stroke-dasharray="0 226" stroke="#2563EB"/>
+                </svg>
+                <div class="util-gauge-info">
+                  <div class="util-gauge-value" id="util-pct">&#8212;%</div>
+                  <div class="util-gauge-label" id="util-status">&#8212;</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px" id="util-detail">N<sub>Ed</sub> / N<sub>b,Rd</sub></div>
+                </div>
               </div>
+            </div>
+
+            <!-- Key results badges -->
+            <div style="flex:1;display:flex;flex-direction:column;gap:12px">
+              <div class="calc-badges">
+                <div class="calc-badge">
+                  <div class="calc-badge-label">Nb,Rd (Buckling)</div>
+                  <div class="calc-badge-value" id="badge-NbRd">&#8212;</div>
+                  <div class="calc-badge-unit">kN</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">Npl,Rd (Squash)</div>
+                  <div class="calc-badge-value" id="badge-NplRd">&#8212;</div>
+                  <div class="calc-badge-unit">kN</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">&#955;&#772; (Non-dim.)</div>
+                  <div class="calc-badge-value" id="badge-lambda">&#8212;</div>
+                  <div class="calc-badge-unit">Slenderness</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">Governing Axis</div>
+                  <div class="calc-badge-value" id="badge-axis" style="font-size:0.9rem">&#8212;</div>
+                  <div class="calc-badge-unit"></div>
+                </div>
+              </div>
+              <div id="slenderness-class" style="padding:8px 12px;border-radius:var(--radius);font-size:0.78rem;font-weight:600;background:var(--bg-subtle);color:var(--text-secondary)">&#8212;</div>
             </div>
           </div>
 
-          <!-- Key results badges -->
-          <div style="flex:1;display:flex;flex-direction:column;gap:12px">
-            <div class="calc-badges">
-              <div class="calc-badge">
-                <div class="calc-badge-label">Nb,Rd (Buckling)</div>
-                <div class="calc-badge-value" id="badge-NbRd">&#8212;</div>
-                <div class="calc-badge-unit">kN</div>
-              </div>
-              <div class="calc-badge">
-                <div class="calc-badge-label">Npl,Rd (Squash)</div>
-                <div class="calc-badge-value" id="badge-NplRd">&#8212;</div>
-                <div class="calc-badge-unit">kN</div>
-              </div>
-              <div class="calc-badge">
-                <div class="calc-badge-label">&#955;&#772; (Non-dim.)</div>
-                <div class="calc-badge-value" id="badge-lambda">&#8212;</div>
-                <div class="calc-badge-unit">Slenderness</div>
-              </div>
-              <div class="calc-badge">
-                <div class="calc-badge-label">Governing Axis</div>
-                <div class="calc-badge-value" id="badge-axis" style="font-size:0.9rem">&#8212;</div>
-                <div class="calc-badge-unit"></div>
-              </div>
-            </div>
-            <div id="slenderness-class" style="padding:8px 12px;border-radius:var(--radius);font-size:0.78rem;font-weight:600;background:var(--bg-subtle);color:var(--text-secondary)">&#8212;</div>
+          <!-- Detailed results table -->
+          <div class="calc-results-card">
+            <div class="card-header">Buckling Check &#8212; Both Axes</div>
+            <table class="calc-results-table">
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Minor axis (z-z)</th>
+                  <th>Major axis (y-y)</th>
+                  <th>Unit</th>
+                </tr>
+              </thead>
+              <tbody id="results-table-body">
+                <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Run calculation to see results</td></tr>
+              </tbody>
+            </table>
           </div>
-        </div>
 
-        <!-- Detailed results table -->
-        <div class="calc-results-card">
-          <div class="card-header">Buckling Check &#8212; Both Axes</div>
-          <table class="calc-results-table">
-            <thead>
-              <tr>
-                <th>Parameter</th>
-                <th>Minor axis (z-z)</th>
-                <th>Major axis (y-y)</th>
-                <th>Unit</th>
-              </tr>
-            </thead>
-            <tbody id="results-table-body">
-              <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Run calculation to see results</td></tr>
-            </tbody>
-          </table>
-        </div>
+          <!-- Design summary -->
+          <div class="calc-results-card">
+            <div class="card-header">Design Summary</div>
+            <table class="calc-results-table">
+              <tbody id="summary-table-body"></tbody>
+            </table>
+          </div>
 
-        <!-- Design summary -->
-        <div class="calc-results-card">
-          <div class="card-header">Design Summary</div>
-          <table class="calc-results-table">
-            <tbody id="summary-table-body"></tbody>
-          </table>
         </div>
-
       </div>
     </div>
+
   </div>
 </div>
 
@@ -293,23 +288,25 @@
 </div>
 
 <!-- Scripts -->
-<script src="../js/auth/auth.js"></script>
-<script src="../js/projects/history.js"></script>
-<script src="../js/projects/projects.js"></script>
-<script src="../js/subscription/plans.js"></script>
-<script src="../js/subscription/upgrade-modal.js"></script>
-<script src="../js/ui/navDropdown.js"></script>
-<script src="../js/ui/calcShared.js"></script>
-<script src="../js/data/steelSections.js"></script>
-<script src="../js/data/materials.js"></script>
-<script src="../js/engine/columnSolver.js"></script>
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/subscription/upgrade-modal.js"></script>
+<script src="/js/data/steelSections.js"></script>
+<script src="/js/data/materials.js"></script>
+<script src="/js/engine/columnSolver.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="/js/ui/sidebar.js"></script>
+<script src="/js/ui/cmdPalette.js"></script>
 
 <script>
 let currentResults = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+  Sidebar.init();
   if (!Auth.guard()) return;
-  NavDropdown.init('nav-more-container');
+  CalcShared.renderProjectBadge('calc-project-badge');
   populateSectionDropdown();
   updateKeffHint();
 

@@ -12,248 +12,239 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="../css/main.css" />
-  <link rel="stylesheet" href="../css/calcs.css" />
-
-  <!-- Auth & Projects -->
-  <script src="../js/auth/auth.js"></script>
-  <script src="../js/projects/history.js"></script>
-  <script src="../js/projects/projects.js"></script>
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/sidebar.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
 </head>
 
 <body>
-<div id="app" class="calc-page-wrap">
+<div id="app-shell">
+  <aside id="sidebar"></aside>
+  <div id="page-content" style="display:flex;flex-direction:column;overflow:hidden">
 
-  <!-- ════ NAVBAR ════════════════════════════════════════════════════ -->
-  <nav id="navbar" role="navigation" aria-label="Main navigation">
-    <a href="/projects.html" class="nav-brand">
-      <div class="nav-logo">
-        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect width="30" height="30" rx="7" fill="#2563EB"/>
-          <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
-          <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
-          <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
-          <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
-        </svg>
+    <!-- Topbar with breadcrumb -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">
+          <a href="/dashboard.html">Dashboard</a>
+          <span class="sep">›</span>
+          <span>Retaining Wall</span>
+        </div>
       </div>
-      <div>
-        <div class="nav-title">BuildMetrics</div>
-        <div class="nav-subtitle">Structural Analysis</div>
+      <div class="topbar-actions">
+        <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+          📁 <span id="calc-project-name">—</span>
+        </div>
+        <div class="topbar-kbd" onclick="if(window.CmdPalette) CmdPalette.open()">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <kbd>⌘K</kbd>
+        </div>
       </div>
-    </a>
-    <div class="nav-spacer"></div>
-    <div id="nav-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-      📁 <span id="nav-project-name">—</span>
     </div>
-    <div class="nav-actions">
-      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
-      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
-      <div id="nav-more-container"></div>
-      <button class="btn-nav" id="btn-signout" onclick="Auth.logout()">⏏ Sign Out</button>
+
+    <!-- Calc layout (full remaining height) -->
+    <div class="page-body-calc">
+
+      <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
+      <aside id="calc-input-panel" aria-label="Retaining wall inputs">
+
+        <div class="calc-input-header">
+          <span style="font-size:1.2rem;">🧱</span>
+          <span class="calc-input-title">Retaining Wall Stability</span>
+        </div>
+
+        <!-- Section 1: Wall Geometry -->
+        <div class="input-section" id="sec-wall-geom">
+          <div class="section-header" onclick="toggleSection('sec-wall-geom')">
+            <span>📐 Wall Geometry</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-H">Retained height H</label>
+              <input type="number" id="inp-H" value="3.0" min="0.5" max="15" step="0.1" oninput="syncHeel()" />
+              <span class="unit-tag">m</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-base-width">Base width B</label>
+              <input type="number" id="inp-base-width" value="2.4" min="0.5" step="0.1" oninput="syncHeel()" />
+              <span class="unit-tag">m</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-toe">Toe length</label>
+              <input type="number" id="inp-toe" value="0.6" min="0" step="0.05" oninput="syncHeel()" />
+              <span class="unit-tag">m</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-stem-thick">Stem thickness</label>
+              <input type="number" id="inp-stem-thick" value="0.3" min="0.1" step="0.05" oninput="syncHeel()" />
+              <span class="unit-tag">m</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-heel">Heel length (auto)</label>
+              <input type="number" id="inp-heel" value="1.5" readonly
+                     style="background:var(--bg-subtle);color:var(--text-muted);" />
+              <span class="unit-tag">m = B − toe − stem</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-base-thick">Base thickness</label>
+              <input type="number" id="inp-base-thick" value="0.4" min="0.1" step="0.05" />
+              <span class="unit-tag">m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Soil Properties -->
+        <div class="input-section" id="sec-soil">
+          <div class="section-header" onclick="toggleSection('sec-soil')">
+            <span>🪨 Soil Properties</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-soil-density">Soil density γ</label>
+              <input type="number" id="inp-soil-density" value="1800" min="1400" max="2200" step="50" />
+              <span class="unit-tag">kg/m³</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-phi">Friction angle φ</label>
+              <input type="number" id="inp-phi" value="30" min="10" max="45" step="1" />
+              <span class="unit-tag">degrees</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-surcharge">Surcharge on retained side</label>
+              <input type="number" id="inp-surcharge" value="5" min="0" step="1" />
+              <span class="unit-tag">kN/m²</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Material Properties -->
+        <div class="input-section" id="sec-material">
+          <div class="section-header" onclick="toggleSection('sec-material')">
+            <span>🔩 Material Properties</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-wall-density">Wall concrete density</label>
+              <input type="number" id="inp-wall-density" value="24" min="20" max="30" step="0.5" />
+              <span class="unit-tag">kN/m³</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-mu">Friction coefficient μ</label>
+              <input type="number" id="inp-mu" value="0.5" min="0.2" max="0.8" step="0.05" />
+              <span class="unit-tag">base/soil</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Bearing -->
+        <div class="input-section" id="sec-bearing">
+          <div class="section-header" onclick="toggleSection('sec-bearing')">
+            <span>🏗 Bearing Capacity</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-allow-bearing">Allowable soil bearing</label>
+              <input type="number" id="inp-allow-bearing" value="100" min="10" step="10" />
+              <span class="unit-tag">kN/m²</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action bar -->
+        <div class="calc-action-bar">
+          <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;">⚡ Calculate</button>
+          <button class="btn btn-secondary" onclick="resetCalc()" title="Reset">↺</button>
+          <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save" disabled>💾</button>
+        </div>
+      </aside>
+
+      <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
+      <main id="calc-results-panel" aria-label="Retaining wall results">
+
+        <!-- Welcome state -->
+        <div id="calc-welcome" class="calc-welcome">
+          <div class="calc-welcome-icon">🧱</div>
+          <h3>Retaining Wall Stability Calculator</h3>
+          <p>Enter wall geometry, soil properties, and bearing capacity, then click <strong>Calculate</strong> to check stability against overturning, sliding, and bearing failure.</p>
+        </div>
+
+        <!-- Results -->
+        <div id="calc-results" style="display:none;">
+
+          <!-- Error banner -->
+          <div id="calc-error-banner" style="display:none;padding:10px 14px;background:var(--red-tint);border:1px solid var(--red);border-radius:var(--radius);color:var(--red);font-size:0.85rem;font-weight:500;"></div>
+
+          <!-- Summary badges -->
+          <div class="calc-badges">
+            <div class="calc-badge">
+              <div class="calc-badge-label">FOS Overturning</div>
+              <div class="calc-badge-value" id="badge-fos-ot">—</div>
+              <div class="calc-badge-unit">min 1.5</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">FOS Sliding</div>
+              <div class="calc-badge-value" id="badge-fos-sl">—</div>
+              <div class="calc-badge-unit">min 1.5</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Max Bearing</div>
+              <div class="calc-badge-value" id="badge-qmax">—</div>
+              <div class="calc-badge-unit">kN/m²</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Eccentricity</div>
+              <div class="calc-badge-value" id="badge-ecc">—</div>
+              <div class="calc-badge-unit">m (limit B/6)</div>
+            </div>
+          </div>
+
+          <!-- Pass/fail checks -->
+          <div class="calc-results-card">
+            <div class="card-header">Stability Checks</div>
+            <table class="calc-results-table">
+              <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
+              <tbody id="checks-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Detailed results table -->
+          <div class="calc-results-card">
+            <div class="card-header">Detailed Results — Earth Pressures &amp; Moments</div>
+            <table class="calc-results-table">
+              <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+              <tbody id="results-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Weight components -->
+          <div class="calc-results-card">
+            <div class="card-header">Weight Components (per metre run)</div>
+            <table class="calc-results-table">
+              <thead><tr><th>Component</th><th>W (kN/m)</th><th>x from toe (m)</th><th>Moment (kNm/m)</th></tr></thead>
+              <tbody id="weights-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Cross-section diagram -->
+          <div class="calc-diagram-card">
+            <div class="card-header">Wall Cross-Section</div>
+            <div class="calc-diagram-body">
+              <svg id="wall-svg" width="360" height="300" viewBox="0 0 360 300" aria-label="Retaining wall cross-section" style="max-width:100%;"></svg>
+            </div>
+          </div>
+
+          <!-- Disclaimer -->
+          <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+            ⚠️ <strong>Disclaimer:</strong> Preliminary stability check only. Verify by a licensed geotechnical/structural engineer.
+          </div>
+        </div>
+      </main>
     </div>
-  </nav>
 
-  <!-- ════ MAIN ══════════════════════════════════════════════════════ -->
-  <div class="calc-main">
-
-    <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
-    <aside id="calc-input-panel" aria-label="Retaining wall inputs">
-
-      <div class="calc-input-header">
-        <span style="font-size:1.2rem;">🧱</span>
-        <span class="calc-input-title">Retaining Wall Stability</span>
-      </div>
-
-      <!-- Section 1: Wall Geometry -->
-      <div class="input-section" id="sec-wall-geom">
-        <div class="section-header" onclick="toggleSection('sec-wall-geom')">
-          <span>📐 Wall Geometry</span>
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="section-body">
-          <div class="form-row">
-            <label for="inp-H">Retained height H</label>
-            <input type="number" id="inp-H" value="3.0" min="0.5" max="15" step="0.1" oninput="syncHeel()" />
-            <span class="unit-tag">m</span>
-          </div>
-          <div class="form-row">
-            <label for="inp-base-width">Base width B</label>
-            <input type="number" id="inp-base-width" value="2.4" min="0.5" step="0.1" oninput="syncHeel()" />
-            <span class="unit-tag">m</span>
-          </div>
-          <div class="form-row">
-            <label for="inp-toe">Toe length</label>
-            <input type="number" id="inp-toe" value="0.6" min="0" step="0.05" oninput="syncHeel()" />
-            <span class="unit-tag">m</span>
-          </div>
-          <div class="form-row">
-            <label for="inp-stem-thick">Stem thickness</label>
-            <input type="number" id="inp-stem-thick" value="0.3" min="0.1" step="0.05" oninput="syncHeel()" />
-            <span class="unit-tag">m</span>
-          </div>
-          <div class="form-row">
-            <label for="inp-heel">Heel length (auto)</label>
-            <input type="number" id="inp-heel" value="1.5" readonly
-                   style="background:var(--bg-subtle);color:var(--text-muted);" />
-            <span class="unit-tag">m = B − toe − stem</span>
-          </div>
-          <div class="form-row">
-            <label for="inp-base-thick">Base thickness</label>
-            <input type="number" id="inp-base-thick" value="0.4" min="0.1" step="0.05" />
-            <span class="unit-tag">m</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 2: Soil Properties -->
-      <div class="input-section" id="sec-soil">
-        <div class="section-header" onclick="toggleSection('sec-soil')">
-          <span>🪨 Soil Properties</span>
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="section-body">
-          <div class="form-row">
-            <label for="inp-soil-density">Soil density γ</label>
-            <input type="number" id="inp-soil-density" value="1800" min="1400" max="2200" step="50" />
-            <span class="unit-tag">kg/m³</span>
-          </div>
-          <div class="form-row">
-            <label for="inp-phi">Friction angle φ</label>
-            <input type="number" id="inp-phi" value="30" min="10" max="45" step="1" />
-            <span class="unit-tag">degrees</span>
-          </div>
-          <div class="form-row">
-            <label for="inp-surcharge">Surcharge on retained side</label>
-            <input type="number" id="inp-surcharge" value="5" min="0" step="1" />
-            <span class="unit-tag">kN/m²</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 3: Material Properties -->
-      <div class="input-section" id="sec-material">
-        <div class="section-header" onclick="toggleSection('sec-material')">
-          <span>🔩 Material Properties</span>
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="section-body">
-          <div class="form-row">
-            <label for="inp-wall-density">Wall concrete density</label>
-            <input type="number" id="inp-wall-density" value="24" min="20" max="30" step="0.5" />
-            <span class="unit-tag">kN/m³</span>
-          </div>
-          <div class="form-row">
-            <label for="inp-mu">Friction coefficient μ</label>
-            <input type="number" id="inp-mu" value="0.5" min="0.2" max="0.8" step="0.05" />
-            <span class="unit-tag">base/soil</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 4: Bearing -->
-      <div class="input-section" id="sec-bearing">
-        <div class="section-header" onclick="toggleSection('sec-bearing')">
-          <span>🏗 Bearing Capacity</span>
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="section-body">
-          <div class="form-row">
-            <label for="inp-allow-bearing">Allowable soil bearing</label>
-            <input type="number" id="inp-allow-bearing" value="100" min="10" step="10" />
-            <span class="unit-tag">kN/m²</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action bar -->
-      <div class="calc-action-bar">
-        <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;">⚡ Calculate</button>
-        <button class="btn btn-secondary" onclick="resetCalc()" title="Reset">↺</button>
-        <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save" disabled>💾</button>
-      </div>
-    </aside>
-
-    <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
-    <main id="calc-results-panel" aria-label="Retaining wall results">
-
-      <!-- Welcome state -->
-      <div id="calc-welcome" class="calc-welcome">
-        <div class="calc-welcome-icon">🧱</div>
-        <h3>Retaining Wall Stability Calculator</h3>
-        <p>Enter wall geometry, soil properties, and bearing capacity, then click <strong>Calculate</strong> to check stability against overturning, sliding, and bearing failure.</p>
-      </div>
-
-      <!-- Results -->
-      <div id="calc-results" style="display:none;">
-
-        <!-- Error banner -->
-        <div id="calc-error-banner" style="display:none;padding:10px 14px;background:var(--red-tint);border:1px solid var(--red);border-radius:var(--radius);color:var(--red);font-size:0.85rem;font-weight:500;"></div>
-
-        <!-- Summary badges -->
-        <div class="calc-badges">
-          <div class="calc-badge">
-            <div class="calc-badge-label">FOS Overturning</div>
-            <div class="calc-badge-value" id="badge-fos-ot">—</div>
-            <div class="calc-badge-unit">min 1.5</div>
-          </div>
-          <div class="calc-badge">
-            <div class="calc-badge-label">FOS Sliding</div>
-            <div class="calc-badge-value" id="badge-fos-sl">—</div>
-            <div class="calc-badge-unit">min 1.5</div>
-          </div>
-          <div class="calc-badge">
-            <div class="calc-badge-label">Max Bearing</div>
-            <div class="calc-badge-value" id="badge-qmax">—</div>
-            <div class="calc-badge-unit">kN/m²</div>
-          </div>
-          <div class="calc-badge">
-            <div class="calc-badge-label">Eccentricity</div>
-            <div class="calc-badge-value" id="badge-ecc">—</div>
-            <div class="calc-badge-unit">m (limit B/6)</div>
-          </div>
-        </div>
-
-        <!-- Pass/fail checks -->
-        <div class="calc-results-card">
-          <div class="card-header">Stability Checks</div>
-          <table class="calc-results-table">
-            <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
-            <tbody id="checks-body"></tbody>
-          </table>
-        </div>
-
-        <!-- Detailed results table -->
-        <div class="calc-results-card">
-          <div class="card-header">Detailed Results — Earth Pressures &amp; Moments</div>
-          <table class="calc-results-table">
-            <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
-            <tbody id="results-body"></tbody>
-          </table>
-        </div>
-
-        <!-- Weight components -->
-        <div class="calc-results-card">
-          <div class="card-header">Weight Components (per metre run)</div>
-          <table class="calc-results-table">
-            <thead><tr><th>Component</th><th>W (kN/m)</th><th>x from toe (m)</th><th>Moment (kNm/m)</th></tr></thead>
-            <tbody id="weights-body"></tbody>
-          </table>
-        </div>
-
-        <!-- Cross-section diagram -->
-        <div class="calc-diagram-card">
-          <div class="card-header">Wall Cross-Section</div>
-          <div class="calc-diagram-body">
-            <svg id="wall-svg" width="360" height="300" viewBox="0 0 360 300" aria-label="Retaining wall cross-section" style="max-width:100%;"></svg>
-          </div>
-        </div>
-
-        <!-- Disclaimer -->
-        <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
-          ⚠️ <strong>Disclaimer:</strong> Preliminary stability check only. Verify by a licensed geotechnical/structural engineer.
-        </div>
-      </div>
-    </main>
   </div>
 </div>
 
@@ -274,10 +265,16 @@
 </div>
 
 <!-- Scripts -->
-<script src="../js/engine/utils.js"></script>
-<script src="../js/engine/retainingWallSolver.js"></script>
-<script src="../js/ui/navDropdown.js"></script>
-<script src="../js/ui/calcShared.js"></script>
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/subscription/upgrade-modal.js"></script>
+<script src="/js/engine/utils.js"></script>
+<script src="/js/engine/retainingWallSolver.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="/js/ui/sidebar.js"></script>
+<script src="/js/ui/cmdPalette.js"></script>
 
 <script>
   function toggleSection(id) {
@@ -515,9 +512,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    Sidebar.init();
     Auth.guard();
-    NavDropdown.init('nav-more-container');
-    CalcShared.renderProjectBadge('nav-project-badge');
+    CalcShared.renderProjectBadge('calc-project-badge');
     syncHeel();
 
     CalcShared.initSaveModal('save-calc-modal', 'retaining-wall', () => {

@@ -12,13 +12,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="../css/main.css" />
-  <link rel="stylesheet" href="../css/calcs.css" />
-
-  <!-- Auth & Projects -->
-  <script src="../js/auth/auth.js"></script>
-  <script src="../js/projects/history.js"></script>
-  <script src="../js/projects/projects.js"></script>
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/sidebar.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
 
   <style>
     /* ── Tab switcher ── */
@@ -76,358 +72,353 @@
 </head>
 
 <body>
-<div id="app" class="calc-page-wrap">
+<div id="app-shell">
+  <aside id="sidebar"></aside>
+  <div id="page-content" style="display:flex;flex-direction:column;overflow:hidden">
 
-  <!-- ════ NAVBAR ════════════════════════════════════════════════════ -->
-  <nav id="navbar" role="navigation" aria-label="Main navigation">
-    <a href="/projects.html" class="nav-brand">
-      <div class="nav-logo">
-        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect width="30" height="30" rx="7" fill="#2563EB"/>
-          <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
-          <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
-          <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
-          <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
-        </svg>
+    <!-- Topbar with breadcrumb -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">
+          <a href="/dashboard.html">Dashboard</a>
+          <span class="sep">›</span>
+          <span>Connection Design</span>
+        </div>
       </div>
-      <div>
-        <div class="nav-title">BuildMetrics</div>
-        <div class="nav-subtitle">Structural Analysis</div>
+      <div class="topbar-actions">
+        <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+          📁 <span id="calc-project-name">—</span>
+        </div>
+        <div class="topbar-kbd" onclick="if(window.CmdPalette) CmdPalette.open()">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <kbd>⌘K</kbd>
+        </div>
       </div>
-    </a>
-    <div class="nav-spacer"></div>
-    <div id="nav-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-      📁 <span id="nav-project-name">—</span>
     </div>
-    <div class="nav-actions">
-      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
-      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
-      <div id="nav-more-container"></div>
-      <button class="btn-nav" id="btn-signout" onclick="Auth.logout()">⏏ Sign Out</button>
-    </div>
-  </nav>
 
-  <!-- ════ MAIN ══════════════════════════════════════════════════════ -->
-  <div class="calc-main">
+    <!-- Calc layout (full remaining height) -->
+    <div class="page-body-calc">
 
-    <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
-    <aside id="calc-input-panel" aria-label="Connection inputs">
+      <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
+      <aside id="calc-input-panel" aria-label="Connection inputs">
 
-      <div class="calc-input-header">
-        <span style="font-size:1.2rem;">🔩</span>
-        <span class="calc-input-title">Connection Design</span>
-      </div>
-
-      <!-- Tab switcher -->
-      <div class="conn-tabs">
-        <div class="conn-tab active" id="tab-bolt-btn" onclick="switchTab('bolt')">🔩 Bolt Group</div>
-        <div class="conn-tab" id="tab-weld-btn" onclick="switchTab('weld')">〰 Weld Group</div>
-      </div>
-
-      <!-- ── BOLT GROUP INPUTS ── -->
-      <div id="bolt-pane">
-        <div class="input-section" id="sec-bolt-loads">
-          <div class="section-header" onclick="toggleSection('sec-bolt-loads')">
-            <span>⬇ Applied Loads</span>
-            <span class="section-chevron">▾</span>
-          </div>
-          <div class="section-body">
-            <div class="form-row-inline">
-              <div class="form-row">
-                <label for="bolt-Vx">Vx</label>
-                <input type="number" id="bolt-Vx" value="0" step="5" />
-                <span class="unit-tag">kN</span>
-              </div>
-              <div class="form-row">
-                <label for="bolt-Vy">Vy</label>
-                <input type="number" id="bolt-Vy" value="100" step="5" />
-                <span class="unit-tag">kN</span>
-              </div>
-            </div>
-            <div class="form-row">
-              <label for="bolt-M">In-plane moment M</label>
-              <input type="number" id="bolt-M" value="20" step="1" />
-              <span class="unit-tag">kNm</span>
-            </div>
-          </div>
+        <div class="calc-input-header">
+          <span style="font-size:1.2rem;">🔩</span>
+          <span class="calc-input-title">Connection Design</span>
         </div>
 
-        <div class="input-section" id="sec-bolt-props">
-          <div class="section-header" onclick="toggleSection('sec-bolt-props')">
-            <span>⚙ Bolt Properties</span>
-            <span class="section-chevron">▾</span>
-          </div>
-          <div class="section-body">
-            <div class="form-row">
-              <label for="bolt-size">Bolt size</label>
-              <select id="bolt-size">
-                <option value="M12">M12</option>
-                <option value="M16" selected>M16</option>
-                <option value="M20">M20</option>
-                <option value="M24">M24</option>
-                <option value="M30">M30</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label for="bolt-grade">Bolt grade</label>
-              <select id="bolt-grade">
-                <option value="8.8" selected>Grade 8.8</option>
-                <option value="10.9">Grade 10.9</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label for="bolt-planes">Shear planes</label>
-              <select id="bolt-planes">
-                <option value="1" selected>1 (single shear)</option>
-                <option value="2">2 (double shear)</option>
-              </select>
-            </div>
-          </div>
+        <!-- Tab switcher -->
+        <div class="conn-tabs">
+          <div class="conn-tab active" id="tab-bolt-btn" onclick="switchTab('bolt')">🔩 Bolt Group</div>
+          <div class="conn-tab" id="tab-weld-btn" onclick="switchTab('weld')">〰 Weld Group</div>
         </div>
 
-        <div class="input-section" id="sec-bolt-layout">
-          <div class="section-header" onclick="toggleSection('sec-bolt-layout')">
-            <span>📍 Bolt Layout</span>
-            <span class="section-chevron">▾</span>
-          </div>
-          <div class="section-body">
-            <!-- Presets -->
-            <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Presets</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-              <button class="preset-btn" onclick="applyPreset('2x2')">2×2 @80</button>
-              <button class="preset-btn" onclick="applyPreset('2x3')">2×3 @80</button>
-              <button class="preset-btn" onclick="applyPreset('3x3')">3×3 @80</button>
-              <button class="preset-btn" onclick="applyPreset('4x4')">4×4 @80</button>
-              <button class="preset-btn" onclick="applyPreset('1x4')">Row 4 @80</button>
-              <button class="preset-btn" onclick="applyPreset('1x6')">Row 6 @80</button>
+        <!-- ── BOLT GROUP INPUTS ── -->
+        <div id="bolt-pane">
+          <div class="input-section" id="sec-bolt-loads">
+            <div class="section-header" onclick="toggleSection('sec-bolt-loads')">
+              <span>⬇ Applied Loads</span>
+              <span class="section-chevron">▾</span>
             </div>
-
-            <!-- Grid configurator -->
-            <div class="form-row-inline">
-              <div class="form-row">
-                <label for="grid-cols">Columns</label>
-                <input type="number" id="grid-cols" value="2" min="1" max="8" step="1" oninput="buildGrid()" />
+            <div class="section-body">
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label for="bolt-Vx">Vx</label>
+                  <input type="number" id="bolt-Vx" value="0" step="5" />
+                  <span class="unit-tag">kN</span>
+                </div>
+                <div class="form-row">
+                  <label for="bolt-Vy">Vy</label>
+                  <input type="number" id="bolt-Vy" value="100" step="5" />
+                  <span class="unit-tag">kN</span>
+                </div>
               </div>
               <div class="form-row">
-                <label for="grid-rows">Rows</label>
-                <input type="number" id="grid-rows" value="2" min="1" max="8" step="1" oninput="buildGrid()" />
-              </div>
-            </div>
-            <div class="form-row">
-              <label for="grid-pitch">Pitch</label>
-              <input type="number" id="grid-pitch" value="80" min="30" max="300" step="10" oninput="buildGrid()" />
-              <span class="unit-tag">mm</span>
-            </div>
-
-            <!-- Live bolt grid preview -->
-            <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin:8px 0 4px;">Layout Preview</div>
-            <div id="bolt-grid-container" style="display:flex;justify-content:center;padding:10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius);">
-              <div id="bolt-grid" class="bolt-grid-preview"></div>
-            </div>
-            <div style="font-size:0.73rem;color:var(--text-muted);margin-top:4px;">Click bolts to toggle individual positions on/off</div>
-
-            <!-- Custom coords override -->
-            <div style="margin-top:10px;">
-              <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">Or enter custom x,y coords</div>
-              <div class="form-row">
-                <label for="bolt-custom-coords">x,y pairs (one per line, mm)</label>
-                <textarea id="bolt-custom-coords" rows="4" placeholder="e.g.&#10;-40,-40&#10;40,-40&#10;-40,40&#10;40,40"
-                  style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:8px;font-family:'JetBrains Mono',monospace;font-size:0.8rem;resize:vertical;"
-                  oninput="onCustomCoordsChange()"></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div><!-- bolt-pane -->
-
-      <!-- ── WELD GROUP INPUTS ── -->
-      <div id="weld-pane" style="display:none;">
-        <div class="input-section" id="sec-weld-loads">
-          <div class="section-header" onclick="toggleSection('sec-weld-loads')">
-            <span>⬇ Applied Loads</span>
-            <span class="section-chevron">▾</span>
-          </div>
-          <div class="section-body">
-            <div class="form-row-inline">
-              <div class="form-row">
-                <label for="weld-Vx">Vx</label>
-                <input type="number" id="weld-Vx" value="0" step="5" />
-                <span class="unit-tag">kN</span>
-              </div>
-              <div class="form-row">
-                <label for="weld-Vy">Vy</label>
-                <input type="number" id="weld-Vy" value="150" step="5" />
-                <span class="unit-tag">kN</span>
-              </div>
-            </div>
-            <div class="form-row-inline">
-              <div class="form-row">
-                <label for="weld-N">Axial N</label>
-                <input type="number" id="weld-N" value="0" step="10" />
-                <span class="unit-tag">kN</span>
-              </div>
-              <div class="form-row">
-                <label for="weld-M">Moment M</label>
-                <input type="number" id="weld-M" value="30" step="1" />
+                <label for="bolt-M">In-plane moment M</label>
+                <input type="number" id="bolt-M" value="20" step="1" />
                 <span class="unit-tag">kNm</span>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="input-section" id="sec-weld-props">
-          <div class="section-header" onclick="toggleSection('sec-weld-props')">
-            <span>⚙ Weld Properties</span>
-            <span class="section-chevron">▾</span>
-          </div>
-          <div class="section-body">
-            <div class="form-row">
-              <label for="weld-throat">Throat size a</label>
-              <input type="number" id="weld-throat" value="6" min="3" max="25" step="1" />
-              <span class="unit-tag">mm</span>
+          <div class="input-section" id="sec-bolt-props">
+            <div class="section-header" onclick="toggleSection('sec-bolt-props')">
+              <span>⚙ Bolt Properties</span>
+              <span class="section-chevron">▾</span>
             </div>
-            <div class="form-row">
-              <label for="weld-fu">Steel grade / f<sub>u</sub></label>
-              <select id="weld-fu">
-                <option value="410">S275 (fu = 410 N/mm²)</option>
-                <option value="470">S355 (fu = 470 N/mm²)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="input-section" id="sec-weld-layout">
-          <div class="section-header" onclick="toggleSection('sec-weld-layout')">
-            <span>📐 Weld Layout</span>
-            <span class="section-chevron">▾</span>
-          </div>
-          <div class="section-body">
-            <div class="form-row">
-              <label for="weld-layout-type">Weld configuration</label>
-              <select id="weld-layout-type" onchange="toggleWeldLayout()">
-                <option value="full-rect">Full rectangle B×H</option>
-                <option value="flanges-only">Top &amp; bottom flanges only</option>
-                <option value="web-only">Web only</option>
-              </select>
-            </div>
-            <div class="form-row-inline">
+            <div class="section-body">
               <div class="form-row">
-                <label for="weld-B">B (width)</label>
-                <input type="number" id="weld-B" value="150" min="50" step="10" />
+                <label for="bolt-size">Bolt size</label>
+                <select id="bolt-size">
+                  <option value="M12">M12</option>
+                  <option value="M16" selected>M16</option>
+                  <option value="M20">M20</option>
+                  <option value="M24">M24</option>
+                  <option value="M30">M30</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label for="bolt-grade">Bolt grade</label>
+                <select id="bolt-grade">
+                  <option value="8.8" selected>Grade 8.8</option>
+                  <option value="10.9">Grade 10.9</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label for="bolt-planes">Shear planes</label>
+                <select id="bolt-planes">
+                  <option value="1" selected>1 (single shear)</option>
+                  <option value="2">2 (double shear)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-section" id="sec-bolt-layout">
+            <div class="section-header" onclick="toggleSection('sec-bolt-layout')">
+              <span>📍 Bolt Layout</span>
+              <span class="section-chevron">▾</span>
+            </div>
+            <div class="section-body">
+              <!-- Presets -->
+              <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Presets</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+                <button class="preset-btn" onclick="applyPreset('2x2')">2×2 @80</button>
+                <button class="preset-btn" onclick="applyPreset('2x3')">2×3 @80</button>
+                <button class="preset-btn" onclick="applyPreset('3x3')">3×3 @80</button>
+                <button class="preset-btn" onclick="applyPreset('4x4')">4×4 @80</button>
+                <button class="preset-btn" onclick="applyPreset('1x4')">Row 4 @80</button>
+                <button class="preset-btn" onclick="applyPreset('1x6')">Row 6 @80</button>
+              </div>
+
+              <!-- Grid configurator -->
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label for="grid-cols">Columns</label>
+                  <input type="number" id="grid-cols" value="2" min="1" max="8" step="1" oninput="buildGrid()" />
+                </div>
+                <div class="form-row">
+                  <label for="grid-rows">Rows</label>
+                  <input type="number" id="grid-rows" value="2" min="1" max="8" step="1" oninput="buildGrid()" />
+                </div>
+              </div>
+              <div class="form-row">
+                <label for="grid-pitch">Pitch</label>
+                <input type="number" id="grid-pitch" value="80" min="30" max="300" step="10" oninput="buildGrid()" />
+                <span class="unit-tag">mm</span>
+              </div>
+
+              <!-- Live bolt grid preview -->
+              <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin:8px 0 4px;">Layout Preview</div>
+              <div id="bolt-grid-container" style="display:flex;justify-content:center;padding:10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius);">
+                <div id="bolt-grid" class="bolt-grid-preview"></div>
+              </div>
+              <div style="font-size:0.73rem;color:var(--text-muted);margin-top:4px;">Click bolts to toggle individual positions on/off</div>
+
+              <!-- Custom coords override -->
+              <div style="margin-top:10px;">
+                <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">Or enter custom x,y coords</div>
+                <div class="form-row">
+                  <label for="bolt-custom-coords">x,y pairs (one per line, mm)</label>
+                  <textarea id="bolt-custom-coords" rows="4" placeholder="e.g.&#10;-40,-40&#10;40,-40&#10;-40,40&#10;40,40"
+                    style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:8px;font-family:'JetBrains Mono',monospace;font-size:0.8rem;resize:vertical;"
+                    oninput="onCustomCoordsChange()"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- bolt-pane -->
+
+        <!-- ── WELD GROUP INPUTS ── -->
+        <div id="weld-pane" style="display:none;">
+          <div class="input-section" id="sec-weld-loads">
+            <div class="section-header" onclick="toggleSection('sec-weld-loads')">
+              <span>⬇ Applied Loads</span>
+              <span class="section-chevron">▾</span>
+            </div>
+            <div class="section-body">
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label for="weld-Vx">Vx</label>
+                  <input type="number" id="weld-Vx" value="0" step="5" />
+                  <span class="unit-tag">kN</span>
+                </div>
+                <div class="form-row">
+                  <label for="weld-Vy">Vy</label>
+                  <input type="number" id="weld-Vy" value="150" step="5" />
+                  <span class="unit-tag">kN</span>
+                </div>
+              </div>
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label for="weld-N">Axial N</label>
+                  <input type="number" id="weld-N" value="0" step="10" />
+                  <span class="unit-tag">kN</span>
+                </div>
+                <div class="form-row">
+                  <label for="weld-M">Moment M</label>
+                  <input type="number" id="weld-M" value="30" step="1" />
+                  <span class="unit-tag">kNm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-section" id="sec-weld-props">
+            <div class="section-header" onclick="toggleSection('sec-weld-props')">
+              <span>⚙ Weld Properties</span>
+              <span class="section-chevron">▾</span>
+            </div>
+            <div class="section-body">
+              <div class="form-row">
+                <label for="weld-throat">Throat size a</label>
+                <input type="number" id="weld-throat" value="6" min="3" max="25" step="1" />
                 <span class="unit-tag">mm</span>
               </div>
               <div class="form-row">
-                <label for="weld-H">H (height)</label>
-                <input type="number" id="weld-H" value="300" min="50" step="10" />
+                <label for="weld-fu">Steel grade / f<sub>u</sub></label>
+                <select id="weld-fu">
+                  <option value="410">S275 (fu = 410 N/mm²)</option>
+                  <option value="470">S355 (fu = 470 N/mm²)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-section" id="sec-weld-layout">
+            <div class="section-header" onclick="toggleSection('sec-weld-layout')">
+              <span>📐 Weld Layout</span>
+              <span class="section-chevron">▾</span>
+            </div>
+            <div class="section-body">
+              <div class="form-row">
+                <label for="weld-layout-type">Weld configuration</label>
+                <select id="weld-layout-type" onchange="toggleWeldLayout()">
+                  <option value="full-rect">Full rectangle B×H</option>
+                  <option value="flanges-only">Top &amp; bottom flanges only</option>
+                  <option value="web-only">Web only</option>
+                </select>
+              </div>
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label for="weld-B">B (width)</label>
+                  <input type="number" id="weld-B" value="150" min="50" step="10" />
+                  <span class="unit-tag">mm</span>
+                </div>
+                <div class="form-row">
+                  <label for="weld-H">H (height)</label>
+                  <input type="number" id="weld-H" value="300" min="50" step="10" />
+                  <span class="unit-tag">mm</span>
+                </div>
+              </div>
+              <div id="weld-flange-t-row" class="form-row" style="display:none;">
+                <label for="weld-flange-t">Flange thickness</label>
+                <input type="number" id="weld-flange-t" value="12" min="5" step="1" />
                 <span class="unit-tag">mm</span>
               </div>
             </div>
-            <div id="weld-flange-t-row" class="form-row" style="display:none;">
-              <label for="weld-flange-t">Flange thickness</label>
-              <input type="number" id="weld-flange-t" value="12" min="5" step="1" />
-              <span class="unit-tag">mm</span>
+          </div>
+        </div><!-- weld-pane -->
+
+        <!-- Action bar -->
+        <div class="calc-action-bar">
+          <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;">⚡ Calculate</button>
+          <button class="btn btn-secondary" onclick="resetCalc()" title="Reset">↺</button>
+          <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save" disabled>💾</button>
+        </div>
+      </aside>
+
+      <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
+      <main id="calc-results-panel" aria-label="Connection results">
+
+        <!-- Welcome state -->
+        <div id="calc-welcome" class="calc-welcome">
+          <div class="calc-welcome-icon">🔩</div>
+          <h3>Connection Design Calculator</h3>
+          <p>Select bolt group or weld group, configure loads and layout, then click <strong>Calculate</strong> to check utilisation against EC3 capacities.</p>
+        </div>
+
+        <!-- Results -->
+        <div id="calc-results" style="display:none;">
+
+          <!-- Current mode label -->
+          <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);padding:4px 0;" id="mode-label"></div>
+
+          <!-- Summary badges -->
+          <div class="calc-badges">
+            <div class="calc-badge" id="badge-wrap-force">
+              <div class="calc-badge-label" id="badge-force-label">Max Bolt Force</div>
+              <div class="calc-badge-value" id="badge-max-force">—</div>
+              <div class="calc-badge-unit">kN</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label" id="badge-cap-label">Capacity</div>
+              <div class="calc-badge-value" id="badge-cap">—</div>
+              <div class="calc-badge-unit" id="badge-cap-unit">kN</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Utilisation</div>
+              <div class="calc-badge-value" id="badge-util">—</div>
+              <div class="calc-badge-unit">%</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Overall</div>
+              <div class="calc-badge-value" id="badge-pass" style="font-size:1.1rem;">—</div>
+              <div class="calc-badge-unit"></div>
             </div>
           </div>
-        </div>
-      </div><!-- weld-pane -->
 
-      <!-- Action bar -->
-      <div class="calc-action-bar">
-        <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;">⚡ Calculate</button>
-        <button class="btn btn-secondary" onclick="resetCalc()" title="Reset">↺</button>
-        <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save" disabled>💾</button>
-      </div>
-    </aside>
-
-    <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
-    <main id="calc-results-panel" aria-label="Connection results">
-
-      <!-- Welcome state -->
-      <div id="calc-welcome" class="calc-welcome">
-        <div class="calc-welcome-icon">🔩</div>
-        <h3>Connection Design Calculator</h3>
-        <p>Select bolt group or weld group, configure loads and layout, then click <strong>Calculate</strong> to check utilisation against EC3 capacities.</p>
-      </div>
-
-      <!-- Results -->
-      <div id="calc-results" style="display:none;">
-
-        <!-- Current mode label -->
-        <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);padding:4px 0;" id="mode-label"></div>
-
-        <!-- Summary badges -->
-        <div class="calc-badges">
-          <div class="calc-badge" id="badge-wrap-force">
-            <div class="calc-badge-label" id="badge-force-label">Max Bolt Force</div>
-            <div class="calc-badge-value" id="badge-max-force">—</div>
-            <div class="calc-badge-unit">kN</div>
+          <!-- Utilisation bar -->
+          <div class="calc-results-card" style="padding:16px;">
+            <div style="font-size:0.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">Utilisation</div>
+            <div style="background:var(--bg-subtle);border-radius:99px;height:12px;overflow:hidden;">
+              <div id="util-bar" style="height:100%;border-radius:99px;transition:width 0.4s,background 0.4s;width:0%;background:var(--green);"></div>
+            </div>
+            <div id="util-bar-label" style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;"></div>
           </div>
-          <div class="calc-badge">
-            <div class="calc-badge-label" id="badge-cap-label">Capacity</div>
-            <div class="calc-badge-value" id="badge-cap">—</div>
-            <div class="calc-badge-unit" id="badge-cap-unit">kN</div>
-          </div>
-          <div class="calc-badge">
-            <div class="calc-badge-label">Utilisation</div>
-            <div class="calc-badge-value" id="badge-util">—</div>
-            <div class="calc-badge-unit">%</div>
-          </div>
-          <div class="calc-badge">
-            <div class="calc-badge-label">Overall</div>
-            <div class="calc-badge-value" id="badge-pass" style="font-size:1.1rem;">—</div>
-            <div class="calc-badge-unit"></div>
-          </div>
-        </div>
 
-        <!-- Utilisation bar -->
-        <div class="calc-results-card" style="padding:16px;">
-          <div style="font-size:0.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">Utilisation</div>
-          <div style="background:var(--bg-subtle);border-radius:99px;height:12px;overflow:hidden;">
-            <div id="util-bar" style="height:100%;border-radius:99px;transition:width 0.4s,background 0.4s;width:0%;background:var(--green);"></div>
+          <!-- Pass/fail -->
+          <div class="calc-results-card">
+            <div class="card-header">Design Check</div>
+            <table class="calc-results-table">
+              <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
+              <tbody id="checks-body"></tbody>
+            </table>
           </div>
-          <div id="util-bar-label" style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;"></div>
-        </div>
 
-        <!-- Pass/fail -->
-        <div class="calc-results-card">
-          <div class="card-header">Design Check</div>
-          <table class="calc-results-table">
-            <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
-            <tbody id="checks-body"></tbody>
-          </table>
-        </div>
+          <!-- Detailed results -->
+          <div class="calc-results-card">
+            <div class="card-header">Detailed Results</div>
+            <table class="calc-results-table">
+              <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+              <tbody id="results-body"></tbody>
+            </table>
+          </div>
 
-        <!-- Detailed results -->
-        <div class="calc-results-card">
-          <div class="card-header">Detailed Results</div>
-          <table class="calc-results-table">
-            <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
-            <tbody id="results-body"></tbody>
-          </table>
-        </div>
+          <!-- Bolt group diagram -->
+          <div class="calc-diagram-card" id="bolt-diagram-card">
+            <div class="card-header">Bolt Group Layout</div>
+            <div class="calc-diagram-body">
+              <svg id="bolt-svg" width="300" height="280" viewBox="0 0 300 280" aria-label="Bolt group layout" style="max-width:100%;"></svg>
+            </div>
+          </div>
 
-        <!-- Bolt group diagram -->
-        <div class="calc-diagram-card" id="bolt-diagram-card">
-          <div class="card-header">Bolt Group Layout</div>
-          <div class="calc-diagram-body">
-            <svg id="bolt-svg" width="300" height="280" viewBox="0 0 300 280" aria-label="Bolt group layout" style="max-width:100%;"></svg>
+          <!-- Weld group diagram -->
+          <div class="calc-diagram-card" id="weld-diagram-card" style="display:none;">
+            <div class="card-header">Weld Group Layout</div>
+            <div class="calc-diagram-body">
+              <svg id="weld-svg" width="300" height="280" viewBox="0 0 300 280" aria-label="Weld group layout" style="max-width:100%;"></svg>
+            </div>
+          </div>
+
+          <!-- Disclaimer -->
+          <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+            ⚠️ <strong>Disclaimer:</strong> Preliminary design tool. Bearing, tearout, block shear checks and detailing requirements must also be verified.
           </div>
         </div>
+      </main>
+    </div>
 
-        <!-- Weld group diagram -->
-        <div class="calc-diagram-card" id="weld-diagram-card" style="display:none;">
-          <div class="card-header">Weld Group Layout</div>
-          <div class="calc-diagram-body">
-            <svg id="weld-svg" width="300" height="280" viewBox="0 0 300 280" aria-label="Weld group layout" style="max-width:100%;"></svg>
-          </div>
-        </div>
-
-        <!-- Disclaimer -->
-        <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
-          ⚠️ <strong>Disclaimer:</strong> Preliminary design tool. Bearing, tearout, block shear checks and detailing requirements must also be verified.
-        </div>
-      </div>
-    </main>
   </div>
 </div>
 
@@ -448,10 +439,16 @@
 </div>
 
 <!-- Scripts -->
-<script src="../js/engine/utils.js"></script>
-<script src="../js/engine/connectionSolver.js"></script>
-<script src="../js/ui/navDropdown.js"></script>
-<script src="../js/ui/calcShared.js"></script>
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/subscription/upgrade-modal.js"></script>
+<script src="/js/engine/utils.js"></script>
+<script src="/js/engine/connectionSolver.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="/js/ui/sidebar.js"></script>
+<script src="/js/ui/cmdPalette.js"></script>
 
 <script>
   // ── Tab switching ───────────────────────────────────────────────
@@ -814,9 +811,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    Sidebar.init();
     Auth.guard();
-    NavDropdown.init('nav-more-container');
-    CalcShared.renderProjectBadge('nav-project-badge');
+    CalcShared.renderProjectBadge('calc-project-badge');
     buildGrid();
 
     CalcShared.initSaveModal('save-calc-modal', 'connection', () => {

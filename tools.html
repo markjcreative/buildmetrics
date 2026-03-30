@@ -8,13 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
   <link rel="stylesheet" href="/css/calcs.css">
   <style>
-    body { margin: 0; background: var(--bg-page); }
-    .page-wrap { min-height: 100vh; display: flex; flex-direction: column; }
-
-    /* ── Tools main layout ── */
-    .tools-main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; flex: 1; width: 100%; box-sizing: border-box; }
+    .page-body { max-width: 1100px; margin: 0 auto; padding: 32px 24px; flex: 1; width: 100%; box-sizing: border-box; }
 
     .tools-header { margin-bottom: 32px; }
     .tools-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
@@ -116,7 +113,7 @@
 
     /* ── Responsive ── */
     @media (max-width: 768px) {
-      .tools-main { padding: 20px 16px; }
+      .page-body { padding: 20px 16px; }
       .tool-card { padding: 18px; }
       .form-row { flex-direction: column; }
       .form-group { min-width: auto; }
@@ -125,394 +122,380 @@
   </style>
 </head>
 <body>
-<div class="page-wrap">
-
-  <!-- ── Navbar ── -->
-  <nav id="navbar" role="navigation" aria-label="Main navigation">
-    <a href="/projects.html" class="nav-brand">
-      <div class="nav-logo">
-        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect width="30" height="30" rx="7" fill="#2563EB"/>
-          <rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>
-          <rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>
-          <rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>
-          <rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>
-        </svg>
+<div id="app-shell">
+  <aside id="sidebar"></aside>
+  <div id="page-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Quick Engineering Tools</div>
       </div>
-      <div>
-        <div class="nav-title">BuildMetrics</div>
-        <div class="nav-subtitle">Quick Tools</div>
-      </div>
-    </a>
-    <div class="nav-spacer"></div>
-    <div class="nav-actions">
-      <a href="/projects.html" class="btn-nav" style="text-decoration:none;">📁 Projects</a>
-      <a href="/profile.html" class="btn-nav" style="text-decoration:none;">👤 Profile</a>
-      <div id="nav-more-container"></div>
-      <button class="btn-nav" id="nav-logout-btn">⏏ Sign Out</button>
-    </div>
-  </nav>
-
-  <!-- ── Main ── -->
-  <main class="tools-main">
-
-    <div class="tools-header">
-      <h1>🔧 Quick Engineering Tools</h1>
-      <p>Fast-access calculators and conversion tools for everyday structural engineering tasks.</p>
-    </div>
-
-    <!-- ── Tab bar ── -->
-    <div class="tools-tabs" id="tools-tabs">
-      <button class="tools-tab active" data-panel="unit-converter">Unit Converter</button>
-      <button class="tools-tab" data-panel="weight-calc">Weight Calculator</button>
-      <button class="tools-tab" data-panel="section-props">Section Properties</button>
-      <button class="tools-tab" data-panel="load-combos">Load Combinations</button>
-      <button class="tools-tab" data-panel="wind-load">Wind Load</button>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════
-         PANEL 1: UNIT CONVERTER
-    ══════════════════════════════════════════════════════════ -->
-    <div class="tool-panel active" id="panel-unit-converter">
-      <div class="tool-card">
-        <h2>⇄ Unit Converter</h2>
-        <div class="form-row">
-          <div class="form-group" style="max-width:200px;">
-            <label for="uc-category">Category</label>
-            <select id="uc-category"></select>
-          </div>
+      <div class="topbar-actions">
+        <div class="topbar-kbd" onclick="if(window.CmdPalette) CmdPalette.open()">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <kbd>⌘K</kbd>
         </div>
-        <div class="form-row" style="align-items:flex-end;">
-          <div class="form-group">
-            <label for="uc-value">Value</label>
-            <input type="number" id="uc-value" value="1" step="any">
-          </div>
-          <div class="form-group">
-            <label for="uc-from">From</label>
-            <select id="uc-from"></select>
-          </div>
-          <div class="form-group" style="flex:0;min-width:auto;">
-            <label>&nbsp;</label>
-            <button class="btn-swap" id="uc-swap">Swap ⇄</button>
-          </div>
-          <div class="form-group">
-            <label for="uc-to">To</label>
-            <select id="uc-to"></select>
-          </div>
-        </div>
-        <div class="tool-result-box" id="uc-result">—</div>
-        <p class="hint">Select a category and units, then enter a value to convert.</p>
-      </div>
-
-      <div class="tool-card">
-        <h2>📋 Common Conversions Quick Reference</h2>
-        <table class="qr-table">
-          <thead>
-            <tr><th>From</th><th>To</th><th>Factor</th><th>Notes</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>1 kN</td><td>0.1019 tf</td><td>÷ 9.80665</td><td>Force</td></tr>
-            <tr><td>1 kN/m²</td><td>0.1020 tf/m²</td><td>÷ 9.80665</td><td>Pressure</td></tr>
-            <tr><td>1 MPa</td><td>10.197 kgf/cm²</td><td>÷ 0.0980665</td><td>Stress</td></tr>
-            <tr><td>1 kip</td><td>4.448 kN</td><td>× 4.448</td><td>Force</td></tr>
-            <tr><td>1 kip·ft</td><td>1.356 kN·m</td><td>× 1.356</td><td>Moment</td></tr>
-            <tr><td>1 psi</td><td>6.895 kPa</td><td>× 6.895</td><td>Pressure</td></tr>
-            <tr><td>1 ksi</td><td>6.895 MPa</td><td>× 6.895</td><td>Stress</td></tr>
-            <tr><td>1 ft</td><td>304.8 mm</td><td>× 304.8</td><td>Length</td></tr>
-            <tr><td>1 in</td><td>25.4 mm</td><td>× 25.4</td><td>Length</td></tr>
-            <tr><td>1 m</td><td>3.281 ft</td><td>× 3.281</td><td>Length</td></tr>
-            <tr><td>1 in⁴</td><td>416,231 mm⁴</td><td>× 416,231</td><td>2nd Moment</td></tr>
-            <tr><td>1 in³</td><td>16,387 mm³</td><td>× 16,387</td><td>Section Modulus</td></tr>
-            <tr><td>1 t</td><td>1,000 kg</td><td>× 1,000</td><td>Mass</td></tr>
-            <tr><td>1 short ton</td><td>0.9072 t</td><td>× 0.9072</td><td>Mass</td></tr>
-          </tbody>
-        </table>
       </div>
     </div>
+    <div class="page-body">
 
-    <!-- ══════════════════════════════════════════════════════════
-         PANEL 2: WEIGHT CALCULATOR
-    ══════════════════════════════════════════════════════════ -->
-    <div class="tool-panel" id="panel-weight-calc">
-      <div class="tool-card">
-        <h2>⚖️ Weight Calculator</h2>
+      <div class="tools-header">
+        <h1>🔧 Quick Engineering Tools</h1>
+        <p>Fast-access calculators and conversion tools for everyday structural engineering tasks.</p>
+      </div>
 
-        <div class="sub-tabs" id="wc-sub-tabs">
-          <button class="sub-tab active" data-wpanel="wc-steel-section">Steel Section</button>
-          <button class="sub-tab" data-wpanel="wc-steel-plate">Steel Plate</button>
-          <button class="sub-tab" data-wpanel="wc-concrete">Concrete</button>
-          <button class="sub-tab" data-wpanel="wc-rebar">Rebar</button>
+      <!-- ── Tab bar ── -->
+      <div class="tools-tabs" id="tools-tabs">
+        <button class="tools-tab active" data-panel="unit-converter">Unit Converter</button>
+        <button class="tools-tab" data-panel="weight-calc">Weight Calculator</button>
+        <button class="tools-tab" data-panel="section-props">Section Properties</button>
+        <button class="tools-tab" data-panel="load-combos">Load Combinations</button>
+        <button class="tools-tab" data-panel="wind-load">Wind Load</button>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           PANEL 1: UNIT CONVERTER
+      ══════════════════════════════════════════════════════════ -->
+      <div class="tool-panel active" id="panel-unit-converter">
+        <div class="tool-card">
+          <h2>⇄ Unit Converter</h2>
+          <div class="form-row">
+            <div class="form-group" style="max-width:200px;">
+              <label for="uc-category">Category</label>
+              <select id="uc-category"></select>
+            </div>
+          </div>
+          <div class="form-row" style="align-items:flex-end;">
+            <div class="form-group">
+              <label for="uc-value">Value</label>
+              <input type="number" id="uc-value" value="1" step="any">
+            </div>
+            <div class="form-group">
+              <label for="uc-from">From</label>
+              <select id="uc-from"></select>
+            </div>
+            <div class="form-group" style="flex:0;min-width:auto;">
+              <label>&nbsp;</label>
+              <button class="btn-swap" id="uc-swap">Swap ⇄</button>
+            </div>
+            <div class="form-group">
+              <label for="uc-to">To</label>
+              <select id="uc-to"></select>
+            </div>
+          </div>
+          <div class="tool-result-box" id="uc-result">—</div>
+          <p class="hint">Select a category and units, then enter a value to convert.</p>
         </div>
 
-        <!-- Steel Section -->
-        <div class="sub-panel active" id="wc-steel-section">
+        <div class="tool-card">
+          <h2>📋 Common Conversions Quick Reference</h2>
+          <table class="qr-table">
+            <thead>
+              <tr><th>From</th><th>To</th><th>Factor</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1 kN</td><td>0.1019 tf</td><td>÷ 9.80665</td><td>Force</td></tr>
+              <tr><td>1 kN/m²</td><td>0.1020 tf/m²</td><td>÷ 9.80665</td><td>Pressure</td></tr>
+              <tr><td>1 MPa</td><td>10.197 kgf/cm²</td><td>÷ 0.0980665</td><td>Stress</td></tr>
+              <tr><td>1 kip</td><td>4.448 kN</td><td>× 4.448</td><td>Force</td></tr>
+              <tr><td>1 kip·ft</td><td>1.356 kN·m</td><td>× 1.356</td><td>Moment</td></tr>
+              <tr><td>1 psi</td><td>6.895 kPa</td><td>× 6.895</td><td>Pressure</td></tr>
+              <tr><td>1 ksi</td><td>6.895 MPa</td><td>× 6.895</td><td>Stress</td></tr>
+              <tr><td>1 ft</td><td>304.8 mm</td><td>× 304.8</td><td>Length</td></tr>
+              <tr><td>1 in</td><td>25.4 mm</td><td>× 25.4</td><td>Length</td></tr>
+              <tr><td>1 m</td><td>3.281 ft</td><td>× 3.281</td><td>Length</td></tr>
+              <tr><td>1 in⁴</td><td>416,231 mm⁴</td><td>× 416,231</td><td>2nd Moment</td></tr>
+              <tr><td>1 in³</td><td>16,387 mm³</td><td>× 16,387</td><td>Section Modulus</td></tr>
+              <tr><td>1 t</td><td>1,000 kg</td><td>× 1,000</td><td>Mass</td></tr>
+              <tr><td>1 short ton</td><td>0.9072 t</td><td>× 0.9072</td><td>Mass</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           PANEL 2: WEIGHT CALCULATOR
+      ══════════════════════════════════════════════════════════ -->
+      <div class="tool-panel" id="panel-weight-calc">
+        <div class="tool-card">
+          <h2>⚖️ Weight Calculator</h2>
+
+          <div class="sub-tabs" id="wc-sub-tabs">
+            <button class="sub-tab active" data-wpanel="wc-steel-section">Steel Section</button>
+            <button class="sub-tab" data-wpanel="wc-steel-plate">Steel Plate</button>
+            <button class="sub-tab" data-wpanel="wc-concrete">Concrete</button>
+            <button class="sub-tab" data-wpanel="wc-rebar">Rebar</button>
+          </div>
+
+          <!-- Steel Section -->
+          <div class="sub-panel active" id="wc-steel-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wc-sec-type">Section Type</label>
+                <select id="wc-sec-type">
+                  <option value="UB">UB — Universal Beam</option>
+                  <option value="UC">UC — Universal Column</option>
+                  <option value="CHS">CHS — Circular Hollow</option>
+                  <option value="RHS">RHS — Rectangular Hollow</option>
+                  <option value="SHS">SHS — Square Hollow</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="wc-sec-desig">Designation</label>
+                <select id="wc-sec-desig"></select>
+              </div>
+              <div class="form-group">
+                <label for="wc-sec-len">Length (m)</label>
+                <input type="number" id="wc-sec-len" value="6" step="0.1" min="0">
+              </div>
+            </div>
+            <div class="tool-result-box" id="wc-sec-result">—</div>
+            <p class="hint">Section area looked up from SteelSections database. Density = 7,850 kg/m³.</p>
+          </div>
+
+          <!-- Steel Plate -->
+          <div class="sub-panel" id="wc-steel-plate">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wc-pl-len">Length (m)</label>
+                <input type="number" id="wc-pl-len" value="1" step="0.01" min="0">
+              </div>
+              <div class="form-group">
+                <label for="wc-pl-wid">Width (m)</label>
+                <input type="number" id="wc-pl-wid" value="1" step="0.01" min="0">
+              </div>
+              <div class="form-group">
+                <label for="wc-pl-thk">Thickness (mm)</label>
+                <input type="number" id="wc-pl-thk" value="10" step="1" min="0">
+              </div>
+            </div>
+            <div class="tool-result-box" id="wc-pl-result">—</div>
+          </div>
+
+          <!-- Concrete -->
+          <div class="sub-panel" id="wc-concrete">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wc-con-len">Length (m)</label>
+                <input type="number" id="wc-con-len" value="5" step="0.1" min="0">
+              </div>
+              <div class="form-group">
+                <label for="wc-con-wid">Width (m)</label>
+                <input type="number" id="wc-con-wid" value="0.3" step="0.01" min="0">
+              </div>
+              <div class="form-group">
+                <label for="wc-con-dep">Depth (m)</label>
+                <input type="number" id="wc-con-dep" value="0.5" step="0.01" min="0">
+              </div>
+            </div>
+            <div class="tool-result-box" id="wc-con-result">—</div>
+            <p class="hint">Reinforced concrete density = 2,400 kg/m³.</p>
+          </div>
+
+          <!-- Rebar -->
+          <div class="sub-panel" id="wc-rebar">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wc-rb-dia">Diameter (mm)</label>
+                <select id="wc-rb-dia">
+                  <option value="6">6</option>
+                  <option value="8">8</option>
+                  <option value="10">10</option>
+                  <option value="12" selected>12</option>
+                  <option value="16">16</option>
+                  <option value="20">20</option>
+                  <option value="25">25</option>
+                  <option value="32">32</option>
+                  <option value="40">40</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="wc-rb-len">Length per bar (m)</label>
+                <input type="number" id="wc-rb-len" value="6" step="0.1" min="0">
+              </div>
+              <div class="form-group">
+                <label for="wc-rb-cnt">Count</label>
+                <input type="number" id="wc-rb-cnt" value="10" step="1" min="1">
+              </div>
+            </div>
+            <div class="tool-result-box" id="wc-rb-result">—</div>
+            <p class="hint">Using density = 7,850 kg/m³ and circular cross-section.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           PANEL 3: SECTION PROPERTIES
+      ══════════════════════════════════════════════════════════ -->
+      <div class="tool-panel" id="panel-section-props">
+        <div class="tool-card">
+          <h2>📐 Section Properties Calculator</h2>
+          <p class="hint" style="margin-bottom:16px;">All dimensions in mm. Outputs: A (mm²), I (mm⁴), Z (mm³), r (mm).</p>
+
+          <div class="shape-selector" id="shape-selector">
+            <button class="shape-btn active" data-shape="rectangle">Rectangle</button>
+            <button class="shape-btn" data-shape="circle">Circle</button>
+            <button class="shape-btn" data-shape="hollow_rectangle">Hollow Rectangle (RHS)</button>
+            <button class="shape-btn" data-shape="hollow_circle">Hollow Circle (CHS)</button>
+            <button class="shape-btn" data-shape="I_section">I-Section</button>
+            <button class="shape-btn" data-shape="T_section">T-Section</button>
+            <button class="shape-btn" data-shape="angle">Angle</button>
+          </div>
+
+          <!-- Rectangle -->
+          <div class="shape-inputs active" id="si-rectangle">
+            <div class="dim-group"><label>b — Width (mm)</label><input type="number" class="sp-dim" id="sp-rect-b" value="200" min="0" step="1"></div>
+            <div class="dim-group"><label>d — Depth (mm)</label><input type="number" class="sp-dim" id="sp-rect-d" value="400" min="0" step="1"></div>
+          </div>
+
+          <!-- Circle -->
+          <div class="shape-inputs" id="si-circle">
+            <div class="dim-group"><label>d — Diameter (mm)</label><input type="number" class="sp-dim" id="sp-circ-d" value="200" min="0" step="1"></div>
+          </div>
+
+          <!-- Hollow Rectangle (RHS) -->
+          <div class="shape-inputs" id="si-hollow_rectangle">
+            <div class="dim-group"><label>B — Width (mm)</label><input type="number" class="sp-dim" id="sp-rhs-b" value="150" min="0" step="1"></div>
+            <div class="dim-group"><label>D — Depth (mm)</label><input type="number" class="sp-dim" id="sp-rhs-d" value="250" min="0" step="1"></div>
+            <div class="dim-group"><label>t — Thickness (mm)</label><input type="number" class="sp-dim" id="sp-rhs-t" value="8" min="0" step="0.5"></div>
+          </div>
+
+          <!-- Hollow Circle (CHS) -->
+          <div class="shape-inputs" id="si-hollow_circle">
+            <div class="dim-group"><label>D — Outer Dia (mm)</label><input type="number" class="sp-dim" id="sp-chs-D" value="200" min="0" step="1"></div>
+            <div class="dim-group"><label>t — Thickness (mm)</label><input type="number" class="sp-dim" id="sp-chs-t" value="8" min="0" step="0.5"></div>
+          </div>
+
+          <!-- I-Section -->
+          <div class="shape-inputs" id="si-I_section">
+            <div class="dim-group"><label>bf — Flange width (mm)</label><input type="number" class="sp-dim" id="sp-is-bf" value="150" min="0" step="1"></div>
+            <div class="dim-group"><label>tf — Flange thk (mm)</label><input type="number" class="sp-dim" id="sp-is-tf" value="12" min="0" step="0.5"></div>
+            <div class="dim-group"><label>hw — Web height (mm)</label><input type="number" class="sp-dim" id="sp-is-hw" value="276" min="0" step="1"></div>
+            <div class="dim-group"><label>tw — Web thk (mm)</label><input type="number" class="sp-dim" id="sp-is-tw" value="8" min="0" step="0.5"></div>
+          </div>
+
+          <!-- T-Section -->
+          <div class="shape-inputs" id="si-T_section">
+            <div class="dim-group"><label>bf — Flange width (mm)</label><input type="number" class="sp-dim" id="sp-ts-bf" value="200" min="0" step="1"></div>
+            <div class="dim-group"><label>tf — Flange thk (mm)</label><input type="number" class="sp-dim" id="sp-ts-tf" value="15" min="0" step="0.5"></div>
+            <div class="dim-group"><label>hw — Web height (mm)</label><input type="number" class="sp-dim" id="sp-ts-hw" value="185" min="0" step="1"></div>
+            <div class="dim-group"><label>tw — Web thk (mm)</label><input type="number" class="sp-dim" id="sp-ts-tw" value="10" min="0" step="0.5"></div>
+          </div>
+
+          <!-- Angle -->
+          <div class="shape-inputs" id="si-angle">
+            <div class="dim-group"><label>b — Horizontal leg (mm)</label><input type="number" class="sp-dim" id="sp-ang-b" value="100" min="0" step="1"></div>
+            <div class="dim-group"><label>d — Vertical leg (mm)</label><input type="number" class="sp-dim" id="sp-ang-d" value="100" min="0" step="1"></div>
+            <div class="dim-group"><label>t — Thickness (mm)</label><input type="number" class="sp-dim" id="sp-ang-t" value="10" min="0" step="0.5"></div>
+          </div>
+
+          <div id="sp-results-wrap" style="margin-top:20px;"></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           PANEL 4: LOAD COMBINATIONS
+      ══════════════════════════════════════════════════════════ -->
+      <div class="tool-panel" id="panel-load-combos">
+        <div class="tool-card">
+          <h2>📊 Load Combinations</h2>
+
+          <div class="standard-toggle">
+            <button class="std-btn active" id="lc-std-ec" data-std="EC">Eurocode EN 1990</button>
+            <button class="std-btn" id="lc-std-aci" data-std="ACI">ACI 318</button>
+          </div>
+
           <div class="form-row">
             <div class="form-group">
-              <label for="wc-sec-type">Section Type</label>
-              <select id="wc-sec-type">
-                <option value="UB">UB — Universal Beam</option>
-                <option value="UC">UC — Universal Column</option>
-                <option value="CHS">CHS — Circular Hollow</option>
-                <option value="RHS">RHS — Rectangular Hollow</option>
-                <option value="SHS">SHS — Square Hollow</option>
+              <label for="lc-gk">G<sub>k</sub> — Dead / Permanent (kN/m or kN/m²)</label>
+              <input type="number" id="lc-gk" value="10" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+              <label for="lc-qk">Q<sub>k</sub> — Imposed / Live (kN/m or kN/m²)</label>
+              <input type="number" id="lc-qk" value="5" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+              <label for="lc-wk">W<sub>k</sub> — Wind (kN/m or kN/m²)</label>
+              <input type="number" id="lc-wk" value="3" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+              <label for="lc-sk">S<sub>k</sub> — Snow (kN/m or kN/m²)</label>
+              <input type="number" id="lc-sk" value="1.5" step="0.1" min="0">
+            </div>
+          </div>
+
+          <div id="lc-results"></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           PANEL 5: WIND LOAD
+      ══════════════════════════════════════════════════════════ -->
+      <div class="tool-panel" id="panel-wind-load">
+        <div class="tool-card">
+          <h2>💨 Wind Load Calculator (EC1)</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wl-vb">Basic Wind Speed v<sub>b</sub> (m/s)</label>
+              <input type="number" id="wl-vb" value="27" step="0.5" min="0">
+            </div>
+            <div class="form-group">
+              <label for="wl-z">Reference Height z (m)</label>
+              <input type="number" id="wl-z" value="10" step="0.5" min="0.1">
+            </div>
+            <div class="form-group">
+              <label for="wl-terrain">Terrain Category</label>
+              <select id="wl-terrain">
+                <option value="0">0 — Sea, coastal (&lt; 1 km)</option>
+                <option value="I">I — Lakes, flat open country</option>
+                <option value="II" selected>II — Low vegetation (default)</option>
+                <option value="III">III — Regular cover, woodland</option>
+                <option value="IV">IV — Urban, at least 15% cover</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wl-struct">Structure Type</label>
+              <select id="wl-struct">
+                <option value="wall">Vertical Wall</option>
+                <option value="roof_flat">Flat Roof</option>
+                <option value="roof_pitch">Pitched Roof</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="wc-sec-desig">Designation</label>
-              <select id="wc-sec-desig"></select>
+              <label for="wl-cpe">C<sub>pe</sub> — External Pressure Coeff.</label>
+              <input type="number" id="wl-cpe" value="0.8" step="0.05">
             </div>
             <div class="form-group">
-              <label for="wc-sec-len">Length (m)</label>
-              <input type="number" id="wc-sec-len" value="6" step="0.1" min="0">
+              <label for="wl-cpi">C<sub>pi</sub> — Internal Pressure Coeff.</label>
+              <input type="number" id="wl-cpi" value="-0.3" step="0.05">
+            </div>
+            <div class="form-group">
+              <label for="wl-rho">Air Density ρ (kg/m³)</label>
+              <input type="number" id="wl-rho" value="1.25" step="0.01">
             </div>
           </div>
-          <div class="tool-result-box" id="wc-sec-result">—</div>
-          <p class="hint">Section area looked up from SteelSections database. Density = 7,850 kg/m³.</p>
-        </div>
 
-        <!-- Steel Plate -->
-        <div class="sub-panel" id="wc-steel-plate">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="wc-pl-len">Length (m)</label>
-              <input type="number" id="wc-pl-len" value="1" step="0.01" min="0">
-            </div>
-            <div class="form-group">
-              <label for="wc-pl-wid">Width (m)</label>
-              <input type="number" id="wc-pl-wid" value="1" step="0.01" min="0">
-            </div>
-            <div class="form-group">
-              <label for="wc-pl-thk">Thickness (mm)</label>
-              <input type="number" id="wc-pl-thk" value="10" step="1" min="0">
-            </div>
-          </div>
-          <div class="tool-result-box" id="wc-pl-result">—</div>
+          <div id="wl-results" class="wind-results"></div>
+          <p class="hint" style="margin-top:12px;">Based on EN 1991-1-4. w<sub>e</sub> = q<sub>b</sub> × c<sub>e</sub> × (c<sub>pe</sub> + c<sub>pi</sub>).</p>
         </div>
-
-        <!-- Concrete -->
-        <div class="sub-panel" id="wc-concrete">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="wc-con-len">Length (m)</label>
-              <input type="number" id="wc-con-len" value="5" step="0.1" min="0">
-            </div>
-            <div class="form-group">
-              <label for="wc-con-wid">Width (m)</label>
-              <input type="number" id="wc-con-wid" value="0.3" step="0.01" min="0">
-            </div>
-            <div class="form-group">
-              <label for="wc-con-dep">Depth (m)</label>
-              <input type="number" id="wc-con-dep" value="0.5" step="0.01" min="0">
-            </div>
-          </div>
-          <div class="tool-result-box" id="wc-con-result">—</div>
-          <p class="hint">Reinforced concrete density = 2,400 kg/m³.</p>
-        </div>
-
-        <!-- Rebar -->
-        <div class="sub-panel" id="wc-rebar">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="wc-rb-dia">Diameter (mm)</label>
-              <select id="wc-rb-dia">
-                <option value="6">6</option>
-                <option value="8">8</option>
-                <option value="10">10</option>
-                <option value="12" selected>12</option>
-                <option value="16">16</option>
-                <option value="20">20</option>
-                <option value="25">25</option>
-                <option value="32">32</option>
-                <option value="40">40</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="wc-rb-len">Length per bar (m)</label>
-              <input type="number" id="wc-rb-len" value="6" step="0.1" min="0">
-            </div>
-            <div class="form-group">
-              <label for="wc-rb-cnt">Count</label>
-              <input type="number" id="wc-rb-cnt" value="10" step="1" min="1">
-            </div>
-          </div>
-          <div class="tool-result-box" id="wc-rb-result">—</div>
-          <p class="hint">Using density = 7,850 kg/m³ and circular cross-section.</p>
-        </div>
-
       </div>
-    </div>
 
-    <!-- ══════════════════════════════════════════════════════════
-         PANEL 3: SECTION PROPERTIES
-    ══════════════════════════════════════════════════════════ -->
-    <div class="tool-panel" id="panel-section-props">
-      <div class="tool-card">
-        <h2>📐 Section Properties Calculator</h2>
-        <p class="hint" style="margin-bottom:16px;">All dimensions in mm. Outputs: A (mm²), I (mm⁴), Z (mm³), r (mm).</p>
+    </div><!-- /page-body -->
+  </div><!-- /page-content -->
+</div><!-- /app-shell -->
 
-        <div class="shape-selector" id="shape-selector">
-          <button class="shape-btn active" data-shape="rectangle">Rectangle</button>
-          <button class="shape-btn" data-shape="circle">Circle</button>
-          <button class="shape-btn" data-shape="hollow_rectangle">Hollow Rectangle (RHS)</button>
-          <button class="shape-btn" data-shape="hollow_circle">Hollow Circle (CHS)</button>
-          <button class="shape-btn" data-shape="I_section">I-Section</button>
-          <button class="shape-btn" data-shape="T_section">T-Section</button>
-          <button class="shape-btn" data-shape="angle">Angle</button>
-        </div>
-
-        <!-- Rectangle -->
-        <div class="shape-inputs active" id="si-rectangle">
-          <div class="dim-group"><label>b — Width (mm)</label><input type="number" class="sp-dim" id="sp-rect-b" value="200" min="0" step="1"></div>
-          <div class="dim-group"><label>d — Depth (mm)</label><input type="number" class="sp-dim" id="sp-rect-d" value="400" min="0" step="1"></div>
-        </div>
-
-        <!-- Circle -->
-        <div class="shape-inputs" id="si-circle">
-          <div class="dim-group"><label>d — Diameter (mm)</label><input type="number" class="sp-dim" id="sp-circ-d" value="200" min="0" step="1"></div>
-        </div>
-
-        <!-- Hollow Rectangle (RHS) -->
-        <div class="shape-inputs" id="si-hollow_rectangle">
-          <div class="dim-group"><label>B — Width (mm)</label><input type="number" class="sp-dim" id="sp-rhs-b" value="150" min="0" step="1"></div>
-          <div class="dim-group"><label>D — Depth (mm)</label><input type="number" class="sp-dim" id="sp-rhs-d" value="250" min="0" step="1"></div>
-          <div class="dim-group"><label>t — Thickness (mm)</label><input type="number" class="sp-dim" id="sp-rhs-t" value="8" min="0" step="0.5"></div>
-        </div>
-
-        <!-- Hollow Circle (CHS) -->
-        <div class="shape-inputs" id="si-hollow_circle">
-          <div class="dim-group"><label>D — Outer Dia (mm)</label><input type="number" class="sp-dim" id="sp-chs-D" value="200" min="0" step="1"></div>
-          <div class="dim-group"><label>t — Thickness (mm)</label><input type="number" class="sp-dim" id="sp-chs-t" value="8" min="0" step="0.5"></div>
-        </div>
-
-        <!-- I-Section -->
-        <div class="shape-inputs" id="si-I_section">
-          <div class="dim-group"><label>bf — Flange width (mm)</label><input type="number" class="sp-dim" id="sp-is-bf" value="150" min="0" step="1"></div>
-          <div class="dim-group"><label>tf — Flange thk (mm)</label><input type="number" class="sp-dim" id="sp-is-tf" value="12" min="0" step="0.5"></div>
-          <div class="dim-group"><label>hw — Web height (mm)</label><input type="number" class="sp-dim" id="sp-is-hw" value="276" min="0" step="1"></div>
-          <div class="dim-group"><label>tw — Web thk (mm)</label><input type="number" class="sp-dim" id="sp-is-tw" value="8" min="0" step="0.5"></div>
-        </div>
-
-        <!-- T-Section -->
-        <div class="shape-inputs" id="si-T_section">
-          <div class="dim-group"><label>bf — Flange width (mm)</label><input type="number" class="sp-dim" id="sp-ts-bf" value="200" min="0" step="1"></div>
-          <div class="dim-group"><label>tf — Flange thk (mm)</label><input type="number" class="sp-dim" id="sp-ts-tf" value="15" min="0" step="0.5"></div>
-          <div class="dim-group"><label>hw — Web height (mm)</label><input type="number" class="sp-dim" id="sp-ts-hw" value="185" min="0" step="1"></div>
-          <div class="dim-group"><label>tw — Web thk (mm)</label><input type="number" class="sp-dim" id="sp-ts-tw" value="10" min="0" step="0.5"></div>
-        </div>
-
-        <!-- Angle -->
-        <div class="shape-inputs" id="si-angle">
-          <div class="dim-group"><label>b — Horizontal leg (mm)</label><input type="number" class="sp-dim" id="sp-ang-b" value="100" min="0" step="1"></div>
-          <div class="dim-group"><label>d — Vertical leg (mm)</label><input type="number" class="sp-dim" id="sp-ang-d" value="100" min="0" step="1"></div>
-          <div class="dim-group"><label>t — Thickness (mm)</label><input type="number" class="sp-dim" id="sp-ang-t" value="10" min="0" step="0.5"></div>
-        </div>
-
-        <div id="sp-results-wrap" style="margin-top:20px;"></div>
-      </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════
-         PANEL 4: LOAD COMBINATIONS
-    ══════════════════════════════════════════════════════════ -->
-    <div class="tool-panel" id="panel-load-combos">
-      <div class="tool-card">
-        <h2>📊 Load Combinations</h2>
-
-        <div class="standard-toggle">
-          <button class="std-btn active" id="lc-std-ec" data-std="EC">Eurocode EN 1990</button>
-          <button class="std-btn" id="lc-std-aci" data-std="ACI">ACI 318</button>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="lc-gk">G<sub>k</sub> — Dead / Permanent (kN/m or kN/m²)</label>
-            <input type="number" id="lc-gk" value="10" step="0.1" min="0">
-          </div>
-          <div class="form-group">
-            <label for="lc-qk">Q<sub>k</sub> — Imposed / Live (kN/m or kN/m²)</label>
-            <input type="number" id="lc-qk" value="5" step="0.1" min="0">
-          </div>
-          <div class="form-group">
-            <label for="lc-wk">W<sub>k</sub> — Wind (kN/m or kN/m²)</label>
-            <input type="number" id="lc-wk" value="3" step="0.1" min="0">
-          </div>
-          <div class="form-group">
-            <label for="lc-sk">S<sub>k</sub> — Snow (kN/m or kN/m²)</label>
-            <input type="number" id="lc-sk" value="1.5" step="0.1" min="0">
-          </div>
-        </div>
-
-        <div id="lc-results"></div>
-      </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════
-         PANEL 5: WIND LOAD
-    ══════════════════════════════════════════════════════════ -->
-    <div class="tool-panel" id="panel-wind-load">
-      <div class="tool-card">
-        <h2>💨 Wind Load Calculator (EC1)</h2>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="wl-vb">Basic Wind Speed v<sub>b</sub> (m/s)</label>
-            <input type="number" id="wl-vb" value="27" step="0.5" min="0">
-          </div>
-          <div class="form-group">
-            <label for="wl-z">Reference Height z (m)</label>
-            <input type="number" id="wl-z" value="10" step="0.5" min="0.1">
-          </div>
-          <div class="form-group">
-            <label for="wl-terrain">Terrain Category</label>
-            <select id="wl-terrain">
-              <option value="0">0 — Sea, coastal (&lt; 1 km)</option>
-              <option value="I">I — Lakes, flat open country</option>
-              <option value="II" selected>II — Low vegetation (default)</option>
-              <option value="III">III — Regular cover, woodland</option>
-              <option value="IV">IV — Urban, at least 15% cover</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="wl-struct">Structure Type</label>
-            <select id="wl-struct">
-              <option value="wall">Vertical Wall</option>
-              <option value="roof_flat">Flat Roof</option>
-              <option value="roof_pitch">Pitched Roof</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="wl-cpe">C<sub>pe</sub> — External Pressure Coeff.</label>
-            <input type="number" id="wl-cpe" value="0.8" step="0.05">
-          </div>
-          <div class="form-group">
-            <label for="wl-cpi">C<sub>pi</sub> — Internal Pressure Coeff.</label>
-            <input type="number" id="wl-cpi" value="-0.3" step="0.05">
-          </div>
-          <div class="form-group">
-            <label for="wl-rho">Air Density ρ (kg/m³)</label>
-            <input type="number" id="wl-rho" value="1.25" step="0.01">
-          </div>
-        </div>
-
-        <div id="wl-results" class="wind-results"></div>
-        <p class="hint" style="margin-top:12px;">Based on EN 1991-1-4. w<sub>e</sub> = q<sub>b</sub> × c<sub>e</sub> × (c<sub>pe</sub> + c<sub>pi</sub>).</p>
-      </div>
-    </div>
-
-  </main>
-
-</div><!-- .page-wrap -->
-
-<!-- ── Scripts ── -->
+<!-- Scripts — ALL ABSOLUTE PATHS -->
 <script src="/js/auth/auth.js"></script>
 <script src="/js/projects/projects.js"></script>
 <script src="/js/projects/history.js"></script>
 <script src="/js/subscription/plans.js"></script>
 <script src="/js/subscription/upgrade-modal.js"></script>
-<script src="/js/ui/navDropdown.js"></script>
+<script src="/js/ui/sidebar.js"></script>
+<script src="/js/ui/cmdPalette.js"></script>
 <script src="/js/data/steelSections.js"></script>
 <script src="/js/tools/unitConverter.js"></script>
 <script src="/js/tools/weightCalcs.js"></script>
@@ -525,13 +508,9 @@
 // Auth guard & bootstrap
 // ════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+  Sidebar.init();
   const user = Auth.getUser();
   if (!user) { window.location.href = '/login.html'; return; }
-  document.getElementById('nav-logout-btn').addEventListener('click', () => {
-    Auth.logout();
-    window.location.href = '/login.html';
-  });
-  if (typeof NavDropdown !== 'undefined') NavDropdown.init('nav-more-container');
   initTools();
 });
 

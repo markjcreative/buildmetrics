@@ -70,7 +70,6 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-page);
   color: var(--text-primary);
-  min-height: 100vh;
   font-size: 13.5px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -123,53 +122,7 @@ h3 {
   min-height: 100vh;
 }
 
-/* ─── Navbar ─────────────────────────────────────────────── */
-#navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(250, 250, 250, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 32px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-
-.nav-logo {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.nav-title {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.4px;
-}
-
-.nav-subtitle {
-  font-size: 0.67rem;
-  color: var(--text-muted);
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-}
-
+/* ─── Navbar (legacy — kept for reference; replaced by sidebar) */
 .nav-divider {
   width: 1px;
   height: 20px;
@@ -185,10 +138,6 @@ h3 {
   border-radius: 20px;
   padding: 2px 8px;
   letter-spacing: 0.2px;
-}
-
-.nav-spacer {
-  flex: 1;
 }
 
 .nav-actions {
@@ -280,7 +229,7 @@ h3 {
 #main-container {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - 60px);
+  overflow: hidden;
 }
 
 /* ─── Input Panel ─────────────────────────────────────────── */
@@ -1243,14 +1192,7 @@ h3 {
     justify-content: center;
   }
 
-  #navbar {
-    padding: 0 16px;
-    height: 56px;
-  }
 
-  .nav-subtitle {
-    display: none;
-  }
 }
 
 /* ─── Toast Notifications ────────────────────────────────── */
