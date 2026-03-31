@@ -118,7 +118,7 @@
         <button class="btn btn-secondary" id="po-delete-btn" style="justify-content:flex-start;color:var(--red);border-color:var(--red)">🗑 Delete project and all calculations</button>
       </div>
       <div style="margin-top:12px;text-align:right">
-        <button class="btn btn-ghost" onclick="document.getElementById('modal-project-options').style.display='none'">Cancel</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-project-options').classList.remove('open')">Cancel</button>
       </div>
     </div>
   </div>
@@ -179,7 +179,7 @@
       if (e.target === this) closeNewProjectModal();
     });
     document.getElementById('modal-project-options').addEventListener('click', function(e) {
-      if (e.target === this) this.style.display = 'none';
+      if (e.target === this) this.classList.remove('open');
     });
   });
 
@@ -329,12 +329,12 @@
   function openNewProjectModal() {
     document.getElementById('np-name').value = '';
     document.getElementById('np-desc').value = '';
-    document.getElementById('modal-new-project').style.display = 'flex';
+    document.getElementById('modal-new-project').classList.add('open');
     setTimeout(function() { document.getElementById('np-name').focus(); }, 50);
   }
 
   function closeNewProjectModal() {
-    document.getElementById('modal-new-project').style.display = 'none';
+    document.getElementById('modal-new-project').classList.remove('open');
   }
 
   function createProject() {
@@ -357,7 +357,7 @@
     document.getElementById('po-title').textContent = projectName;
 
     document.getElementById('po-rename-btn').onclick = function() {
-      document.getElementById('modal-project-options').style.display = 'none';
+      document.getElementById('modal-project-options').classList.remove('open');
       const newName = prompt('Rename project:', projectName);
       if (newName && newName.trim()) {
         Projects.update(projectId, { name: newName.trim() });
@@ -366,7 +366,7 @@
     };
 
     document.getElementById('po-delete-btn').onclick = function() {
-      document.getElementById('modal-project-options').style.display = 'none';
+      document.getElementById('modal-project-options').classList.remove('open');
       if (confirm('Delete "' + projectName + '" and all its calculations? This cannot be undone.')) {
         History.deleteByProject(projectId);
         Projects.remove(projectId);
@@ -374,7 +374,7 @@
       }
     };
 
-    document.getElementById('modal-project-options').style.display = 'flex';
+    document.getElementById('modal-project-options').classList.add('open');
   }
 
   // ── Helpers ──────────────────────────────────────────────────

@@ -55,6 +55,7 @@ const Projects = (() => {
         if (all[idx].ownerId !== _userId()) throw new Error('Not authorized.');
         if (updates.name !== undefined) all[idx].name = updates.name.trim();
         if (updates.description !== undefined) all[idx].description = updates.description.trim();
+        if (updates.color !== undefined) all[idx].color = updates.color;
         all[idx].updatedAt = new Date().toISOString();
         _save(all);
         return all[idx];
