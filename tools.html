@@ -13,8 +13,8 @@
   <style>
     .page-body { max-width: 1100px; margin: 0 auto; padding: 32px 24px; flex: 1; width: 100%; box-sizing: border-box; }
 
-    .tools-header { margin-bottom: 32px; }
-    .tools-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
+    .tools-header { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .tools-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
     .tools-header p { font-size: 0.88rem; color: var(--text-secondary); margin: 0; }
 
     /* ── Top-level tab bar ── */
@@ -28,16 +28,20 @@
     .tool-panel.active { display: block; }
 
     /* ── Tool card ── */
-    .tool-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 24px; }
-    .tool-card h2 { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 20px; display: flex; align-items: center; gap: 8px; }
+    .tool-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; }
+    .tool-card h2 { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+    .tool-card .card-desc { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 24px; }
 
     /* ── Form elements ── */
-    .form-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 140px; }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px 20px; margin-bottom: 20px; align-items: start; }
+    .form-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .form-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .form-row.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
     .form-group input, .form-group select {
-      padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius);
-      font-size: 0.85rem; font-family: 'Inter', sans-serif; color: var(--text-primary);
+      padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 0.875rem; font-family: 'Inter', sans-serif; color: var(--text-primary);
       background: var(--bg-surface); outline: none; transition: border-color 0.15s, box-shadow 0.15s;
       width: 100%; box-sizing: border-box;
     }
@@ -45,11 +49,13 @@
 
     /* ── Result box ── */
     .tool-result-box {
-      background: var(--bg-page); border: 2px solid var(--accent); border-radius: 8px;
-      padding: 16px 20px; font-size: 1.5rem; font-weight: 700; color: var(--accent);
-      margin: 16px 0; font-family: 'JetBrains Mono', monospace; min-height: 56px;
+      background: linear-gradient(135deg, #EFF6FF 0%, #F0F9FF 100%);
+      border: 2px solid var(--accent); border-radius: 10px;
+      padding: 20px 24px; font-size: 1.75rem; font-weight: 700; color: var(--accent);
+      margin: 20px 0 8px; font-family: 'JetBrains Mono', monospace; min-height: 64px;
+      text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .tool-result-box .result-unit { font-size: 0.95rem; font-weight: 500; color: var(--text-secondary); margin-left: 8px; }
+    .tool-result-box .result-unit { font-size: 1rem; font-weight: 500; color: var(--text-secondary); }
     .tool-result-box.placeholder { color: var(--text-muted); font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; }
 
     /* ── Sub-tabs ── */
@@ -61,8 +67,13 @@
     .sub-panel.active { display: block; }
 
     /* ── Swap button ── */
-    .btn-swap { padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-surface); color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.15s; align-self: flex-end; white-space: nowrap; }
+    .btn-swap { padding: 9px 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-surface); color: var(--text-secondary); cursor: pointer; font-size: 0.85rem; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.15s; white-space: nowrap; width: 100%; }
     .btn-swap:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+    /* ── Converter layout ── */
+    .uc-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: end; margin-bottom: 20px; }
+    .uc-swap-col { display: flex; flex-direction: column; gap: 6px; }
+    .uc-swap-col label { font-size: 0.78rem; font-weight: 600; color: transparent; user-select: none; }
+    @media (max-width: 600px) { .uc-grid { grid-template-columns: 1fr; } }
 
     /* ── Quick-ref table ── */
     .qr-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 8px; }
@@ -102,10 +113,10 @@
 
     /* ── Dimension inputs per shape ── */
     .shape-inputs { display: none; }
-    .shape-inputs.active { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-    .dim-group { display: flex; flex-direction: column; gap: 4px; min-width: 100px; }
-    .dim-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
-    .dim-group input { padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; color: var(--text-primary); background: var(--bg-surface); outline: none; width: 110px; box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; }
+    .shape-inputs.active { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px 16px; margin-bottom: 20px; }
+    .dim-group { display: flex; flex-direction: column; gap: 5px; }
+    .dim-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
+    .dim-group input { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.875rem; font-family: 'JetBrains Mono', monospace; color: var(--text-primary); background: var(--bg-surface); outline: none; width: 100%; box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; }
     .dim-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
 
     /* ── Info/hint ── */
@@ -115,8 +126,9 @@
     @media (max-width: 768px) {
       .page-body { padding: 20px 16px; }
       .tool-card { padding: 18px; }
-      .form-row { flex-direction: column; }
-      .form-group { min-width: auto; }
+      .form-row, .form-row.cols-2, .form-row.cols-3, .form-row.cols-4 { grid-template-columns: 1fr; }
+      .uc-grid { grid-template-columns: 1fr; }
+      .shape-inputs.active { grid-template-columns: 1fr 1fr; }
       .wind-results { grid-template-columns: 1fr 1fr; }
     }
   </style>
@@ -149,27 +161,28 @@
         <div class="tool-panel active" id="panel-unit-converter">
           <div class="tool-card">
             <h2>⇄ Unit Converter</h2>
-            <div class="form-row">
-              <div class="form-group" style="max-width:200px;">
+            <p class="card-desc">Convert between length, force, moment, pressure, mass and more.</p>
+            <div class="form-row cols-2" style="margin-bottom:20px;">
+              <div class="form-group">
                 <label for="uc-category">Category</label>
                 <select id="uc-category"></select>
               </div>
-            </div>
-            <div class="form-row" style="align-items:flex-end;">
               <div class="form-group">
-                <label for="uc-value">Value</label>
+                <label for="uc-value">Value to Convert</label>
                 <input type="number" id="uc-value" value="1" step="any">
               </div>
+            </div>
+            <div class="uc-grid">
               <div class="form-group">
-                <label for="uc-from">From</label>
+                <label for="uc-from">From Unit</label>
                 <select id="uc-from"></select>
               </div>
-              <div class="form-group" style="flex:0;min-width:auto;">
-                <label>&nbsp;</label>
-                <button class="btn-swap" id="uc-swap">Swap ⇄</button>
+              <div class="uc-swap-col">
+                <label>​</label>
+                <button class="btn-swap" id="uc-swap">⇄ Swap</button>
               </div>
               <div class="form-group">
-                <label for="uc-to">To</label>
+                <label for="uc-to">To Unit</label>
                 <select id="uc-to"></select>
               </div>
             </div>
@@ -179,6 +192,7 @@
 
           <div class="tool-card">
             <h2>📋 Common Conversions Quick Reference</h2>
+            <p class="card-desc">Frequently used engineering conversion factors at a glance.</p>
             <table class="qr-table">
               <thead>
                 <tr><th>From</th><th>To</th><th>Factor</th><th>Notes</th></tr>
@@ -209,7 +223,7 @@
         <div class="tool-panel" id="panel-weight-calc">
           <div class="tool-card">
             <h2>⚖️ Weight Calculator</h2>
-
+            <p class="card-desc">Calculate self-weight of steel sections, plates, concrete members and rebar.</p>
             <div class="sub-tabs" id="wc-sub-tabs">
               <button class="sub-tab active" data-wpanel="wc-steel-section">Steel Section</button>
               <button class="sub-tab" data-wpanel="wc-steel-plate">Steel Plate</button>
@@ -219,7 +233,7 @@
 
             <!-- Steel Section -->
             <div class="sub-panel active" id="wc-steel-section">
-              <div class="form-row">
+              <div class="form-row cols-3">
                 <div class="form-group">
                   <label for="wc-sec-type">Section Type</label>
                   <select id="wc-sec-type">
@@ -245,7 +259,7 @@
 
             <!-- Steel Plate -->
             <div class="sub-panel" id="wc-steel-plate">
-              <div class="form-row">
+              <div class="form-row cols-3">
                 <div class="form-group">
                   <label for="wc-pl-len">Length (m)</label>
                   <input type="number" id="wc-pl-len" value="1" step="0.01" min="0">
@@ -264,7 +278,7 @@
 
             <!-- Concrete -->
             <div class="sub-panel" id="wc-concrete">
-              <div class="form-row">
+              <div class="form-row cols-3">
                 <div class="form-group">
                   <label for="wc-con-len">Length (m)</label>
                   <input type="number" id="wc-con-len" value="5" step="0.1" min="0">
@@ -284,7 +298,7 @@
 
             <!-- Rebar -->
             <div class="sub-panel" id="wc-rebar">
-              <div class="form-row">
+              <div class="form-row cols-3">
                 <div class="form-group">
                   <label for="wc-rb-dia">Diameter (mm)</label>
                   <select id="wc-rb-dia">
@@ -321,7 +335,7 @@
         <div class="tool-panel" id="panel-section-props">
           <div class="tool-card">
             <h2>📐 Section Properties Calculator</h2>
-            <p class="hint" style="margin-bottom:16px;">All dimensions in mm. Outputs: A (mm²), I (mm⁴), Z (mm³), r (mm).</p>
+            <p class="card-desc">Compute A, I<sub>xx</sub>, Z<sub>xx</sub>, r<sub>xx</sub> for common cross-section shapes. All dimensions in mm.</p>
 
             <div class="shape-selector" id="shape-selector">
               <button class="shape-btn active" data-shape="rectangle">Rectangle</button>
@@ -390,13 +404,13 @@
         <div class="tool-panel" id="panel-load-combos">
           <div class="tool-card">
             <h2>📊 Load Combinations</h2>
-
+            <p class="card-desc">Generate ULS and SLS design combinations per Eurocode EN 1990 or ACI 318.</p>
             <div class="standard-toggle">
               <button class="std-btn active" id="lc-std-ec" data-std="EC">Eurocode EN 1990</button>
               <button class="std-btn" id="lc-std-aci" data-std="ACI">ACI 318</button>
             </div>
 
-            <div class="form-row">
+            <div class="form-row cols-2">
               <div class="form-group">
                 <label for="lc-gk">G<sub>k</sub> — Dead / Permanent (kN/m or kN/m²)</label>
                 <input type="number" id="lc-gk" value="10" step="0.1" min="0">
@@ -425,8 +439,8 @@
         <div class="tool-panel" id="panel-wind-load">
           <div class="tool-card">
             <h2>💨 Wind Load Calculator (EC1)</h2>
-
-            <div class="form-row">
+            <p class="card-desc">Basic wind pressure and net design pressure per EN 1991-1-4.</p>
+            <div class="form-row cols-3">
               <div class="form-group">
                 <label for="wl-vb">Basic Wind Speed v<sub>b</sub> (m/s)</label>
                 <input type="number" id="wl-vb" value="27" step="0.5" min="0">
@@ -447,7 +461,7 @@
               </div>
             </div>
 
-            <div class="form-row">
+            <div class="form-row cols-4">
               <div class="form-group">
                 <label for="wl-struct">Structure Type</label>
                 <select id="wl-struct">
