@@ -394,8 +394,8 @@ body {
   border-radius: 14px;
   margin-bottom: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
-  overflow: hidden;
   transition: box-shadow 0.15s;
+  position: relative;
 }
 
 .project-card:hover {
@@ -454,21 +454,27 @@ body {
 }
 
 .add-calc-menu {
-  display: none;
   position: absolute;
   right: 0;
   top: calc(100% + 6px);
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 10px;
-  min-width: 180px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04);
-  z-index: 50;
+  min-width: 196px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04);
+  z-index: 500;
   overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px) scale(0.97);
+  transform-origin: top right;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 .add-calc-menu.open {
-  display: block;
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0) scale(1);
 }
 
 .add-calc-item {
@@ -497,6 +503,8 @@ body {
 /* Calc rows inside project cards */
 .calc-rows {
   padding: 6px 0;
+  border-radius: 0 0 14px 14px;
+  overflow: hidden;
 }
 
 .calc-row {
