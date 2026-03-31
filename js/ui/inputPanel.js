@@ -512,7 +512,12 @@ function loadSession() {
     updateBeamPreview();
 }
 
-window.InputPanel = { initInputPanel, getBeamConfig, runCalculation, updateBeamPreview };
+function isImperial() {
+    const toggle = document.getElementById('unit-toggle');
+    return toggle ? toggle.checked : false;
+}
+
+window.InputPanel = { initInputPanel, getBeamConfig, runCalculation, updateBeamPreview, isImperial };
 window.onLoadTypeChange = onLoadTypeChange;
 window.removeRow = removeRow;
 window.addSupportRow = addSupportRow;
