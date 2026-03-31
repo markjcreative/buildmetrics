@@ -1,0 +1,670 @@
+/* ══════════════════════════════════════════════════════════════
+   BuildMetrics — App Layout System
+   Clean top-header + open content layout. Mobile-first.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─── Reset for app layout ───────────────────────────────── */
+html, body {
+  height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* ─── App Wrapper ────────────────────────────────────────── */
+#app-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ─── Header ─────────────────────────────────────────────── */
+#app-header {
+  height: 56px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Logo */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.header-logo-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+/* Main nav links */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.header-nav a {
+  padding: 6px 11px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.header-nav a:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.header-nav a.hn-active {
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+/* Right section */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.12s;
+  cursor: pointer;
+}
+
+.header-user:hover {
+  background: var(--bg-subtle);
+}
+
+.header-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.header-user-name {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.header-signout {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+
+.header-signout:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  background: var(--bg-subtle);
+}
+
+/* Mobile menu button */
+.header-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  padding: 6px;
+  border-radius: 6px;
+  line-height: 0;
+  transition: background 0.12s;
+}
+
+.header-menu-btn:hover {
+  background: var(--bg-subtle);
+}
+
+/* ─── Mobile Drawer ──────────────────────────────────────── */
+#mobile-drawer {
+  display: none;
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px 14px;
+  z-index: 99;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+#mobile-drawer.open {
+  display: block;
+}
+
+#mobile-drawer a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: background 0.12s;
+}
+
+#mobile-drawer a:hover {
+  background: var(--bg-subtle);
+}
+
+#mobile-drawer .drawer-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+
+/* ─── Main Content ───────────────────────────────────────── */
+#app-main {
+  flex: 1;
+}
+
+/* Standard centered container */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 48px;
+  width: 100%;
+}
+
+/* Calc pages — full height, no scroll on outer, side-by-side panels */
+#app-main.calc-layout {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+}
+
+.calc-breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 40px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.calc-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.calc-breadcrumb a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.1s;
+}
+
+.calc-breadcrumb a:hover {
+  color: var(--accent);
+}
+
+.calc-breadcrumb .bc-sep {
+  color: var(--border-strong);
+  font-size: 0.7rem;
+}
+
+.calc-breadcrumb .bc-current {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.calc-panels {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ─── Dashboard Styles ───────────────────────────────────── */
+.dash-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0 20px;
+  gap: 16px;
+}
+
+.dash-greeting {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.dash-sub-line {
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Calc strip */
+.calc-strip-wrap {
+  margin-bottom: 28px;
+}
+
+.calc-strip-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.calc-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.calc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.calc-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.chip-beam      { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
+.chip-beam:hover { background: #DBEAFE; }
+.chip-column    { background: #FFFBEB; color: #D97706; border-color: #FDE68A; }
+.chip-column:hover { background: #FEF3C7; }
+.chip-slab      { background: #F0FDF4; color: #16A34A; border-color: #BBF7D0; }
+.chip-slab:hover { background: #DCFCE7; }
+.chip-footing   { background: #F5F3FF; color: #7C3AED; border-color: #DDD6FE; }
+.chip-footing:hover { background: #EDE9FE; }
+.chip-wall      { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
+.chip-wall:hover { background: #FEE2E2; }
+.chip-conn      { background: #ECFEFF; color: #0891B2; border-color: #A5F3FC; }
+.chip-conn:hover { background: #CFFAFE; }
+.chip-tools     { background: var(--bg-subtle); color: var(--text-secondary); border-color: var(--border); }
+.chip-tools:hover { background: var(--bg-muted); color: var(--text-primary); }
+.chip-standards { background: var(--bg-subtle); color: var(--text-secondary); border-color: var(--border); }
+.chip-standards:hover { background: var(--bg-muted); color: var(--text-primary); }
+
+.calc-strip-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* Section header row */
+.section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.section-row h2 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.section-row a {
+  font-size: 0.78rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.section-row a:hover {
+  text-decoration: underline;
+}
+
+/* Project cards */
+.project-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+
+.project-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 8px 24px rgba(0,0,0,0.05);
+}
+
+.project-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.project-head-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.project-color-bar {
+  width: 4px;
+  height: 36px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.project-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-meta-line {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.project-head-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Add Calculation dropdown on project card */
+.add-calc-wrap {
+  position: relative;
+}
+
+.add-calc-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.add-calc-menu.open {
+  display: block;
+}
+
+.add-calc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  font-size: 0.81rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background 0.1s;
+}
+
+.add-calc-item:hover {
+  background: var(--bg-subtle);
+}
+
+.add-calc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Calc rows inside project cards */
+.calc-rows {
+  padding: 6px 0;
+}
+
+.calc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  text-decoration: none;
+  transition: background 0.1s;
+  min-width: 0;
+}
+
+.calc-row:hover {
+  background: var(--bg-page);
+}
+
+.calc-type-pill {
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.calc-row-name {
+  flex: 1;
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.calc-row-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.status-pass { color: var(--green); }
+.status-fail { color: var(--red); }
+
+.calc-row-time {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  min-width: 48px;
+  text-align: right;
+}
+
+/* View all link inside card */
+.calc-view-all {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  font-size: 0.78rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  border-top: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+.calc-view-all:hover {
+  background: var(--accent-light);
+}
+
+/* Empty calc state inside project */
+.calc-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.calc-empty-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.calc-empty-link:hover {
+  text-decoration: underline;
+}
+
+/* Dashboard empty state (no projects) */
+.dash-empty {
+  text-align: center;
+  padding: 64px 20px;
+  background: #fff;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 16px;
+  margin-top: 8px;
+}
+
+.dash-empty-icon {
+  margin-bottom: 16px;
+  color: var(--text-muted);
+}
+
+.dash-empty h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.dash-empty p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+/* Page header for inner pages */
+.page-head {
+  padding: 24px 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-head h1 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.4px;
+}
+
+.page-head-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .header-nav { display: none; }
+  .header-menu-btn { display: flex; align-items: center; justify-content: center; }
+  .header-user-name { display: none; }
+  .header-signout { display: none; }
+
+  .dash-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px 0 16px;
+  }
+
+  .dash-hero .btn-primary { width: 100%; justify-content: center; }
+
+  .calc-strip { gap: 6px; }
+  .calc-chip { font-size: 0.75rem; padding: 6px 11px; }
+
+  .project-card-head { flex-wrap: wrap; gap: 10px; }
+  .project-head-right { width: 100%; justify-content: flex-end; }
+
+  .calc-row { padding: 10px 14px; }
+
+  .app-container { padding: 0 14px 32px; }
+
+  #app-main.calc-layout { height: calc(100vh - 56px); }
+}
+
+@media (max-width: 480px) {
+  .calc-strip-sep { display: none; }
+}

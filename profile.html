@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/sidebar.css" />
+    <link rel="stylesheet" href="/css/app.css" />
     <style>
         .page-body {
             padding: 40px;
@@ -470,93 +470,84 @@
 </head>
 
 <body>
-    <div id="app-shell">
-        <aside id="sidebar"></aside>
-        <div id="page-content">
-            <div class="topbar">
-                <div class="topbar-left">
-                    <div class="topbar-title">Profile</div>
-                </div>
-                <div class="topbar-actions">
-                    <button class="btn btn-ghost" onclick="Auth.logout();window.location.href='/login.html'">Sign Out</button>
-                    <div class="topbar-kbd" onclick="if(window.CmdPalette) CmdPalette.open()">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                        <kbd>⌘K</kbd>
+    <div id="app-wrap">
+        <header id="app-header"></header>
+        <!-- topNav.js injects #mobile-drawer -->
+        <main id="app-main">
+            <div class="app-container">
+                <div class="page-body">
+
+                    <!-- Hero -->
+                    <div class="profile-hero">
+                        <div class="avatar" id="avatar-initials">?</div>
+                        <div class="profile-hero-info">
+                            <div class="name" id="hero-name">—</div>
+                            <div class="email" id="hero-email">—</div>
+                            <div class="role" id="hero-role">—</div>
+                        </div>
                     </div>
+
+                    <!-- Subscription & Billing Section -->
+                    <div class="profile-section" id="sub-section">
+                        <div class="section-title">Subscription &amp; Billing</div>
+                        <div class="alert" id="sub-cancel-alert"></div>
+                        <div class="sub-plan-row">
+                            <div id="sub-plan-badge" class="plan-badge free">Free Plan</div>
+                            <div id="sub-cta"></div>
+                        </div>
+                        <div id="sub-meta-area"></div>
+                        <div id="sub-billing-area"></div>
+                    </div>
+
+                    <!-- Profile Details -->
+                    <div class="profile-section">
+                        <div class="section-title">Personal Information</div>
+                        <div class="alert" id="profile-alert"></div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="prof-name">Full Name</label>
+                                <input type="text" id="prof-name" placeholder="e.g. James Smith" />
+                            </div>
+                            <div class="form-group">
+                                <label for="prof-designation">Designation</label>
+                                <input type="text" id="prof-designation" placeholder="e.g. B.Eng (Structural)" />
+                            </div>
+                            <div class="form-group full">
+                                <label for="prof-company">Company / Firm</label>
+                                <input type="text" id="prof-company" placeholder="e.g. Smith &amp; Associates Engineers" />
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="saveProfile()">Save Changes →</button>
+                        </div>
+                    </div>
+
+                    <!-- Reset Password -->
+                    <div class="profile-section">
+                        <div class="section-title">Change Password</div>
+                        <div class="alert" id="pw-alert"></div>
+                        <div class="form-grid">
+                            <div class="form-group full">
+                                <label for="pw-current">Current Password</label>
+                                <input type="password" id="pw-current" placeholder="Enter your current password" />
+                            </div>
+                            <div class="form-group">
+                                <label for="pw-new">New Password</label>
+                                <input type="password" id="pw-new" placeholder="Min. 6 characters" />
+                            </div>
+                            <div class="form-group">
+                                <label for="pw-confirm">Confirm New Password</label>
+                                <input type="password" id="pw-confirm" placeholder="Repeat new password" />
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-secondary" onclick="changePassword()">Update Password</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-            <div class="page-body">
-
-                <!-- Hero -->
-                <div class="profile-hero">
-                    <div class="avatar" id="avatar-initials">?</div>
-                    <div class="profile-hero-info">
-                        <div class="name" id="hero-name">—</div>
-                        <div class="email" id="hero-email">—</div>
-                        <div class="role" id="hero-role">—</div>
-                    </div>
-                </div>
-
-                <!-- Subscription & Billing Section -->
-                <div class="profile-section" id="sub-section">
-                    <div class="section-title">Subscription &amp; Billing</div>
-                    <div class="alert" id="sub-cancel-alert"></div>
-                    <div class="sub-plan-row">
-                        <div id="sub-plan-badge" class="plan-badge free">Free Plan</div>
-                        <div id="sub-cta"></div>
-                    </div>
-                    <div id="sub-meta-area"></div>
-                    <div id="sub-billing-area"></div>
-                </div>
-
-                <!-- Profile Details -->
-                <div class="profile-section">
-                    <div class="section-title">Personal Information</div>
-                    <div class="alert" id="profile-alert"></div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="prof-name">Full Name</label>
-                            <input type="text" id="prof-name" placeholder="e.g. James Smith" />
-                        </div>
-                        <div class="form-group">
-                            <label for="prof-designation">Designation</label>
-                            <input type="text" id="prof-designation" placeholder="e.g. B.Eng (Structural)" />
-                        </div>
-                        <div class="form-group full">
-                            <label for="prof-company">Company / Firm</label>
-                            <input type="text" id="prof-company" placeholder="e.g. Smith & Associates Engineers" />
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-primary" onclick="saveProfile()">Save Changes →</button>
-                    </div>
-                </div>
-
-                <!-- Reset Password -->
-                <div class="profile-section">
-                    <div class="section-title">Change Password</div>
-                    <div class="alert" id="pw-alert"></div>
-                    <div class="form-grid">
-                        <div class="form-group full">
-                            <label for="pw-current">Current Password</label>
-                            <input type="password" id="pw-current" placeholder="Enter your current password" />
-                        </div>
-                        <div class="form-group">
-                            <label for="pw-new">New Password</label>
-                            <input type="password" id="pw-new" placeholder="Min. 6 characters" />
-                        </div>
-                        <div class="form-group">
-                            <label for="pw-confirm">Confirm New Password</label>
-                            <input type="password" id="pw-confirm" placeholder="Repeat new password" />
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-secondary" onclick="changePassword()">Update Password</button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+        </main>
     </div>
 
     <!-- Cancel Subscription Confirmation Dialog -->
@@ -580,17 +571,15 @@
         </div>
     </div>
 
-    <!-- Scripts — ALL ABSOLUTE PATHS -->
     <script src="/js/auth/auth.js"></script>
     <script src="/js/projects/projects.js"></script>
     <script src="/js/projects/history.js"></script>
     <script src="/js/subscription/plans.js"></script>
     <script src="/js/subscription/upgrade-modal.js"></script>
-    <script src="/js/ui/sidebar.js"></script>
-    <script src="/js/ui/cmdPalette.js"></script>
+    <script src="/js/ui/topNav.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            Sidebar.init();
+            TopNav.init();
 
             Auth.guard();
             const user = Auth.currentUser();

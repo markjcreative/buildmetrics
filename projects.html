@@ -9,62 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet" />
-  <script src="/js/auth/auth.js"></script>
-  <script src="/js/projects/history.js"></script>
-  <script src="/js/projects/projects.js"></script>
   <link rel="stylesheet" href="/css/main.css" />
-  <link rel="stylesheet" href="/css/sidebar.css" />
+  <link rel="stylesheet" href="/css/app.css" />
   <style>
-    /* ── Page body layout ── */
-    .page-body {
-      flex: 1;
-      padding: 36px 40px;
-      max-width: 1100px;
-      margin: 0 auto;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    /* ── Stats row ── */
-    .stats-row {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-
-    .stat-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 18px 24px;
-      flex: 1;
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .stat-value {
-      font-size: 1.75rem;
-      font-weight: 800;
-      color: var(--text-primary);
-      letter-spacing: -0.5px;
-      line-height: 1;
-    }
-
-    .stat-sub {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
     /* ── Projects grid ── */
     .projects-grid {
       display: grid;
@@ -312,46 +259,24 @@
 </head>
 
 <body>
-  <div id="app-shell">
+  <div id="app-wrap">
+    <header id="app-header"></header>
+    <!-- topNav.js injects #mobile-drawer into body -->
+    <main id="app-main">
+      <div class="app-container">
 
-    <aside id="sidebar"></aside>
-
-    <div id="page-content">
-
-      <!-- ════ TOPBAR ═════════════════════════════════════════════════════ -->
-      <div class="topbar">
-        <div class="topbar-left">
-          <div class="topbar-breadcrumb">
-            <span>Projects</span>
-          </div>
-        </div>
-        <div class="topbar-actions">
+        <!-- Page head -->
+        <div class="page-head">
+          <h1 class="page-title">Projects</h1>
           <button class="btn btn-primary" onclick="openCreateModal()" style="font-size:0.82rem; padding: 7px 16px;">＋ New Project</button>
-        </div>
-      </div>
-
-      <!-- ════ PAGE BODY ═══════════════════════════════════════════════════ -->
-      <div class="page-body">
-
-        <!-- Stats row -->
-        <div class="stats-row" id="stats-row" style="display:none;">
-          <div class="stat-card">
-            <div class="stat-label">Total Projects</div>
-            <div class="stat-value" id="stat-projects">0</div>
-            <div class="stat-sub">in your design register</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Total Calculations</div>
-            <div class="stat-value" id="stat-calcs">0</div>
-            <div class="stat-sub">saved across all projects</div>
-          </div>
         </div>
 
         <div id="projects-container">
           <!-- Rendered by JS -->
         </div>
+
       </div>
-    </div>
+    </main>
   </div>
 
   <!-- New/Edit Project Modal -->
@@ -375,8 +300,12 @@
     </div>
   </div>
 
-  <script src="/js/ui/sidebar.js"></script>
-  <script src="/js/ui/cmdPalette.js"></script>
+  <script src="/js/auth/auth.js"></script>
+  <script src="/js/projects/projects.js"></script>
+  <script src="/js/projects/history.js"></script>
+  <script src="/js/subscription/plans.js"></script>
+  <script src="/js/subscription/upgrade-modal.js"></script>
+  <script src="/js/ui/topNav.js"></script>
 
   <script>
     Auth.guard();
@@ -401,17 +330,6 @@
     function renderProjects() {
       const projects = Projects.list();
       const container = document.getElementById('projects-container');
-      const statsRow = document.getElementById('stats-row');
-
-      // Stats
-      if (projects.length > 0) {
-        statsRow.style.display = 'flex';
-        document.getElementById('stat-projects').textContent = projects.length;
-        const totalCalcs = projects.reduce((sum, p) => sum + History.count(p.id), 0);
-        document.getElementById('stat-calcs').textContent = totalCalcs;
-      } else {
-        statsRow.style.display = 'none';
-      }
 
       if (projects.length === 0) {
         container.innerHTML = `
@@ -548,7 +466,7 @@
     document.getElementById('create-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeCreateModal(); });
 
     document.addEventListener('DOMContentLoaded', () => {
-      Sidebar.init();
+      TopNav.init();
       renderProjects();
     });
   </script>

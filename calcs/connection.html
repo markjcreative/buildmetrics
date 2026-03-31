@@ -13,7 +13,7 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="/css/main.css" />
-  <link rel="stylesheet" href="/css/sidebar.css" />
+  <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/calcs.css" />
 
   <style>
@@ -72,32 +72,25 @@
 </head>
 
 <body>
-<div id="app-shell">
-  <aside id="sidebar"></aside>
-  <div id="page-content" style="display:flex;flex-direction:column;overflow:hidden">
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <!-- topNav.js injects #mobile-drawer into body -->
+  <main id="app-main" class="calc-layout">
 
-    <!-- Topbar with breadcrumb -->
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-breadcrumb">
-          <a href="/dashboard.html">Dashboard</a>
-          <span class="sep">›</span>
-          <span>Connection Design</span>
-        </div>
+    <!-- Breadcrumb bar -->
+    <div class="calc-breadcrumb-bar">
+      <div class="calc-breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Connection Design</span>
       </div>
-      <div class="topbar-actions">
-        <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
-          📁 <span id="calc-project-name">—</span>
-        </div>
-        <div class="topbar-kbd" onclick="if(window.CmdPalette) CmdPalette.open()">
-          <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <kbd>⌘K</kbd>
-        </div>
+      <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+        📁 <span id="calc-project-name">—</span>
       </div>
     </div>
 
-    <!-- Calc layout (full remaining height) -->
-    <div class="page-body-calc">
+    <!-- Calc panels fill remaining height -->
+    <div class="calc-panels">
 
       <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
       <aside id="calc-input-panel" aria-label="Connection inputs">
@@ -417,10 +410,10 @@
           </div>
         </div>
       </main>
-    </div>
+    </div><!-- end calc-panels -->
 
-  </div>
-</div>
+  </main>
+</div><!-- end app-wrap -->
 
 <!-- Save modal -->
 <div class="calc-modal-overlay" id="save-calc-modal">
@@ -444,11 +437,10 @@
 <script src="/js/projects/history.js"></script>
 <script src="/js/subscription/plans.js"></script>
 <script src="/js/subscription/upgrade-modal.js"></script>
+<script src="/js/ui/topNav.js"></script>
 <script src="/js/engine/utils.js"></script>
 <script src="/js/engine/connectionSolver.js"></script>
 <script src="/js/ui/calcShared.js"></script>
-<script src="/js/ui/sidebar.js"></script>
-<script src="/js/ui/cmdPalette.js"></script>
 
 <script>
   // ── Tab switching ───────────────────────────────────────────────
@@ -811,7 +803,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    Sidebar.init();
+    TopNav.init();
     Auth.guard();
     CalcShared.renderProjectBadge('calc-project-badge');
     buildGrid();

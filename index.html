@@ -17,43 +17,34 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="/css/main.css" />
-  <link rel="stylesheet" href="/css/sidebar.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
 
   <!-- CDN Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  <!-- Auth & Projects -->
-  <script src="/js/auth/auth.js"></script>
-  <script src="/js/projects/history.js"></script>
-  <script src="/js/projects/projects.js"></script>
 </head>
 
 <body>
-  <div id="app-shell">
+  <div id="app-wrap">
+    <header id="app-header"></header>
+    <!-- topNav.js injects #mobile-drawer into body -->
+    <main id="app-main" class="calc-layout">
 
-    <aside id="sidebar"></aside>
-
-    <div id="page-content" style="display: flex; flex-direction: column;">
-
-      <!-- ════ TOPBAR ══════════════════════════════════════════════════════ -->
-      <div class="topbar">
-        <div class="topbar-left">
-          <div class="topbar-breadcrumb">
-            <a href="/dashboard.html">Dashboard</a>
-            <span class="sep">›</span>
-            <span>Beam Analysis</span>
-          </div>
+      <!-- Breadcrumb bar -->
+      <div class="calc-breadcrumb-bar">
+        <div class="calc-breadcrumb">
+          <a href="/dashboard.html">Dashboard</a>
+          <span class="bc-sep">›</span>
+          <span class="bc-current">Beam Analysis</span>
         </div>
-        <div class="topbar-actions">
-          <div class="topbar-kbd" onclick="if(window.CmdPalette) CmdPalette.open()">
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            <kbd>⌘K</kbd>
-          </div>
+        <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+          📁 <span id="calc-project-name">—</span>
         </div>
       </div>
 
-      <!-- ════ MAIN ══════════════════════════════════════════════════════ -->
-      <div id="main-container" style="flex: 1; min-height: 0; overflow: hidden;">
+      <!-- Calc panels fill remaining height -->
+      <div class="calc-panels">
 
         <!-- ── INPUT PANEL (Left) ──────────────────────────────────────── -->
         <aside id="input-panel" aria-label="Beam input configuration">
@@ -512,9 +503,9 @@
 
           </div><!-- end results-section -->
         </main>
-      </div><!-- end main-container -->
-    </div><!-- end page-content -->
-  </div><!-- end app-shell -->
+      </div><!-- end calc-panels -->
+    </main>
+  </div><!-- end app-wrap -->
 
   <!-- ════ PDF PROJECT INFO MODAL ═════════════════════════════════════ -->
   <div class="modal-overlay" id="pdf-modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
@@ -579,6 +570,12 @@
   </div>
 
   <!-- ════ SCRIPTS ════════════════════════════════════════════════════ -->
+  <script src="/js/auth/auth.js"></script>
+  <script src="/js/projects/projects.js"></script>
+  <script src="/js/projects/history.js"></script>
+  <script src="/js/subscription/plans.js"></script>
+  <script src="/js/subscription/upgrade-modal.js"></script>
+  <script src="/js/ui/topNav.js"></script>
   <script src="/js/engine/utils.js"></script>
   <script src="/js/engine/solver.js"></script>
   <script src="/js/ui/diagrams.js"></script>
@@ -586,8 +583,6 @@
   <script src="/js/ui/inputPanel.js"></script>
   <script src="/js/report/csvExport.js"></script>
   <script src="/js/report/pdfReport.js"></script>
-  <script src="/js/ui/sidebar.js"></script>
-  <script src="/js/ui/cmdPalette.js"></script>
   <script src="/js/app.js"></script>
 
   <script>
@@ -597,7 +592,7 @@
       section.classList.toggle('collapsed');
     }
     document.addEventListener('DOMContentLoaded', () => {
-      Sidebar.init();
+      TopNav.init();
     });
   </script>
 </body>

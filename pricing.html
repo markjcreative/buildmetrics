@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/sidebar.css" />
+    <link rel="stylesheet" href="/css/app.css" />
     <style>
         /* ── Hero ── */
         .pricing-hero {
@@ -352,21 +352,11 @@
 </head>
 
 <body>
-    <div id="app-shell">
-        <aside id="sidebar"></aside>
-        <div id="page-content">
-            <div class="topbar">
-                <div class="topbar-left">
-                    <div class="topbar-title">Plans &amp; Pricing</div>
-                </div>
-                <div class="topbar-actions">
-                    <div class="topbar-kbd" onclick="if(window.CmdPalette) CmdPalette.open()">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                        <kbd>⌘K</kbd>
-                    </div>
-                </div>
-            </div>
-            <div class="page-body">
+    <div id="app-wrap">
+        <header id="app-header"></header>
+        <!-- topNav.js injects #mobile-drawer -->
+        <main id="app-main">
+            <div class="app-container">
 
                 <!-- Hero -->
                 <div class="pricing-hero">
@@ -476,20 +466,18 @@
                 </div>
 
             </div>
-        </div>
+        </main>
     </div>
 
-    <!-- Scripts — ALL ABSOLUTE PATHS -->
     <script src="/js/auth/auth.js"></script>
     <script src="/js/projects/projects.js"></script>
     <script src="/js/projects/history.js"></script>
     <script src="/js/subscription/plans.js"></script>
     <script src="/js/subscription/upgrade-modal.js"></script>
-    <script src="/js/ui/sidebar.js"></script>
-    <script src="/js/ui/cmdPalette.js"></script>
+    <script src="/js/ui/topNav.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            Sidebar.init();
+            TopNav.init();
 
             Auth.guard();
             const user = Auth.currentUser();

@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/sidebar.css" />
+    <link rel="stylesheet" href="/css/app.css" />
 
     <!-- Markdown + sanitisation -->
     <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -493,93 +493,79 @@
 </head>
 
 <body>
-    <div id="app-shell">
-        <aside id="sidebar"></aside>
-        <div id="page-content">
-            <div class="topbar">
-                <div class="topbar-left">
-                    <div class="topbar-title">AI Engineering Assistant</div>
+    <div id="app-wrap">
+        <header id="app-header"></header>
+        <!-- topNav.js injects #mobile-drawer -->
+        <main id="app-main" style="display:flex;overflow:hidden;height:calc(100vh - 56px)">
+
+            <!-- AI conversation sidebar -->
+            <aside class="ai-sidebar">
+                <div class="ai-sidebar-top">
+                    <button class="btn-new-chat" id="btn-new-chat">+ New Chat</button>
                 </div>
-                <div class="topbar-actions">
-                    <div class="topbar-kbd" onclick="if(window.CmdPalette) CmdPalette.open()">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                        <kbd>⌘K</kbd>
-                    </div>
+
+                <div class="conv-list" id="conv-list">
+                    <div class="conv-list-empty">No conversations yet</div>
                 </div>
-            </div>
-            <div class="page-body" style="padding:0;display:flex;flex:1;overflow:hidden;height:calc(100vh - 52px)">
 
-                <!-- AI conversation sidebar -->
-                <aside class="ai-sidebar">
-                    <div class="ai-sidebar-top">
-                        <button class="btn-new-chat" id="btn-new-chat">+ New Chat</button>
-                    </div>
+                <div class="ai-sidebar-api">
+                    <div class="api-key-label">OpenAI API Key</div>
+                    <input
+                        type="password"
+                        class="api-key-input"
+                        id="api-key-input"
+                        placeholder="sk-..."
+                        autocomplete="off"
+                        spellcheck="false"
+                    />
+                    <button class="btn-save-key" id="btn-save-key">Save Key</button>
+                </div>
+            </aside>
 
-                    <div class="conv-list" id="conv-list">
-                        <div class="conv-list-empty">No conversations yet</div>
-                    </div>
+            <!-- Chat panel -->
+            <section class="ai-chat" id="ai-chat">
+                <div class="chat-header">
+                    <h2 id="chat-title">New Conversation</h2>
+                </div>
 
-                    <div class="ai-sidebar-api">
-                        <div class="api-key-label">OpenAI API Key</div>
-                        <input
-                            type="password"
-                            class="api-key-input"
-                            id="api-key-input"
-                            placeholder="sk-..."
-                            autocomplete="off"
-                            spellcheck="false"
-                        />
-                        <button class="btn-save-key" id="btn-save-key">Save Key</button>
-                    </div>
-                </aside>
+                <div class="chat-messages" id="chat-messages"></div>
 
-                <!-- Chat panel -->
-                <section class="ai-chat" id="ai-chat">
-                    <div class="chat-header">
-                        <h2 id="chat-title">New Conversation</h2>
-                    </div>
+                <div class="quick-actions" id="quick-actions">
+                    <button class="qa-btn" data-qa="beam">Beam design check</button>
+                    <button class="qa-btn" data-qa="column">Column buckling</button>
+                    <button class="qa-btn" data-qa="loads">Load combinations</button>
+                    <button class="qa-btn" data-qa="ec3">EC3 section classification</button>
+                    <button class="qa-btn" data-qa="punching">Punching shear EC2</button>
+                    <button class="qa-btn" data-qa="footing">Footing bearing</button>
+                </div>
 
-                    <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-input-bar">
+                    <textarea
+                        class="chat-textarea"
+                        id="chat-textarea"
+                        placeholder="Ask a structural engineering question..."
+                        rows="1"
+                    ></textarea>
+                    <button class="btn-send" id="btn-send" title="Send message" disabled>
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15.5 9L2.5 2.5L5.5 9M15.5 9L2.5 15.5L5.5 9M15.5 9H5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </section>
 
-                    <div class="quick-actions" id="quick-actions">
-                        <button class="qa-btn" data-qa="beam">Beam design check</button>
-                        <button class="qa-btn" data-qa="column">Column buckling</button>
-                        <button class="qa-btn" data-qa="loads">Load combinations</button>
-                        <button class="qa-btn" data-qa="ec3">EC3 section classification</button>
-                        <button class="qa-btn" data-qa="punching">Punching shear EC2</button>
-                        <button class="qa-btn" data-qa="footing">Footing bearing</button>
-                    </div>
-
-                    <div class="chat-input-bar">
-                        <textarea
-                            class="chat-textarea"
-                            id="chat-textarea"
-                            placeholder="Ask a structural engineering question..."
-                            rows="1"
-                        ></textarea>
-                        <button class="btn-send" id="btn-send" title="Send message" disabled>
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M15.5 9L2.5 2.5L5.5 9M15.5 9L2.5 15.5L5.5 9M15.5 9H5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                    </div>
-                </section>
-
-            </div>
-        </div>
+        </main>
     </div>
 
     <!-- Toast notification -->
     <div id="ai-toast"></div>
 
-    <!-- Scripts — ALL ABSOLUTE PATHS -->
     <script src="/js/auth/auth.js"></script>
     <script src="/js/projects/projects.js"></script>
     <script src="/js/projects/history.js"></script>
     <script src="/js/subscription/plans.js"></script>
     <script src="/js/subscription/upgrade-modal.js"></script>
-    <script src="/js/ui/sidebar.js"></script>
-    <script src="/js/ui/cmdPalette.js"></script>
+    <script src="/js/ui/topNav.js"></script>
     <script src="/js/ai/aiStorage.js"></script>
     <script src="/js/ai/aiAssistant.js"></script>
 
@@ -855,8 +841,8 @@ I can help you with:
 
         // ── Pro gate ──────────────────────────────────────────────────
         function showProGate() {
-            const pageBody = document.querySelector('.page-body');
-            pageBody.innerHTML = `
+            const appMain = document.getElementById('app-main');
+            appMain.innerHTML = `
                 <div class="pro-gate-overlay">
                     <div class="pro-gate-card">
                         <div class="pro-gate-icon">\uD83D\uDD12</div>
@@ -956,7 +942,7 @@ I can help you with:
 
         // ── Bootstrap ─────────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', function () {
-            Sidebar.init();
+            TopNav.init();
 
             // Auth guard
             const user = Auth.currentUser ? Auth.currentUser() : null;

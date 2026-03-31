@@ -9,59 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
-  <script src="/js/auth/auth.js"></script>
-  <script src="/js/projects/history.js"></script>
-  <script src="/js/projects/projects.js"></script>
   <link rel="stylesheet" href="/css/main.css" />
-  <link rel="stylesheet" href="/css/sidebar.css" />
+  <link rel="stylesheet" href="/css/app.css" />
   <style>
-    /* ── Page body ── */
-    .page-body {
-      flex: 1;
-      padding: 36px 40px;
-      max-width: 1100px;
-      margin: 0 auto;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    /* ── Breadcrumb ── */
-    .breadcrumb {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    .breadcrumb a {
-      color: var(--text-muted);
-      text-decoration: none;
-    }
-
-    .breadcrumb a:hover { color: var(--accent); }
-
-    .breadcrumb-sep { color: var(--border-strong); }
-
-    /* ── Page header within body ── */
-    .history-header {
-      margin-bottom: 24px;
-    }
-
-    .history-title {
-      font-size: 1.45rem;
-      font-weight: 800;
-      color: var(--text-primary);
-      letter-spacing: -0.5px;
-    }
-
-    .history-subtitle {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-
     /* ── Filter chips ── */
     .filter-bar {
       display: flex;
@@ -288,33 +238,19 @@
 </head>
 
 <body>
-  <div id="app-shell">
+  <div id="app-wrap">
+    <header id="app-header"></header>
+    <!-- topNav.js injects #mobile-drawer into body -->
+    <main id="app-main">
+      <div class="app-container">
 
-    <aside id="sidebar"></aside>
-
-    <div id="page-content">
-
-      <!-- ════ TOPBAR ═════════════════════════════════════════════════════ -->
-      <div class="topbar">
-        <div class="topbar-left">
-          <div class="topbar-breadcrumb">
-            <a href="/projects.html">Projects</a>
-            <span class="sep">›</span>
-            <span id="topbar-project-name">History</span>
-          </div>
-        </div>
-        <div class="topbar-actions">
+        <!-- Page head -->
+        <div class="page-head">
+          <h1 class="page-title" id="project-title">Calculation History</h1>
           <button class="btn btn-primary" id="btn-new-calc" style="font-size:0.82rem; padding: 7px 16px;">⚡ New Calculation</button>
         </div>
-      </div>
 
-      <!-- ════ PAGE BODY ═══════════════════════════════════════════════════ -->
-      <div class="page-body">
-
-        <div class="history-header">
-          <div class="history-title" id="project-title">Calculation History</div>
-          <div class="history-subtitle" id="project-desc"></div>
-        </div>
+        <div class="history-subtitle" id="project-desc" style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px;"></div>
 
         <!-- Filter chips -->
         <div class="filter-bar" id="filter-bar">
@@ -328,12 +264,17 @@
         </div>
 
         <div id="history-container"></div>
+
       </div>
-    </div>
+    </main>
   </div>
 
-  <script src="/js/ui/sidebar.js"></script>
-  <script src="/js/ui/cmdPalette.js"></script>
+  <script src="/js/auth/auth.js"></script>
+  <script src="/js/projects/projects.js"></script>
+  <script src="/js/projects/history.js"></script>
+  <script src="/js/subscription/plans.js"></script>
+  <script src="/js/subscription/upgrade-modal.js"></script>
+  <script src="/js/ui/topNav.js"></script>
 
   <script>
     Auth.guard();
@@ -348,8 +289,7 @@
     // Set active
     Projects.setActive(projectId);
 
-    // Header + topbar project name
-    document.getElementById('topbar-project-name').textContent = project.name;
+    // Header + project name
     document.getElementById('project-title').textContent = project.name;
     if (project.description) document.getElementById('project-desc').textContent = project.description;
 
@@ -524,7 +464,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      Sidebar.init();
+      TopNav.init();
       renderHistory();
     });
   </script>
