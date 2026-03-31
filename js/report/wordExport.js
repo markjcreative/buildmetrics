@@ -29,10 +29,7 @@ const WordExport = (() => {
      * }
      */
     async function exportBeam(calcData, filename = 'beam-calculation.docx') {
-        if (window.Plans && !Plans.canExportWord()) {
-            if (window.UpgradeModal) UpgradeModal.show('Word Export is a Pro feature. Upgrade to export calculations as Word documents.');
-            return;
-        }
+
 
         const docx = await _loadDocx();
         const {

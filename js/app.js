@@ -9,11 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const user = Auth.currentUser();
 
     // ── Project Context ─────────────────────────────────────────────────
-    const activeProject = Projects.getActive();
-    if (activeProject) {
-        document.getElementById('nav-project-badge').style.display = 'flex';
-        document.getElementById('nav-project-name').textContent = activeProject.name;
-    }
+    // (nav-project-badge removed in topNav redesign — project shown in save modal)
 
     // ── Initialize Input Panel ───────────────────────────────────────────
     InputPanel.initInputPanel();
@@ -74,15 +70,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const proj = Projects.create(name);
             Projects.setActive(proj.id);
             document.getElementById('proj-picker-modal').classList.remove('open');
-            document.getElementById('nav-project-badge').style.display = 'flex';
-            document.getElementById('nav-project-name').textContent = proj.name;
             // Re-open save modal now that we have a project
             openSaveCalcModal();
         } catch (e) {
-            if (e.message === 'FREE_LIMIT_PROJECTS') {
-                document.getElementById('proj-picker-modal').classList.remove('open');
-                UpgradeModal.show('projects');
-            } else { showToast(e.message, 'error'); }
+            showToast(e.message || 'Could not create project.', 'error');
         }
     });
 
@@ -129,7 +120,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('keydown', e => {
         if (e.key !== 'Escape') return;
         document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
-        if (typeof UpgradeModal !== 'undefined') UpgradeModal.hide();
     });
 
     // ── Freehand Sketchpad (Fabric.js) ───────────────────────────────────
@@ -205,9 +195,6 @@ function renderProjectPicker() {
 
 window.pickProject = function (id) {
     Projects.setActive(id);
-    const proj = Projects.get(id);
-    document.getElementById('nav-project-badge').style.display = 'flex';
-    document.getElementById('nav-project-name').textContent = proj.name;
     document.getElementById('proj-picker-modal').classList.remove('open');
     openSaveCalcModal();
 };
@@ -221,15 +208,117 @@ function doSaveCalc() {
     try {
         History.save(proj.id, name, window._lastConfig, window._lastResults, window._lastResults.summary);
         document.getElementById('save-modal').classList.remove('open');
-        showToast(`✓ Saved to "${proj.name}"`);
+        // Store for confirmation modal downloads
+        window._savedCalcName = name;
+        window._savedProjName = proj.name;
+        openSaveConfirmModal(name, proj.name);
     } catch (e) {
-        if (e.message === 'FREE_LIMIT_CALCS') {
-            document.getElementById('save-modal').classList.remove('open');
-            UpgradeModal.show('calcs');
-        } else {
-            showToast('Save failed: ' + e.message, 'error');
-        }
+        showToast('Save failed: ' + e.message, 'error');
     }
+}
+
+/* ── Save Confirmation Modal ────────────────────────────────── */
+function openSaveConfirmModal(calcName, projName) {
+    const modal = document.getElementById('save-confirm-modal');
+    if (!modal) return;
+    document.getElementById('sc-calc-name').textContent = calcName;
+    document.getElementById('sc-proj-name').textContent = projName;
+    modal.classList.add('open');
+}
+
+window._downloadReportPDF = async function() {
+    const projectInfo = await PDFReport.showProjectInfoModal();
+    if (!projectInfo) return;
+    const btn = document.getElementById('sc-btn-pdf');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '⏳ Generating…';
+    btn.disabled = true;
+    try {
+        await PDFReport.exportPDF(window._lastResults, window._lastConfig, projectInfo);
+    } catch (e) {
+        showToast('PDF generation failed: ' + e.message, 'error');
+    }
+    btn.innerHTML = orig;
+    btn.disabled = false;
+};
+
+window._downloadReportWord = async function() {
+    if (typeof WordExport === 'undefined') {
+        showToast('Word export is loading, please try again.', 'error');
+        return;
+    }
+    const btn = document.getElementById('sc-btn-word');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '⏳ Generating…';
+    btn.disabled = true;
+    try {
+        const data = _buildWordData(window._savedCalcName, window._savedProjName);
+        await WordExport.exportBeam(data, (window._savedCalcName || 'calculation').toLowerCase().replace(/\s+/g, '-') + '.docx');
+    } catch (e) {
+        showToast('Word export failed: ' + e.message, 'error');
+    }
+    btn.innerHTML = orig;
+    btn.disabled = false;
+};
+
+function _buildWordData(calcName, projectName) {
+    const res = window._lastResults;
+    const cfg = window._lastConfig;
+    const user = Auth.currentUser();
+    const s = res.summary || {};
+    const span = cfg.span || 0;
+    const maxDeflMm = Math.abs((s.maxDeflection || 0) * 1000);
+    const L300 = (span / 300) * 1000;
+    const L360 = (span / 360) * 1000;
+    const spanRatio = s.maxDeflection && Math.abs(s.maxDeflection) > 1e-9
+        ? Math.round(span / Math.abs(s.maxDeflection)) : '∞';
+
+    const inputs = [
+        { label: 'Span', value: span, unit: 'm' },
+        { label: "Young's Modulus (E)", value: cfg.E, unit: 'kN/m²' },
+        { label: 'Moment of Inertia (I)', value: cfg.I, unit: 'm⁴' },
+        { label: 'Cross-Section Area (A)', value: cfg.A, unit: 'm²' },
+        { label: 'Material', value: cfg.material || '', unit: '' },
+        { label: 'Section', value: cfg.sectionName || '', unit: '' },
+        { label: 'Design Standard', value: (cfg.standard || '').replace(/_/g, ' '), unit: '' },
+        ...(cfg.loads || []).map((l, i) => ({
+            label: `Load ${i + 1} (${l.type})`,
+            value: l.type === 'point' ? `${l.P} kN @ x=${l.a}m` :
+                   l.type === 'udl'   ? `${l.w} kN/m from ${l.a}m to ${l.b}m` :
+                   l.type === 'moment'? `${l.M} kNm @ x=${l.a}m` : JSON.stringify(l),
+            unit: ''
+        })),
+    ];
+
+    const results = [
+        { label: 'Max Bending Moment (+)', value: (s.maxPositiveMoment || 0).toFixed(3), unit: 'kNm' },
+        { label: 'Max Bending Moment (−)', value: (s.maxNegativeMoment || 0).toFixed(3), unit: 'kNm' },
+        { label: 'Max Absolute Moment', value: (s.maxAbsMoment || 0).toFixed(3), unit: 'kNm' },
+        { label: 'Max Shear Force (+)', value: (s.maxShear || 0).toFixed(3), unit: 'kN' },
+        { label: 'Max Shear Force (−)', value: (s.minShear || 0).toFixed(3), unit: 'kN' },
+        { label: 'Max Absolute Shear', value: (s.maxAbsShear || 0).toFixed(3), unit: 'kN' },
+        { label: 'Max Deflection', value: maxDeflMm.toFixed(3), unit: 'mm' },
+        { label: 'Span/Deflection Ratio', value: `L / ${spanRatio}`, unit: '' },
+        { label: 'L/300 Deflection Limit', value: L300.toFixed(2), unit: 'mm', pass: maxDeflMm <= L300 },
+        { label: 'L/360 Deflection Limit', value: L360.toFixed(2), unit: 'mm', pass: maxDeflMm <= L360 },
+    ];
+    if (res.reactions) {
+        res.reactions.forEach((r, i) => {
+            results.push({ label: `Reaction R${i + 1}`, value: (r.Fy || 0).toFixed(3), unit: 'kN' });
+        });
+    }
+
+    return {
+        projectName: projectName || '',
+        calcName: calcName || 'Beam Analysis',
+        date: new Date().toLocaleDateString('en-GB'),
+        standard: (cfg.standard || '').replace(/_/g, ' '),
+        engineer: user ? (user.name || user.email || '') : '',
+        company: user ? (user.company || '') : '',
+        inputs,
+        results,
+        summary: `Max Moment: ${(s.maxAbsMoment||0).toFixed(3)} kNm  |  Max Shear: ${(s.maxAbsShear||0).toFixed(3)} kN  |  Max Deflection: ${maxDeflMm.toFixed(3)} mm (L/${spanRatio})`,
+    };
 }
 
 /* ── Restore from History ────────────────────────────────────── */
