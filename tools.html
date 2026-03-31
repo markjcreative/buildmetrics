@@ -515,6 +515,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const user = Auth.currentUser();
   if (!user) { window.location.href = '/login.html'; return; }
   initTools();
+  // Deep-link via URL hash: /tools.html#unit-converter etc.
+  const hash = location.hash.replace('#', '');
+  if (hash) {
+    const tab = document.querySelector('[data-panel="' + hash + '"]');
+    if (tab) tab.click();
+  }
 });
 
 // ════════════════════════════════════════════════════════════════

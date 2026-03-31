@@ -1,474 +1,383 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Projects — BuildMetrics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <style>
-    /* ── Projects grid ── */
-    .projects-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-      gap: 18px;
-    }
-
-    /* New project card */
-    .project-card-new {
-      border: 2px dashed var(--border-strong);
-      border-radius: var(--radius-lg);
-      padding: 32px 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: white;
-      color: var(--text-muted);
-      min-height: 180px;
-    }
-
-    .project-card-new:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-light);
-    }
-
-    .project-card-new .plus {
-      font-size: 2rem;
-      line-height: 1;
-    }
-
-    .project-card-new .new-label {
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-
-    /* Project card */
-    .project-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--pc-color, var(--accent));
-      border-radius: var(--radius-lg);
-      padding: 20px 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: all 0.2s;
-      box-shadow: var(--shadow-sm);
-      cursor: pointer;
-      min-height: 180px;
-    }
-
-    .project-card:hover {
-      box-shadow: var(--shadow-md, 0 4px 16px rgba(0,0,0,0.12));
-      border-color: var(--pc-color, var(--accent));
-      transform: translateY(-3px);
-    }
-
-    .project-card-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .project-name {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      line-height: 1.3;
-    }
-
-    .project-desc {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-      flex: 1;
-    }
-
-    .project-meta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: auto;
-      flex-wrap: wrap;
-    }
-
-    .project-meta-item {
-      font-size: 0.73rem;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .project-actions {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .btn-icon {
-      width: 28px;
-      height: 28px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      transition: all 0.15s;
-      color: var(--text-muted);
-    }
-
-    .btn-icon:hover {
-      border-color: var(--border-strong);
-      color: var(--text-primary);
-    }
-
-    .btn-icon.danger:hover {
-      border-color: var(--red);
-      color: var(--red);
-      background: var(--red-tint);
-    }
-
-    .calc-count-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--accent-light);
-      color: var(--accent);
-      border: 1px solid var(--accent-mid);
-      border-radius: 20px;
-      padding: 3px 10px;
-      font-size: 0.73rem;
-      font-weight: 700;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 80px 40px;
-      color: var(--text-muted);
-    }
-
-    .empty-state .empty-icon {
-      font-size: 3rem;
-      margin-bottom: 16px;
-    }
-
-    .empty-state h3 {
-      font-size: 1.1rem;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
-    }
-
-    .empty-state p {
-      font-size: 0.85rem;
-    }
-
-    /* ── Modal ── */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.45);
-      z-index: 500;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-overlay.open {
-      display: flex;
-    }
-
-    .modal-box {
-      background: white;
-      border-radius: var(--radius-lg);
-      padding: 32px;
-      width: 460px;
-      box-shadow: var(--shadow-lg);
-      animation: popIn 0.2s ease;
-    }
-
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(0.95) translateY(8px); }
-      to   { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .modal-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .modal-sub {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      margin-bottom: 20px;
-    }
-
-    .modal-field {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      margin-bottom: 14px;
-    }
-
-    .modal-field label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-
-    .modal-field input,
-    .modal-field textarea {
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.88rem;
-      outline: none;
-      transition: border-color 0.15s;
-      resize: none;
-    }
-
-    .modal-field input:focus,
-    .modal-field textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      margin-top: 20px;
-    }
+    /* ── Modals (local override — use .open class, not display) ── */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.35); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:9999; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
   </style>
 </head>
-
 <body>
-  <div id="app-wrap">
-    <header id="app-header"></header>
-    <!-- topNav.js injects #mobile-drawer into body -->
-    <main id="app-main">
-      <div class="app-container">
+<div id="app-wrap">
+  <header id="app-header"></header>
 
-        <!-- Page head -->
-        <div class="page-head">
-          <h1 class="page-title">Projects</h1>
-          <button class="btn btn-primary" onclick="openCreateModal()" style="font-size:0.82rem; padding: 7px 16px;">＋ New Project</button>
+  <main id="app-main">
+    <div class="app-container">
+
+      <!-- ── Page header ───────────────────────────────────────── -->
+      <div class="dash-hero">
+        <div>
+          <h1 class="dash-greeting" style="font-size:1.4rem;">Your Projects</h1>
+          <p class="dash-sub-line" id="proj-sub">Loading…</p>
         </div>
+        <button class="btn btn-primary" id="btn-new-project" style="font-size:0.85rem;padding:9px 18px;gap:6px;white-space:nowrap">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+          New Project
+        </button>
+      </div>
 
-        <div id="projects-container">
-          <!-- Rendered by JS -->
+      <!-- ── Start a Calculation strip ────────────────────────── -->
+      <div class="calc-strip-wrap">
+        <div class="calc-strip-label">Start a calculation</div>
+        <div class="calc-strip">
+          <a href="/index.html" class="calc-chip chip-beam">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>
+            Beam Analysis
+          </a>
+          <a href="/calcs/column.html" class="calc-chip chip-column">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="10" y="2" width="4" height="20" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
+            Column
+          </a>
+          <a href="/calcs/slab.html" class="calc-chip chip-slab">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
+            RC Slab
+          </a>
+          <a href="/calcs/footing.html" class="calc-chip chip-footing">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="4" y="14" width="16" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="9" y="5" width="6" height="9" rx="0.5" stroke="currentColor" stroke-width="1.8"/></svg>
+            Footing
+          </a>
+          <a href="/calcs/retaining-wall.html" class="calc-chip chip-wall">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M6 4v16M6 20h12M6 8h5M6 12h3"/></svg>
+            Ret. Wall
+          </a>
+          <a href="/calcs/connection.html" class="calc-chip chip-conn">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="5" cy="5" r="1.8" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="5" r="1.8" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="19" r="1.8" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="19" r="1.8" stroke="currentColor" stroke-width="1.5"/></svg>
+            Connection
+          </a>
         </div>
+      </div>
 
-      </div>
-    </main>
-  </div>
+      <!-- ── Projects list ─────────────────────────────────────── -->
+      <div id="projects-list"></div>
 
-  <!-- New/Edit Project Modal -->
-  <div class="modal-overlay" id="create-modal">
-    <div class="modal-box">
-      <div class="modal-title" id="modal-heading-text">New Project</div>
-      <div class="modal-sub">Give your project a name to organise your calculations.</div>
-      <div class="modal-field">
-        <label for="proj-name">Project Name *</label>
-        <input type="text" id="proj-name" placeholder="e.g. Office Building — Level 3 Beams" maxlength="80" />
+      <!-- ── Empty state ────────────────────────────────────────── -->
+      <div id="proj-empty" style="display:none" class="dash-empty">
+        <div class="dash-empty-icon">
+          <svg width="52" height="52" fill="none" viewBox="0 0 24 24"><path stroke="#CBD5E1" stroke-width="1.2" stroke-linecap="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
+        </div>
+        <h3>No projects yet</h3>
+        <p>Create your first project to start organising your calculations.</p>
+        <button class="btn btn-primary" onclick="openNewProjectModal()" style="font-size:0.85rem;padding:9px 20px;margin-top:8px">
+          + Create Project
+        </button>
       </div>
-      <div class="modal-field">
-        <label for="proj-desc">Description (optional)</label>
-        <textarea id="proj-desc" rows="2"
-          placeholder="e.g. Secondary beam grid at Level 3, grid B-D"></textarea>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
-        <button class="btn btn-primary" id="modal-confirm-btn" onclick="confirmProject()">Create Project →</button>
-      </div>
+
+    </div><!-- /app-container -->
+  </main>
+</div>
+
+<!-- ── New Project Modal ─────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-new-project">
+  <div class="modal-box" style="width:440px">
+    <h2 class="modal-title">New Project</h2>
+    <p class="modal-sub">Create a project to organise your calculations.</p>
+    <div class="modal-field">
+      <label for="np-name">Project Name</label>
+      <input type="text" id="np-name" placeholder="e.g. Office Block Phase 2" />
+    </div>
+    <div class="modal-field">
+      <label for="np-desc">Description <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+      <input type="text" id="np-desc" placeholder="Brief description" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="closeNewProjectModal()">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-project">Create Project</button>
     </div>
   </div>
+</div>
 
-  <script src="/js/auth/auth.js"></script>
-  <script src="/js/projects/projects.js"></script>
-  <script src="/js/projects/history.js"></script>
-  <script src="/js/subscription/plans.js"></script>
-  <script src="/js/ui/topNav.js"></script>
+<!-- ── Project Options Modal ────────────────────────────────── -->
+<div class="modal-overlay" id="modal-project-options">
+  <div class="modal-box" style="width:360px">
+    <h2 class="modal-title" id="po-title">Project Options</h2>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+      <button class="btn btn-secondary" id="po-rename-btn" style="justify-content:flex-start">✏️ Rename project</button>
+      <button class="btn btn-secondary" id="po-delete-btn" style="justify-content:flex-start;color:var(--red);border-color:var(--red)">🗑 Delete project and all calculations</button>
+    </div>
+    <div style="margin-top:12px;text-align:right">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-project-options').classList.remove('open')">Cancel</button>
+    </div>
+  </div>
+</div>
 
-  <script>
-    Auth.guard();
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
 
-    // Card accent colours cycling for projects
-    const CARD_COLORS = ['#2563EB', '#16A34A', '#D97706', '#7C3AED', '#DC2626', '#0891B2'];
+<script>
+// ── Constants ─────────────────────────────────────────────────
+const TYPE_COLORS = {
+  beam: '#2563EB', column: '#D97706', slab: '#16A34A',
+  footing: '#7C3AED', retaining_wall: '#DC2626', connection: '#0891B2'
+};
+const TYPE_LABELS = {
+  beam: 'BEAM', column: 'COL', slab: 'SLAB',
+  footing: 'FTNG', retaining_wall: 'WALL', connection: 'CONN'
+};
+const TYPE_PAGES = {
+  beam: '/index.html', column: '/calcs/column.html', slab: '/calcs/slab.html',
+  footing: '/calcs/footing.html', retaining_wall: '/calcs/retaining-wall.html',
+  connection: '/calcs/connection.html'
+};
+const PROJECT_COLORS = ['#2563EB','#16A34A','#D97706','#7C3AED','#DC2626','#0891B2','#BE185D','#059669'];
 
-    let editingId = null;
+let _optionsProjectId = null;
 
-    function relativeTime(dateStr) {
-      const diff = Date.now() - new Date(dateStr).getTime();
-      const mins = Math.floor(diff / 60000);
-      if (mins < 1) return 'just now';
-      if (mins < 60) return `${mins}m ago`;
-      const hours = Math.floor(mins / 60);
-      if (hours < 24) return `${hours}h ago`;
-      const days = Math.floor(hours / 24);
-      if (days < 30) return `${days}d ago`;
-      return new Date(dateStr).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  TopNav.init();
+  const user = Auth.currentUser();
+  if (!user) return;
+
+  renderAll();
+
+  document.getElementById('btn-new-project').addEventListener('click', openNewProjectModal);
+  document.getElementById('btn-create-project').addEventListener('click', createProject);
+  document.getElementById('np-name').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') createProject();
+  });
+  document.getElementById('modal-new-project').addEventListener('click', function(e) {
+    if (e.target === this) closeNewProjectModal();
+  });
+  document.getElementById('modal-project-options').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(function(m) { m.classList.remove('open'); });
     }
+  });
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.add-calc-menu.open').forEach(function(m) { m.classList.remove('open'); });
+  });
+});
 
-    function renderProjects() {
-      const projects = Projects.list();
-      const container = document.getElementById('projects-container');
+// ── Render ────────────────────────────────────────────────────
+function renderAll() {
+  const projects = window.Projects ? Projects.list() : [];
+  const allCalcs = _getHistory();
+  const now = new Date();
+  const monthCalcs = allCalcs.filter(function(h) {
+    const d = new Date(h.savedAt || h.timestamp);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
 
-      if (projects.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📁</div>
-            <h3>No projects yet</h3>
-            <p>Create your first project to start organising your beam calculations.</p>
-            <button class="btn btn-primary" style="margin-top:16px;" onclick="openCreateModal()">＋ New Project</button>
-          </div>`;
-        return;
-      }
+  const subEl = document.getElementById('proj-sub');
+  subEl.textContent = projects.length + ' project' + (projects.length !== 1 ? 's' : '') +
+    ' · ' + allCalcs.length + ' calculation' + (allCalcs.length !== 1 ? 's' : '') +
+    (monthCalcs.length > 0 ? ' · ' + monthCalcs.length + ' this month' : '');
 
-      const grid = document.createElement('div');
-      grid.className = 'projects-grid';
+  const listEl = document.getElementById('projects-list');
+  const emptyEl = document.getElementById('proj-empty');
 
-      // New project card first
-      const newCard = document.createElement('div');
-      newCard.className = 'project-card-new';
-      newCard.onclick = openCreateModal;
-      newCard.innerHTML = `<div class="plus">＋</div><div class="new-label">New Project</div>`;
-      grid.appendChild(newCard);
+  if (projects.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
 
-      projects.forEach((proj, idx) => {
-        const calcCount = History.count(proj.id);
-        const color = CARD_COLORS[idx % CARD_COLORS.length];
-        const updated = relativeTime(proj.updatedAt);
+  const sorted = projects.slice().sort(function(a, b) {
+    const aLast = _lastCalcTime(a.id, allCalcs);
+    const bLast = _lastCalcTime(b.id, allCalcs);
+    return (bLast || b.createdAt || 0) > (aLast || a.createdAt || 0) ? 1 : -1;
+  });
 
-        const card = document.createElement('div');
-        card.className = 'project-card';
-        card.style.setProperty('--pc-color', color);
-        card.innerHTML = `
-          <div class="project-card-top">
-            <div class="project-name">${escHtml(proj.name)}</div>
-            <div class="project-actions">
-              <button class="btn-icon" title="Edit" onclick="event.stopPropagation(); editProject('${proj.id}')">✏️</button>
-              <button class="btn-icon danger" title="Delete" onclick="event.stopPropagation(); deleteProject('${proj.id}', '${escHtml(proj.name)}')">🗑</button>
-            </div>
-          </div>
-          ${proj.description ? `<div class="project-desc">${escHtml(proj.description)}</div>` : ''}
-          <div class="project-meta">
-            <span class="calc-count-badge">📊 ${calcCount} calc${calcCount !== 1 ? 's' : ''}</span>
-            <span class="project-meta-item">🕐 ${updated}</span>
-          </div>`;
+  listEl.innerHTML = sorted.map(function(proj, idx) {
+    return renderProjectCard(proj, idx, allCalcs);
+  }).join('');
+}
 
-        card.onclick = () => openProject(proj.id);
-        grid.appendChild(card);
-      });
+function renderProjectCard(proj, idx, allCalcs) {
+  const calcs = allCalcs.filter(function(h) { return h.projectId === proj.id; })
+    .sort(function(a, b) { return new Date(b.savedAt || b.timestamp) - new Date(a.savedAt || a.timestamp); });
 
-      container.innerHTML = '';
-      container.appendChild(grid);
+  const color = proj.color || PROJECT_COLORS[idx % PROJECT_COLORS.length];
+  const calcCount = calcs.length;
+  const lastCalc = calcs[0];
+  const metaText = calcCount === 0
+    ? 'No calculations yet'
+    : calcCount + ' calculation' + (calcCount !== 1 ? 's' : '') +
+      (lastCalc ? ' · Updated ' + _timeAgo(lastCalc.savedAt || lastCalc.timestamp) : '');
+
+  const visible = calcs.slice(0, 5);
+
+  const calcRowsHtml = visible.length === 0
+    ? '<div class="calc-empty">No calculations yet — <a class="calc-empty-link" href="#" onclick="openAddCalc(event,\'' + proj.id + '\')">add one →</a></div>'
+    : visible.map(function(h) {
+        const ct = (h.config && h.config.calcType) || 'beam';
+        const pageUrl = (TYPE_PAGES[ct] || '/index.html') + '?load=' + h.id;
+        const color2 = TYPE_COLORS[ct] || '#2563EB';
+        const label = TYPE_LABELS[ct] || 'CALC';
+        const summary = h.summary || '';
+        const passMatch = typeof summary === 'string' ? summary.match(/\b(PASS|FAIL)\b/i) : null;
+        const passText = passMatch ? passMatch[0].toUpperCase() : '';
+        const passClass = passText === 'PASS' ? 'status-pass' : passText === 'FAIL' ? 'status-fail' : '';
+        const passIcon = passText === 'PASS' ? '✓ ' : passText === 'FAIL' ? '✗ ' : '';
+
+        return '<a class="calc-row" href="' + pageUrl + '">' +
+          '<span class="calc-type-pill" style="background:' + color2 + '1A;color:' + color2 + '">' + label + '</span>' +
+          '<span class="calc-row-name">' + _esc(h.name || 'Untitled') + '</span>' +
+          (passText ? '<span class="calc-row-status ' + passClass + '">' + passIcon + passText + '</span>' : '') +
+          '<span class="calc-row-time">' + _timeAgo(h.savedAt || h.timestamp) + '</span>' +
+          '</a>';
+      }).join('') +
+      (calcCount > 5
+        ? '<a href="/history.html" class="calc-view-all">View all ' + calcCount + ' calculations →</a>'
+        : '');
+
+  return '<div class="project-card" id="pc-' + proj.id + '">' +
+    '<div class="project-card-head">' +
+      '<div class="project-head-left">' +
+        '<div class="project-color-bar" style="background:' + color + '"></div>' +
+        '<div>' +
+          '<h3 class="project-name">' + _esc(proj.name) + '</h3>' +
+          '<div class="project-meta-line">' + metaText + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="project-head-right">' +
+        '<div class="add-calc-wrap" id="acw-' + proj.id + '">' +
+          '<button class="btn btn-secondary" style="font-size:0.78rem;padding:6px 12px;gap:5px" onclick="toggleAddCalc(event,\'' + proj.id + '\')">' +
+            '<svg width="11" height="11" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>' +
+            'Add Calculation' +
+          '</button>' +
+          '<div class="add-calc-menu" id="acm-' + proj.id + '">' +
+            _addCalcMenuItems(proj.id) +
+          '</div>' +
+        '</div>' +
+        '<button class="btn-icon" style="width:30px;height:30px;font-size:16px;line-height:1;border-radius:8px" ' +
+          'onclick="openProjectOptions(event,\'' + proj.id + '\',\'' + _esc(proj.name) + '\')" title="Project options">⋯</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="calc-rows">' + calcRowsHtml + '</div>' +
+  '</div>';
+}
+
+function _addCalcMenuItems(projectId) {
+  return [
+    { ct: 'beam',           label: 'Beam Analysis',  color: '#2563EB', page: '/index.html' },
+    { ct: 'column',         label: 'Column Design',  color: '#D97706', page: '/calcs/column.html' },
+    { ct: 'slab',           label: 'RC Slab',        color: '#16A34A', page: '/calcs/slab.html' },
+    { ct: 'footing',        label: 'Pad Footing',    color: '#7C3AED', page: '/calcs/footing.html' },
+    { ct: 'retaining_wall', label: 'Retaining Wall', color: '#DC2626', page: '/calcs/retaining-wall.html' },
+    { ct: 'connection',     label: 'Connection',     color: '#0891B2', page: '/calcs/connection.html' },
+  ].map(function(item) {
+    return '<a href="' + item.page + '?project=' + projectId + '" class="add-calc-item">' +
+      '<span class="add-calc-dot" style="background:' + item.color + '"></span>' +
+      item.label + '</a>';
+  }).join('');
+}
+
+// ── Add Calc Dropdown ──────────────────────────────────────────
+function toggleAddCalc(e, projectId) {
+  e.stopPropagation();
+  document.querySelectorAll('.add-calc-menu.open').forEach(function(m) {
+    if (m.id !== 'acm-' + projectId) m.classList.remove('open');
+  });
+  document.getElementById('acm-' + projectId).classList.toggle('open');
+}
+function openAddCalc(e, projectId) { e.preventDefault(); toggleAddCalc(e, projectId); }
+
+// ── New Project Modal ──────────────────────────────────────────
+function openNewProjectModal() {
+  document.getElementById('np-name').value = '';
+  document.getElementById('np-desc').value = '';
+  document.getElementById('modal-new-project').classList.add('open');
+  setTimeout(function() { document.getElementById('np-name').focus(); }, 50);
+}
+function closeNewProjectModal() {
+  document.getElementById('modal-new-project').classList.remove('open');
+}
+function createProject() {
+  const name = document.getElementById('np-name').value.trim();
+  if (!name) { document.getElementById('np-name').focus(); return; }
+  const desc = document.getElementById('np-desc').value.trim();
+  try {
+    const proj = Projects.create(name, desc);
+    const allProjects = Projects.list();
+    const idx = allProjects.findIndex(function(p) { return p.id === proj.id; });
+    Projects.update(proj.id, { color: PROJECT_COLORS[idx % PROJECT_COLORS.length] });
+    closeNewProjectModal();
+    renderAll();
+  } catch(e) {
+    alert(e.message || 'Could not create project.');
+  }
+}
+
+// ── Project Options ────────────────────────────────────────────
+function openProjectOptions(e, projectId, projectName) {
+  e.stopPropagation();
+  _optionsProjectId = projectId;
+  document.getElementById('po-title').textContent = projectName;
+
+  document.getElementById('po-rename-btn').onclick = function() {
+    document.getElementById('modal-project-options').classList.remove('open');
+    const newName = prompt('Rename project:', projectName);
+    if (newName && newName.trim()) {
+      Projects.update(projectId, { name: newName.trim() });
+      renderAll();
     }
+  };
 
-    function openProject(id) {
-      Projects.setActive(id);
-      window.location.href = `/history.html?project=${id}`;
+  document.getElementById('po-delete-btn').onclick = function() {
+    document.getElementById('modal-project-options').classList.remove('open');
+    if (confirm('Delete "' + projectName + '" and all its calculations? This cannot be undone.')) {
+      History.deleteByProject(projectId);
+      Projects.remove(projectId);
+      renderAll();
     }
+  };
 
-    function openCreateModal() {
-      editingId = null;
-      document.getElementById('proj-name').value = '';
-      document.getElementById('proj-desc').value = '';
-      document.getElementById('modal-heading-text').textContent = 'New Project';
-      document.getElementById('modal-confirm-btn').textContent = 'Create Project →';
-      document.getElementById('create-modal').classList.add('open');
-      setTimeout(() => document.getElementById('proj-name').focus(), 100);
-    }
+  document.getElementById('modal-project-options').classList.add('open');
+}
 
-    function editProject(id) {
-      const proj = Projects.get(id);
-      if (!proj) return;
-      editingId = id;
-      document.getElementById('proj-name').value = proj.name;
-      document.getElementById('proj-desc').value = proj.description || '';
-      document.getElementById('modal-heading-text').textContent = 'Edit Project';
-      document.getElementById('modal-confirm-btn').textContent = 'Save Changes →';
-      document.getElementById('create-modal').classList.add('open');
-      setTimeout(() => document.getElementById('proj-name').focus(), 100);
-    }
-
-    function closeCreateModal() {
-      document.getElementById('create-modal').classList.remove('open');
-      editingId = null;
-    }
-
-    function confirmProject() {
-      const name = document.getElementById('proj-name').value.trim();
-      const desc = document.getElementById('proj-desc').value.trim();
-      if (!name) { document.getElementById('proj-name').focus(); return; }
-      try {
-        if (editingId) {
-          Projects.update(editingId, { name, description: desc });
-          showToast('Project updated.');
-        } else {
-          Projects.create(name, desc);
-          showToast('Project created!');
-        }
-        closeCreateModal();
-        renderProjects();
-      } catch (e) {
-        showToast(e.message, 'error');
-      }
-    }
-
-    function deleteProject(id, name) {
-      if (!confirm(`Delete project "${name}" and all its calculations?\n\nThis cannot be undone.`)) return;
-      Projects.remove(id);
-      renderProjects();
-      showToast('Project deleted.');
-    }
-
-    function showToast(msg, type = 'default') {
-      const icons = { default: 'ℹ', success: '✓', error: '⚠' };
-      const t = document.createElement('div');
-      t.className = `bm-toast bm-toast--${type}`;
-      t.innerHTML = `<span class="bm-toast-icon">${icons[type] || icons.default}</span>${escHtml(msg)}`;
-      document.body.appendChild(t);
-      requestAnimationFrame(() => { requestAnimationFrame(() => { t.classList.add('show'); }); });
-      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, 3000);
-    }
-
-    // Escape key closes modal
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') closeCreateModal();
-    });
-
-    function escHtml(s) {
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    // Keyboard: Enter in modal
-    document.getElementById('proj-name').addEventListener('keydown', e => { if (e.key === 'Enter') confirmProject(); });
-
-    // Close modal on overlay click
-    document.getElementById('create-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeCreateModal(); });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      TopNav.init();
-      renderProjects();
-    });
-  </script>
+// ── Helpers ───────────────────────────────────────────────────
+function _getHistory() {
+  try { return JSON.parse(localStorage.getItem('bcp_history') || '[]'); } catch { return []; }
+}
+function _lastCalcTime(projectId, calcs) {
+  const pc = calcs.filter(function(h) { return h.projectId === projectId; });
+  if (!pc.length) return null;
+  return pc.reduce(function(max, h) {
+    const ts = h.savedAt || h.timestamp;
+    return new Date(ts) > new Date(max) ? ts : max;
+  }, pc[0].savedAt || pc[0].timestamp);
+}
+function _timeAgo(ts) {
+  if (!ts) return '';
+  const diff = Date.now() - new Date(ts).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ago';
+  const d = Math.floor(h / 24);
+  if (d < 7) return d + 'd ago';
+  return new Date(ts).toLocaleDateString();
+}
+function _esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
 </body>
-
 </html>

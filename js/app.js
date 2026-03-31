@@ -226,6 +226,11 @@ function openSaveConfirmModal(calcName, projName) {
     modal.classList.add('open');
 }
 
+function _trackDownload() {
+    const n = parseInt(localStorage.getItem('bcp_dl_count') || '0') + 1;
+    localStorage.setItem('bcp_dl_count', n);
+}
+
 window._downloadReportPDF = async function() {
     const projectInfo = await PDFReport.showProjectInfoModal();
     if (!projectInfo) return;
@@ -235,6 +240,7 @@ window._downloadReportPDF = async function() {
     btn.disabled = true;
     try {
         await PDFReport.exportPDF(window._lastResults, window._lastConfig, projectInfo);
+        _trackDownload();
     } catch (e) {
         showToast('PDF generation failed: ' + e.message, 'error');
     }
@@ -254,6 +260,7 @@ window._downloadReportWord = async function() {
     try {
         const data = _buildWordData(window._savedCalcName, window._savedProjName);
         await WordExport.exportBeam(data, (window._savedCalcName || 'calculation').toLowerCase().replace(/\s+/g, '-') + '.docx');
+        _trackDownload();
     } catch (e) {
         showToast('Word export failed: ' + e.message, 'error');
     }

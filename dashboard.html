@@ -9,403 +9,511 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
+  <style>
+    /* ── Overview stat widgets ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    .widget-cta {
+      background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+      border-radius: 14px;
+      padding: 24px 22px;
+      cursor: pointer;
+      border: none;
+      text-align: left;
+      color: #fff;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .widget-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.4); }
+    .widget-cta-icon {
+      width: 40px; height: 40px; background: rgba(255,255,255,0.2);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    }
+    .widget-cta-label { font-size: 1rem; font-weight: 700; }
+    .widget-cta-sub { font-size: 0.78rem; opacity: 0.8; }
+
+    .widget-stat {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: box-shadow 0.15s;
+    }
+    .widget-stat:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+    .widget-stat-icon {
+      width: 36px; height: 36px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 4px;
+    }
+    .widget-stat-num {
+      font-size: 2rem; font-weight: 800; color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace; line-height: 1;
+    }
+    .widget-stat-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+    /* ── Tools section ── */
+    .tools-section-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .tools-section-head h2 { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+    .tools-section-head a { font-size: 0.8rem; color: var(--accent); text-decoration: none; }
+    .tools-section-head a:hover { text-decoration: underline; }
+
+    .tool-widget-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 40px;
+    }
+    .tool-widget {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-decoration: none;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: box-shadow 0.15s, border-color 0.15s, transform 0.15s;
+    }
+    .tool-widget:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      border-color: var(--tw-color, var(--border));
+      transform: translateY(-2px);
+    }
+    .tool-widget-icon {
+      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .tool-widget-body { min-width: 0; }
+    .tool-widget-name { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin: 0 0 3px; }
+    .tool-widget-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; margin: 0; }
+
+    /* ── Calc tools section ── */
+    .calc-widget-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 40px;
+    }
+    .calc-widget {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-decoration: none;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: box-shadow 0.15s, border-color 0.15s, transform 0.15s;
+    }
+    .calc-widget:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    .calc-widget-icon {
+      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .calc-widget-body { min-width: 0; }
+    .calc-widget-name { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin: 0 0 3px; }
+    .calc-widget-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; margin: 0; }
+
+    /* ── New Project modal on dashboard ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .overview-grid { grid-template-columns: 1fr 1fr; }
+      .tool-widget-grid, .calc-widget-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .overview-grid { grid-template-columns: 1fr 1fr; }
+      .widget-cta { grid-column: 1 / -1; }
+      .tool-widget-grid, .calc-widget-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-  <div id="app-wrap">
+<div id="app-wrap">
+  <header id="app-header"></header>
 
-    <header id="app-header"></header>
-    <!-- mobile drawer injected by topNav.js -->
+  <main id="app-main">
+    <div class="app-container">
 
-    <main id="app-main">
-      <div class="app-container">
+      <!-- ── Greeting ─────────────────────────────────────────── -->
+      <div class="dash-hero" style="margin-bottom:28px;">
+        <div>
+          <h1 class="dash-greeting" id="dash-greeting">Good morning</h1>
+          <p class="dash-sub-line" id="dash-sub">Welcome back to BuildMetrics</p>
+        </div>
+      </div>
 
-        <!-- ── Hero row ──────────────────────────────────── -->
-        <div class="dash-hero">
-          <div>
-            <h1 class="dash-greeting" id="dash-greeting">Good morning</h1>
-            <p class="dash-sub-line" id="dash-sub">Loading…</p>
+      <!-- ── Overview widgets ──────────────────────────────────── -->
+      <div class="overview-grid">
+
+        <!-- Create New Project CTA -->
+        <button class="widget-cta" onclick="openNewProjectModal()">
+          <div class="widget-cta-icon">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+              <path stroke="white" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/>
+            </svg>
           </div>
-          <button class="btn btn-primary" id="btn-new-project" style="font-size:0.85rem;padding:9px 18px;gap:6px;white-space:nowrap">
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-            New Project
-          </button>
-        </div>
+          <div class="widget-cta-label">New Project</div>
+          <div class="widget-cta-sub">Start organising your work</div>
+        </button>
 
-        <!-- ── Calc strip ─────────────────────────────────── -->
-        <div class="calc-strip-wrap">
-          <div class="calc-strip-label">Start a calculation</div>
-          <div class="calc-strip">
-            <a href="/index.html" class="calc-chip chip-beam">
-              <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>
-              Beam Analysis
-            </a>
-            <a href="/calcs/column.html" class="calc-chip chip-column">
-              <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="10" y="2" width="4" height="20" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
-              Column
-            </a>
-            <a href="/calcs/slab.html" class="calc-chip chip-slab">
-              <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
-              RC Slab
-            </a>
-            <a href="/calcs/footing.html" class="calc-chip chip-footing">
-              <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="4" y="14" width="16" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="9" y="5" width="6" height="9" rx="0.5" stroke="currentColor" stroke-width="1.8"/></svg>
-              Footing
-            </a>
-            <a href="/calcs/retaining-wall.html" class="calc-chip chip-wall">
-              <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M6 4v16M6 20h12M6 8h5M6 12h3"/></svg>
-              Ret. Wall
-            </a>
-            <a href="/calcs/connection.html" class="calc-chip chip-conn">
-              <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="5" cy="5" r="1.8" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="5" r="1.8" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="19" r="1.8" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="19" r="1.8" stroke="currentColor" stroke-width="1.5"/></svg>
-              Connection
-            </a>
-            <div class="calc-strip-sep"></div>
-            <a href="/tools.html" class="calc-chip chip-tools">🔧 Quick Tools</a>
-            <a href="/standards.html" class="calc-chip chip-standards">📚 Standards</a>
+        <!-- Stat: Projects -->
+        <div class="widget-stat">
+          <div class="widget-stat-icon" style="background:#EFF6FF;">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+            </svg>
           </div>
+          <div class="widget-stat-num" id="stat-projects">0</div>
+          <div class="widget-stat-label">Projects</div>
         </div>
 
-        <!-- ── Projects section ──────────────────────────── -->
-        <div class="section-row">
-          <h2>Your Projects</h2>
-          <a href="/history.html">All calculations →</a>
-        </div>
-
-        <div id="projects-list"></div>
-
-        <!-- ── Empty state ────────────────────────────────── -->
-        <div id="dash-empty" style="display:none" class="dash-empty">
-          <div class="dash-empty-icon">
-            <svg width="52" height="52" fill="none" viewBox="0 0 24 24"><path stroke="#CBD5E1" stroke-width="1.2" stroke-linecap="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
+        <!-- Stat: Calculations -->
+        <div class="widget-stat">
+          <div class="widget-stat-icon" style="background:#F0FDF4;">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <rect x="4" y="2" width="16" height="20" rx="2" stroke="#16A34A" stroke-width="2"/>
+              <path stroke="#16A34A" stroke-width="1.8" stroke-linecap="round" d="M8 7h8M8 12h8M8 17h5"/>
+            </svg>
           </div>
-          <h3>Create your first project</h3>
-          <p>Organise your calculations into projects to keep your work structured.</p>
-          <button class="btn btn-primary" onclick="openNewProjectModal()" style="font-size:0.85rem;padding:9px 20px">
-            + Create Project
-          </button>
+          <div class="widget-stat-num" id="stat-calcs">0</div>
+          <div class="widget-stat-label">Calculations</div>
+        </div>
+
+        <!-- Stat: Downloads -->
+        <div class="widget-stat">
+          <div class="widget-stat-icon" style="background:#FFF7ED;">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v13M7 11l5 5 5-5M3 20h18"/>
+            </svg>
+          </div>
+          <div class="widget-stat-num" id="stat-downloads">0</div>
+          <div class="widget-stat-label">Downloads</div>
         </div>
 
       </div>
-    </main>
-  </div>
 
-  <!-- ── New Project Modal ────────────────────────────────── -->
-  <div class="modal-overlay" id="modal-new-project">
-    <div class="modal-box" style="width:440px">
-      <h2 class="modal-title">New Project</h2>
-      <p class="modal-sub">Create a project to organise your calculations.</p>
-      <div class="modal-field">
-        <label for="np-name">Project Name</label>
-        <input type="text" id="np-name" placeholder="e.g. Office Block Phase 2" />
+      <!-- ── Quick Engineering Tools ───────────────────────────── -->
+      <div class="tools-section-head">
+        <h2>⚙️ Quick Engineering Tools</h2>
+        <a href="/tools.html">View all tools →</a>
       </div>
-      <div class="modal-field">
-        <label for="np-desc">Description <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
-        <input type="text" id="np-desc" placeholder="Brief description" />
+      <div class="tool-widget-grid">
+
+        <!-- Unit Converter -->
+        <a href="/tools.html#unit-converter" class="tool-widget" style="--tw-color:#6366F1;">
+          <div class="tool-widget-icon" style="background:#EEF2FF;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <path stroke="#6366F1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M7 16l-4-4 4-4M17 8l4 4-4 4"/>
+              <line x1="3" y1="12" x2="21" y2="12" stroke="#6366F1" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="tool-widget-body">
+            <p class="tool-widget-name">Unit Converter</p>
+            <p class="tool-widget-desc">Force, length, moment, pressure &amp; more</p>
+          </div>
+        </a>
+
+        <!-- Weight Calculator -->
+        <a href="/tools.html#weight-calc" class="tool-widget" style="--tw-color:#0891B2;">
+          <div class="tool-widget-icon" style="background:#ECFEFF;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <path stroke="#0891B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 3a2 2 0 100 4 2 2 0 000-4z"/>
+              <path stroke="#0891B2" stroke-width="1.8" stroke-linecap="round" d="M5 21h14M6 21l2-8h8l2 8"/>
+              <path stroke="#0891B2" stroke-width="1.8" stroke-linecap="round" d="M8 13a4 4 0 018 0"/>
+            </svg>
+          </div>
+          <div class="tool-widget-body">
+            <p class="tool-widget-name">Weight Calculator</p>
+            <p class="tool-widget-desc">Steel sections, plates, concrete &amp; rebar</p>
+          </div>
+        </a>
+
+        <!-- Section Properties -->
+        <a href="/tools.html#section-props" class="tool-widget" style="--tw-color:#7C3AED;">
+          <div class="tool-widget-icon" style="background:#F5F3FF;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <rect x="7" y="3" width="10" height="3" rx="1" stroke="#7C3AED" stroke-width="1.8"/>
+              <rect x="10" y="6" width="4" height="12" rx="0.5" stroke="#7C3AED" stroke-width="1.8"/>
+              <rect x="7" y="18" width="10" height="3" rx="1" stroke="#7C3AED" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <div class="tool-widget-body">
+            <p class="tool-widget-name">Section Properties</p>
+            <p class="tool-widget-desc">A, Ixx, Zxx, rxx for any cross-section</p>
+          </div>
+        </a>
+
+        <!-- Load Combinations -->
+        <a href="/tools.html#load-combos" class="tool-widget" style="--tw-color:#D97706;">
+          <div class="tool-widget-icon" style="background:#FFFBEB;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="4" rx="1" stroke="#D97706" stroke-width="1.8"/>
+              <rect x="3" y="10" width="18" height="4" rx="1" stroke="#D97706" stroke-width="1.8"/>
+              <rect x="3" y="16" width="18" height="4" rx="1" stroke="#D97706" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <div class="tool-widget-body">
+            <p class="tool-widget-name">Load Combinations</p>
+            <p class="tool-widget-desc">ULS &amp; SLS combos — Eurocode / ACI 318</p>
+          </div>
+        </a>
+
+        <!-- Wind Load -->
+        <a href="/tools.html#wind-load" class="tool-widget" style="--tw-color:#0EA5E9;">
+          <div class="tool-widget-icon" style="background:#F0F9FF;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <path stroke="#0EA5E9" stroke-width="1.8" stroke-linecap="round" d="M3 8h11a3 3 0 100-6 3 3 0 00-3 3"/>
+              <path stroke="#0EA5E9" stroke-width="1.8" stroke-linecap="round" d="M3 13h15a4 4 0 110-8"/>
+              <path stroke="#0EA5E9" stroke-width="1.8" stroke-linecap="round" d="M3 18h7a2 2 0 100-4H8"/>
+            </svg>
+          </div>
+          <div class="tool-widget-body">
+            <p class="tool-widget-name">Wind Load</p>
+            <p class="tool-widget-desc">Basic wind pressure per EN 1991-1-4</p>
+          </div>
+        </a>
+
+        <!-- AI Assistant -->
+        <a href="/ai-assistant.html" class="tool-widget" style="--tw-color:#8B5CF6;">
+          <div class="tool-widget-icon" style="background:#F5F3FF;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <path stroke="#8B5CF6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 2l2.4 4.8L20 8l-4.8 2.4L12 14l-2.4-4.8L4 8l4.8-2.4L12 2z"/>
+              <path stroke="#8B5CF6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M19 16l1.2 2.4L22 19l-1.8.6L19 22l-1.2-2.4L16 19l1.8-.6L19 16z"/>
+            </svg>
+          </div>
+          <div class="tool-widget-body">
+            <p class="tool-widget-name">AI Assistant</p>
+            <p class="tool-widget-desc">Engineering queries powered by ChatGPT</p>
+          </div>
+        </a>
+
       </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
-        <button class="btn btn-secondary" onclick="closeNewProjectModal()">Cancel</button>
-        <button class="btn btn-primary" id="btn-create-project">Create Project</button>
+
+      <!-- ── Structural Calculators ────────────────────────────── -->
+      <div class="tools-section-head">
+        <h2>🏗️ Structural Calculators</h2>
+        <a href="/projects.html">Go to Projects →</a>
       </div>
+      <div class="calc-widget-grid">
+
+        <a href="/projects.html" class="calc-widget">
+          <div class="calc-widget-icon" style="background:#EFF6FF;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <path stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" d="M3 12h18"/><path stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" d="M5 8v8M19 8v8"/>
+            </svg>
+          </div>
+          <div class="calc-widget-body">
+            <p class="calc-widget-name">Beam Analysis</p>
+            <p class="calc-widget-desc">Moment, shear, deflection for any loading</p>
+          </div>
+        </a>
+
+        <a href="/projects.html" class="calc-widget">
+          <div class="calc-widget-icon" style="background:#FEF3C7;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <rect x="10" y="2" width="4" height="20" rx="1" stroke="#D97706" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <div class="calc-widget-body">
+            <p class="calc-widget-name">Column Design</p>
+            <p class="calc-widget-desc">Axial, moment &amp; slenderness checks</p>
+          </div>
+        </a>
+
+        <a href="/projects.html" class="calc-widget">
+          <div class="calc-widget-icon" style="background:#F0FDF4;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="9" width="18" height="6" rx="1" stroke="#16A34A" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <div class="calc-widget-body">
+            <p class="calc-widget-name">RC Slab</p>
+            <p class="calc-widget-desc">Reinforced concrete slab design</p>
+          </div>
+        </a>
+
+        <a href="/projects.html" class="calc-widget">
+          <div class="calc-widget-icon" style="background:#F5F3FF;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <rect x="4" y="14" width="16" height="6" rx="1" stroke="#7C3AED" stroke-width="1.8"/>
+              <rect x="9" y="5" width="6" height="9" rx="0.5" stroke="#7C3AED" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <div class="calc-widget-body">
+            <p class="calc-widget-name">Pad Footing</p>
+            <p class="calc-widget-desc">Foundation bearing &amp; punching checks</p>
+          </div>
+        </a>
+
+        <a href="/projects.html" class="calc-widget">
+          <div class="calc-widget-icon" style="background:#FEF2F2;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <path stroke="#DC2626" stroke-width="1.8" stroke-linecap="round" d="M6 4v16M6 20h12M6 8h5M6 12h3"/>
+            </svg>
+          </div>
+          <div class="calc-widget-body">
+            <p class="calc-widget-name">Retaining Wall</p>
+            <p class="calc-widget-desc">Sliding, overturning &amp; bearing checks</p>
+          </div>
+        </a>
+
+        <a href="/projects.html" class="calc-widget">
+          <div class="calc-widget-icon" style="background:#ECFEFF;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="2.5" stroke="#0891B2" stroke-width="1.8"/>
+              <circle cx="5" cy="5" r="1.8" stroke="#0891B2" stroke-width="1.5"/>
+              <circle cx="19" cy="5" r="1.8" stroke="#0891B2" stroke-width="1.5"/>
+              <circle cx="5" cy="19" r="1.8" stroke="#0891B2" stroke-width="1.5"/>
+              <circle cx="19" cy="19" r="1.8" stroke="#0891B2" stroke-width="1.5"/>
+              <path stroke="#0891B2" stroke-width="1.4" d="M6.5 6.5l4 4M13.5 13.5l4 4M17.5 6.5l-4 4M10.5 13.5l-4 4"/>
+            </svg>
+          </div>
+          <div class="calc-widget-body">
+            <p class="calc-widget-name">Connection Design</p>
+            <p class="calc-widget-desc">Bolt group &amp; weld capacity checks</p>
+          </div>
+        </a>
+
+      </div>
+
+    </div><!-- /app-container -->
+  </main>
+</div>
+
+<!-- ── New Project Modal ─────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-new-project">
+  <div class="modal-box" style="width:440px">
+    <h2 class="modal-title">New Project</h2>
+    <p class="modal-sub">Create a project to organise your calculations.</p>
+    <div class="modal-field">
+      <label for="np-name">Project Name</label>
+      <input type="text" id="np-name" placeholder="e.g. Office Block Phase 2" />
+    </div>
+    <div class="modal-field">
+      <label for="np-desc">Description <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+      <input type="text" id="np-desc" placeholder="Brief description" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="closeNewProjectModal()">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-project">Create Project</button>
     </div>
   </div>
+</div>
 
-  <!-- ── Project Options Modal ────────────────────────────── -->
-  <div class="modal-overlay" id="modal-project-options">
-    <div class="modal-box" style="width:360px">
-      <h2 class="modal-title" id="po-title">Project Options</h2>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
-        <button class="btn btn-secondary" id="po-rename-btn" style="justify-content:flex-start">✏️ Rename project</button>
-        <button class="btn btn-secondary" id="po-delete-btn" style="justify-content:flex-start;color:var(--red);border-color:var(--red)">🗑 Delete project and all calculations</button>
-      </div>
-      <div style="margin-top:12px;text-align:right">
-        <button class="btn btn-ghost" onclick="document.getElementById('modal-project-options').classList.remove('open')">Cancel</button>
-      </div>
-    </div>
-  </div>
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
 
-  <script src="/js/auth/auth.js"></script>
-  <script src="/js/projects/projects.js"></script>
-  <script src="/js/projects/history.js"></script>
-  <script src="/js/subscription/plans.js"></script>
-  <script src="/js/ui/topNav.js"></script>
+<script>
+const PROJECT_COLORS = ['#2563EB','#16A34A','#D97706','#7C3AED','#DC2626','#0891B2','#BE185D','#059669'];
 
-  <script>
-  // ── Constants ────────────────────────────────────────────────
-  const TYPE_COLORS = {
-    beam: '#2563EB', column: '#D97706', slab: '#16A34A',
-    footing: '#7C3AED', retaining_wall: '#DC2626', connection: '#0891B2'
-  };
-  const TYPE_LABELS = {
-    beam: 'BEAM', column: 'COL', slab: 'SLAB',
-    footing: 'FTNG', retaining_wall: 'WALL', connection: 'CONN'
-  };
-  const TYPE_PAGES = {
-    beam: '/index.html', column: '/calcs/column.html', slab: '/calcs/slab.html',
-    footing: '/calcs/footing.html', retaining_wall: '/calcs/retaining-wall.html',
-    connection: '/calcs/connection.html'
-  };
-  const PROJECT_COLORS = [
-    '#2563EB','#16A34A','#D97706','#7C3AED','#DC2626','#0891B2','#BE185D','#059669'
-  ];
+document.addEventListener('DOMContentLoaded', function() {
+  TopNav.init();
+  const user = Auth.currentUser();
+  if (!user) return;
 
-  let _optionsProjectId = null;
+  // Greeting
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const firstName = (user.name || user.email || '').split(' ')[0];
+  document.getElementById('dash-greeting').textContent = greet + (firstName ? ', ' + firstName : '');
 
-  // ── Init ─────────────────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', function() {
-    TopNav.init();
-    const user = Auth.currentUser();
-    if (!user) return; // TopNav handles redirect
+  // Stats
+  _renderStats();
 
-    // Greeting
-    const hour = new Date().getHours();
-    const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-    const firstName = (user.name || user.email || '').split(' ')[0];
-    document.getElementById('dash-greeting').textContent = greet + (firstName ? ', ' + firstName : '');
-
-    // Stats sub-line
-    renderAll();
-
-    // New project button
-    document.getElementById('btn-new-project').addEventListener('click', openNewProjectModal);
-    document.getElementById('btn-create-project').addEventListener('click', createProject);
-
-    // Enter key in modal
-    document.getElementById('np-name').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') createProject();
-    });
-
-    // Close modals on overlay click
-    document.getElementById('modal-new-project').addEventListener('click', function(e) {
-      if (e.target === this) closeNewProjectModal();
-    });
-    document.getElementById('modal-project-options').addEventListener('click', function(e) {
-      if (e.target === this) this.classList.remove('open');
-    });
+  // Modal wiring
+  document.getElementById('btn-create-project').addEventListener('click', createProject);
+  document.getElementById('np-name').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') createProject();
   });
-
-  // ── Render ───────────────────────────────────────────────────
-  function renderAll() {
-    const projects = window.Projects ? Projects.list() : [];
-    const allCalcs = _getHistory();
-    const now = new Date();
-    const monthCalcs = allCalcs.filter(function(h) {
-      const d = new Date(h.timestamp);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    });
-
-    // Sub-line
-    const subEl = document.getElementById('dash-sub');
-    const total = allCalcs.length;
-    subEl.textContent = projects.length + ' project' + (projects.length !== 1 ? 's' : '') +
-      ' · ' + total + ' calculation' + (total !== 1 ? 's' : '') +
-      (monthCalcs.length > 0 ? ' · ' + monthCalcs.length + ' this month' : '');
-
-    // Projects list
-    const listEl = document.getElementById('projects-list');
-    const emptyEl = document.getElementById('dash-empty');
-
-    if (projects.length === 0) {
-      listEl.innerHTML = '';
-      emptyEl.style.display = 'block';
-      return;
-    }
-
-    emptyEl.style.display = 'none';
-
-    // Sort: most recently active first
-    const sorted = projects.slice().sort(function(a, b) {
-      const aLast = _lastCalcTime(a.id, allCalcs);
-      const bLast = _lastCalcTime(b.id, allCalcs);
-      return (bLast || b.createdAt || 0) > (aLast || a.createdAt || 0) ? 1 : -1;
-    });
-
-    listEl.innerHTML = sorted.map(function(proj, idx) {
-      return renderProjectCard(proj, idx, allCalcs);
-    }).join('');
-  }
-
-  function renderProjectCard(proj, idx, allCalcs) {
-    const calcs = allCalcs.filter(function(h) { return h.projectId === proj.id; })
-      .sort(function(a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
-    const color = proj.color || PROJECT_COLORS[idx % PROJECT_COLORS.length];
-    const calcCount = calcs.length;
-    const lastCalc = calcs[0];
-    const metaText = calcCount === 0
-      ? 'No calculations yet'
-      : calcCount + ' calculation' + (calcCount !== 1 ? 's' : '') +
-        (lastCalc ? ' · Updated ' + _timeAgo(lastCalc.timestamp) : '');
-
-    const visible = calcs.slice(0, 5);
-
-    const calcRowsHtml = visible.length === 0
-      ? '<div class="calc-empty">No calculations yet — <a class="calc-empty-link" href="#" onclick="openAddCalc(event,\'' + proj.id + '\')">add one →</a></div>'
-      : visible.map(function(h) {
-          const ct = (h.config && h.config.calcType) || 'beam';
-          const pageUrl = (TYPE_PAGES[ct] || '/index.html') + '?load=' + h.id;
-          const color2 = TYPE_COLORS[ct] || '#2563EB';
-          const label = TYPE_LABELS[ct] || 'CALC';
-          const summary = h.summary || '';
-          const passMatch = summary.match(/\b(PASS|FAIL)\b/i);
-          const passText = passMatch ? passMatch[0].toUpperCase() : '';
-          const passClass = passText === 'PASS' ? 'status-pass' : passText === 'FAIL' ? 'status-fail' : '';
-          const passIcon = passText === 'PASS' ? '✓ ' : passText === 'FAIL' ? '✗ ' : '';
-
-          return '<a class="calc-row" href="' + pageUrl + '">' +
-            '<span class="calc-type-pill" style="background:' + color2 + '1A;color:' + color2 + '">' + label + '</span>' +
-            '<span class="calc-row-name">' + _esc(h.name || 'Untitled') + '</span>' +
-            (passText ? '<span class="calc-row-status ' + passClass + '">' + passIcon + passText + '</span>' : '') +
-            '<span class="calc-row-time">' + _timeAgo(h.timestamp) + '</span>' +
-            '</a>';
-        }).join('') +
-        (calcCount > 5
-          ? '<a href="/history.html" class="calc-view-all">View all ' + calcCount + ' calculations →</a>'
-          : '');
-
-    return '<div class="project-card" id="pc-' + proj.id + '">' +
-      '<div class="project-card-head">' +
-        '<div class="project-head-left">' +
-          '<div class="project-color-bar" style="background:' + color + '"></div>' +
-          '<div>' +
-            '<h3 class="project-name">' + _esc(proj.name) + '</h3>' +
-            '<div class="project-meta-line">' + metaText + '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="project-head-right">' +
-          '<div class="add-calc-wrap" id="acw-' + proj.id + '">' +
-            '<button class="btn btn-secondary" style="font-size:0.78rem;padding:6px 12px;gap:5px" onclick="toggleAddCalc(event,\'' + proj.id + '\')">' +
-              '<svg width="11" height="11" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>' +
-              'Add Calculation' +
-            '</button>' +
-            '<div class="add-calc-menu" id="acm-' + proj.id + '">' +
-              _addCalcMenuItems(proj.id) +
-            '</div>' +
-          '</div>' +
-          '<button class="btn-icon" style="width:30px;height:30px;font-size:16px;line-height:1;border-radius:8px" ' +
-            'onclick="openProjectOptions(event,\'' + proj.id + '\',\'' + _esc(proj.name) + '\')" title="Project options">⋯</button>' +
-        '</div>' +
-      '</div>' +
-      '<div class="calc-rows">' + calcRowsHtml + '</div>' +
-    '</div>';
-  }
-
-  function _addCalcMenuItems(projectId) {
-    return [
-      { ct: 'beam',          label: 'Beam Analysis',   color: '#2563EB', page: '/index.html' },
-      { ct: 'column',        label: 'Column Design',   color: '#D97706', page: '/calcs/column.html' },
-      { ct: 'slab',          label: 'RC Slab',         color: '#16A34A', page: '/calcs/slab.html' },
-      { ct: 'footing',       label: 'Pad Footing',     color: '#7C3AED', page: '/calcs/footing.html' },
-      { ct: 'retaining_wall',label: 'Retaining Wall',  color: '#DC2626', page: '/calcs/retaining-wall.html' },
-      { ct: 'connection',    label: 'Connection',      color: '#0891B2', page: '/calcs/connection.html' },
-    ].map(function(item) {
-      return '<a href="' + item.page + '?project=' + projectId + '" class="add-calc-item">' +
-        '<span class="add-calc-dot" style="background:' + item.color + '"></span>' +
-        item.label +
-        '</a>';
-    }).join('');
-  }
-
-  // ── Add Calc Dropdown ────────────────────────────────────────
-  function toggleAddCalc(e, projectId) {
-    e.stopPropagation();
-    // Close all other open menus first
-    document.querySelectorAll('.add-calc-menu.open').forEach(function(m) {
-      if (m.id !== 'acm-' + projectId) m.classList.remove('open');
-    });
-    document.getElementById('acm-' + projectId).classList.toggle('open');
-  }
-
-  function openAddCalc(e, projectId) {
-    e.preventDefault();
-    toggleAddCalc(e, projectId);
-  }
-
-  document.addEventListener('click', function() {
-    document.querySelectorAll('.add-calc-menu.open').forEach(function(m) {
-      m.classList.remove('open');
-    });
+  document.getElementById('modal-new-project').addEventListener('click', function(e) {
+    if (e.target === this) closeNewProjectModal();
   });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeNewProjectModal();
+  });
+});
 
-  // ── New Project Modal ────────────────────────────────────────
-  function openNewProjectModal() {
-    document.getElementById('np-name').value = '';
-    document.getElementById('np-desc').value = '';
-    document.getElementById('modal-new-project').classList.add('open');
-    setTimeout(function() { document.getElementById('np-name').focus(); }, 50);
-  }
+// Handle hash deep-link to tools tabs
+document.addEventListener('DOMContentLoaded', function() {
+  // tools.html hash links handled on that page
+});
 
-  function closeNewProjectModal() {
-    document.getElementById('modal-new-project').classList.remove('open');
-  }
+function _renderStats() {
+  const projects = window.Projects ? Projects.list() : [];
+  const allCalcs = _getHistory();
+  const downloads = parseInt(localStorage.getItem('bcp_dl_count') || '0');
 
-  function createProject() {
-    const name = document.getElementById('np-name').value.trim();
-    if (!name) { document.getElementById('np-name').focus(); return; }
-    const desc = document.getElementById('np-desc').value.trim();
+  document.getElementById('stat-projects').textContent = projects.length;
+  document.getElementById('stat-calcs').textContent = allCalcs.length;
+  document.getElementById('stat-downloads').textContent = downloads;
+
+  const total = allCalcs.length;
+  const now = new Date();
+  const monthCalcs = allCalcs.filter(function(h) {
+    const d = new Date(h.savedAt || h.timestamp);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  document.getElementById('dash-sub').textContent =
+    projects.length + ' project' + (projects.length !== 1 ? 's' : '') +
+    ' · ' + total + ' calculation' + (total !== 1 ? 's' : '') +
+    (monthCalcs.length > 0 ? ' · ' + monthCalcs.length + ' this month' : '');
+}
+
+function openNewProjectModal() {
+  document.getElementById('np-name').value = '';
+  document.getElementById('np-desc').value = '';
+  document.getElementById('modal-new-project').classList.add('open');
+  setTimeout(function() { document.getElementById('np-name').focus(); }, 50);
+}
+
+function closeNewProjectModal() {
+  document.getElementById('modal-new-project').classList.remove('open');
+}
+
+function createProject() {
+  const name = document.getElementById('np-name').value.trim();
+  if (!name) { document.getElementById('np-name').focus(); return; }
+  const desc = document.getElementById('np-desc').value.trim();
+  try {
     const proj = Projects.create(name, desc);
-    // Assign a color based on current project count
     const allProjects = Projects.list();
     const idx = allProjects.findIndex(function(p) { return p.id === proj.id; });
     Projects.update(proj.id, { color: PROJECT_COLORS[idx % PROJECT_COLORS.length] });
     closeNewProjectModal();
-    renderAll();
+    _renderStats();
+    // Navigate to projects page after creating
+    setTimeout(function() { window.location.href = '/projects.html'; }, 300);
+  } catch(e) {
+    alert(e.message || 'Could not create project.');
   }
+}
 
-  // ── Project Options ──────────────────────────────────────────
-  function openProjectOptions(e, projectId, projectName) {
-    e.stopPropagation();
-    _optionsProjectId = projectId;
-    document.getElementById('po-title').textContent = projectName;
-
-    document.getElementById('po-rename-btn').onclick = function() {
-      document.getElementById('modal-project-options').classList.remove('open');
-      const newName = prompt('Rename project:', projectName);
-      if (newName && newName.trim()) {
-        Projects.update(projectId, { name: newName.trim() });
-        renderAll();
-      }
-    };
-
-    document.getElementById('po-delete-btn').onclick = function() {
-      document.getElementById('modal-project-options').classList.remove('open');
-      if (confirm('Delete "' + projectName + '" and all its calculations? This cannot be undone.')) {
-        History.deleteByProject(projectId);
-        Projects.remove(projectId);
-        renderAll();
-      }
-    };
-
-    document.getElementById('modal-project-options').classList.add('open');
-  }
-
-  // ── Helpers ──────────────────────────────────────────────────
-  function _getHistory() {
-    try { return JSON.parse(localStorage.getItem('bcp_history') || '[]'); } catch { return []; }
-  }
-
-  function _lastCalcTime(projectId, calcs) {
-    const pc = calcs.filter(function(h) { return h.projectId === projectId; });
-    if (!pc.length) return null;
-    return pc.reduce(function(max, h) {
-      return new Date(h.timestamp) > new Date(max) ? h.timestamp : max;
-    }, pc[0].timestamp);
-  }
-
-  function _timeAgo(ts) {
-    if (!ts) return '';
-    const diff = Date.now() - new Date(ts).getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 1) return 'just now';
-    if (m < 60) return m + 'm ago';
-    const h = Math.floor(m / 60);
-    if (h < 24) return h + 'h ago';
-    const d = Math.floor(h / 24);
-    if (d < 7) return d + 'd ago';
-    return new Date(ts).toLocaleDateString();
-  }
-
-  function _esc(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-  </script>
+function _getHistory() {
+  try { return JSON.parse(localStorage.getItem('bcp_history') || '[]'); } catch { return []; }
+}
+</script>
 </body>
 </html>

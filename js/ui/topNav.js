@@ -6,9 +6,10 @@ const TopNav = (() => {
 
   // Maps pathname → nav highlight key
   const NAV_MAP = {
-    '/tools.html': 'tools',
-    '/standards.html': 'standards',
-    '/templates.html': 'templates',
+    '/projects.html':   'projects',
+    '/tools.html':      'tools',
+    '/standards.html':  'standards',
+    '/templates.html':  'templates',
     '/ai-assistant.html': 'ai',
   };
 
@@ -38,7 +39,7 @@ const TopNav = (() => {
 
     // Active nav link
     const path = window.location.pathname;
-    const activeKey = NAV_MAP[path] || '';
+    const activeKey = NAV_MAP[path] || (path === '/dashboard.html' || path === '/' ? 'dashboard' : '');
     if (activeKey) {
       document.querySelectorAll('[data-nav="' + activeKey + '"]').forEach(function(el) {
         el.classList.add('hn-active');
@@ -66,7 +67,7 @@ const TopNav = (() => {
 
     return '<div class="header-inner">' +
       // Logo
-      '<a href="/dashboard.html" class="header-logo">' +
+      '<a href="/dashboard.html" class="header-logo" data-nav="dashboard">' +
         '<svg width="26" height="26" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">' +
           '<rect width="30" height="30" rx="7" fill="#2563EB"/>' +
           '<rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>' +
@@ -78,11 +79,11 @@ const TopNav = (() => {
       '</a>' +
       // Nav links
       '<nav class="header-nav">' +
+        '<a href="/projects.html" data-nav="projects">Projects</a>' +
         '<a href="/tools.html" data-nav="tools">Quick Tools</a>' +
         '<a href="/standards.html" data-nav="standards">Standards</a>' +
         '<a href="/templates.html" data-nav="templates">Templates</a>' +
         '<a href="/ai-assistant.html" data-nav="ai">AI Assistant</a>' +
-        '<a href="/history.html" data-nav="history">History</a>' +
       '</nav>' +
       // Right
       '<div class="header-right">' +
@@ -102,11 +103,11 @@ const TopNav = (() => {
 
   function _buildDrawer() {
     return '<a href="/dashboard.html">Dashboard</a>' +
+      '<a href="/projects.html">Projects</a>' +
       '<a href="/tools.html">Quick Tools</a>' +
       '<a href="/standards.html">Standards</a>' +
       '<a href="/templates.html">Templates</a>' +
       '<a href="/ai-assistant.html">AI Assistant</a>' +
-      '<a href="/history.html">History</a>' +
       '<div class="drawer-sep"></div>' +
       '<a href="/profile.html">Profile</a>' +
       '<a href="#" onclick="Auth.logout();return false;">Sign out</a>';
