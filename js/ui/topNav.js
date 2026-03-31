@@ -109,7 +109,6 @@ const TopNav = (() => {
       '<a href="/history.html">History</a>' +
       '<div class="drawer-sep"></div>' +
       '<a href="/profile.html">Profile</a>' +
-      '<a href="/pricing.html">Plans & Pricing</a>' +
       '<a href="#" onclick="Auth.logout();return false;">Sign out</a>';
   }
 

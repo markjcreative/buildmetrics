@@ -564,7 +564,6 @@
     <script src="/js/projects/projects.js"></script>
     <script src="/js/projects/history.js"></script>
     <script src="/js/subscription/plans.js"></script>
-    <script src="/js/subscription/upgrade-modal.js"></script>
     <script src="/js/ui/topNav.js"></script>
     <script src="/js/ai/aiStorage.js"></script>
     <script src="/js/ai/aiAssistant.js"></script>
@@ -584,7 +583,7 @@
         };
 
         // ── Welcome message ───────────────────────────────────────────
-        const WELCOME_MD = `Welcome to **BuildMetrics AI** \u2014 your structural engineering assistant.
+        const WELCOME_MD = `Welcome to **BuildMetrics AI** \u2014 your free structural engineering assistant powered by ChatGPT.
 
 I can help you with:
 - \u2705 Beam, column, slab, and foundation design checks
@@ -593,7 +592,7 @@ I can help you with:
 - \u2705 Section properties and material properties
 - \u2705 Code compliance questions
 
-**To get started:** Type your engineering question below, or click one of the quick action buttons.
+**To get started:** Add your OpenAI API key in the panel on the left, then type your engineering question below or click one of the quick action buttons. Your API key is stored locally on your device only.
 
 > \u26a0\ufe0f Always verify results with a qualified structural engineer before use in practice.`;
 
@@ -948,17 +947,6 @@ I can help you with:
             const user = Auth.currentUser ? Auth.currentUser() : null;
             if (!user) {
                 window.location.href = '/login.html';
-                return;
-            }
-
-            // Pro gate check — use Subscription.isPro with current user id
-            const userId = user.id || user.uid || null;
-            const isPro = userId
-                ? (window.Subscription ? Subscription.isPro(userId) : false)
-                : false;
-
-            if (!isPro) {
-                showProGate();
                 return;
             }
 

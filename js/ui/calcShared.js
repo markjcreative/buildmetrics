@@ -29,22 +29,11 @@ const CalcShared = (() => {
 
         const enrichedConfig = { ...config, calcType };
         try {
-            const canSave = typeof Subscription !== 'undefined'
-                ? Subscription.canSaveCalc(user.id)
-                : true;
-            if (!canSave) {
-                if (typeof UpgradeModal !== 'undefined') UpgradeModal.show('calcs');
-                return false;
-            }
             History.save(proj.id, name || `${calcType} calc`, enrichedConfig, results, summary);
             showToast('Calculation saved!', 'success');
             return true;
         } catch (e) {
-            if (e.message && e.message.includes('FREE_LIMIT')) {
-                if (typeof UpgradeModal !== 'undefined') UpgradeModal.show('calcs');
-            } else {
-                showToast(e.message || 'Save failed.', 'error');
-            }
+            showToast(e.message || 'Save failed.', 'error');
             return false;
         }
     }
