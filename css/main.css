@@ -237,7 +237,7 @@ h3 {
   width: 360px;
   min-width: 320px;
   flex-shrink: 0;
-  background: var(--bg-surface);
+  background: #fff;
   border-right: 1px solid var(--border);
   overflow-y: auto;
   display: flex;
@@ -303,29 +303,49 @@ h3 {
   transform: rotate(-90deg);
 }
 
-/* ─── Form Elements ──────────────────────────────────────── */
+/* ─── Form Elements (beam page input panel) ─────────────── */
 .form-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 9px;
+  margin-bottom: 10px;
 }
 
 .form-row label {
-  font-size: 0.77rem;
+  font-size: 0.76rem;
+  font-weight: 600;
   color: var(--text-secondary);
-  min-width: 110px;
+  min-width: 108px;
   flex-shrink: 0;
 }
 
+/* Overrride inline-styled selects in beam input panel */
+#input-panel select {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+#input-panel select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}
+
 .inp-num {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
   color: var(--text-primary);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.82rem;
-  padding: 6px 9px;
+  font-size: 0.85rem;
+  padding: 8px 10px;
   width: 100%;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -343,9 +363,10 @@ h3 {
 
 .unit-tag {
   font-size: 0.72rem;
+  font-weight: 600;
   color: var(--text-muted);
   white-space: nowrap;
-  min-width: 36px;
+  min-width: 32px;
 }
 
 /* ─── Material Buttons ───────────────────────────────────── */
@@ -566,34 +587,51 @@ h3 {
   background: var(--accent-light);
 }
 
-/* ─── Calculate Bar ──────────────────────────────────────── */
+/* ─── Calculate Bar (beam analysis page) ───────────────── */
 #calculate-bar {
-  padding: 14px 18px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-surface);
+  padding: 16px 18px;
+  border-top: 2px solid var(--border);
+  background: #fff;
   display: flex;
-  gap: 7px;
+  gap: 8px;
   flex-direction: column;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+  position: sticky;
+  bottom: 0;
 }
 
 #btn-calculate {
   width: 100%;
-  padding: 11px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  border-radius: var(--radius);
-  letter-spacing: -0.1px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 9px;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+  transition: all 0.15s;
+}
+#btn-calculate:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37,99,235,0.4);
+}
+#btn-calculate:active { transform: translateY(0); box-shadow: none; }
+#btn-calculate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .calc-actions {
   display: flex;
-  gap: 7px;
+  gap: 8px;
 }
 
 .calc-actions .btn {
   flex: 1;
-  font-size: 0.77rem;
-  padding: 6px;
+  font-size: 0.82rem;
+  padding: 8px;
+  justify-content: center;
 }
 
 #calc-error {
@@ -954,89 +992,99 @@ h3 {
 
 /* ─── Export Section ─────────────────────────────────────── */
 #export-section {
-  background: white;
+  background: #fff;
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 14px;
   padding: 20px 24px;
   display: flex;
   gap: 20px;
   align-items: center;
   flex-wrap: wrap;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
-.export-info {
-  flex: 1;
-}
+.export-info { flex: 1; min-width: 160px; }
 
 .export-title {
-  font-size: 0.92rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .export-desc {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .export-buttons {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Shared export button base */
+.export-buttons button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  line-height: 1;
+}
+.export-buttons button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 #btn-export-pdf {
-  background: var(--accent);
-  color: white;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-sm);
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 0.82rem;
-  padding: 9px 16px;
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  background: #DC2626;
+  color: #fff;
+  border: 1.5px solid #DC2626;
+  box-shadow: 0 2px 6px rgba(220,38,38,0.2);
 }
-
-#btn-export-pdf:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-}
-
-#btn-export-pdf:disabled {
-  opacity: 0.4;
-  cursor: wait;
+#btn-export-pdf:hover:not(:disabled) {
+  background: #B91C1C;
+  border-color: #B91C1C;
+  box-shadow: 0 3px 10px rgba(220,38,38,0.35);
+  transform: translateY(-1px);
 }
 
 #btn-export-csv {
-  background: white;
+  background: #fff;
   color: var(--text-primary);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 0.82rem;
-  padding: 9px 16px;
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  border: 1.5px solid var(--border);
 }
-
-#btn-export-csv:hover {
+#btn-export-csv:hover:not(:disabled) {
   background: var(--bg-subtle);
-  border-color: var(--text-muted);
+  border-color: #94A3B8;
 }
 
-#btn-export-csv:disabled {
-  opacity: 0.4;
-  cursor: wait;
+#btn-save-calc {
+  background: #16A34A !important;
+  color: #fff !important;
+  border: 1.5px solid #16A34A !important;
+  box-shadow: 0 2px 6px rgba(22,163,74,0.2);
+}
+#btn-save-calc:hover:not(:disabled) {
+  background: #15803D !important;
+  border-color: #15803D !important;
+  box-shadow: 0 3px 10px rgba(22,163,74,0.35);
+  transform: translateY(-1px);
+}
+#btn-save-calc:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
 }
 
 /* ─── Disclaimer ─────────────────────────────────────────── */
@@ -1350,15 +1398,4 @@ h3 {
   border-color: var(--border);
 }
 
-/* ─── Export Section (elevated) ─────────────────────────── */
-#export-section {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 20px 24px;
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  flex-wrap: wrap;
-  box-shadow: var(--shadow);
-}
+/* ─── Export Section (elevated — duplicate removed, handled above) ─── */
