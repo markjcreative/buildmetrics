@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concrete Column Design — Beam Calc Pro</title>
+  <meta name="description" content="Reinforced concrete column design to Eurocode 2 — axial capacity, slenderness, interaction">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
+  <style>
+    .util-ring-track { fill:none; stroke:#E4E4E7; stroke-width:8; }
+    .util-ring-fill  { fill:none; stroke-width:8; stroke-linecap:round; transform:rotate(-90deg); transform-origin:50% 50%; transition:stroke-dasharray .6s ease, stroke .4s; }
+    .check-row { display:grid; grid-template-columns:1fr 80px 80px 60px 70px; gap:8px; align-items:start; padding:10px 12px; border-bottom:1px solid var(--border); font-size:0.82rem; }
+    .check-row:last-child { border-bottom:none; }
+    .check-row.header { font-weight:700; font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
+    .check-row.fail { background:#FEF2F2; }
+    .util-bar-wrap { height:5px; background:var(--bg-subtle); border-radius:99px; overflow:hidden; margin-top:4px; }
+    .util-bar { height:100%; border-radius:99px; transition:width .5s; }
+    .shape-tabs { display:flex; gap:4px; margin-bottom:12px; }
+    .shape-tab { flex:1; padding:7px; border-radius:8px; border:1.5px solid var(--border); font-size:0.82rem; font-weight:600; cursor:pointer; text-align:center; background:var(--bg-surface); color:var(--text-secondary); }
+    .shape-tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .slender-banner { padding:10px 14px; border-radius:8px; font-size:0.82rem; font-weight:600; margin-bottom:4px; }
+    .slender-banner.warn { background:#FEF3C7; color:#92400E; }
+    .slender-banner.ok   { background:#F0FDF4; color:#166534; }
+  </style>
+</head>
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <main id="app-main" class="calc-layout">
+
+    <div class="calc-breadcrumb-bar">
+      <div class="calc-breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Concrete Column Design</span>
+      </div>
+      <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+        &#128193; <span id="calc-project-name">—</span>
+      </div>
+    </div>
+
+    <div class="calc-panels">
+
+      <!-- INPUT PANEL -->
+      <div id="calc-input-panel">
+        <div class="calc-input-header">
+          <span style="font-size:1.3rem">&#9632;</span>
+          <span class="calc-input-title">Concrete Column (EC2)</span>
+        </div>
+
+        <!-- Section -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-sec')">Section Properties <span id="sec-sec-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-sec">
+            <div class="form-row">
+              <label>Shape</label>
+              <div class="shape-tabs">
+                <div class="shape-tab active" id="tab-rect" onclick="setShape('rectangular')">&#9645; Rectangular</div>
+                <div class="shape-tab" id="tab-circ" onclick="setShape('circular')">&#9711; Circular</div>
+              </div>
+            </div>
+            <div id="rect-dims">
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label>Width b (mm)</label>
+                  <input type="number" id="inp-b" value="300" min="100" step="25" oninput="updateSectionHint()">
+                </div>
+                <div class="form-row">
+                  <label>Depth h (mm)</label>
+                  <input type="number" id="inp-h" value="300" min="100" step="25" oninput="updateSectionHint()">
+                </div>
+              </div>
+            </div>
+            <div id="circ-dims" style="display:none">
+              <div class="form-row">
+                <label>Diameter &#8960; (mm)</label>
+                <input type="number" id="inp-dia" value="350" min="150" step="25" oninput="updateSectionHint()">
+              </div>
+            </div>
+            <div style="font-size:0.78rem;color:var(--text-muted);padding:4px 0" id="sec-hint">Ac = 90,000 mm²</div>
+          </div>
+        </div>
+
+        <!-- Materials -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-mat')">Materials <span id="sec-mat-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-mat">
+            <div class="form-row">
+              <label>Concrete class</label>
+              <select id="inp-conc" onchange="onConcChange()">
+                <option value="C20/25">C20/25 — fck=20</option>
+                <option value="C25/30" selected>C25/30 — fck=25</option>
+                <option value="C30/37">C30/37 — fck=30</option>
+                <option value="C35/45">C35/45 — fck=35</option>
+                <option value="C40/50">C40/50 — fck=40</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>f<sub>ck</sub> (N/mm²)</label>
+              <input type="number" id="inp-fck" value="25" min="12" max="90" step="1">
+            </div>
+            <div class="form-row">
+              <label>Rebar grade</label>
+              <select id="inp-rebar" onchange="onRebarChange()">
+                <option value="B500B (EC2)" selected>B500B — fyk=500 MPa</option>
+                <option value="Grade 60 (ACI)">Grade 60 — fyk=414 MPa</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>f<sub>yk</sub> (N/mm²)</label>
+              <input type="number" id="inp-fyk" value="500" min="250" max="700" step="1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Geometry -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-geom')">Column Geometry <span id="sec-geom-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-geom">
+            <div class="form-row">
+              <label>Storey height (m)</label>
+              <input type="number" id="inp-height" value="3.5" min="0.5" max="30" step="0.5" oninput="updateLeffHint()">
+            </div>
+            <div class="form-row">
+              <label>End Conditions</label>
+              <select id="inp-end" onchange="updateLeffHint()">
+                <option value="pinned_pinned">Pinned–Pinned (k=1.0)</option>
+                <option value="fixed_pinned">Fixed–Pinned (k=0.7)</option>
+                <option value="fixed_fixed" selected>Fixed–Fixed (k=0.5)</option>
+                <option value="fixed_free">Fixed–Free (k=2.0)</option>
+              </select>
+            </div>
+            <div style="font-size:0.78rem;color:var(--text-muted);padding:4px 0" id="leff-hint">Le = 0.5 × 3.5 = 1.75 m</div>
+          </div>
+        </div>
+
+        <!-- Reinforcement -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-reinf')">Reinforcement <span id="sec-reinf-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-reinf">
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label>No. of bars</label>
+                <input type="number" id="inp-nbars" value="8" min="4" max="32" step="1" oninput="updateReinfHint()">
+              </div>
+              <div class="form-row">
+                <label>Bar &#8960; (mm)</label>
+                <input type="number" id="inp-bardia" value="20" min="8" max="40" step="2" oninput="updateReinfHint()">
+              </div>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label>Cover (mm)</label>
+                <input type="number" id="inp-cover" value="35" min="15" max="75" step="5">
+              </div>
+              <div class="form-row">
+                <label>Link &#8960; (mm)</label>
+                <input type="number" id="inp-linkdia" value="8" min="6" max="16" step="2">
+              </div>
+            </div>
+            <div style="font-size:0.78rem;color:var(--text-muted);padding:4px 0" id="reinf-hint">As = 2513 mm²</div>
+          </div>
+        </div>
+
+        <!-- Applied Forces -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-loads')">Applied Forces (ULS) <span id="sec-loads-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-loads">
+            <div class="form-row">
+              <label>Design Axial N<sub>Ed</sub> (kN)</label>
+              <input type="number" id="inp-NEd" value="800" min="0" step="25">
+              <span class="unit-tag">ULS factored</span>
+            </div>
+            <div class="form-row">
+              <label>Design Moment M<sub>Ed</sub> (kNm)</label>
+              <input type="number" id="inp-MEd" value="40" min="0" step="5">
+              <span class="unit-tag">Including eccentricity</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="calc-action-bar">
+          <button class="btn-primary" style="flex:1" onclick="runCalc()">&#9889; Calculate</button>
+          <button class="btn-secondary" onclick="CalcShared.openSaveModal('save-modal')" title="Save">&#128190; Save</button>
+          <button class="btn-ghost" onclick="resetCalc()" title="Reset">&#8635;</button>
+        </div>
+      </div>
+
+      <!-- RESULTS PANEL -->
+      <div id="calc-results-panel">
+
+        <div class="calc-welcome" id="results-welcome">
+          <div class="calc-welcome-icon">&#9632;</div>
+          <h3>Concrete Column Design (EC2)</h3>
+          <p>Enter section, materials, column height, reinforcement, and applied forces. Checks axial capacity, slenderness, interaction, and reinforcement limits.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px">
+            <span style="font-size:0.78rem;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:99px;font-weight:600">EC2 EN 1992-1-1</span>
+            <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">§5.8 Slenderness · §6.1 N+M</span>
+          </div>
+        </div>
+
+        <div id="results-content" style="display:none;flex-direction:column;gap:20px">
+
+          <!-- Slenderness banner -->
+          <div id="slender-banner" class="slender-banner ok">—</div>
+
+          <!-- Gauge + badges -->
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <div class="calc-results-card" style="min-width:200px;flex:0 0 auto">
+              <div class="card-header">Utilisation Ratio</div>
+              <div class="util-gauge-wrap">
+                <svg class="util-gauge-svg" width="90" height="90" viewBox="0 0 90 90">
+                  <circle class="util-ring-track" cx="45" cy="45" r="36"/>
+                  <circle class="util-ring-fill" id="util-ring" cx="45" cy="45" r="36" stroke-dasharray="0 226" stroke="#2563EB"/>
+                </svg>
+                <div class="util-gauge-info">
+                  <div class="util-gauge-value" id="util-pct">—%</div>
+                  <div class="util-gauge-label" id="util-status">—</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:12px">
+              <div class="calc-badges">
+                <div class="calc-badge">
+                  <div class="calc-badge-label">NRd</div>
+                  <div class="calc-badge-value" id="badge-NRd">—</div>
+                  <div class="calc-badge-unit">kN</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">MRd</div>
+                  <div class="calc-badge-value" id="badge-MRd">—</div>
+                  <div class="calc-badge-unit">kNm</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">λ slenderness</div>
+                  <div class="calc-badge-value" id="badge-lambda">—</div>
+                  <div class="calc-badge-unit"></div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">As / Ac</div>
+                  <div class="calc-badge-value" id="badge-rho">—</div>
+                  <div class="calc-badge-unit">%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Checks -->
+          <div class="calc-results-card">
+            <div class="card-header">Design Checks</div>
+            <div class="check-row header">
+              <span>Check</span><span>Ed</span><span>Rd</span><span>Unit</span><span>η</span>
+            </div>
+            <div id="checks-body"></div>
+          </div>
+
+          <!-- Summary -->
+          <div class="calc-results-card">
+            <div class="card-header">Design Summary</div>
+            <table class="calc-results-table">
+              <tbody id="summary-body"></tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Save Modal -->
+<div class="calc-modal-overlay" id="save-modal">
+  <div class="calc-modal-box">
+    <h3>&#128190; Save Calculation</h3>
+    <div class="form-row">
+      <label>Calculation Name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. RC Column C3 Ground Floor" maxlength="80">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-ghost" onclick="document.getElementById('save-modal').classList.remove('open')">Cancel</button>
+      <button class="btn-primary" onclick="doSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script src="/js/data/materials.js"></script>
+<script src="/js/engine/concreteColumnSolver.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report/wordExport.js"></script>
+<script src="/js/report/calcReport.js"></script>
+
+<script>
+let activeShape = 'rectangular';
+let currentResults = null;
+
+const kMap = { pinned_pinned: 1.0, fixed_pinned: 0.7, fixed_fixed: 0.5, fixed_free: 2.0 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  TopNav.init();
+  if (!Auth.guard()) return;
+  CalcShared.renderProjectBadge('calc-project-badge');
+  updateSectionHint();
+  updateLeffHint();
+  updateReinfHint();
+  document.getElementById('save-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('save-modal'))
+      document.getElementById('save-modal').classList.remove('open');
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.calc-modal-overlay.open').forEach(m => m.classList.remove('open'));
+  });
+});
+
+function setShape(s) {
+  activeShape = s;
+  document.getElementById('tab-rect').classList.toggle('active', s === 'rectangular');
+  document.getElementById('tab-circ').classList.toggle('active', s === 'circular');
+  document.getElementById('rect-dims').style.display = s === 'rectangular' ? '' : 'none';
+  document.getElementById('circ-dims').style.display = s === 'circular' ? '' : 'none';
+  updateSectionHint();
+}
+
+function updateSectionHint() {
+  let Ac;
+  if (activeShape === 'circular') {
+    const d = +document.getElementById('inp-dia').value || 350;
+    Ac = Math.PI * (d / 2) ** 2;
+  } else {
+    const b = +document.getElementById('inp-b').value || 300;
+    const h = +document.getElementById('inp-h').value || 300;
+    Ac = b * h;
+  }
+  document.getElementById('sec-hint').textContent = `Ac = ${Ac.toFixed(0)} mm²`;
+}
+
+function updateLeffHint() {
+  const H = +document.getElementById('inp-height').value || 3.5;
+  const k = kMap[document.getElementById('inp-end').value] || 1.0;
+  document.getElementById('leff-hint').textContent = `Le = ${k} × ${H} = ${(k * H).toFixed(2)} m`;
+}
+
+function updateReinfHint() {
+  const n   = +document.getElementById('inp-nbars').value || 8;
+  const dia = +document.getElementById('inp-bardia').value || 20;
+  const As  = n * Math.PI * (dia / 2) ** 2;
+  document.getElementById('reinf-hint').textContent = `As = ${As.toFixed(0)} mm²  (${n}T${dia})`;
+}
+
+function onConcChange() {
+  const m = (window.EngineeringMaterials?.concrete || {})[document.getElementById('inp-conc').value];
+  if (m) document.getElementById('inp-fck').value = m.fck;
+}
+
+function onRebarChange() {
+  const m = (window.EngineeringMaterials?.rebar || {})[document.getElementById('inp-rebar').value];
+  if (m) document.getElementById('inp-fyk').value = m.fyk;
+}
+
+function toggleSec(id) {
+  const b = document.getElementById(id);
+  b.style.display = b.style.display === 'none' ? '' : 'none';
+}
+
+function getConfig() {
+  return {
+    shape:        activeShape,
+    b:            +document.getElementById('inp-b').value,
+    h:            +document.getElementById('inp-h').value,
+    diameter:     +document.getElementById('inp-dia').value,
+    height:       +document.getElementById('inp-height').value,
+    endCondition: document.getElementById('inp-end').value,
+    fck:          +document.getElementById('inp-fck').value,
+    fyk:          +document.getElementById('inp-fyk').value,
+    NEd:          +document.getElementById('inp-NEd').value,
+    MEd:          +document.getElementById('inp-MEd').value,
+    n_bars:       +document.getElementById('inp-nbars').value,
+    bar_dia:      +document.getElementById('inp-bardia').value,
+    cover:        +document.getElementById('inp-cover').value,
+    link_dia:     +document.getElementById('inp-linkdia').value,
+  };
+}
+
+function runCalc() {
+  const config = getConfig();
+  if (!config.NEd) { CalcShared.showToast('Enter design axial force.', 'error'); return; }
+  try {
+    const r = ConcreteColumnSolver.solve(config);
+    currentResults = r;
+    showResults(r, config);
+  } catch (e) {
+    CalcShared.showToast('Calculation error: ' + e.message, 'error');
+  }
+}
+
+function showResults(r, config) {
+  document.getElementById('results-welcome').style.display = 'none';
+  document.getElementById('results-content').style.display = 'flex';
+
+  // Slenderness banner
+  const banner = document.getElementById('slender-banner');
+  banner.className = 'slender-banner ' + (r.isSlender ? 'warn' : 'ok');
+  banner.textContent = (r.isSlender ? '⚠ ' : '✓ ') + r.slendernessNote;
+
+  // Ring
+  const circumference = 2 * Math.PI * 36;
+  const pct   = Math.min(r.utilisationPct, 100);
+  const fill  = (pct / 100) * circumference;
+  const color = r.pass ? '#16A34A' : '#DC2626';
+  const ring  = document.getElementById('util-ring');
+  ring.setAttribute('stroke-dasharray', fill + ' ' + (circumference - fill));
+  ring.setAttribute('stroke', color);
+  document.getElementById('util-pct').textContent = r.utilisationPct + '%';
+  document.getElementById('util-pct').style.color = color;
+  document.getElementById('util-status').innerHTML = CalcShared.passBadge(r.pass);
+
+  document.getElementById('badge-NRd').textContent    = r.NRd.toFixed(1);
+  document.getElementById('badge-MRd').textContent    = r.MRd.toFixed(2);
+  document.getElementById('badge-lambda').textContent = r.lambda.toFixed(1);
+  document.getElementById('badge-rho').textContent    = r.reinf_ratio.toFixed(2);
+
+  // Checks
+  document.getElementById('checks-body').innerHTML = r.checks.map(c => {
+    const barPct   = Math.min(c.util * 100, 100);
+    const barColor = c.pass ? '#16A34A' : '#DC2626';
+    return `<div class="check-row ${c.pass ? '' : 'fail'}">
+      <div>
+        <div style="font-weight:600">${c.name}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)">${c.ref} — ${c.formula}</div>
+        ${c.note ? `<div style="font-size:0.72rem;color:#B45309;margin-top:2px">⚠ ${c.note}</div>` : ''}
+        <div class="util-bar-wrap"><div class="util-bar" style="width:${barPct}%;background:${barColor}"></div></div>
+      </div>
+      <span class="mono">${c.Ed}</span>
+      <span class="mono">${c.Rd}</span>
+      <span style="color:var(--text-muted)">${c.unit}</span>
+      <span style="font-weight:700;color:${barColor}">${c.util.toFixed(3)}</span>
+    </div>`;
+  }).join('');
+
+  // Summary
+  document.getElementById('summary-body').innerHTML = [
+    ['Gross area Ac', r.Ac.toFixed(0), 'mm²'],
+    ['As provided', r.As_tot.toFixed(0), 'mm²'],
+    ['As,min', r.As_min.toFixed(0), 'mm²'],
+    ['As,max', r.As_max.toFixed(0), 'mm²'],
+    ['Reinf. ratio', r.reinf_ratio.toFixed(2), '%'],
+    ['Eff. length Le', r.Leff_m.toFixed(2), 'm'],
+    ['Slenderness λ', r.lambda.toFixed(1), '—'],
+    ['Limit λlim', r.lambda_lim.toFixed(1), '—'],
+    ['Relative axial n', r.n.toFixed(3), '—'],
+    ['fcd', r.fcd.toFixed(2), 'N/mm²'],
+    ['fyd', r.fyd.toFixed(2), 'N/mm²'],
+    ['NRd', r.NRd.toFixed(2), 'kN'],
+    ['MRd', r.MRd.toFixed(2), 'kNm'],
+  ].map(([p, v, u]) => `<tr><td>${p}</td><td class="mono">${v}</td><td style="color:var(--text-muted)">${u}</td></tr>`).join('');
+}
+
+function resetCalc() {
+  currentResults = null;
+  document.getElementById('results-welcome').style.display = '';
+  document.getElementById('results-content').style.display = 'none';
+}
+
+function doSave() {
+  if (!currentResults) { CalcShared.showToast('Run a calculation first.', 'error'); return; }
+  const name = document.getElementById('save-calc-name').value.trim() || 'RC Column Calc';
+  const summary = `NEd=${currentResults.NEd}kN, NRd=${currentResults.NRd.toFixed(1)}kN, η=${currentResults.utilisationPct}% — ${currentResults.pass?'PASS':'FAIL'}`;
+  if (CalcShared.saveAndConfirm('concrete-column', name, getConfig(), currentResults, summary)) {
+    document.getElementById('save-modal').classList.remove('open');
+    document.getElementById('save-calc-name').value = '';
+  }
+}
+</script>
+</body>
+</html>

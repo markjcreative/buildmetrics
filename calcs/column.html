@@ -290,6 +290,9 @@
 <script src="/js/data/materials.js"></script>
 <script src="/js/engine/columnSolver.js"></script>
 <script src="/js/ui/calcShared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report/wordExport.js"></script>
+<script src="/js/report/calcReport.js"></script>
 
 <script>
 let currentResults = null;
@@ -530,14 +533,13 @@ function doSave() {
   }
   const name = document.getElementById('save-calc-name').value.trim() || 'Column Calc';
   const config = getConfig();
-  const summary = {
-    NEd: currentResults.NEd,
-    Nb_Rd: currentResults.Nb_Rd,
-    utilisation: currentResults.utilisationPct + '%',
-  };
-  CalcShared.saveCalc('column', name, config, currentResults, summary);
-  document.getElementById('save-modal').classList.remove('open');
-  document.getElementById('save-calc-name').value = '';
+  const summary = 'NEd=' + currentResults.NEd + 'kN, Nb,Rd=' + currentResults.Nb_Rd + 'kN, ' +
+    currentResults.utilisationPct + '% — ' + (currentResults.pass ? 'PASS' : 'FAIL');
+  const ok = CalcShared.saveAndConfirm('column', name, config, currentResults, summary);
+  if (ok) {
+    document.getElementById('save-modal').classList.remove('open');
+    document.getElementById('save-calc-name').value = '';
+  }
 }
 </script>
 </body>

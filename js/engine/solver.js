@@ -27,7 +27,7 @@ function solveBeam(config) {
     const { span, supports, loads, E, I } = config;
 
     if (!span || span <= 0) throw new Error('Beam span must be positive.');
-    if (!supports || supports.length < 2) throw new Error('At least 2 supports are required.');
+    if (!supports || supports.length < 1) throw new Error('At least 1 support is required.');
 
     const xs = BeamUtils.linspace(0, span, N_POINTS);
     const dx = span / (N_POINTS - 1);

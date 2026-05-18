@@ -322,6 +322,9 @@
 <script src="/js/data/materials.js"></script>
 <script src="/js/engine/slabSolver.js"></script>
 <script src="/js/ui/calcShared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report/wordExport.js"></script>
+<script src="/js/report/calcReport.js"></script>
 
 <script>
 let currentResults = null;
@@ -569,15 +572,14 @@ function doSave() {
   }
   const name = document.getElementById('save-calc-name').value.trim() || 'Slab Calc';
   const config = getConfig();
-  const summary = {
-    MEd: currentResults.MEd,
-    As_req: currentResults.As_req,
-    spacing: currentResults.spacing,
-    pass: currentResults.pass,
-  };
-  CalcShared.saveCalc('slab', name, config, currentResults, summary);
-  document.getElementById('save-modal').classList.remove('open');
-  document.getElementById('save-calc-name').value = '';
+  const summary = 'MEd=' + CalcShared.fmt(currentResults.MEd, 2) + 'kNm/m, ' +
+    'As,req=' + CalcShared.fmt(currentResults.As_req, 0) + 'mm²/m, spacing=' + currentResults.spacing + 'mm — ' +
+    (currentResults.pass ? 'PASS' : 'FAIL');
+  const ok = CalcShared.saveAndConfirm('slab', name, config, currentResults, summary);
+  if (ok) {
+    document.getElementById('save-modal').classList.remove('open');
+    document.getElementById('save-calc-name').value = '';
+  }
 }
 </script>
 </body>

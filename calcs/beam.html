@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beam Design — Beam Calc Pro</title>
+  <meta name="description" content="Steel and timber beam design to Eurocode 3 and Eurocode 5">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
+  <style>
+    .mat-tabs { display:flex; gap:4px; margin-bottom:16px; }
+    .mat-tab  { flex:1; padding:8px; border-radius:8px; border:1.5px solid var(--border); font-size:0.82rem; font-weight:600; cursor:pointer; text-align:center; background:var(--bg-surface); color:var(--text-secondary); transition:all .15s; }
+    .mat-tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .mat-tab:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+    .load-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .load-row input { flex:1; }
+    .load-row select { flex:1; }
+    .load-row .btn-icon { padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); cursor:pointer; font-size:1rem; line-height:1; }
+    .load-row .btn-icon:hover { background:#FEE2E2; border-color:#EF4444; }
+    .check-row { display:grid; grid-template-columns:1fr 80px 80px 80px 80px; gap:8px; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border); font-size:0.82rem; }
+    .check-row:last-child { border-bottom:none; }
+    .check-row.header { font-weight:700; font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
+    .check-row.fail { background:#FEF2F2; }
+    .util-bar-wrap { height:6px; background:var(--bg-subtle); border-radius:99px; overflow:hidden; }
+    .util-bar { height:100%; border-radius:99px; transition:width .5s ease; }
+    .diagram-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media(max-width:700px) { .diagram-grid { grid-template-columns:1fr; } }
+    .diag-card { background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+    .diag-card-title { padding:8px 12px; font-size:0.78rem; font-weight:700; color:var(--text-secondary); border-bottom:1px solid var(--border); background:var(--bg-subtle); }
+    svg.diag-svg { width:100%; height:160px; display:block; }
+    .util-ring-track { fill:none; stroke:#E4E4E7; stroke-width:8; }
+    .util-ring-fill  { fill:none; stroke-width:8; stroke-linecap:round; transform:rotate(-90deg); transform-origin:50% 50%; transition:stroke-dasharray .6s ease,stroke .4s; }
+  </style>
+</head>
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <main id="app-main" class="calc-layout">
+
+    <div class="calc-breadcrumb-bar">
+      <div class="calc-breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Beam Design</span>
+      </div>
+      <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+        &#128193; <span id="calc-project-name">—</span>
+      </div>
+    </div>
+
+    <div class="calc-panels">
+
+      <!-- INPUT PANEL -->
+      <div id="calc-input-panel">
+        <div class="calc-input-header">
+          <span style="font-size:1.3rem">&#9881;</span>
+          <span class="calc-input-title">Beam Design</span>
+        </div>
+
+        <!-- Material selector -->
+        <div style="padding:0 0 4px">
+          <div class="mat-tabs">
+            <div class="mat-tab active" id="tab-steel" onclick="setMaterial('steel')">&#9965; Steel (EC3)</div>
+            <div class="mat-tab" id="tab-timber" onclick="setMaterial('timber')">&#127795; Timber (EC5)</div>
+          </div>
+        </div>
+
+        <!-- STEEL Section -->
+        <div id="sec-steel-wrap">
+          <div class="input-section">
+            <div class="section-header" onclick="toggleSec('sec-steel')">Section Properties <span id="sec-steel-arrow">&#9662;</span></div>
+            <div class="section-body" id="sec-steel">
+              <div class="form-row">
+                <label>Section Type</label>
+                <select id="s-type" onchange="onSteelTypeChange()">
+                  <option value="UB">UB — Universal Beam</option>
+                  <option value="UC">UC — Universal Column</option>
+                  <option value="RHS">RHS — Rectangular Hollow</option>
+                  <option value="CHS">CHS — Circular Hollow</option>
+                  <option value="SHS">SHS — Square Hollow</option>
+                  <option value="custom">Custom Section</option>
+                </select>
+              </div>
+              <div class="form-row" id="row-s-desig">
+                <label>Designation</label>
+                <select id="s-desig" onchange="onSteelDesigChange()">
+                  <option value="">— Select —</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Grade</label>
+                <select id="s-grade" onchange="onGradeChange()">
+                  <option value="235">S235 — 235 MPa</option>
+                  <option value="275" selected>S275 — 275 MPa</option>
+                  <option value="355">S355 — 355 MPa</option>
+                  <option value="460">S460 — 460 MPa</option>
+                </select>
+              </div>
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label>Wpl,y (cm³)</label>
+                  <input type="number" id="s-Sxx" value="258" min="1" step="1">
+                </div>
+                <div class="form-row">
+                  <label>Ixx (cm⁴)</label>
+                  <input type="number" id="s-Ixx" value="2340" min="1" step="10">
+                </div>
+              </div>
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label>h (mm)</label>
+                  <input type="number" id="s-h" value="203" min="50" step="1">
+                </div>
+                <div class="form-row">
+                  <label>tw (mm)</label>
+                  <input type="number" id="s-tw" value="5.7" min="1" step="0.1">
+                </div>
+              </div>
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label>b (mm)</label>
+                  <input type="number" id="s-b" value="133" min="50" step="1">
+                </div>
+                <div class="form-row">
+                  <label>tf (mm)</label>
+                  <input type="number" id="s-tf" value="7.8" min="1" step="0.1">
+                </div>
+              </div>
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label>A (cm²)</label>
+                  <input type="number" id="s-A" value="32.0" min="1" step="0.1">
+                </div>
+                <div class="form-row">
+                  <label>r (mm)</label>
+                  <input type="number" id="s-r" value="7.6" min="0" step="0.1">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIMBER Section -->
+        <div id="sec-timber-wrap" style="display:none">
+          <div class="input-section">
+            <div class="section-header" onclick="toggleSec('sec-timber')">Section Properties <span id="sec-timber-arrow">&#9662;</span></div>
+            <div class="section-body" id="sec-timber">
+              <div class="form-row">
+                <label>Grade</label>
+                <select id="t-grade">
+                  <option value="C16">C16</option>
+                  <option value="C24" selected>C24</option>
+                  <option value="C27">C27</option>
+                  <option value="GL24h">GL24h (Glulam)</option>
+                  <option value="GL28h">GL28h (Glulam)</option>
+                  <option value="GL32h">GL32h (Glulam)</option>
+                </select>
+              </div>
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label>Width b (mm)</label>
+                  <input type="number" id="t-b" value="75" min="25" step="5">
+                </div>
+                <div class="form-row">
+                  <label>Depth d (mm)</label>
+                  <input type="number" id="t-d" value="200" min="50" step="5">
+                </div>
+              </div>
+              <div class="form-row">
+                <label>Service Class</label>
+                <select id="t-sc">
+                  <option value="SC1" selected>SC1 — Dry internal (≤12% MC)</option>
+                  <option value="SC2">SC2 — Humid (≤20% MC)</option>
+                  <option value="SC3">SC3 — External / exposed</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Load Duration</label>
+                <select id="t-dur">
+                  <option value="permanent">Permanent (&gt;10 years)</option>
+                  <option value="medium" selected>Medium-term (1 week–6 months)</option>
+                  <option value="short">Short-term (&lt;1 week)</option>
+                  <option value="instantaneous">Instantaneous (wind/impact)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Geometry & Support -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-geom2')">Span &amp; Support <span id="sec-geom2-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-geom2">
+            <div class="form-row">
+              <label>Span L (m)</label>
+              <input type="number" id="b-span" value="5.0" min="0.5" max="50" step="0.5" oninput="updatePreview()">
+            </div>
+            <div class="form-row">
+              <label>Support Condition</label>
+              <select id="b-support" onchange="updatePreview()">
+                <option value="simply_supported">Simply Supported (pin–roller)</option>
+                <option value="fixed_fixed">Both Ends Fixed</option>
+                <option value="propped_cantilever">Propped Cantilever (fixed–pin)</option>
+                <option value="cantilever">Cantilever (fixed one end)</option>
+              </select>
+            </div>
+            <div style="margin-top:8px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+              <svg id="svg-preview" class="diag-svg" style="height:100px"></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loads -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-loads')">Applied Loads (ULS) <span id="sec-loads-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-loads">
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px">
+              Enter <strong>factored ULS loads</strong> directly, or use the Gk/Qk fields below for auto-combination.
+            </div>
+
+            <!-- Auto combination -->
+            <div style="background:var(--bg-subtle);border-radius:8px;padding:10px;margin-bottom:12px">
+              <div style="font-size:0.78rem;font-weight:600;margin-bottom:8px;color:var(--text-secondary)">Auto Load Combination (1.35Gk + 1.5Qk)</div>
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label>Gk (kN/m)</label>
+                  <input type="number" id="auto-Gk" value="5" min="0" step="0.5" oninput="autoCombo()">
+                </div>
+                <div class="form-row">
+                  <label>Qk (kN/m)</label>
+                  <input type="number" id="auto-Qk" value="3" min="0" step="0.5" oninput="autoCombo()">
+                </div>
+              </div>
+              <div style="font-size:0.75rem;color:var(--accent);font-weight:600" id="combo-hint">wEd = 1.35×5 + 1.5×3 = 11.25 kN/m</div>
+            </div>
+
+            <!-- Load list -->
+            <div style="font-size:0.78rem;font-weight:600;margin-bottom:8px;color:var(--text-secondary)">Design Load List (ULS)</div>
+            <div id="load-list"></div>
+            <button class="btn-ghost" style="width:100%;margin-top:4px;font-size:0.8rem" onclick="addLoad()">+ Add load</button>
+          </div>
+        </div>
+
+        <div class="calc-action-bar">
+          <button class="btn-primary" style="flex:1" onclick="runCalc()">&#9889; Calculate</button>
+          <button class="btn-secondary" onclick="CalcShared.openSaveModal('save-modal')" title="Save">&#128190; Save</button>
+          <button class="btn-ghost" onclick="resetCalc()" title="Reset">&#8635;</button>
+        </div>
+      </div>
+
+      <!-- RESULTS PANEL -->
+      <div id="calc-results-panel">
+
+        <div class="calc-welcome" id="results-welcome">
+          <div class="calc-welcome-icon">&#9881;</div>
+          <h3>Beam Design Calculator</h3>
+          <p>Configure your beam, set loads, then click Calculate to run bending, shear, and deflection checks.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px">
+            <span style="font-size:0.78rem;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:99px;font-weight:600">Steel EC3 EN 1993-1-1</span>
+            <span style="font-size:0.78rem;background:#F0FDF4;color:#16A34A;padding:4px 10px;border-radius:99px;font-weight:600">Timber EC5 EN 1995-1-1</span>
+            <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">BMD · SFD · Deflection</span>
+          </div>
+        </div>
+
+        <div id="results-content" style="display:none;flex-direction:column;gap:20px">
+
+          <!-- Utilisation + key results -->
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <div class="calc-results-card" style="min-width:200px;flex:0 0 auto">
+              <div class="card-header">Utilisation Ratio</div>
+              <div class="util-gauge-wrap">
+                <svg class="util-gauge-svg" width="90" height="90" viewBox="0 0 90 90">
+                  <circle class="util-ring-track" cx="45" cy="45" r="36"/>
+                  <circle class="util-ring-fill" id="util-ring" cx="45" cy="45" r="36" stroke-dasharray="0 226" stroke="#2563EB"/>
+                </svg>
+                <div class="util-gauge-info">
+                  <div class="util-gauge-value" id="util-pct">—%</div>
+                  <div class="util-gauge-label" id="util-status">—</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px" id="util-gov">—</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:12px">
+              <div class="calc-badges">
+                <div class="calc-badge">
+                  <div class="calc-badge-label">MEd</div>
+                  <div class="calc-badge-value" id="badge-MEd">—</div>
+                  <div class="calc-badge-unit">kNm</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">VEd</div>
+                  <div class="calc-badge-value" id="badge-VEd">—</div>
+                  <div class="calc-badge-unit">kN</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">δmax</div>
+                  <div class="calc-badge-value" id="badge-defl">—</div>
+                  <div class="calc-badge-unit">mm</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">Section</div>
+                  <div class="calc-badge-value" id="badge-section" style="font-size:0.75rem">—</div>
+                  <div class="calc-badge-unit"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Design checks -->
+          <div class="calc-results-card">
+            <div class="card-header">Design Checks</div>
+            <div class="check-row header">
+              <span>Check</span><span>Ed</span><span>Rd</span><span>Unit</span><span>η</span>
+            </div>
+            <div id="checks-body"></div>
+          </div>
+
+          <!-- Diagrams -->
+          <div class="calc-results-card">
+            <div class="card-header">Beam Configuration &amp; Reactions</div>
+            <svg id="svg-reactions" class="diag-svg" style="height:180px"></svg>
+          </div>
+
+          <div class="diagram-grid">
+            <div class="diag-card">
+              <div class="diag-card-title">Bending Moment Diagram (kNm)</div>
+              <svg id="svg-bmd" class="diag-svg"></svg>
+            </div>
+            <div class="diag-card">
+              <div class="diag-card-title">Shear Force Diagram (kN)</div>
+              <svg id="svg-sfd" class="diag-svg"></svg>
+            </div>
+          </div>
+
+          <div class="calc-results-card">
+            <div class="card-header">Deflection Profile (mm)</div>
+            <svg id="svg-deflection" class="diag-svg" style="height:180px"></svg>
+          </div>
+
+          <!-- Capacity table -->
+          <div class="calc-results-card">
+            <div class="card-header">Design Summary</div>
+            <table class="calc-results-table">
+              <tbody id="summary-body"></tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Save Modal -->
+<div class="calc-modal-overlay" id="save-modal">
+  <div class="calc-modal-box">
+    <h3>&#128190; Save Calculation</h3>
+    <div class="form-row">
+      <label>Calculation Name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. Ground Floor Beam B1" maxlength="80">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-ghost" onclick="document.getElementById('save-modal').classList.remove('open')">Cancel</button>
+      <button class="btn-primary" onclick="doSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script src="/js/data/steelSections.js"></script>
+<script src="/js/data/materials.js"></script>
+<script src="/js/engine/utils.js"></script>
+<script src="/js/engine/solver.js"></script>
+<script src="/js/engine/beamDesignSolver.js"></script>
+<script src="/js/ui/diagrams.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report/wordExport.js"></script>
+<script src="/js/report/calcReport.js"></script>
+
+<script>
+let activeMaterial = 'steel';
+let loads = [];
+let currentResults = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  TopNav.init();
+  if (!Auth.guard()) return;
+  CalcShared.renderProjectBadge('calc-project-badge');
+
+  initLoads();
+  populateSteelDropdown();
+  updatePreview();
+  autoCombo();
+
+  document.getElementById('save-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('save-modal'))
+      document.getElementById('save-modal').classList.remove('open');
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.calc-modal-overlay.open').forEach(m => m.classList.remove('open'));
+  });
+});
+
+// ── Material tabs ─────────────────────────────────────────────────────────────
+function setMaterial(m) {
+  activeMaterial = m;
+  document.getElementById('tab-steel').classList.toggle('active', m === 'steel');
+  document.getElementById('tab-timber').classList.toggle('active', m === 'timber');
+  document.getElementById('sec-steel-wrap').style.display = m === 'steel' ? '' : 'none';
+  document.getElementById('sec-timber-wrap').style.display = m === 'timber' ? '' : 'none';
+}
+
+// ── Steel helpers ─────────────────────────────────────────────────────────────
+function populateSteelDropdown() {
+  const type = document.getElementById('s-type').value;
+  const sel  = document.getElementById('s-desig');
+  sel.innerHTML = '<option value="">— Select —</option>';
+  const secs = window.SteelSections?.[type] || [];
+  secs.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.designation;
+    o.textContent = s.designation + ' (' + s.mass + ' kg/m)';
+    sel.appendChild(o);
+  });
+  document.getElementById('row-s-desig').style.display = type === 'custom' ? 'none' : '';
+}
+
+function onSteelTypeChange() { populateSteelDropdown(); }
+
+function onSteelDesigChange() {
+  const type  = document.getElementById('s-type').value;
+  const desig = document.getElementById('s-desig').value;
+  if (!desig) return;
+  const s = (window.SteelSections?.[type] || []).find(x => x.designation === desig);
+  if (!s) return;
+  document.getElementById('s-Sxx').value = s.Sxx || s.Zxx || '';
+  document.getElementById('s-Ixx').value = s.Ixx || '';
+  document.getElementById('s-h').value   = s.h   || '';
+  document.getElementById('s-tw').value  = s.tw  || '';
+  document.getElementById('s-b').value   = s.b   || '';
+  document.getElementById('s-tf').value  = s.tf  || '';
+  document.getElementById('s-A').value   = s.A   || '';
+  document.getElementById('s-r').value   = s.r   || 0;
+}
+
+function onGradeChange() {}
+
+// ── Load management ───────────────────────────────────────────────────────────
+function initLoads() {
+  loads = [{ type: 'udl', magnitude: 11.25, start: null, end: null }];
+  renderLoads();
+}
+
+function autoCombo() {
+  const Gk = parseFloat(document.getElementById('auto-Gk').value) || 0;
+  const Qk = parseFloat(document.getElementById('auto-Qk').value) || 0;
+  const wEd = +(1.35 * Gk + 1.5 * Qk).toFixed(3);
+  document.getElementById('combo-hint').textContent =
+    'wEd = 1.35×' + Gk + ' + 1.5×' + Qk + ' = ' + wEd + ' kN/m';
+  // Update first UDL if it exists
+  if (loads.length && loads[0].type === 'udl') {
+    loads[0].magnitude = wEd;
+    renderLoads();
+  }
+}
+
+function addLoad() {
+  loads.push({ type: 'udl', magnitude: 10, start: null, end: null });
+  renderLoads();
+}
+
+function removeLoad(i) {
+  loads.splice(i, 1);
+  renderLoads();
+}
+
+function renderLoads() {
+  const span = parseFloat(document.getElementById('b-span').value) || 5;
+  const container = document.getElementById('load-list');
+  container.innerHTML = loads.map((l, i) => {
+    const typeOpts = ['udl','partial_udl','point'].map(t =>
+      `<option value="${t}" ${l.type===t?'selected':''}>${t==='udl'?'UDL (full span)':t==='partial_udl'?'Partial UDL':'Point Load'}</option>`
+    ).join('');
+
+    let posFields = '';
+    if (l.type === 'partial_udl') {
+      posFields = `<div class="form-row-inline" style="margin-top:4px">
+        <div class="form-row"><label>Start (m)</label><input type="number" value="${l.start??0}" min="0" max="${span}" step="0.1" oninput="loads[${i}].start=+this.value"></div>
+        <div class="form-row"><label>End (m)</label><input type="number" value="${l.end??span}" min="0" max="${span}" step="0.1" oninput="loads[${i}].end=+this.value"></div>
+      </div>`;
+    } else if (l.type === 'point') {
+      posFields = `<div class="form-row" style="margin-top:4px">
+        <label>Position (m)</label>
+        <input type="number" value="${l.position??+(span/2).toFixed(1)}" min="0" max="${span}" step="0.1" oninput="loads[${i}].position=+this.value">
+      </div>`;
+    }
+
+    const unitLabel = l.type === 'point' ? 'kN' : 'kN/m';
+    return `<div style="background:var(--bg-subtle);border-radius:8px;padding:10px;margin-bottom:8px">
+      <div class="load-row">
+        <select onchange="loads[${i}].type=this.value;renderLoads()">${typeOpts}</select>
+        <input type="number" value="${l.magnitude}" min="0" step="0.5" oninput="loads[${i}].magnitude=+this.value" style="width:80px">
+        <span style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap">${unitLabel}</span>
+        <button class="btn-icon" onclick="removeLoad(${i})">&#x2715;</button>
+      </div>
+      ${posFields}
+    </div>`;
+  }).join('');
+}
+
+// ── Preview ───────────────────────────────────────────────────────────────────
+function updatePreview() {
+  if (typeof BeamDiagrams === 'undefined') return;
+  const span    = parseFloat(document.getElementById('b-span').value) || 5;
+  const suppType = document.getElementById('b-support').value;
+  const supMap = {
+    simply_supported: [{type:'pin',position:0},{type:'roller',position:span}],
+    fixed_fixed:      [{type:'fixed',position:0},{type:'fixed',position:span}],
+    propped_cantilever:[{type:'fixed',position:0},{type:'roller',position:span}],
+    cantilever:       [{type:'fixed',position:0}],
+  };
+  BeamDiagrams.renderPreview({ span, supports: supMap[suppType] || supMap.simply_supported, loads: [] });
+}
+
+// ── Calculate ─────────────────────────────────────────────────────────────────
+function getConfig() {
+  const span    = parseFloat(document.getElementById('b-span').value);
+  const suppType = document.getElementById('b-support').value;
+
+  if (activeMaterial === 'steel') {
+    return {
+      material: 'steel',
+      span, supportType: suppType,
+      fy:     +document.getElementById('s-grade').value,
+      Sxx:    +document.getElementById('s-Sxx').value,
+      Ixx:    +document.getElementById('s-Ixx').value,
+      h_mm:   +document.getElementById('s-h').value,
+      tw_mm:  +document.getElementById('s-tw').value,
+      b_mm_sec: +document.getElementById('s-b').value,
+      tf_mm:  +document.getElementById('s-tf').value,
+      A_cm2:  +document.getElementById('s-A').value,
+      r_mm:   +document.getElementById('s-r').value,
+      sectionDesig: document.getElementById('s-desig').value || 'Custom',
+      loads: loads.map(l => ({
+        ...l,
+        start: l.start ?? 0,
+        end:   l.end   ?? span,
+        position: l.position ?? span / 2,
+      })),
+    };
+  }
+
+  return {
+    material: 'timber',
+    span, supportType: suppType,
+    grade: document.getElementById('t-grade').value,
+    b_mm:  +document.getElementById('t-b').value,
+    d_mm:  +document.getElementById('t-d').value,
+    serviceClass: document.getElementById('t-sc').value,
+    loadDuration: document.getElementById('t-dur').value,
+    loads: loads.map(l => ({
+      ...l,
+      start: l.start ?? 0,
+      end:   l.end   ?? span,
+      position: l.position ?? span / 2,
+    })),
+  };
+}
+
+function runCalc() {
+  const config = getConfig();
+  if (!config.span || config.span <= 0) { CalcShared.showToast('Enter a valid span.', 'error'); return; }
+  if (!config.loads.length) { CalcShared.showToast('Add at least one load.', 'error'); return; }
+
+  try {
+    const r = BeamDesignSolver.solve(config);
+    currentResults = r;
+    showResults(r, config);
+  } catch (e) {
+    CalcShared.showToast('Calculation error: ' + e.message, 'error');
+  }
+}
+
+function showResults(r, config) {
+  document.getElementById('results-welcome').style.display = 'none';
+  const rc = document.getElementById('results-content');
+  rc.style.display = 'flex';
+
+  // Ring
+  const circumference = 2 * Math.PI * 36;
+  const pct = Math.min(r.utilisationPct, 100);
+  const fill = (pct / 100) * circumference;
+  const color = r.pass ? '#16A34A' : '#DC2626';
+  const ring = document.getElementById('util-ring');
+  ring.setAttribute('stroke-dasharray', fill + ' ' + (circumference - fill));
+  ring.setAttribute('stroke', color);
+  document.getElementById('util-pct').textContent = r.utilisationPct + '%';
+  document.getElementById('util-pct').style.color = color;
+  document.getElementById('util-status').innerHTML = CalcShared.passBadge(r.pass);
+  const govCheck = r.checks.reduce((a, b) => a.util > b.util ? a : b);
+  document.getElementById('util-gov').textContent = 'Governed by ' + govCheck.name;
+
+  // Badges
+  document.getElementById('badge-MEd').textContent    = r.MEd.toFixed(2);
+  document.getElementById('badge-VEd').textContent    = r.VEd.toFixed(2);
+  document.getElementById('badge-defl').textContent   = r.delta_max_mm.toFixed(1);
+  document.getElementById('badge-section').textContent = r.sectionInfo;
+
+  // Checks table
+  document.getElementById('checks-body').innerHTML = r.checks.map(c => {
+    const pct2 = Math.min(c.util * 100, 100);
+    const barColor = c.pass ? '#16A34A' : '#DC2626';
+    return `<div class="check-row ${c.pass ? '' : 'fail'}">
+      <div>
+        <div style="font-weight:600">${c.name}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)">${c.ref} — ${c.formula}</div>
+        <div class="util-bar-wrap" style="margin-top:4px">
+          <div class="util-bar" style="width:${pct2}%;background:${barColor}"></div>
+        </div>
+      </div>
+      <span class="mono">${c.Ed}</span>
+      <span class="mono">${c.Rd}</span>
+      <span style="color:var(--text-muted)">${c.unit}</span>
+      <span style="font-weight:700;color:${barColor}">${(c.util).toFixed(3)}</span>
+    </div>`;
+  }).join('');
+
+  // Diagrams — scale deflection to mm for display
+  const displayResults = { ...r, deflection: r.deflection.map(v => v * 1000) };
+  const dispConfig = { span: r.span, supports: BeamDesignSolver._buildSupports(r.supportType, r.span), loads: config.loads };
+  BeamDiagrams.renderAll(displayResults, dispConfig);
+
+  // Summary
+  const cap = r.capacities;
+  const rows = activeMaterial === 'steel'
+    ? [
+        ['Wpl,y', (cap.Wply_mm3 / 1e3).toFixed(1), 'cm³'],
+        ['Shear area Av', (cap.Av_mm2 / 100).toFixed(1), 'cm²'],
+        ['Mc,Rd', cap.Mc_Rd.toFixed(2), 'kNm'],
+        ['Vc,Rd', cap.Vc_Rd.toFixed(2), 'kN'],
+        ['Deflection limit L/360', cap.delta_lim_mm.toFixed(1), 'mm'],
+        ['fy', cap.fy, 'N/mm²'],
+      ]
+    : [
+        ['fm,d (design bending)', cap.fm_d.toFixed(2), 'N/mm²'],
+        ['fv,d (design shear)', cap.fv_d.toFixed(2), 'N/mm²'],
+        ['kmod', cap.kmod, '—'],
+        ['γM', cap.gammaM, '—'],
+        ['Mc,Rd', cap.Mc_Rd.toFixed(2), 'kNm'],
+        ['Vc,Rd', cap.Vc_Rd.toFixed(2), 'kN'],
+        ['Deflection limit L/250', cap.delta_lim_mm.toFixed(1), 'mm'],
+      ];
+
+  document.getElementById('summary-body').innerHTML = rows.map(([p, v, u]) =>
+    `<tr><td>${p}</td><td class="mono">${v}</td><td style="color:var(--text-muted)">${u}</td></tr>`
+  ).join('');
+}
+
+// ── Misc ──────────────────────────────────────────────────────────────────────
+function toggleSec(id) {
+  const b = document.getElementById(id);
+  b.style.display = b.style.display === 'none' ? '' : 'none';
+}
+
+function resetCalc() {
+  currentResults = null;
+  document.getElementById('results-welcome').style.display = '';
+  document.getElementById('results-content').style.display = 'none';
+  initLoads();
+  autoCombo();
+}
+
+function doSave() {
+  if (!currentResults) { CalcShared.showToast('Run a calculation first.', 'error'); return; }
+  const name = document.getElementById('save-calc-name').value.trim() || 'Beam Calc';
+  const summary = `MEd=${currentResults.MEd.toFixed(1)}kNm, VEd=${currentResults.VEd.toFixed(1)}kN, η=${currentResults.utilisationPct}% — ${currentResults.pass?'PASS':'FAIL'}`;
+  if (CalcShared.saveAndConfirm('beam', name, getConfig(), currentResults, summary)) {
+    document.getElementById('save-modal').classList.remove('open');
+    document.getElementById('save-calc-name').value = '';
+  }
+}
+</script>
+</body>
+</html>

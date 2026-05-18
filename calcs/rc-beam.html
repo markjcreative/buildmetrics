@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RC Beam Design — Beam Calc Pro</title>
+  <meta name="description" content="Reinforced concrete beam design to Eurocode 2 — flexure, shear, deflection">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
+  <style>
+    .util-ring-track { fill:none; stroke:#E4E4E7; stroke-width:8; }
+    .util-ring-fill  { fill:none; stroke-width:8; stroke-linecap:round; transform:rotate(-90deg); transform-origin:50% 50%; transition:stroke-dasharray .6s ease, stroke .4s; }
+    .check-row { display:grid; grid-template-columns:1fr 80px 80px 60px 70px; gap:8px; align-items:start; padding:10px 12px; border-bottom:1px solid var(--border); font-size:0.82rem; }
+    .check-row:last-child { border-bottom:none; }
+    .check-row.header { font-weight:700; font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
+    .check-row.fail { background:#FEF2F2; }
+    .util-bar-wrap { height:5px; background:var(--bg-subtle); border-radius:99px; overflow:hidden; margin-top:4px; }
+    .util-bar { height:100%; border-radius:99px; transition:width .5s; }
+    .section-sketch { display:block; margin:0 auto; }
+  </style>
+</head>
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <main id="app-main" class="calc-layout">
+
+    <div class="calc-breadcrumb-bar">
+      <div class="calc-breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">RC Beam Design</span>
+      </div>
+      <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+        &#128193; <span id="calc-project-name">—</span>
+      </div>
+    </div>
+
+    <div class="calc-panels">
+
+      <!-- INPUT PANEL -->
+      <div id="calc-input-panel">
+        <div class="calc-input-header">
+          <span style="font-size:1.3rem">&#9850;</span>
+          <span class="calc-input-title">RC Beam Design (EC2)</span>
+        </div>
+
+        <!-- Geometry -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-geom')">Section Geometry <span id="sec-geom-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-geom">
+            <div class="form-row">
+              <label>Span L (m)</label>
+              <input type="number" id="inp-span" value="5.0" min="0.5" max="30" step="0.5">
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label>Width b (mm)</label>
+                <input type="number" id="inp-b" value="300" min="100" step="25" oninput="updateDepth()">
+              </div>
+              <div class="form-row">
+                <label>Overall depth h (mm)</label>
+                <input type="number" id="inp-h" value="500" min="100" step="25" oninput="updateDepth()">
+              </div>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label>Cover c (mm)</label>
+                <input type="number" id="inp-cover" value="30" min="15" max="75" step="5" oninput="updateDepth()">
+              </div>
+              <div class="form-row">
+                <label>Bar &#8960; (mm)</label>
+                <input type="number" id="inp-bardia" value="20" min="8" max="40" step="2" oninput="updateDepth()">
+              </div>
+            </div>
+            <div style="padding:8px 0;font-size:0.78rem;color:var(--text-muted)" id="eff-depth-hint">
+              Effective depth d = 500 - 30 - 10 = 460 mm
+            </div>
+            <!-- Section sketch -->
+            <svg class="section-sketch" width="160" height="120" viewBox="0 0 160 120">
+              <!-- Beam outline -->
+              <rect x="30" y="10" width="100" height="100" fill="#EEF2FF" stroke="#4F46E5" stroke-width="2" rx="2"/>
+              <!-- Bars -->
+              <circle cx="55" cy="95" r="8" fill="#DC2626" opacity=".85"/>
+              <circle cx="80" cy="95" r="8" fill="#DC2626" opacity=".85"/>
+              <circle cx="105" cy="95" r="8" fill="#DC2626" opacity=".85"/>
+              <!-- Cover lines -->
+              <line x1="30" y1="80" x2="130" y2="80" stroke="#9CA3AF" stroke-width="0.8" stroke-dasharray="3,3"/>
+              <text x="135" y="84" font-size="9" fill="#9CA3AF">d</text>
+              <text x="70" y="68" font-size="9" fill="#6B7280" text-anchor="middle">b × h</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Materials -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-mat')">Materials <span id="sec-mat-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-mat">
+            <div class="form-row">
+              <label>Concrete class</label>
+              <select id="inp-conc" onchange="onConcChange()">
+                <option value="C20/25">C20/25 — fck=20 MPa</option>
+                <option value="C25/30" selected>C25/30 — fck=25 MPa</option>
+                <option value="C30/37">C30/37 — fck=30 MPa</option>
+                <option value="C35/45">C35/45 — fck=35 MPa</option>
+                <option value="C40/50">C40/50 — fck=40 MPa</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>f<sub>ck</sub> (N/mm²)</label>
+              <input type="number" id="inp-fck" value="25" min="12" max="90" step="1">
+            </div>
+            <div class="form-row">
+              <label>Rebar grade</label>
+              <select id="inp-rebar" onchange="onRebarChange()">
+                <option value="B500B (EC2)" selected>B500B — fyk=500 MPa</option>
+                <option value="B500C (EC2)">B500C — fyk=500 MPa</option>
+                <option value="Grade 60 (ACI)">Grade 60 — fyk=414 MPa</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>f<sub>yk</sub> (N/mm²)</label>
+              <input type="number" id="inp-fyk" value="500" min="250" max="700" step="1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Applied Forces -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-forces')">Applied Forces (ULS) <span id="sec-forces-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-forces">
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px">Enter factored ULS design values.</div>
+            <div class="form-row">
+              <label>Design Moment M<sub>Ed</sub> (kNm)</label>
+              <input type="number" id="inp-MEd" value="120" min="0" step="5">
+            </div>
+            <div class="form-row">
+              <label>Design Shear V<sub>Ed</sub> (kN)</label>
+              <input type="number" id="inp-VEd" value="80" min="0" step="5">
+            </div>
+          </div>
+        </div>
+
+        <!-- Reinforcement -->
+        <div class="input-section">
+          <div class="section-header" onclick="toggleSec('sec-reinf')">Provided Reinforcement <span id="sec-reinf-arrow">&#9662;</span></div>
+          <div class="section-body" id="sec-reinf">
+            <div class="form-row">
+              <label>Tension steel A<sub>s,prov</sub> (mm²)</label>
+              <input type="number" id="inp-As" value="942" min="0" step="50">
+              <span class="unit-tag">e.g. 3T20 = 942 mm²</span>
+            </div>
+            <div style="font-size:0.78rem;font-weight:600;margin:10px 0 6px;color:var(--text-secondary)">Shear Reinforcement (Stirrups)</div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label>Bar &#8960; (mm)</label>
+                <input type="number" id="inp-sw-dia" value="8" min="6" max="16" step="2">
+              </div>
+              <div class="form-row">
+                <label>Spacing s (mm)</label>
+                <input type="number" id="inp-sw-s" value="200" min="50" max="500" step="25">
+              </div>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Assumes 2-leg vertical stirrups</div>
+          </div>
+        </div>
+
+        <div class="calc-action-bar">
+          <button class="btn-primary" style="flex:1" onclick="runCalc()">&#9889; Calculate</button>
+          <button class="btn-secondary" onclick="CalcShared.openSaveModal('save-modal')" title="Save">&#128190; Save</button>
+          <button class="btn-ghost" onclick="resetCalc()" title="Reset">&#8635;</button>
+        </div>
+      </div>
+
+      <!-- RESULTS PANEL -->
+      <div id="calc-results-panel">
+
+        <div class="calc-welcome" id="results-welcome">
+          <div class="calc-welcome-icon">&#9850;</div>
+          <h3>RC Beam Design (EC2)</h3>
+          <p>Enter geometry, materials, and applied forces, then click Calculate to check bending, shear, deflection, and minimum reinforcement.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px">
+            <span style="font-size:0.78rem;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:99px;font-weight:600">EC2 EN 1992-1-1</span>
+            <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">Flexure · Shear · Deflection</span>
+          </div>
+        </div>
+
+        <div id="results-content" style="display:none;flex-direction:column;gap:20px">
+
+          <!-- Gauge + badges -->
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <div class="calc-results-card" style="min-width:200px;flex:0 0 auto">
+              <div class="card-header">Utilisation Ratio</div>
+              <div class="util-gauge-wrap">
+                <svg class="util-gauge-svg" width="90" height="90" viewBox="0 0 90 90">
+                  <circle class="util-ring-track" cx="45" cy="45" r="36"/>
+                  <circle class="util-ring-fill" id="util-ring" cx="45" cy="45" r="36" stroke-dasharray="0 226" stroke="#2563EB"/>
+                </svg>
+                <div class="util-gauge-info">
+                  <div class="util-gauge-value" id="util-pct">—%</div>
+                  <div class="util-gauge-label" id="util-status">—</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px" id="util-gov">—</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:12px">
+              <div class="calc-badges">
+                <div class="calc-badge">
+                  <div class="calc-badge-label">MRd</div>
+                  <div class="calc-badge-value" id="badge-MRd">—</div>
+                  <div class="calc-badge-unit">kNm</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">VRd,c</div>
+                  <div class="calc-badge-value" id="badge-VRdc">—</div>
+                  <div class="calc-badge-unit">kN</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">As,req</div>
+                  <div class="calc-badge-value" id="badge-Asreq">—</div>
+                  <div class="calc-badge-unit">mm²</div>
+                </div>
+                <div class="calc-badge">
+                  <div class="calc-badge-label">l/d</div>
+                  <div class="calc-badge-value" id="badge-ld">—</div>
+                  <div class="calc-badge-unit">actual/perm</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Checks -->
+          <div class="calc-results-card">
+            <div class="card-header">Design Checks</div>
+            <div class="check-row header">
+              <span>Check</span><span>Ed</span><span>Rd</span><span>Unit</span><span>η</span>
+            </div>
+            <div id="checks-body"></div>
+          </div>
+
+          <!-- Detail summary -->
+          <div class="calc-results-card">
+            <div class="card-header">Design Summary</div>
+            <table class="calc-results-table">
+              <tbody id="summary-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Reinforcement recommendation -->
+          <div class="calc-results-card" id="reinf-rec-card">
+            <div class="card-header">Reinforcement Guidance</div>
+            <div id="reinf-rec" style="padding:12px;font-size:0.84rem;line-height:1.6;color:var(--text-secondary)"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Save Modal -->
+<div class="calc-modal-overlay" id="save-modal">
+  <div class="calc-modal-box">
+    <h3>&#128190; Save Calculation</h3>
+    <div class="form-row">
+      <label>Calculation Name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. RC Beam B2 Ground Floor" maxlength="80">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-ghost" onclick="document.getElementById('save-modal').classList.remove('open')">Cancel</button>
+      <button class="btn-primary" onclick="doSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script src="/js/data/materials.js"></script>
+<script src="/js/engine/rcBeamSolver.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report/wordExport.js"></script>
+<script src="/js/report/calcReport.js"></script>
+
+<script>
+let currentResults = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  TopNav.init();
+  if (!Auth.guard()) return;
+  CalcShared.renderProjectBadge('calc-project-badge');
+  updateDepth();
+  document.getElementById('save-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('save-modal'))
+      document.getElementById('save-modal').classList.remove('open');
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.calc-modal-overlay.open').forEach(m => m.classList.remove('open'));
+  });
+});
+
+function updateDepth() {
+  const h = +document.getElementById('inp-h').value || 500;
+  const cover = +document.getElementById('inp-cover').value || 30;
+  const bardia = +document.getElementById('inp-bardia').value || 20;
+  const d = h - cover - bardia / 2;
+  document.getElementById('eff-depth-hint').textContent =
+    `Effective depth d = ${h} - ${cover} - ${bardia/2} = ${d} mm`;
+}
+
+function onConcChange() {
+  const mats = window.EngineeringMaterials?.concrete || {};
+  const key  = document.getElementById('inp-conc').value;
+  const m    = mats[key];
+  if (m) document.getElementById('inp-fck').value = m.fck;
+}
+
+function onRebarChange() {
+  const mats = window.EngineeringMaterials?.rebar || {};
+  const key  = document.getElementById('inp-rebar').value;
+  const m    = mats[key];
+  if (m) document.getElementById('inp-fyk').value = m.fyk;
+}
+
+function toggleSec(id) {
+  const b = document.getElementById(id);
+  b.style.display = b.style.display === 'none' ? '' : 'none';
+}
+
+function getConfig() {
+  const h = +document.getElementById('inp-h').value;
+  const cover = +document.getElementById('inp-cover').value;
+  const bardia = +document.getElementById('inp-bardia').value;
+  return {
+    span:     +document.getElementById('inp-span').value,
+    b:        +document.getElementById('inp-b').value,
+    h,
+    d:        h - cover - bardia / 2,
+    cover,
+    bar_dia:  bardia,
+    fck:      +document.getElementById('inp-fck').value,
+    fyk:      +document.getElementById('inp-fyk').value,
+    MEd:      +document.getElementById('inp-MEd').value,
+    VEd:      +document.getElementById('inp-VEd').value,
+    As_prov:  +document.getElementById('inp-As').value,
+    stirrup_d: +document.getElementById('inp-sw-dia').value,
+    stirrup_s: +document.getElementById('inp-sw-s').value,
+    Asw_prov: 0,
+  };
+}
+
+function runCalc() {
+  const config = getConfig();
+  if (!config.MEd && !config.VEd) { CalcShared.showToast('Enter design forces.', 'error'); return; }
+  if (!config.As_prov) { CalcShared.showToast('Enter provided reinforcement.', 'error'); return; }
+  try {
+    const r = RCBeamSolver.solve(config);
+    currentResults = r;
+    showResults(r, config);
+  } catch (e) {
+    CalcShared.showToast('Calculation error: ' + e.message, 'error');
+  }
+}
+
+function showResults(r, config) {
+  document.getElementById('results-welcome').style.display = 'none';
+  document.getElementById('results-content').style.display = 'flex';
+
+  // Ring
+  const circumference = 2 * Math.PI * 36;
+  const pct = Math.min(r.utilisationPct, 100);
+  const fill = (pct / 100) * circumference;
+  const color = r.pass ? '#16A34A' : '#DC2626';
+  const ring = document.getElementById('util-ring');
+  ring.setAttribute('stroke-dasharray', fill + ' ' + (circumference - fill));
+  ring.setAttribute('stroke', color);
+  document.getElementById('util-pct').textContent = r.utilisationPct + '%';
+  document.getElementById('util-pct').style.color = color;
+  document.getElementById('util-status').innerHTML = CalcShared.passBadge(r.pass);
+  const govCheck = r.checks.reduce((a, b) => a.util > b.util ? a : b);
+  document.getElementById('util-gov').textContent = 'Governed by ' + govCheck.name;
+
+  // Badges
+  document.getElementById('badge-MRd').textContent  = r.MRd.toFixed(2);
+  document.getElementById('badge-VRdc').textContent = r.VRdc.toFixed(2);
+  document.getElementById('badge-Asreq').textContent = Math.ceil(r.As_req).toFixed(0);
+  document.getElementById('badge-ld').textContent   = r.l_d_actual.toFixed(1) + ' / ' + r.l_d_perm.toFixed(1);
+
+  // Checks table
+  document.getElementById('checks-body').innerHTML = r.checks.map(c => {
+    const barPct = Math.min(c.util * 100, 100);
+    const barColor = c.pass ? '#16A34A' : '#DC2626';
+    return `<div class="check-row ${c.pass ? '' : 'fail'}">
+      <div>
+        <div style="font-weight:600">${c.name}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)">${c.ref} — ${c.formula}</div>
+        ${c.note ? `<div style="font-size:0.72rem;color:#B45309;margin-top:2px">⚠ ${c.note}</div>` : ''}
+        <div class="util-bar-wrap"><div class="util-bar" style="width:${barPct}%;background:${barColor}"></div></div>
+      </div>
+      <span class="mono">${c.Ed}</span>
+      <span class="mono">${c.Rd}</span>
+      <span style="color:var(--text-muted)">${c.unit}</span>
+      <span style="font-weight:700;color:${barColor}">${c.util.toFixed(3)}</span>
+    </div>`;
+  }).join('');
+
+  // Summary
+  document.getElementById('summary-body').innerHTML = [
+    ['Effective depth d', config.d.toFixed(0), 'mm'],
+    ['K factor', r.K.toFixed(4), '— (Kbal=' + r.Kbal + ')'],
+    ['Lever arm z', r.z.toFixed(1), 'mm'],
+    ['As,req (from MEd)', Math.ceil(r.As_req).toFixed(0), 'mm²'],
+    ['As,prov', r.As_prov.toFixed(0), 'mm²'],
+    ['As,min', r.As_min.toFixed(0), 'mm²'],
+    ['VRd,c (concrete shear)', r.VRdc.toFixed(2), 'kN'],
+    ['VRd,s (link contribution)', r.VRds.toFixed(2), 'kN'],
+    ['VRd (total)', r.VRd.toFixed(2), 'kN'],
+    ['Neutral axis depth x', r.neutral_axis_depth.toFixed(1), 'mm'],
+    ['fcd', r.fcd.toFixed(2), 'N/mm²'],
+    ['fyd', r.fyd.toFixed(2), 'N/mm²'],
+  ].map(([p, v, u]) => `<tr><td>${p}</td><td class="mono">${v}</td><td style="color:var(--text-muted)">${u}</td></tr>`).join('');
+
+  // Reinforcement guidance
+  const surplus = r.As_prov - r.As_req;
+  const barRecom = suggestBars(r.As_req);
+  document.getElementById('reinf-rec').innerHTML = `
+    <strong>Required:</strong> ${Math.ceil(r.As_req).toFixed(0)} mm² &nbsp;|&nbsp;
+    <strong>Provided:</strong> ${r.As_prov.toFixed(0)} mm² &nbsp;|&nbsp;
+    <strong>Surplus:</strong> ${surplus >= 0 ? '+' : ''}${surplus.toFixed(0)} mm²<br>
+    <strong>Suggested arrangements:</strong> ${barRecom}<br>
+    ${r.VEd > r.VRdc ? `<strong>Links needed:</strong> VEd(${r.VEd.toFixed(1)}kN) > VRd,c(${r.VRdc.toFixed(1)}kN) — provide stirrups.<br>` : ''}
+    ${r.K > r.Kbal ? `<strong style="color:#DC2626">Section over-stressed (K=${r.K.toFixed(4)} > ${r.Kbal}). Consider increasing depth or doubly reinforcing.</strong>` : ''}
+  `;
+}
+
+function suggestBars(As_req) {
+  const barAreas = { 10: 78.5, 12: 113, 16: 201, 20: 314, 25: 491, 32: 804, 40: 1257 };
+  const suggestions = [];
+  [2, 3, 4, 5, 6].forEach(n => {
+    Object.entries(barAreas).forEach(([dia, area]) => {
+      const total = n * area;
+      if (total >= As_req && total <= As_req * 1.5) {
+        suggestions.push(`${n}T${dia} = ${total}mm²`);
+      }
+    });
+  });
+  return suggestions.slice(0, 4).join(', ') || 'Increase section or use larger bars';
+}
+
+function resetCalc() {
+  currentResults = null;
+  document.getElementById('results-welcome').style.display = '';
+  document.getElementById('results-content').style.display = 'none';
+}
+
+function doSave() {
+  if (!currentResults) { CalcShared.showToast('Run a calculation first.', 'error'); return; }
+  const name = document.getElementById('save-calc-name').value.trim() || 'RC Beam Calc';
+  const summary = `MEd=${currentResults.MEd}kNm → MRd=${currentResults.MRd.toFixed(1)}kNm, η=${currentResults.utilisationPct}% — ${currentResults.pass?'PASS':'FAIL'}`;
+  if (CalcShared.saveAndConfirm('rc-beam', name, getConfig(), currentResults, summary)) {
+    document.getElementById('save-modal').classList.remove('open');
+    document.getElementById('save-calc-name').value = '';
+  }
+}
+</script>
+</body>
+</html>

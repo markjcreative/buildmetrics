@@ -36,11 +36,11 @@ window.EngineeringMaterials = {
         'Fe 500 (IS)': { label: 'Fe 500', fyk: 500, E: 200000 },
     },
     timber: {
-        'C16': { label: 'C16', fm_k: 16, E0mean: 8000, density: 310 },
-        'C24': { label: 'C24', fm_k: 24, E0mean: 11000, density: 350 },
-        'C27': { label: 'C27', fm_k: 27, E0mean: 11500, density: 370 },
-        'GL24h': { label: 'GL24h (Glulam)', fm_k: 24, E0mean: 11600, density: 385 },
-        'GL28h': { label: 'GL28h (Glulam)', fm_k: 28, E0mean: 12600, density: 410 },
-        'GL32h': { label: 'GL32h (Glulam)', fm_k: 32, E0mean: 13700, density: 430 },
+        'C16': { label: 'C16', fm_k: 16, fv_k: 1.8, fc_0_k: 17, fc_90_k: 2.2, ft_0_k: 10, E0mean: 8000, E05: 5400, density: 310 },
+        'C24': { label: 'C24', fm_k: 24, fv_k: 2.5, fc_0_k: 21, fc_90_k: 2.5, ft_0_k: 14, E0mean: 11000, E05: 7400, density: 350 },
+        'C27': { label: 'C27', fm_k: 27, fv_k: 2.8, fc_0_k: 22, fc_90_k: 2.6, ft_0_k: 16, E0mean: 11500, E05: 7700, density: 370 },
+        'GL24h': { label: 'GL24h (Glulam)', fm_k: 24, fv_k: 2.5, fc_0_k: 24, fc_90_k: 2.5, ft_0_k: 16.5, E0mean: 11600, E05: 9400, density: 385 },
+        'GL28h': { label: 'GL28h (Glulam)', fm_k: 28, fv_k: 2.7, fc_0_k: 26.5, fc_90_k: 3.0, ft_0_k: 19.5, E0mean: 12600, E05: 10200, density: 410 },
+        'GL32h': { label: 'GL32h (Glulam)', fm_k: 32, fv_k: 3.2, fc_0_k: 29, fc_90_k: 3.3, ft_0_k: 22.5, E0mean: 13700, E05: 11100, density: 430 },
     }
 };
