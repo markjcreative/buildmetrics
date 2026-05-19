@@ -29,12 +29,12 @@ const TopNav = (() => {
       el.innerHTML = _buildHeader(user);
     }
 
-    // Inject mobile drawer into body (after header)
+    // Inject mobile drawer into body
     if (!document.getElementById('mobile-drawer')) {
       const drawer = document.createElement('div');
       drawer.id = 'mobile-drawer';
-      drawer.innerHTML = _buildDrawer();
-      document.body.insertBefore(drawer, document.body.firstChild.nextSibling);
+      drawer.innerHTML = _buildDrawer(user);
+      document.body.appendChild(drawer);
     }
 
     // Active nav link
@@ -46,16 +46,27 @@ const TopNav = (() => {
       });
     }
 
-    // Wire mobile menu
+    // Wire mobile menu open/close
     const menuBtn = document.getElementById('hdr-menu-btn');
     const drawer = document.getElementById('mobile-drawer');
     if (menuBtn && drawer) {
       menuBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         drawer.classList.toggle('open');
+        document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
       });
-      document.addEventListener('click', function() {
-        if (drawer) drawer.classList.remove('open');
+      // Close button inside drawer
+      drawer.addEventListener('click', function(e) {
+        const closeBtn = e.target.closest('#mnd-close-btn');
+        if (closeBtn) {
+          drawer.classList.remove('open');
+          document.body.style.overflow = '';
+        }
+        // Close when tapping a nav link
+        if (e.target.closest('.mnd-item') || e.target.closest('.mnd-brand')) {
+          drawer.classList.remove('open');
+          document.body.style.overflow = '';
+        }
       });
     }
   }
@@ -101,16 +112,59 @@ const TopNav = (() => {
     '</div>';
   }
 
-  function _buildDrawer() {
-    return '<a href="/dashboard.html">Dashboard</a>' +
-      '<a href="/projects.html">Projects</a>' +
-      '<a href="/tools.html">Quick Tools</a>' +
-      '<a href="/standards.html">Standards</a>' +
-      '<a href="/templates.html">Templates</a>' +
-      '<a href="/ai-assistant.html">AI Assistant</a>' +
-      '<div class="drawer-sep"></div>' +
-      '<a href="/profile.html">Profile</a>' +
-      '<a href="#" onclick="Auth.logout();return false;">Sign out</a>';
+  function _buildDrawer(user) {
+    const name = user ? (user.name || user.email || 'User') : 'User';
+    const firstName = _esc(name.split(' ')[0]);
+    const initials = name.slice(0, 2).toUpperCase();
+    const email = _esc(user ? (user.email || '') : '');
+
+    const navItems = [
+      { href: '/dashboard.html',    label: 'Dashboard',    bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/></svg>' },
+      { href: '/projects.html',     label: 'Projects',     bg: '#065F46', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18"/><rect x="3" y="3" width="4" height="4" rx="1" fill="white"/></svg>' },
+      { href: '/calcs/beam.html',   label: 'Beam Design',  bg: '#1E40AF', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="white" stroke-width="1.6" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>' },
+      { href: '/calcs/column.html', label: 'Column',       bg: '#6B21A8', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="18" rx="1.5" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.6" stroke-linecap="round" d="M6 3h12M6 21h12"/></svg>' },
+      { href: '/calcs/concrete-column.html', label: 'Concrete Col', bg: '#78350F', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.4" stroke-dasharray="2 2" d="M9 6v12M15 6v12M5 9h14M5 15h14"/></svg>' },
+      { href: '/calcs/rc-beam.html',label: 'RC Beam',      bg: '#7C2D12', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="1.5" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.4" stroke-dasharray="2 2" d="M3 12h18"/></svg>' },
+      { href: '/calcs/timber-column.html', label: 'Timber Col', bg: '#3F6212', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" d="M12 3v18M8 5l4-2 4 2M8 19l4 2 4-2"/></svg>' },
+      { href: '/calcs/slab.html',   label: 'RC Slab',      bg: '#1E3A5F', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="1" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.4" stroke-linecap="round" d="M7 9v6M12 9v6M17 9v6"/></svg>' },
+      { href: '/calcs/footing.html',label: 'Footing',      bg: '#1C4532', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="8" rx="1" stroke="white" stroke-width="1.8"/><rect x="3" y="14" width="18" height="6" rx="1" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M12 12v2"/></svg>' },
+      { href: '/calcs/retaining-wall.html', label: 'Ret. Wall', bg: '#4A1D96', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="16" rx="1" stroke="white" stroke-width="1.8"/><rect x="10" y="10" width="10" height="10" rx="1" stroke="white" stroke-width="1.8"/></svg>' },
+      { href: '/calcs/connection.html', label: 'Connection', bg: '#0C4A6E', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" stroke="white" stroke-width="1.8"/><circle cx="5" cy="5" r="1.8" stroke="white" stroke-width="1.5"/><circle cx="19" cy="5" r="1.8" stroke="white" stroke-width="1.5"/><circle cx="5" cy="19" r="1.8" stroke="white" stroke-width="1.5"/><circle cx="19" cy="19" r="1.8" stroke="white" stroke-width="1.5"/><path stroke="white" stroke-width="1.4" d="M6.5 6.5l4 4M13.5 13.5l4 4M17.5 6.5l-4 4M10.5 13.5l-4 4"/></svg>' },
+      { href: '/tools.html',        label: 'Quick Tools',  bg: '#134E4A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3-3a8 8 0 01-11 11l-6 6a2 2 0 01-3-3l6-6a8 8 0 0111-11l-3 3z"/></svg>' },
+      { href: '/calcs/design-register.html', label: 'Register', bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/></svg>' },
+      { href: '/cost-report.html',  label: 'Cost Report',  bg: '#166534', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>' },
+      { href: '/ai-assistant.html', label: 'AI Assistant', bg: '#581C87', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>' },
+    ];
+
+    const gridItems = navItems.map(item =>
+      '<a href="' + item.href + '" class="mnd-item">' +
+        '<div class="mnd-item-icon" style="background:' + item.bg + ';">' + item.icon + '</div>' +
+        '<span class="mnd-item-label">' + item.label + '</span>' +
+      '</a>'
+    ).join('');
+
+    return (
+      '<div class="mnd-topbar">' +
+        '<a href="/dashboard.html" class="mnd-brand">' +
+          '<svg width="28" height="28" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="7" fill="#2563EB"/><rect x="6" y="8" width="3" height="15" rx="1" fill="white"/><rect x="21" y="8" width="3" height="15" rx="1" fill="white"/><rect x="6" y="8" width="18" height="3" rx="1" fill="white"/><rect x="12" y="15" width="6" height="2.5" rx="1" fill="rgba(255,255,255,0.55)"/></svg>' +
+          '<span class="mnd-brand-name">BuildMetrics</span>' +
+        '</a>' +
+        '<button class="mnd-close" id="mnd-close-btn" aria-label="Close menu">' +
+          '<svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>' +
+        '</button>' +
+      '</div>' +
+      '<div class="mnd-greeting">Hi ' + firstName + ' 👋</div>' +
+      '<div class="mnd-section-label">Navigation</div>' +
+      '<div class="mnd-grid">' + gridItems + '</div>' +
+      '<div class="mnd-footer">' +
+        '<div class="mnd-footer-avatar">' + initials + '</div>' +
+        '<div class="mnd-footer-info">' +
+          '<div class="mnd-footer-name">' + firstName + '</div>' +
+          '<div class="mnd-footer-email">' + email + '</div>' +
+        '</div>' +
+        '<button class="mnd-footer-signout" onclick="Auth.logout()">Sign out</button>' +
+      '</div>'
+    );
   }
 
   function _esc(s) {
