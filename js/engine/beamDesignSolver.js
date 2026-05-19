@@ -129,6 +129,19 @@ window.BeamDesignSolver = {
         };
     },
 
+    /** Run only the material code checks (no statics). Used by multi-span path. */
+    checkCapacity(config, MEd, VEd, delta_max_mm, totalSpan) {
+        const { material } = config;
+        let checks, capacities;
+        if (material === 'steel') {
+            ({ checks, capacities } = this._checkSteel(config, MEd, VEd, delta_max_mm, totalSpan));
+        } else {
+            ({ checks, capacities } = this._checkTimber(config, MEd, VEd, delta_max_mm, totalSpan));
+        }
+        const governingUtil = Math.max(...checks.map(c => c.util));
+        return { checks, capacities, governingUtil, utilisationPct: Math.round(governingUtil * 100), pass: checks.every(c => c.pass) };
+    },
+
     _checkTimber(config, MEd, VEd, delta_max_mm, span) {
         const mats = window.EngineeringMaterials?.timber || {};
         const grade = mats[config.grade] || { fm_k: 24, fv_k: 2.5, E0mean: 11000 };

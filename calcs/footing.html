@@ -147,8 +147,9 @@
         </div>
 
         <!-- Action bar -->
-        <div class="calc-action-bar">
-          <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;">⚡ Calculate</button>
+        <div class="calc-action-bar" style="flex-wrap:wrap;gap:6px">
+          <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;min-width:120px">⚡ Calculate</button>
+          <button class="btn btn-secondary" id="btn-autosize" onclick="autoSizeFooting()" title="Auto-size footing thickness" style="flex:1;min-width:120px">⚙ Auto-Size</button>
           <button class="btn btn-secondary" onclick="resetCalc()" title="Reset inputs">↺</button>
           <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save calculation" disabled>💾</button>
         </div>
@@ -256,6 +257,7 @@
 <script src="/js/ui/topNav.js"></script>
 <script src="/js/engine/utils.js"></script>
 <script src="/js/engine/footingSolver.js"></script>
+<script src="/js/ui/tutorial.js"></script>
 <script src="/js/ui/calcShared.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="/js/report/wordExport.js"></script>
@@ -309,6 +311,36 @@
     renderChecks(results);
     renderTable(results, config);
     renderDiagram(results, config);
+  }
+
+  function autoSizeFooting() {
+    const btn = document.getElementById('btn-autosize');
+    btn.disabled = true;
+    btn.textContent = '⏳ Sizing…';
+    setTimeout(() => {
+      try {
+        const config = collectConfig();
+        let thick = 300, result = null, found = false;
+        while (thick <= 1500) {
+          config.footThick = thick;
+          result = FootingSolver.solve(config);
+          if (result.bearingPass && result.punchPass && result.shearPass &&
+              result.rebar_x.K < 0.167 && result.rebar_y.K < 0.167) {
+            found = true; break;
+          }
+          thick += 50;
+        }
+        document.getElementById('inp-foot-thick').value = thick;
+        if (!found) CalcShared.showToast('Could not find passing design ≤ 1500 mm — check inputs.', 'error');
+        else CalcShared.showToast(`Auto-sized to ${thick} mm thickness`, 'success');
+        runCalc();
+      } catch (e) {
+        CalcShared.showToast('Auto-size error: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '⚙ Auto-Size';
+      }
+    }, 30);
   }
 
   function resetCalc() {

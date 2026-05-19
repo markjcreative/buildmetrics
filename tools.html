@@ -484,6 +484,56 @@
               </div>
             </div>
 
+            <!-- UK Wind Zone Map + Geolocation -->
+            <div style="margin-bottom:16px;padding:14px;background:var(--bg-page);border:1px solid var(--border);border-radius:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+                <div style="font-size:0.82rem;font-weight:700;color:var(--text-secondary)">🗺 UK Wind Speed Zones (BS EN 1991-1-4 NA)</div>
+                <button id="btn-geolocate" onclick="detectWindZone()" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-surface);font-size:0.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
+                  📍 Use My Location
+                </button>
+              </div>
+              <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+                <!-- SVG Map -->
+                <svg viewBox="0 0 140 220" width="140" style="flex-shrink:0;border-radius:6px;overflow:hidden" aria-label="UK wind zone map">
+                  <!-- Zone 1 — SE England: 21.5 m/s -->
+                  <polygon points="75,130 110,125 115,160 95,175 70,165 65,145" fill="#BFDBFE" stroke="white" stroke-width="0.5"/>
+                  <!-- Zone 2 — Central/E England: 23.5 m/s -->
+                  <polygon points="55,90 90,85 110,125 75,130 65,145 50,140 40,110" fill="#93C5FD" stroke="white" stroke-width="0.5"/>
+                  <!-- Zone 3 — N England / E Scotland: 26 m/s -->
+                  <polygon points="45,40 80,30 95,55 90,85 55,90 40,110 30,85 35,55" fill="#60A5FA" stroke="white" stroke-width="0.5"/>
+                  <!-- Zone 4 — W Scotland / Wales: 30 m/s -->
+                  <polygon points="20,50 45,40 35,55 30,85 20,100 15,75" fill="#3B82F6" stroke="white" stroke-width="0.5"/>
+                  <polygon points="30,130 50,140 65,145 70,165 55,180 35,175 25,155" fill="#3B82F6" stroke="white" stroke-width="0.5"/>
+                  <!-- Zone 5 — Exposed coasts / W Isles: 33 m/s -->
+                  <polygon points="10,30 20,20 35,25 45,40 20,50 15,35" fill="#1D4ED8" stroke="white" stroke-width="0.5"/>
+                  <!-- Labels -->
+                  <text x="87" y="152" font-size="6" fill="#1e40af" font-weight="700">Z1</text>
+                  <text x="72" y="112" font-size="6" fill="#1e40af" font-weight="700">Z2</text>
+                  <text x="55" y="68"  font-size="6" fill="white"   font-weight="700">Z3</text>
+                  <text x="20" y="72"  font-size="6" fill="white"   font-weight="700">Z4</text>
+                  <text x="18" y="38"  font-size="6" fill="white"   font-weight="700">Z5</text>
+                </svg>
+                <!-- Zone table -->
+                <div style="flex:1;min-width:180px">
+                  <table style="width:100%;border-collapse:collapse;font-size:0.78rem">
+                    <thead><tr style="border-bottom:1px solid var(--border)">
+                      <th style="text-align:left;padding:4px 8px;color:var(--text-muted);font-size:0.7rem">Zone</th>
+                      <th style="text-align:left;padding:4px 8px;color:var(--text-muted);font-size:0.7rem">Region</th>
+                      <th style="text-align:right;padding:4px 8px;color:var(--text-muted);font-size:0.7rem">vb (m/s)</th>
+                    </tr></thead>
+                    <tbody id="wind-zone-table">
+                      <tr><td style="padding:4px 8px">Zone 1</td><td style="padding:4px 8px;color:var(--text-secondary)">SE England</td><td style="padding:4px 8px;text-align:right;font-family:monospace">21.5</td></tr>
+                      <tr><td style="padding:4px 8px">Zone 2</td><td style="padding:4px 8px;color:var(--text-secondary)">Central / E England</td><td style="padding:4px 8px;text-align:right;font-family:monospace">23.5</td></tr>
+                      <tr><td style="padding:4px 8px">Zone 3</td><td style="padding:4px 8px;color:var(--text-secondary)">N England / E Scotland</td><td style="padding:4px 8px;text-align:right;font-family:monospace">26.0</td></tr>
+                      <tr><td style="padding:4px 8px">Zone 4</td><td style="padding:4px 8px;color:var(--text-secondary)">W Scotland / Wales</td><td style="padding:4px 8px;text-align:right;font-family:monospace">30.0</td></tr>
+                      <tr><td style="padding:4px 8px">Zone 5</td><td style="padding:4px 8px;color:var(--text-secondary)">Exposed coastal / W Isles</td><td style="padding:4px 8px;text-align:right;font-family:monospace">33.0</td></tr>
+                    </tbody>
+                  </table>
+                  <div id="geo-result" style="margin-top:8px;font-size:0.78rem;color:var(--accent);font-weight:600;display:none"></div>
+                </div>
+              </div>
+            </div>
+
             <div id="wl-results" class="wind-results"></div>
             <p class="hint" style="margin-top:12px;">Based on EN 1991-1-4. w<sub>e</sub> = q<sub>b</sub> × c<sub>e</sub> × (c<sub>pe</sub> + c<sub>pi</sub>).</p>
           </div>
@@ -916,6 +966,54 @@ function initWindLoad() {
   }
 
   calcWindLoad();
+}
+
+// ════════════════════════════════════════════════════════════════
+// UK Wind Zone Geolocation
+// ════════════════════════════════════════════════════════════════
+const UK_WIND_ZONES = [
+  { zone: 1, vb: 21.5, label: 'Zone 1 — SE England',           minLng: -1.0, maxLng:  2.0, minLat: 50.5, maxLat: 52.5 },
+  { zone: 2, vb: 23.5, label: 'Zone 2 — Central / E England',  minLng: -2.5, maxLng: -1.0, minLat: 50.5, maxLat: 55.0 },
+  { zone: 2, vb: 23.5, label: 'Zone 2 — E Scotland',           minLng: -2.5, maxLng:  0.0, minLat: 55.0, maxLat: 58.0 },
+  { zone: 3, vb: 26.0, label: 'Zone 3 — N England',            minLng: -3.5, maxLng: -2.5, minLat: 53.0, maxLat: 55.5 },
+  { zone: 3, vb: 26.0, label: 'Zone 3 — E Scotland',           minLng: -3.5, maxLng: -2.0, minLat: 55.5, maxLat: 57.5 },
+  { zone: 4, vb: 30.0, label: 'Zone 4 — Wales / W England',    minLng: -5.5, maxLng: -3.5, minLat: 51.0, maxLat: 54.0 },
+  { zone: 4, vb: 30.0, label: 'Zone 4 — W Scotland',           minLng: -6.0, maxLng: -3.5, minLat: 54.0, maxLat: 58.5 },
+  { zone: 5, vb: 33.0, label: 'Zone 5 — Exposed coast/Islands',minLng: -8.0, maxLng: -6.0, minLat: 49.0, maxLat: 60.0 },
+];
+
+function detectWindZone() {
+  if (!navigator.geolocation) {
+    document.getElementById('geo-result').style.display = 'block';
+    document.getElementById('geo-result').textContent = 'Geolocation not supported in this browser.';
+    return;
+  }
+  const btn = document.getElementById('btn-geolocate');
+  btn.textContent = '⏳ Locating…'; btn.disabled = true;
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      let best = null;
+      for (const z of UK_WIND_ZONES) {
+        if (lat >= z.minLat && lat <= z.maxLat && lng >= z.minLng && lng <= z.maxLng) { best = z; break; }
+      }
+      // Fallback: pick nearest zone by longitude
+      if (!best) best = lng < -6 ? UK_WIND_ZONES[7] : lng < -3.5 ? UK_WIND_ZONES[5] : lng < -2.5 ? UK_WIND_ZONES[2] : lng < -1 ? UK_WIND_ZONES[1] : UK_WIND_ZONES[0];
+
+      document.getElementById('wl-vb').value = best.vb;
+      document.getElementById('wl-vb').dispatchEvent(new Event('input'));
+      const el = document.getElementById('geo-result');
+      el.style.display = 'block';
+      el.innerHTML = `📍 Detected: <strong>${best.label}</strong> — v<sub>b</sub> set to ${best.vb} m/s`;
+      btn.textContent = '📍 Use My Location'; btn.disabled = false;
+    },
+    err => {
+      document.getElementById('geo-result').style.display = 'block';
+      document.getElementById('geo-result').textContent = 'Location unavailable: ' + err.message;
+      btn.textContent = '📍 Use My Location'; btn.disabled = false;
+    },
+    { timeout: 8000 }
+  );
 }
 
 // ════════════════════════════════════════════════════════════════

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Beam Design — Beam Calc Pro</title>
+  <title>Beam Design — BuildMetrics</title>
   <meta name="description" content="Steel and timber beam design to Eurocode 3 and Eurocode 5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -195,18 +195,31 @@
           <div class="section-header" onclick="toggleSec('sec-geom2')">Span &amp; Support <span id="sec-geom2-arrow">&#9662;</span></div>
           <div class="section-body" id="sec-geom2">
             <div class="form-row">
-              <label>Span L (m)</label>
-              <input type="number" id="b-span" value="5.0" min="0.5" max="50" step="0.5" oninput="updatePreview()">
-            </div>
-            <div class="form-row">
               <label>Support Condition</label>
-              <select id="b-support" onchange="updatePreview()">
+              <select id="b-support" onchange="onSupportChange()">
                 <option value="simply_supported">Simply Supported (pin–roller)</option>
                 <option value="fixed_fixed">Both Ends Fixed</option>
                 <option value="propped_cantilever">Propped Cantilever (fixed–pin)</option>
                 <option value="cantilever">Cantilever (fixed one end)</option>
+                <option value="2span">2-Span Continuous</option>
+                <option value="3span">3-Span Continuous</option>
+                <option value="overhanging">Overhanging (Main + Cantilever)</option>
               </select>
             </div>
+
+            <!-- Single span length (default) -->
+            <div id="row-single-span">
+              <div class="form-row">
+                <label>Span L (m)</label>
+                <input type="number" id="b-span" value="5.0" min="0.5" max="50" step="0.5" oninput="updatePreview()">
+              </div>
+            </div>
+
+            <!-- Multi-span lengths (shown for 2span/3span/overhanging) -->
+            <div id="row-multi-span" style="display:none">
+              <div id="span-inputs"></div>
+            </div>
+
             <div style="margin-top:8px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
               <svg id="svg-preview" class="diag-svg" style="height:100px"></svg>
             </div>
@@ -248,6 +261,7 @@
           <button class="btn-primary" style="flex:1" onclick="runCalc()">&#9889; Calculate</button>
           <button class="btn-secondary" onclick="CalcShared.openSaveModal('save-modal')" title="Save">&#128190; Save</button>
           <button class="btn-ghost" onclick="resetCalc()" title="Reset">&#8635;</button>
+          <button class="btn-ghost" onclick="Tutorial.start(window.TUTORIALS.beam)" title="Help">?</button>
         </div>
       </div>
 
@@ -379,7 +393,9 @@
 <script src="/js/engine/utils.js"></script>
 <script src="/js/engine/solver.js"></script>
 <script src="/js/engine/beamDesignSolver.js"></script>
+<script src="/js/engine/multiSpanSolver.js"></script>
 <script src="/js/ui/diagrams.js"></script>
+<script src="/js/ui/tutorial.js"></script>
 <script src="/js/ui/calcShared.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="/js/report/wordExport.js"></script>
@@ -397,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initLoads();
   populateSteelDropdown();
-  updatePreview();
+  onSupportChange();
   autoCombo();
 
   document.getElementById('save-modal').addEventListener('click', e => {
@@ -483,7 +499,8 @@ function removeLoad(i) {
 }
 
 function renderLoads() {
-  const span = parseFloat(document.getElementById('b-span').value) || 5;
+  const spans = getSpanLengths();
+  const span = spans.reduce((a, b) => a + b, 0);
   const container = document.getElementById('load-list');
   container.innerHTML = loads.map((l, i) => {
     const typeOpts = ['udl','partial_udl','point'].map(t =>
@@ -516,29 +533,102 @@ function renderLoads() {
   }).join('');
 }
 
+// ── Multi-span UI ─────────────────────────────────────────────────────────────
+const MULTI_SPAN_TYPES = ['2span', '3span', 'overhanging'];
+
+function onSupportChange() {
+  const suppType = document.getElementById('b-support').value;
+  const isMulti  = MULTI_SPAN_TYPES.includes(suppType);
+  document.getElementById('row-single-span').style.display = isMulti ? 'none' : '';
+  document.getElementById('row-multi-span').style.display  = isMulti ? '' : 'none';
+  if (isMulti) renderSpanInputs(suppType);
+  updatePreview();
+}
+
+function renderSpanInputs(suppType) {
+  const container = document.getElementById('span-inputs');
+  if (suppType === '2span') {
+    container.innerHTML = `
+      <div style="font-size:0.78rem;font-weight:600;margin-bottom:6px;color:var(--text-secondary)">Span Lengths</div>
+      <div class="form-row-inline">
+        <div class="form-row"><label>L₁ (m)</label><input type="number" id="ms-L1" value="4.0" min="0.5" step="0.5" oninput="updatePreview()"></div>
+        <div class="form-row"><label>L₂ (m)</label><input type="number" id="ms-L2" value="4.0" min="0.5" step="0.5" oninput="updatePreview()"></div>
+      </div>`;
+  } else if (suppType === '3span') {
+    container.innerHTML = `
+      <div style="font-size:0.78rem;font-weight:600;margin-bottom:6px;color:var(--text-secondary)">Span Lengths</div>
+      <div class="form-row-inline">
+        <div class="form-row"><label>L₁ (m)</label><input type="number" id="ms-L1" value="4.0" min="0.5" step="0.5" oninput="updatePreview()"></div>
+        <div class="form-row"><label>L₂ (m)</label><input type="number" id="ms-L2" value="5.0" min="0.5" step="0.5" oninput="updatePreview()"></div>
+        <div class="form-row"><label>L₃ (m)</label><input type="number" id="ms-L3" value="4.0" min="0.5" step="0.5" oninput="updatePreview()"></div>
+      </div>`;
+  } else if (suppType === 'overhanging') {
+    container.innerHTML = `
+      <div style="font-size:0.78rem;font-weight:600;margin-bottom:6px;color:var(--text-secondary)">Span Lengths</div>
+      <div class="form-row-inline">
+        <div class="form-row"><label>Main span (m)</label><input type="number" id="ms-L1" value="5.0" min="0.5" step="0.5" oninput="updatePreview()"></div>
+        <div class="form-row"><label>Overhang (m)</label><input type="number" id="ms-L2" value="1.5" min="0.1" step="0.25" oninput="updatePreview()"></div>
+      </div>`;
+  }
+}
+
+function getSpanLengths() {
+  const suppType = document.getElementById('b-support').value;
+  if (suppType === '2span') {
+    return [+document.getElementById('ms-L1').value, +document.getElementById('ms-L2').value];
+  } else if (suppType === '3span') {
+    return [+document.getElementById('ms-L1').value, +document.getElementById('ms-L2').value, +document.getElementById('ms-L3').value];
+  } else if (suppType === 'overhanging') {
+    return [+document.getElementById('ms-L1').value, +document.getElementById('ms-L2').value];
+  }
+  return [parseFloat(document.getElementById('b-span').value) || 5];
+}
+
 // ── Preview ───────────────────────────────────────────────────────────────────
 function updatePreview() {
   if (typeof BeamDiagrams === 'undefined') return;
-  const span    = parseFloat(document.getElementById('b-span').value) || 5;
   const suppType = document.getElementById('b-support').value;
-  const supMap = {
-    simply_supported: [{type:'pin',position:0},{type:'roller',position:span}],
-    fixed_fixed:      [{type:'fixed',position:0},{type:'fixed',position:span}],
-    propped_cantilever:[{type:'fixed',position:0},{type:'roller',position:span}],
-    cantilever:       [{type:'fixed',position:0}],
-  };
-  BeamDiagrams.renderPreview({ span, supports: supMap[suppType] || supMap.simply_supported, loads: [] });
+  const spans = getSpanLengths();
+  const totalSpan = spans.reduce((a, b) => a + b, 0);
+
+  let supports;
+  if (suppType === '2span' || suppType === '3span') {
+    supports = [{ type: 'pin', position: 0 }];
+    let cum = 0;
+    for (let i = 0; i < spans.length - 1; i++) { cum += spans[i]; supports.push({ type: 'roller', position: cum }); }
+    supports.push({ type: 'roller', position: totalSpan });
+  } else if (suppType === 'overhanging') {
+    supports = [{ type: 'pin', position: 0 }, { type: 'roller', position: spans[0] }];
+  } else {
+    const span = spans[0];
+    const supMap = {
+      simply_supported: [{type:'pin',position:0},{type:'roller',position:span}],
+      fixed_fixed:      [{type:'fixed',position:0},{type:'fixed',position:span}],
+      propped_cantilever:[{type:'fixed',position:0},{type:'roller',position:span}],
+      cantilever:       [{type:'fixed',position:0}],
+    };
+    supports = supMap[suppType] || supMap.simply_supported;
+  }
+  BeamDiagrams.renderPreview({ span: totalSpan, supports, loads: [] });
 }
 
 // ── Calculate ─────────────────────────────────────────────────────────────────
 function getConfig() {
-  const span    = parseFloat(document.getElementById('b-span').value);
   const suppType = document.getElementById('b-support').value;
+  const spanLengths = getSpanLengths();
+  const totalSpan   = spanLengths.reduce((a, b) => a + b, 0);
+
+  const baseLoads = loads.map(l => ({
+    ...l,
+    start: l.start ?? 0,
+    end:   l.end   ?? totalSpan,
+    position: l.position ?? totalSpan / 2,
+  }));
 
   if (activeMaterial === 'steel') {
     return {
       material: 'steel',
-      span, supportType: suppType,
+      span: totalSpan, spanLengths, supportType: suppType,
       fy:     +document.getElementById('s-grade').value,
       Sxx:    +document.getElementById('s-Sxx').value,
       Ixx:    +document.getElementById('s-Ixx').value,
@@ -549,30 +639,58 @@ function getConfig() {
       A_cm2:  +document.getElementById('s-A').value,
       r_mm:   +document.getElementById('s-r').value,
       sectionDesig: document.getElementById('s-desig').value || 'Custom',
-      loads: loads.map(l => ({
-        ...l,
-        start: l.start ?? 0,
-        end:   l.end   ?? span,
-        position: l.position ?? span / 2,
-      })),
+      loads: baseLoads,
     };
   }
 
   return {
     material: 'timber',
-    span, supportType: suppType,
+    span: totalSpan, spanLengths, supportType: suppType,
     grade: document.getElementById('t-grade').value,
     b_mm:  +document.getElementById('t-b').value,
     d_mm:  +document.getElementById('t-d').value,
     serviceClass: document.getElementById('t-sc').value,
     loadDuration: document.getElementById('t-dur').value,
-    loads: loads.map(l => ({
-      ...l,
-      start: l.start ?? 0,
-      end:   l.end   ?? span,
-      position: l.position ?? span / 2,
-    })),
+    loads: baseLoads,
   };
+}
+
+function _buildMultiSpanStatics(config) {
+  const { suppType, spanLengths } = { suppType: config.supportType, spanLengths: config.spanLengths };
+  const udlPerSpan = spanLengths.map(() => {
+    const udlLoads = config.loads.filter(l => l.type === 'udl');
+    return udlLoads.reduce((s, l) => s + l.magnitude, 0);
+  });
+
+  const E_kNm2 = config.material === 'steel'
+    ? 210000 * 1000
+    : ((window.EngineeringMaterials?.timber?.[config.grade]?.E0mean || 11000) * 1000);
+  const I_m4 = config.material === 'steel'
+    ? (config.Ixx || 1000) * 1e-8
+    : ((config.b_mm / 1000) * Math.pow(config.d_mm / 1000, 3)) / 12;
+  const EI = E_kNm2 * I_m4;
+
+  if (suppType === 'overhanging') {
+    return MultiSpanSolver.solveOverhanging({
+      mainSpan: spanLengths[0],
+      overhangLength: spanLengths[1],
+      udl_main: udlPerSpan[0],
+      udl_overhang: udlPerSpan[1] || 0,
+      EI,
+    });
+  }
+
+  const pointLoads = config.loads
+    .filter(l => l.type === 'point')
+    .map(l => ({ span: 0, pos: l.position ?? config.span / 2, P: l.magnitude }));
+
+  return MultiSpanSolver.solve({
+    spans: spanLengths,
+    udl: udlPerSpan,
+    pointLoads,
+    endConditions: ['pinned', 'pinned'],
+    EI,
+  });
 }
 
 function runCalc() {
@@ -581,7 +699,24 @@ function runCalc() {
   if (!config.loads.length) { CalcShared.showToast('Add at least one load.', 'error'); return; }
 
   try {
-    const r = BeamDesignSolver.solve(config);
+    let r;
+    if (MULTI_SPAN_TYPES.includes(config.supportType)) {
+      const statics = _buildMultiSpanStatics(config);
+      const delta_max_mm = statics.maxDefl * 1000;
+      const capacity = BeamDesignSolver.checkCapacity(config, statics.maxM, statics.maxV, delta_max_mm, config.span);
+      const { E_kNm2, I_m4, sectionInfo } = BeamDesignSolver._getSectionProps(config.material, config, config.span);
+      r = {
+        ...statics,
+        MEd: statics.maxM, VEd: statics.maxV, delta_max_mm,
+        ...capacity,
+        supportType: config.supportType,
+        sectionInfo,
+        material: config.material,
+        span: config.span,
+      };
+    } else {
+      r = BeamDesignSolver.solve(config);
+    }
     currentResults = r;
     showResults(r, config);
   } catch (e) {
@@ -635,7 +770,18 @@ function showResults(r, config) {
 
   // Diagrams — scale deflection to mm for display
   const displayResults = { ...r, deflection: r.deflection.map(v => v * 1000) };
-  const dispConfig = { span: r.span, supports: BeamDesignSolver._buildSupports(r.supportType, r.span), loads: config.loads };
+  let dispSupports;
+  if (MULTI_SPAN_TYPES.includes(r.supportType)) {
+    const spans = config.spanLengths || [r.span];
+    dispSupports = [{ type: 'pin', position: 0 }];
+    let cum = 0;
+    for (let i = 0; i < spans.length - 1; i++) { cum += spans[i]; dispSupports.push({ type: 'roller', position: cum }); }
+    if (r.supportType !== 'overhanging') dispSupports.push({ type: 'roller', position: r.span });
+    else dispSupports.push({ type: 'roller', position: spans[0] });
+  } else {
+    dispSupports = BeamDesignSolver._buildSupports(r.supportType, r.span);
+  }
+  const dispConfig = { span: r.span, supports: dispSupports, loads: config.loads };
   BeamDiagrams.renderAll(displayResults, dispConfig);
 
   // Summary

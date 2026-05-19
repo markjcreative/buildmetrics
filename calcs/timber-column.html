@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Timber Column Design — Beam Calc Pro</title>
+  <title>Timber Column Design — BuildMetrics</title>
   <meta name="description" content="Timber column design to Eurocode 5 — axial compression, buckling, slenderness">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -179,6 +179,7 @@
           <button class="btn-primary" style="flex:1" onclick="runCalc()">&#9889; Calculate</button>
           <button class="btn-secondary" onclick="CalcShared.openSaveModal('save-modal')" title="Save">&#128190; Save</button>
           <button class="btn-ghost" onclick="resetCalc()" title="Reset">&#8635;</button>
+          <button class="btn-ghost" onclick="Tutorial.start(window.TUTORIALS['timber-column'])" title="Help">?</button>
         </div>
       </div>
 
@@ -297,6 +298,7 @@
 <script src="/js/ui/topNav.js"></script>
 <script src="/js/data/materials.js"></script>
 <script src="/js/engine/timberColumnSolver.js"></script>
+<script src="/js/ui/tutorial.js"></script>
 <script src="/js/ui/calcShared.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="/js/report/wordExport.js"></script>

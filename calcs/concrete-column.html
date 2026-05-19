@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Concrete Column Design — Beam Calc Pro</title>
+  <title>Concrete Column Design — BuildMetrics</title>
   <meta name="description" content="Reinforced concrete column design to Eurocode 2 — axial capacity, slenderness, interaction">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -187,6 +187,7 @@
           <button class="btn-primary" style="flex:1" onclick="runCalc()">&#9889; Calculate</button>
           <button class="btn-secondary" onclick="CalcShared.openSaveModal('save-modal')" title="Save">&#128190; Save</button>
           <button class="btn-ghost" onclick="resetCalc()" title="Reset">&#8635;</button>
+          <button class="btn-ghost" onclick="Tutorial.start(window.TUTORIALS['concrete-column'] || window.TUTORIALS.column)" title="Help">?</button>
         </div>
       </div>
 
@@ -258,6 +259,18 @@
             <div id="checks-body"></div>
           </div>
 
+          <!-- N-M Interaction Diagram -->
+          <div class="calc-results-card">
+            <div class="card-header">N-M Interaction Diagram (EC2 §6.1)</div>
+            <div style="padding:12px">
+              <svg id="nm-svg" width="100%" viewBox="0 0 380 280" style="display:block;max-width:100%;background:var(--bg-subtle);border-radius:8px;overflow:visible"></svg>
+              <div style="display:flex;gap:16px;margin-top:8px;font-size:0.73rem;color:var(--text-muted)">
+                <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:2px;background:#4F46E5;border-radius:1px"></span> Capacity envelope</span>
+                <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;background:#DC2626;border-radius:50%"></span> Design point (N<sub>Ed</sub>, M<sub>Ed</sub>)</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Summary -->
           <div class="calc-results-card">
             <div class="card-header">Design Summary</div>
@@ -294,6 +307,7 @@
 <script src="/js/ui/topNav.js"></script>
 <script src="/js/data/materials.js"></script>
 <script src="/js/engine/concreteColumnSolver.js"></script>
+<script src="/js/ui/tutorial.js"></script>
 <script src="/js/ui/calcShared.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="/js/report/wordExport.js"></script>
@@ -395,7 +409,7 @@ function runCalc() {
   if (!config.NEd) { CalcShared.showToast('Enter design axial force.', 'error'); return; }
   try {
     const r = ConcreteColumnSolver.solve(config);
-    currentResults = r;
+    currentResults = { ...r, config };
     showResults(r, config);
   } catch (e) {
     CalcShared.showToast('Calculation error: ' + e.message, 'error');
@@ -447,6 +461,8 @@ function showResults(r, config) {
   }).join('');
 
   // Summary
+  renderNMDiagram(r, config);
+
   document.getElementById('summary-body').innerHTML = [
     ['Gross area Ac', r.Ac.toFixed(0), 'mm²'],
     ['As provided', r.As_tot.toFixed(0), 'mm²'],
@@ -462,6 +478,110 @@ function showResults(r, config) {
     ['NRd', r.NRd.toFixed(2), 'kN'],
     ['MRd', r.MRd.toFixed(2), 'kNm'],
   ].map(([p, v, u]) => `<tr><td>${p}</td><td class="mono">${v}</td><td style="color:var(--text-muted)">${u}</td></tr>`).join('');
+}
+
+function renderNMDiagram(r, config) {
+  const svg = document.getElementById('nm-svg');
+  if (!svg) return;
+
+  // Generate N-M interaction curve using rectangular stress block (EC2 §6.1)
+  const fcd = r.fcd, fyd = r.fyd;
+  const b   = config.shape === 'circular' ? config.diameter : config.b;
+  const h   = config.shape === 'circular' ? config.diameter : config.h;
+  const As  = r.As_tot;
+  const d2  = config.cover + (config.link_dia || 8) + (config.bar_dia || 20) / 2; // compression steel depth
+  const d   = (config.shape === 'circular' ? config.diameter : config.h) - d2;    // effective depth
+
+  // Pure compression capacity
+  const N_max = (b * h * fcd + As * fyd) / 1000; // kN
+
+  // Sweep neutral axis depth x from 0 → h
+  const pts = [];
+  const steps = 60;
+  for (let i = 0; i <= steps; i++) {
+    const x = (i / steps) * h * 1.6; // go beyond h to capture full curve
+    const xLim = Math.min(x, h);
+    const lam  = 0.8; // stress block factor (fck ≤ 50 MPa)
+    const Nc   = fcd * b * Math.min(lam * xLim, h); // kN/m² × mm² → N → /1000 → kN
+
+    // Steel strains (assuming linear, plane sections remain plane)
+    const eps_cu = 0.0035;
+    const eps_s  = x > 0 ? eps_cu * (x - d) / x : -0.01;      // tension steel
+    const eps_sc = x > 0 ? eps_cu * (x - d2) / x : 0;         // compression steel
+    const Es = 200000; // N/mm²
+    const fs  = Math.max(-fyd, Math.min(fyd, eps_s  * Es));    // tension (–) or compression (+)
+    const fsc = Math.max(-fyd, Math.min(fyd, eps_sc * Es));
+
+    const As2 = As / 2; // split equally tension/compression sides
+    const Fs  = fs  * As2;
+    const Fsc = fsc * As2;
+
+    const N = (Nc + Fsc + Fs) / 1000;  // kN (Nc in N)
+
+    // Moment about centroid
+    const yc  = Math.min(lam * xLim, h) / 2;                // centroid of compression block from top
+    const Mc  = Nc * (h / 2 - yc);
+    const Ms  = -Fs  * (d - h / 2);
+    const Msc = -Fsc * (h / 2 - d2);
+    const M   = Math.abs(Mc + Ms + Msc) / 1e6;              // kNm
+
+    pts.push({ N, M });
+  }
+
+  // Add origin-adjacent point for tension failure (pure bending)
+  pts.push({ N: 0, M: r.MRd });
+  pts.sort((a, b) => b.N - a.N);
+
+  // SVG canvas dimensions
+  const W = 380, H = 280;
+  const pad = { top: 24, right: 24, bottom: 36, left: 52 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  const maxN = Math.max(N_max, r.NEd) * 1.15;
+  const maxM = Math.max(...pts.map(p => p.M), r.MEd) * 1.3;
+
+  const sx = m => pad.left + (m / maxM) * cw;
+  const sy = n => pad.top  + (1 - n / maxN) * ch;
+
+  // Build path
+  const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.M).toFixed(1)},${sy(p.N).toFixed(1)}`).join(' ') + ` L${sx(0).toFixed(1)},${sy(0).toFixed(1)} Z`;
+
+  // Grid lines
+  const gridLines = [0.25, 0.5, 0.75].map(f => {
+    const n = f * maxN, m = f * maxM;
+    return `<line x1="${pad.left}" y1="${sy(n).toFixed(1)}" x2="${W - pad.right}" y2="${sy(n).toFixed(1)}" stroke="#E5E7EB" stroke-width="1"/>
+            <line x1="${sx(m).toFixed(1)}" y1="${pad.top}" x2="${sx(m).toFixed(1)}" y2="${H - pad.bottom}" stroke="#E5E7EB" stroke-width="1"/>`;
+  }).join('');
+
+  // Axis labels
+  const nLabel = n => `<text x="${(pad.left - 6).toFixed(0)}" y="${sy(n).toFixed(1)}" text-anchor="end" dominant-baseline="middle" font-size="9" fill="#9CA3AF">${(n / 1000).toFixed(0)}MN</text>`;
+  const mLabel = m => `<text x="${sx(m).toFixed(1)}" y="${H - pad.bottom + 14}" text-anchor="middle" font-size="9" fill="#9CA3AF">${m.toFixed(0)}</text>`;
+
+  const designInside = r.pass;
+  const dotColor = designInside ? '#16A34A' : '#DC2626';
+
+  svg.innerHTML = `
+    <!-- Grid -->
+    ${gridLines}
+    <!-- Axes -->
+    <line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${H - pad.bottom}" stroke="#D1D5DB" stroke-width="1.5"/>
+    <line x1="${pad.left}" y1="${H - pad.bottom}" x2="${W - pad.right}" y2="${H - pad.bottom}" stroke="#D1D5DB" stroke-width="1.5"/>
+    <!-- Axis titles -->
+    <text x="${pad.left - 40}" y="${(pad.top + (H - pad.bottom)) / 2}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#6B7280" transform="rotate(-90 ${pad.left - 40} ${(pad.top + (H - pad.bottom)) / 2})">N (kN)</text>
+    <text x="${pad.left + cw / 2}" y="${H - 4}" text-anchor="middle" font-size="10" fill="#6B7280">M (kNm)</text>
+    <!-- Grid labels -->
+    ${[0, 0.25, 0.5, 0.75, 1].map(f => nLabel(f * maxN)).join('')}
+    ${[0, 0.25, 0.5, 0.75, 1].map(f => mLabel(f * maxM)).join('')}
+    <!-- Capacity envelope fill -->
+    <path d="${pathD}" fill="rgba(79,70,229,0.08)" stroke="none"/>
+    <!-- Capacity envelope line -->
+    <path d="${pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.M).toFixed(1)},${sy(p.N).toFixed(1)}`).join(' ')}" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+    <!-- Design point -->
+    <circle cx="${sx(r.MEd).toFixed(1)}" cy="${sy(r.NEd).toFixed(1)}" r="5" fill="${dotColor}" stroke="white" stroke-width="1.5"/>
+    <!-- Design point label -->
+    <text x="${(sx(r.MEd) + 8).toFixed(1)}" y="${(sy(r.NEd) - 8).toFixed(1)}" font-size="9" fill="${dotColor}" font-weight="600">(${r.MEd.toFixed(0)}, ${r.NEd.toFixed(0)})</text>
+  `;
 }
 
 function resetCalc() {

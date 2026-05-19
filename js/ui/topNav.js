@@ -70,10 +70,10 @@ const TopNav = (() => {
       '<a href="/dashboard.html" class="header-logo" data-nav="dashboard">' +
         '<svg width="26" height="26" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">' +
           '<rect width="30" height="30" rx="7" fill="#2563EB"/>' +
-          '<rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>' +
-          '<rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>' +
-          '<rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>' +
-          '<rect x="8" y="20" width="11" height="3" rx="1" fill="white"/>' +
+          '<rect x="6" y="8" width="3" height="15" rx="1" fill="white"/>' +
+          '<rect x="21" y="8" width="3" height="15" rx="1" fill="white"/>' +
+          '<rect x="6" y="8" width="18" height="3" rx="1" fill="white"/>' +
+          '<rect x="12" y="15" width="6" height="2.5" rx="1" fill="rgba(255,255,255,0.55)"/>' +
         '</svg>' +
         '<span class="header-logo-name">BuildMetrics</span>' +
       '</a>' +

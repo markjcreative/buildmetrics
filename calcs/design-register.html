@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Register — BuildMetrics</title>
+  <meta name="description" content="All saved structural calculations organised by project">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <style>
+    .dr-page { max-width: 960px; margin: 0 auto; padding: 24px 20px 48px; }
+    .dr-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .dr-topbar h1 { font-size:1.4rem; font-weight:700; margin:0; }
+    .dr-subtitle { font-size:0.83rem; color:var(--text-secondary); margin:0; }
+    .dr-search { display:flex; gap:8px; align-items:center; }
+    .dr-search input { border:1px solid var(--border); border-radius:8px; padding:7px 12px; font-size:0.85rem; outline:none; min-width:220px; background:var(--bg-surface); }
+    .dr-search input:focus { border-color:var(--accent); }
+
+    .project-block { margin-bottom:28px; background:var(--bg-surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+    .project-header { display:flex; align-items:center; gap:12px; padding:14px 18px; background:var(--bg-subtle); border-bottom:1px solid var(--border); cursor:pointer; user-select:none; }
+    .project-header .proj-name { font-weight:700; font-size:0.95rem; flex:1; }
+    .project-header .proj-meta { font-size:0.75rem; color:var(--text-muted); }
+    .project-header .proj-chevron { font-size:0.8rem; color:var(--text-muted); transition:transform .2s; }
+    .project-block.collapsed .proj-chevron { transform:rotate(-90deg); }
+    .project-block.collapsed .proj-calcs { display:none; }
+
+    .proj-calcs table { width:100%; border-collapse:collapse; }
+    .proj-calcs th { font-size:0.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); padding:9px 16px; border-bottom:1px solid var(--border); background:var(--bg-subtle); text-align:left; font-weight:700; }
+    .proj-calcs td { padding:11px 16px; font-size:0.83rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .proj-calcs tr:last-child td { border-bottom:none; }
+    .proj-calcs tr:hover td { background:var(--bg-subtle); }
+    .calc-type-badge { display:inline-block; font-size:0.72rem; font-weight:600; padding:2px 8px; border-radius:4px; background:var(--accent-light); color:var(--accent); white-space:nowrap; }
+    .pass-chip { font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:99px; white-space:nowrap; }
+    .pass-chip.pass { background:#DCFCE7; color:#166534; }
+    .pass-chip.fail { background:#FEE2E2; color:#991B1B; }
+    .pass-chip.unknown { background:var(--bg-subtle); color:var(--text-muted); }
+    .calc-summary { font-size:0.78rem; color:var(--text-secondary); max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .btn-del { background:none; border:none; cursor:pointer; font-size:0.82rem; color:var(--text-muted); padding:4px 8px; border-radius:6px; }
+    .btn-del:hover { background:#FEE2E2; color:#DC2626; }
+
+    .dr-empty { text-align:center; padding:56px 24px; color:var(--text-muted); }
+    .dr-empty-icon { font-size:3rem; margin-bottom:12px; }
+    .dr-empty h3 { margin:0 0 8px; font-size:1.1rem; color:var(--text-secondary); }
+    .dr-empty p { margin:0; font-size:0.85rem; }
+    .dr-empty a { color:var(--accent); text-decoration:none; font-weight:600; }
+
+    .no-calcs { padding:18px 20px; color:var(--text-muted); font-size:0.83rem; font-style:italic; }
+
+    .dr-stats { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
+    .stat-chip { background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:10px 16px; min-width:120px; }
+    .stat-chip .stat-val { font-size:1.5rem; font-weight:800; color:var(--accent); font-family:'JetBrains Mono',monospace; }
+    .stat-chip .stat-lbl { font-size:0.72rem; color:var(--text-muted); margin-top:2px; }
+
+    .breadcrumb { display:flex; align-items:center; gap:6px; font-size:0.82rem; margin-bottom:20px; }
+    .breadcrumb a { color:var(--accent); text-decoration:none; }
+    .breadcrumb a:hover { text-decoration:underline; }
+    .bc-sep { color:var(--text-muted); }
+  </style>
+</head>
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <main id="app-main" style="overflow-y:auto">
+
+    <div class="dr-page">
+
+      <div class="breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span>Design Register</span>
+      </div>
+
+      <div class="dr-topbar">
+        <div>
+          <h1>📋 Design Register</h1>
+          <p class="dr-subtitle">All saved calculations grouped by project</p>
+        </div>
+        <div class="dr-search">
+          <input type="text" id="search-input" placeholder="Search calculations…" oninput="applySearch(this.value)">
+          <a href="/dashboard.html" class="btn btn-primary" style="white-space:nowrap">+ New Project</a>
+        </div>
+      </div>
+
+      <div class="dr-stats" id="dr-stats"></div>
+
+      <div id="dr-content"></div>
+
+    </div>
+
+  </main>
+</div>
+
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+
+<script>
+const CALC_TYPE_LABELS = {
+  'beam':             { label: 'Beam',            icon: '🏗' },
+  'rc-beam':          { label: 'RC Beam',          icon: '🧱' },
+  'column':           { label: 'Steel Column',     icon: '⚙' },
+  'timber-column':    { label: 'Timber Column',    icon: '🌲' },
+  'concrete-column':  { label: 'Concrete Column',  icon: '🏛' },
+  'slab':             { label: 'RC Slab',          icon: '📐' },
+  'footing':          { label: 'Pad Footing',      icon: '🏗' },
+  'retaining-wall':   { label: 'Retaining Wall',   icon: '🧱' },
+  'connection':       { label: 'Connection',       icon: '🔩' },
+};
+
+const CALC_URLS = {
+  'beam':            '/calcs/beam.html',
+  'rc-beam':         '/calcs/rc-beam.html',
+  'column':          '/calcs/column.html',
+  'timber-column':   '/calcs/timber-column.html',
+  'concrete-column': '/calcs/concrete-column.html',
+  'slab':            '/calcs/slab.html',
+  'footing':         '/calcs/footing.html',
+  'retaining-wall':  '/calcs/retaining-wall.html',
+  'connection':      '/calcs/connection.html',
+};
+
+let allData = [];  // [{project, calcs[]}]
+
+document.addEventListener('DOMContentLoaded', () => {
+  TopNav.init();
+  if (!Auth.guard()) return;
+  loadData();
+});
+
+function loadData() {
+  const projects = Projects.list();
+  allData = projects.map(proj => ({
+    project: proj,
+    calcs: History.list(proj.id),
+  }));
+  renderStats();
+  renderContent(allData);
+}
+
+function renderStats() {
+  const totalProj  = allData.length;
+  const totalCalcs = allData.reduce((s, p) => s + p.calcs.length, 0);
+  const totalPass  = allData.reduce((s, p) => s + p.calcs.filter(c => c.results?.pass === true).length, 0);
+  document.getElementById('dr-stats').innerHTML = `
+    <div class="stat-chip"><div class="stat-val">${totalProj}</div><div class="stat-lbl">Projects</div></div>
+    <div class="stat-chip"><div class="stat-val">${totalCalcs}</div><div class="stat-lbl">Calculations</div></div>
+    <div class="stat-chip"><div class="stat-val">${totalPass}</div><div class="stat-lbl">Passing</div></div>
+  `;
+}
+
+function renderContent(data) {
+  const container = document.getElementById('dr-content');
+
+  if (!data.length || data.every(p => !p.calcs.length && !p._forceShow)) {
+    const hasProjects = allData.length > 0;
+    container.innerHTML = `<div class="dr-empty">
+      <div class="dr-empty-icon">📋</div>
+      <h3>${hasProjects ? 'No calculations yet' : 'No projects yet'}</h3>
+      <p>${hasProjects
+        ? 'Run a calculation and click Save to add it to your register.'
+        : 'Create a project from the <a href="/dashboard.html">Dashboard</a> to get started.'}</p>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = data.map(({ project, calcs }) => {
+    const count = calcs.length;
+    const rows = count
+      ? calcs.map(c => calcRow(c, project.id)).join('')
+      : `<tr><td colspan="6" class="no-calcs">No calculations saved yet.</td></tr>`;
+
+    return `<div class="project-block" id="proj-${project.id}">
+      <div class="project-header" onclick="toggleProject('${project.id}')">
+        <span style="font-size:1.2rem">📁</span>
+        <span class="proj-name">${escHtml(project.name)}</span>
+        ${project.description ? `<span class="proj-meta">${escHtml(project.description)}</span>` : ''}
+        <span class="proj-meta">${count} calc${count !== 1 ? 's' : ''}</span>
+        <span class="proj-chevron">▾</span>
+      </div>
+      <div class="proj-calcs">
+        <table>
+          <thead><tr>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Summary</th>
+            <th>Status</th>
+            <th>Saved</th>
+            <th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function calcRow(calc, projectId) {
+  const ct    = calc.config?.calcType || calc.config?.material || 'unknown';
+  const meta  = CALC_TYPE_LABELS[ct] || { label: ct, icon: '📄' };
+  const pass  = calc.results?.pass;
+  const passChip = pass === true
+    ? '<span class="pass-chip pass">PASS</span>'
+    : pass === false
+    ? '<span class="pass-chip fail">FAIL</span>'
+    : '<span class="pass-chip unknown">—</span>';
+  const date = new Date(calc.savedAt).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  const url  = CALC_URLS[ct] || '/dashboard.html';
+
+  return `<tr data-calc-id="${calc.id}" data-search="${escHtml((calc.name + ' ' + (calc.summary || '') + ' ' + meta.label).toLowerCase())}">
+    <td><span class="calc-type-badge">${meta.icon} ${meta.label}</span></td>
+    <td><a href="${url}" style="color:var(--text-primary);text-decoration:none;font-weight:600">${escHtml(calc.name)}</a></td>
+    <td><div class="calc-summary" title="${escHtml(calc.summary || '')}">${escHtml(calc.summary || '—')}</div></td>
+    <td>${passChip}</td>
+    <td style="white-space:nowrap;color:var(--text-muted);font-size:0.78rem">${date}</td>
+    <td><button class="btn-del" onclick="deleteCalc('${calc.id}','${projectId}')" title="Delete">🗑</button></td>
+  </tr>`;
+}
+
+function deleteCalc(calcId, projectId) {
+  if (!confirm('Delete this calculation? This cannot be undone.')) return;
+  try {
+    History.remove(calcId);
+    loadData();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function toggleProject(id) {
+  document.getElementById('proj-' + id).classList.toggle('collapsed');
+}
+
+function applySearch(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('[data-calc-id]').forEach(row => {
+    const text = row.dataset.search || '';
+    row.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+}
+
+function escHtml(s) {
+  return String(s || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

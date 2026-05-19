@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cost Report — BuildMetrics</title>
+  <meta name="description" content="Structural material quantity and cost estimator for steel, concrete and timber">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <style>
+    .cr-page { max-width: 960px; margin: 0 auto; padding: 24px 20px 48px; }
+    .cr-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .cr-topbar h1 { font-size:1.4rem; font-weight:700; margin:0; }
+    .cr-subtitle { font-size:0.83rem; color:var(--text-secondary); margin:0; }
+
+    .cr-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    @media(max-width:680px) { .cr-grid { grid-template-columns:1fr; } }
+
+    .cr-card { background:var(--bg-surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+    .cr-card-header { padding:14px 18px; background:var(--bg-subtle); border-bottom:1px solid var(--border); font-weight:700; font-size:0.9rem; display:flex; align-items:center; gap:8px; }
+    .cr-card-body { padding:18px; }
+
+    .form-row { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
+    .form-row:last-child { margin-bottom:0; }
+    .form-row label { font-size:0.78rem; font-weight:600; color:var(--text-secondary); }
+    .form-row input, .form-row select { border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:0.88rem; outline:none; background:var(--bg-page); color:var(--text-primary); font-family:'Inter',sans-serif; }
+    .form-row input:focus, .form-row select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+    .form-row-inline { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+
+    .cr-results { margin-top:24px; }
+    .cr-summary { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+    .cr-stat { background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; padding:14px 18px; flex:1; min-width:140px; }
+    .cr-stat-val { font-size:1.6rem; font-weight:800; color:var(--accent); font-family:'JetBrains Mono',monospace; }
+    .cr-stat-lbl { font-size:0.72rem; color:var(--text-muted); margin-top:2px; }
+
+    .cr-table-wrap { background:var(--bg-surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+    .cr-table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+    .cr-table th { padding:10px 16px; background:var(--bg-subtle); font-size:0.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:700; text-align:left; border-bottom:1px solid var(--border); }
+    .cr-table td { padding:11px 16px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .cr-table tr:last-child td { border-bottom:none; }
+    .cr-table tr.subtotal td { background:var(--bg-subtle); font-weight:700; }
+    .cr-table tr.total td { background:var(--accent-light); font-weight:800; color:var(--accent); }
+    .mono { font-family:'JetBrains Mono',monospace; }
+
+    .material-chip { display:inline-block; font-size:0.72rem; font-weight:600; padding:2px 8px; border-radius:4px; }
+    .chip-steel   { background:#EFF6FF; color:#1D4ED8; }
+    .chip-concrete{ background:#F3F4F6; color:#374151; }
+    .chip-timber  { background:#F0FDF4; color:#166534; }
+    .chip-rebar   { background:#FFF7ED; color:#C2410C; }
+
+    .breadcrumb { display:flex; align-items:center; gap:6px; font-size:0.82rem; margin-bottom:20px; }
+    .breadcrumb a { color:var(--accent); text-decoration:none; }
+    .bc-sep { color:var(--text-muted); }
+
+    .btn-add { display:flex; align-items:center; gap:6px; width:100%; padding:9px 14px; border-radius:8px; border:1.5px dashed var(--border); background:transparent; color:var(--text-muted); font-size:0.83rem; font-weight:600; cursor:pointer; transition:all .15s; font-family:'Inter',sans-serif; margin-top:8px; }
+    .btn-add:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+    .btn-primary { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:10px 20px; font-size:0.88rem; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+    .btn-primary:hover { background:#1D4ED8; }
+    .btn-ghost { background:none; border:1px solid var(--border); border-radius:8px; padding:8px 14px; font-size:0.83rem; font-weight:600; cursor:pointer; color:var(--text-secondary); font-family:'Inter',sans-serif; }
+    .btn-ghost:hover { background:var(--bg-subtle); }
+    .btn-del { background:none; border:none; cursor:pointer; padding:4px 8px; border-radius:6px; color:var(--text-muted); font-size:0.85rem; }
+    .btn-del:hover { background:#FEE2E2; color:#DC2626; }
+
+    .hint { font-size:0.73rem; color:var(--text-muted); margin-top:4px; }
+
+    .cr-disclaimer { font-size:0.73rem; color:var(--text-muted); background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:8px; padding:10px 14px; margin-top:20px; }
+  </style>
+</head>
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <main id="app-main" style="overflow-y:auto">
+    <div class="cr-page">
+
+      <div class="breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span>Cost Report</span>
+      </div>
+
+      <div class="cr-topbar">
+        <div>
+          <h1>💷 Cost Report</h1>
+          <p class="cr-subtitle">Structural material quantities and preliminary cost estimates</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-ghost" onclick="clearAll()">Clear all</button>
+          <button class="btn-primary" onclick="generateReport()">⬇ Export CSV</button>
+        </div>
+      </div>
+
+      <!-- Rates card + items card -->
+      <div class="cr-grid">
+
+        <!-- Unit Rates -->
+        <div class="cr-card">
+          <div class="cr-card-header">⚙ Unit Rates</div>
+          <div class="cr-card-body">
+            <p style="font-size:0.78rem;color:var(--text-muted);margin:0 0 14px">Adjust rates to match your region / contract.</p>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label>Structural steel (£/tonne)</label>
+                <input type="number" id="rate-steel" value="1200" min="0" step="50" oninput="compute()">
+              </div>
+              <div class="form-row">
+                <label>Concrete C30 (£/m³)</label>
+                <input type="number" id="rate-concrete" value="120" min="0" step="5" oninput="compute()">
+              </div>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label>Rebar B500B (£/tonne)</label>
+                <input type="number" id="rate-rebar" value="850" min="0" step="50" oninput="compute()">
+              </div>
+              <div class="form-row">
+                <label>Timber C24 (£/m³)</label>
+                <input type="number" id="rate-timber" value="550" min="0" step="25" oninput="compute()">
+              </div>
+            </div>
+            <div class="form-row">
+              <label>Preliminaries / Waste allowance (%)</label>
+              <input type="number" id="rate-prelim" value="15" min="0" max="100" step="1" oninput="compute()">
+              <span class="hint">Applied as uplift on material subtotal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Member -->
+        <div class="cr-card">
+          <div class="cr-card-header">➕ Add Member / Element</div>
+          <div class="cr-card-body">
+            <div class="form-row">
+              <label>Description</label>
+              <input type="text" id="add-desc" placeholder="e.g. Ground Floor Beam B1" maxlength="80">
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label>Material</label>
+                <select id="add-mat" onchange="updateAddUnits()">
+                  <option value="steel">Structural Steel</option>
+                  <option value="concrete">Concrete</option>
+                  <option value="rebar">Rebar</option>
+                  <option value="timber">Timber</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Quantity</label>
+                <input type="number" id="add-qty" value="1" min="0" step="0.01">
+              </div>
+            </div>
+            <div class="form-row">
+              <label>Unit <span id="add-unit-hint" style="color:var(--accent);font-weight:700"></span></label>
+              <select id="add-unit">
+                <option value="tonne">tonnes</option>
+                <option value="m3">m³</option>
+                <option value="m2">m²</option>
+                <option value="m">m (lin.)</option>
+                <option value="nr">nr</option>
+              </select>
+            </div>
+            <button class="btn-add" onclick="addItem()">+ Add to report</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="cr-results" id="cr-results" style="display:none">
+        <div class="cr-summary" id="cr-summary"></div>
+        <div class="cr-table-wrap">
+          <table class="cr-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Description</th>
+                <th>Material</th>
+                <th>Qty</th>
+                <th>Unit</th>
+                <th>Rate (£)</th>
+                <th>Cost (£)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="cr-tbody"></tbody>
+          </table>
+        </div>
+        <div class="cr-disclaimer">⚠ <strong>Preliminary estimate only.</strong> Rates exclude VAT, groundworks, M&amp;E, finishes, and fees. For tendering purposes use a detailed BOQ prepared by a qualified QS.</div>
+      </div>
+
+      <div id="cr-empty" style="text-align:center;padding:48px 24px;color:var(--text-muted)">
+        <div style="font-size:3rem;margin-bottom:12px">💷</div>
+        <h3 style="margin:0 0 8px;font-size:1.1rem;color:var(--text-secondary)">No items yet</h3>
+        <p style="margin:0;font-size:0.85rem">Add structural members above to build your cost estimate.</p>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+
+<script>
+const MATERIAL_LABELS = { steel:'Structural Steel', concrete:'Concrete', rebar:'Rebar', timber:'Timber' };
+const MATERIAL_UNITS  = { steel:'tonne', concrete:'m3', rebar:'tonne', timber:'m3' };
+const MATERIAL_DENSITY= { steel:7850, concrete:2400, rebar:7850, timber:530 }; // kg/m³
+
+let items = [];
+let idSeq = 1;
+
+document.addEventListener('DOMContentLoaded', () => {
+  TopNav.init();
+  if (!Auth.guard()) return;
+  updateAddUnits();
+  render();
+});
+
+function updateAddUnits() {
+  const mat  = document.getElementById('add-mat').value;
+  const unit = document.getElementById('add-unit');
+  const hint = document.getElementById('add-unit-hint');
+  const defaultUnit = MATERIAL_UNITS[mat] || 'tonne';
+  // Pre-select the matching unit
+  for (const opt of unit.options) { if (opt.value === defaultUnit) { opt.selected = true; break; } }
+  hint.textContent = `(typical: ${defaultUnit === 'm3' ? 'm³' : defaultUnit === 'm2' ? 'm²' : defaultUnit})`;
+}
+
+function addItem() {
+  const desc = document.getElementById('add-desc').value.trim();
+  const mat  = document.getElementById('add-mat').value;
+  const qty  = parseFloat(document.getElementById('add-qty').value);
+  const unit = document.getElementById('add-unit').value;
+  if (!desc) { document.getElementById('add-desc').focus(); return; }
+  if (!qty || qty <= 0) { document.getElementById('add-qty').focus(); return; }
+  items.push({ id: idSeq++, desc, mat, qty, unit });
+  document.getElementById('add-desc').value = '';
+  document.getElementById('add-qty').value = '1';
+  compute();
+}
+
+function removeItem(id) {
+  items = items.filter(i => i.id !== id);
+  compute();
+}
+
+function getRate(mat, unit) {
+  const rates = {
+    steel:    +document.getElementById('rate-steel').value,
+    concrete: +document.getElementById('rate-concrete').value,
+    rebar:    +document.getElementById('rate-rebar').value,
+    timber:   +document.getElementById('rate-timber').value,
+  };
+  // Convert qty to the standard unit before applying rate
+  // Standard: steel/rebar → tonne; concrete/timber → m³
+  return rates[mat] || 0;
+}
+
+function itemCost(item) {
+  const rate = getRate(item.mat, item.unit);
+  let qty = item.qty;
+  // Unit conversions to standard billing unit
+  if (item.mat === 'steel' || item.mat === 'rebar') {
+    if (item.unit === 'm3') qty *= MATERIAL_DENSITY[item.mat] / 1000;
+    else if (item.unit === 'm') qty *= 0.01; // assume ~10 kg/m placeholder
+  } else if (item.mat === 'concrete' || item.mat === 'timber') {
+    if (item.unit === 'tonne') qty /= (MATERIAL_DENSITY[item.mat] / 1000);
+    else if (item.unit === 'm2') qty *= 0.2; // assume 200mm depth placeholder
+    else if (item.unit === 'm') qty *= 0.1; // assume 100×100mm placeholder
+  }
+  return qty * rate;
+}
+
+function compute() {
+  render();
+}
+
+function render() {
+  const empty   = document.getElementById('cr-empty');
+  const results = document.getElementById('cr-results');
+  if (!items.length) { empty.style.display = ''; results.style.display = 'none'; return; }
+  empty.style.display = 'none'; results.style.display = '';
+
+  const prelim  = (+document.getElementById('rate-prelim').value || 0) / 100;
+  let subtotal  = 0;
+
+  const rows = items.map((item, idx) => {
+    const cost = itemCost(item);
+    subtotal += cost;
+    const chip = `<span class="material-chip chip-${item.mat}">${MATERIAL_LABELS[item.mat]}</span>`;
+    const unitLabel = item.unit === 'm3' ? 'm³' : item.unit === 'm2' ? 'm²' : item.unit;
+    return `<tr>
+      <td style="color:var(--text-muted);font-size:0.78rem">${idx + 1}</td>
+      <td style="font-weight:600">${escHtml(item.desc)}</td>
+      <td>${chip}</td>
+      <td class="mono">${item.qty.toLocaleString('en-GB', {maximumFractionDigits:3})}</td>
+      <td style="color:var(--text-muted)">${unitLabel}</td>
+      <td class="mono">£${getRate(item.mat, item.unit).toLocaleString('en-GB', {maximumFractionDigits:0})}</td>
+      <td class="mono">£${cost.toLocaleString('en-GB', {maximumFractionDigits:0})}</td>
+      <td><button class="btn-del" onclick="removeItem(${item.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+
+  const prelimCost = subtotal * prelim;
+  const total = subtotal + prelimCost;
+
+  document.getElementById('cr-tbody').innerHTML = rows + `
+    <tr class="subtotal"><td colspan="6">Materials Subtotal</td><td class="mono">£${subtotal.toLocaleString('en-GB', {maximumFractionDigits:0})}</td><td></td></tr>
+    <tr class="subtotal"><td colspan="6">Prelims / Waste (${(prelim * 100).toFixed(0)}%)</td><td class="mono">£${prelimCost.toLocaleString('en-GB', {maximumFractionDigits:0})}</td><td></td></tr>
+    <tr class="total"><td colspan="6">TOTAL ESTIMATE</td><td class="mono">£${total.toLocaleString('en-GB', {maximumFractionDigits:0})}</td><td></td></tr>
+  `;
+
+  // Summary stats
+  const matTotals = {};
+  items.forEach(i => { matTotals[i.mat] = (matTotals[i.mat] || 0) + itemCost(i); });
+  document.getElementById('cr-summary').innerHTML = `
+    <div class="cr-stat"><div class="cr-stat-val">${items.length}</div><div class="cr-stat-lbl">Line items</div></div>
+    <div class="cr-stat"><div class="cr-stat-val">£${subtotal.toLocaleString('en-GB', {maximumFractionDigits:0})}</div><div class="cr-stat-lbl">Materials subtotal</div></div>
+    <div class="cr-stat"><div class="cr-stat-val">£${total.toLocaleString('en-GB', {maximumFractionDigits:0})}</div><div class="cr-stat-lbl">Total estimate (incl. prelims)</div></div>
+  `;
+}
+
+function clearAll() {
+  if (items.length && !confirm('Clear all items?')) return;
+  items = [];
+  compute();
+}
+
+function generateReport() {
+  if (!items.length) return;
+  const prelim = (+document.getElementById('rate-prelim').value || 0) / 100;
+  let csv = 'No.,Description,Material,Qty,Unit,Rate (£),Cost (£)\n';
+  let subtotal = 0;
+  items.forEach((item, i) => {
+    const cost = itemCost(item);
+    subtotal += cost;
+    const unitLabel = item.unit === 'm3' ? 'm³' : item.unit === 'm2' ? 'm²' : item.unit;
+    csv += `${i+1},"${item.desc}","${MATERIAL_LABELS[item.mat]}",${item.qty},${unitLabel},${getRate(item.mat,item.unit).toFixed(0)},${cost.toFixed(0)}\n`;
+  });
+  const prelims = subtotal * prelim;
+  csv += `,"Prelims / Waste (${(prelim*100).toFixed(0)}%)","",,,,${ prelims.toFixed(0)}\n`;
+  csv += `,"TOTAL ESTIMATE","",,,,${ (subtotal + prelims).toFixed(0)}\n`;
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'buildmetrics-cost-report.csv';
+  a.click();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
