@@ -247,24 +247,21 @@
        HERO
     ══════════════════════════════════════ */
     #hero {
-      position: sticky;
-      top: 0;
-      z-index: 0;
+      position: relative;
       min-height: 100vh;
       display: flex;
       align-items: center;
       overflow: hidden;
     }
 
-    /* Bottom fade — blurs into the section that slides over */
+    /* Fade hero image into the next section background */
     #hero::after {
       content: '';
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      height: 280px;
+      height: 40%;
       background: linear-gradient(to bottom,
         transparent 0%,
-        rgba(15,23,42,0.5) 50%,
         var(--navy-mid) 100%
       );
       z-index: 3;
@@ -1561,13 +1558,9 @@
     ══════════════════════════════════════ */
     #screenshots {
       position: relative;
-      z-index: 1;
       padding: 80px 0;
       background: var(--navy-mid);
       overflow: hidden;
-      border-radius: 28px 28px 0 0;
-      margin-top: -28px;
-      box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
     }
 
     .screenshots-head {
