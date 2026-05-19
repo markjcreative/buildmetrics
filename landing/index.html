@@ -109,7 +109,8 @@
       --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
     }
 
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: auto; }
+    html { scroll-padding-top: 72px; }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -2427,7 +2428,7 @@
     </div>
   </div>
 
-  <div class="hero-scroll" onclick="document.getElementById('stats').scrollIntoView({behavior:'smooth'})">
+  <div class="hero-scroll" onclick="fluidScrollTo('#screenshots')">
     <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
     Scroll
   </div>
@@ -3431,6 +3432,41 @@
         : '';
     });
   }, { passive: true });
+
+  /* ── Fluid scroll ── */
+  function fluidScrollTo(target) {
+    const el = typeof target === 'string' ? document.querySelector(target) : target;
+    if (!el) return;
+    const navH = document.getElementById('navbar').offsetHeight;
+    const start = window.scrollY;
+    const end = el.getBoundingClientRect().top + start - navH;
+    const duration = Math.min(Math.max(Math.abs(end - start) * 0.4, 400), 1000);
+    const startTime = performance.now();
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      window.scrollTo(0, start + (end - start) * easeInOutCubic(progress));
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* Intercept all in-page anchor clicks */
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      const target = document.querySelector(href);
+      if (!target) return;
+      e.preventDefault();
+      fluidScrollTo(target);
+    });
+  });
 </script>
 </body>
 </html>
