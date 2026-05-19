@@ -97,8 +97,8 @@ const CalcShared = (() => {
             }
             .bm-cm-btn:hover { transform: translateY(-1px); filter: brightness(0.95); }
             .bm-cm-btn:active { transform: none; }
-            .bm-cm-btn--pdf  { background: #DC2626; color: #fff; }
-            .bm-cm-btn--word { background: #2563EB; color: #fff; }
+            .bm-cm-btn--pdf  { background: #1F2937; color: #fff; }
+            .bm-cm-btn--excel { background: #16A34A; color: #fff; }
             .bm-cm-btn--done {
                 width: 100%; background: transparent;
                 color: #6B7280; border: 1.5px solid #E5E7EB;
@@ -125,13 +125,13 @@ const CalcShared = (() => {
                 <h3>Calculation Saved!</h3>
                 <p class="bm-cm-desc" id="bm-cm-desc">—</p>
                 <div class="bm-cm-btns">
-                    <button class="bm-cm-btn bm-cm-btn--pdf"  id="bm-cm-pdf-btn">
-                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h4a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                    <button class="bm-cm-btn bm-cm-btn--pdf" id="bm-cm-pdf-btn">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                         PDF Report
                     </button>
-                    <button class="bm-cm-btn bm-cm-btn--word" id="bm-cm-word-btn">
-                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h4a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-                        Word Report
+                    <button class="bm-cm-btn bm-cm-btn--excel" id="bm-cm-excel-btn">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M6 3h12a1 1 0 011 1v16a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/></svg>
+                        Excel / CSV
                     </button>
                 </div>
                 <button class="bm-cm-btn bm-cm-btn--done" id="bm-cm-done-btn">Done</button>
@@ -169,19 +169,19 @@ const CalcShared = (() => {
             }
         });
 
-        // Word button
-        document.getElementById('bm-cm-word-btn').addEventListener('click', async () => {
+        // Excel button
+        document.getElementById('bm-cm-excel-btn').addEventListener('click', () => {
             if (!_pendingReport) return;
-            const btn = document.getElementById('bm-cm-word-btn');
+            const btn = document.getElementById('bm-cm-excel-btn');
             const orig = btn.innerHTML;
             btn.innerHTML = '<span class="bm-cm-spinner"></span> Generating…';
             btn.disabled = true;
             try {
-                await CalcReport.exportWord(_pendingReport);
+                CalcReport.exportExcel(_pendingReport);
                 _trackDownload();
-                showToast('Word doc downloaded!', 'success');
+                showToast('Excel file downloaded!', 'success');
             } catch (err) {
-                showToast('Word export failed: ' + (err.message || err), 'error');
+                showToast('Excel export failed: ' + (err.message || err), 'error');
                 console.error(err);
             } finally {
                 btn.innerHTML = orig;

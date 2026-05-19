@@ -267,6 +267,130 @@ const CalcReport = (() => {
         return d;
     }
 
+    /* ── Beam builder ─────────────────────────────────── */
+    function _beam(config, results, calcName, projectName) {
+        const d = _base('beam', calcName, projectName, 'EN 1993-1-1 / EN 1995-1-1');
+        const isMulti = config.spanLengths && config.spanLengths.length > 1;
+        d.inputs = [
+            { label: 'Material', value: config.material || '—', unit: '—' },
+            { label: config.sectionDesig ? 'Section' : 'Section Type', value: config.sectionDesig || config.sectionType || '—', unit: '—' },
+            { label: 'Support Type', value: config.support || '—', unit: '—' },
+            isMulti
+                ? { label: 'Span Lengths', value: (config.spanLengths || []).join(' + ') + ' m', unit: '' }
+                : { label: 'Span (L)', value: config.span, unit: 'm' },
+            { label: 'Characteristic Dead Load (Gk)', value: config.Gk, unit: 'kN/m' },
+            { label: 'Characteristic Live Load (Qk)', value: config.Qk, unit: 'kN/m' },
+            { label: 'Point Load (Fk)', value: config.Fk || 0, unit: 'kN' },
+        ].filter(Boolean);
+        d.results = (results.checks || []).map(c => ({
+            label: c.label || c.check || '—',
+            value: c.value || (c.util != null ? _fmt(c.util * 100, 1) + '%' : '—'),
+            status: c.pass,
+        }));
+        if (results.utilisationPct != null)
+            d.results.push({ label: 'Governing Utilisation', value: _fmt(results.utilisationPct, 1) + '%', status: results.pass });
+        d.pass = results.pass;
+        d.summary = `Beam designed to ${d.standard}. Material: ${config.material}. ` +
+            (isMulti ? `Multi-span: ${(config.spanLengths||[]).join(' + ')} m. ` : `Span = ${config.span} m. `) +
+            (results.utilisationPct != null ? `Utilisation = ${_fmt(results.utilisationPct,1)}%. ` : '') +
+            (results.pass ? 'All checks PASS.' : 'One or more checks FAIL.');
+        return d;
+    }
+
+    /* ── RC Beam builder ──────────────────────────────── */
+    function _rcBeam(config, results, calcName, projectName) {
+        const d = _base('rc-beam', calcName, projectName, 'EN 1992-1-1 (EC2)');
+        d.inputs = [
+            { label: 'Beam Width (b)', value: config.b || config.width, unit: 'mm' },
+            { label: 'Beam Depth (h)', value: config.h || config.depth, unit: 'mm' },
+            { label: 'Concrete Cover', value: config.cover, unit: 'mm' },
+            { label: 'Concrete Strength (fck)', value: config.fck, unit: 'N/mm²' },
+            { label: 'Steel Strength (fyk)', value: config.fyk, unit: 'N/mm²' },
+            { label: 'Span (L)', value: config.span || config.L, unit: 'm' },
+            { label: 'Char. Dead Load (Gk)', value: config.Gk || config.gk, unit: 'kN/m' },
+            { label: 'Char. Live Load (Qk)', value: config.Qk || config.qk, unit: 'kN/m' },
+        ].filter(i => i.value !== undefined && i.value !== null);
+        d.results = [
+            { label: 'Design Moment (MEd)', value: _fmt(results.MEd, 2) + ' kNm', status: null },
+            { label: 'K = MEd/(fck·b·d²)', value: _fmt(results.K, 4), status: results.K != null ? results.K < 0.167 : null },
+            { label: 'Lever Arm (z)', value: _fmt(results.z, 1) + ' mm', status: null },
+            { label: 'Required Tension Steel (As,req)', value: _fmt(results.As_req, 0) + ' mm²', status: null },
+            { label: 'Provided Tension Steel (As,prov)', value: _fmt(results.As_prov, 0) + ' mm²', status: results.As_prov >= results.As_req },
+            { label: 'Design Shear (VEd)', value: _fmt(results.VEd, 2) + ' kN', status: null },
+            { label: 'Shear Capacity (VRd,c)', value: _fmt(results.VRd_c, 2) + ' kN', status: results.shearPass },
+            { label: 'Deflection Check', value: results.deflPass ? 'PASS' : 'FAIL', status: results.deflPass },
+        ].filter(r => r.value && r.value !== 'NaN kNm' && r.value !== 'NaN mm²' && r.value !== 'NaN kN');
+        d.pass = results.pass;
+        d.summary = `RC beam designed to EN 1992-1-1 (Eurocode 2). ` +
+            `Section ${config.b || config.width} × ${config.h || config.depth} mm, fck = ${config.fck} N/mm². ` +
+            `MEd = ${_fmt(results.MEd, 2)} kNm, K = ${_fmt(results.K, 4)}. ` +
+            (results.pass ? 'All checks PASS.' : 'One or more checks FAIL.');
+        return d;
+    }
+
+    /* ── Timber Column builder ────────────────────────── */
+    function _timberColumn(config, results, calcName, projectName) {
+        const d = _base('timber-column', calcName, projectName, 'EN 1995-1-1 (EC5)');
+        d.inputs = [
+            { label: 'Timber Grade', value: config.grade || '—', unit: '—' },
+            { label: 'Section Width (b)', value: config.b || config.width, unit: 'mm' },
+            { label: 'Section Depth (h)', value: config.h || config.depth, unit: 'mm' },
+            { label: 'Column Length', value: config.length || config.L, unit: 'm' },
+            { label: 'Effective Length Factor (k)', value: config.keff, unit: '—' },
+            { label: 'Applied Axial Force (NEd)', value: config.NEd, unit: 'kN' },
+            { label: 'Service Class', value: config.serviceClass || '—', unit: '—' },
+            { label: 'Load Duration', value: config.loadDuration || '—', unit: '—' },
+        ].filter(i => i.value !== undefined && i.value !== null);
+        d.results = [
+            { label: 'Compressive Strength (fc0k)', value: _fmt(results.fc0k, 1) + ' N/mm²', status: null },
+            { label: 'Design Compressive Strength (fc0d)', value: _fmt(results.fc0d, 2) + ' N/mm²', status: null },
+            { label: 'Slenderness Ratio (λ)', value: _fmt(results.lambda, 2), status: null },
+            { label: 'Relative Slenderness (λrel)', value: _fmt(results.lambdaRel, 3), status: null },
+            { label: 'Buckling Factor (kc)', value: _fmt(results.kc, 3), status: null },
+            { label: 'Applied Stress (σc0d)', value: _fmt(results.sigma_c0d, 2) + ' N/mm²', status: null },
+            { label: 'Utilisation (σ / kc·fc0d)', value: _fmt(results.utilisationPct, 1) + '%', status: results.pass },
+        ].filter(r => r.value && !r.value.startsWith('NaN'));
+        d.pass = results.pass;
+        d.summary = `Timber column designed to EN 1995-1-1 (Eurocode 5). ` +
+            `Grade ${config.grade || '—'}, ${config.b || config.width}×${config.h || config.depth} mm, L = ${config.length || config.L} m. ` +
+            `Utilisation = ${_fmt(results.utilisationPct, 1)}%. ` +
+            (results.pass ? 'Section ADEQUATE.' : 'Section INADEQUATE.');
+        return d;
+    }
+
+    /* ── Concrete Column builder ──────────────────────── */
+    function _concreteColumn(config, results, calcName, projectName) {
+        const d = _base('concrete-column', calcName, projectName, 'EN 1992-1-1 (EC2)');
+        d.inputs = [
+            { label: 'Section Width (b)', value: config.b || config.width, unit: 'mm' },
+            { label: 'Section Depth (h)', value: config.h || config.depth, unit: 'mm' },
+            { label: 'Concrete Cover', value: config.cover, unit: 'mm' },
+            { label: 'Concrete Strength (fck)', value: config.fck, unit: 'N/mm²' },
+            { label: 'Steel Strength (fyk)', value: config.fyk, unit: 'N/mm²' },
+            { label: 'Column Length', value: config.length || config.L, unit: 'm' },
+            { label: 'Applied Axial (NEd)', value: config.NEd, unit: 'kN' },
+            { label: 'Applied Moment (MEd)', value: config.MEd || 0, unit: 'kNm' },
+            { label: 'Reinforcement', value: config.barCount + 'T' + config.barDia, unit: '—' },
+        ].filter(i => i.value !== undefined && i.value !== null);
+        d.results = [
+            { label: 'Area of Steel (As)', value: _fmt(results.As, 0) + ' mm²', status: null },
+            { label: 'Steel Ratio (ρ)', value: _fmt(results.rho, 4) + ' (' + _fmt(results.rho * 100, 2) + '%)', status: results.rho >= 0.002 && results.rho <= 0.04 },
+            { label: 'Axial Capacity (NRd)', value: _fmt(results.NRd, 1) + ' kN', status: null },
+            { label: 'Moment Capacity (MRd)', value: _fmt(results.MRd, 2) + ' kNm', status: null },
+            { label: 'Slenderness (λ)', value: _fmt(results.lambda, 1), status: null },
+            { label: 'Slenderness Check', value: results.slenderPass ? 'Short column' : 'Slender — 2nd order effects', status: results.slenderPass },
+            { label: 'N-M Interaction Check', value: results.interactionPass ? 'Inside envelope' : 'Outside envelope', status: results.interactionPass },
+            { label: 'Utilisation', value: _fmt(results.utilisationPct, 1) + '%', status: results.pass },
+        ].filter(r => r.value && !r.value.startsWith('NaN'));
+        d.pass = results.pass;
+        d.summary = `Concrete column designed to EN 1992-1-1 (Eurocode 2). ` +
+            `Section ${config.b || config.width}×${config.h || config.depth} mm, fck = ${config.fck} N/mm². ` +
+            `NEd = ${config.NEd} kN, MEd = ${config.MEd || 0} kNm. ` +
+            `Reinforcement: ${config.barCount}T${config.barDia}. ` +
+            (results.pass ? 'All checks PASS.' : 'One or more checks FAIL.');
+        return d;
+    }
+
     /* ── Public: buildData ───────────────────────────────── */
     function buildData(calcType, config, results, calcName, projectName) {
         const map = {
@@ -275,6 +399,10 @@ const CalcReport = (() => {
             footing:          _footing,
             'retaining-wall': _retainingWall,
             connection:       _connection,
+            beam:             _beam,
+            'rc-beam':        _rcBeam,
+            'timber-column':  _timberColumn,
+            'concrete-column': _concreteColumn,
         };
         const fn = map[calcType];
         if (!fn) {
@@ -629,6 +757,60 @@ const CalcReport = (() => {
         await window.WordExport.exportBeam(wordData, fn2);
     }
 
-    return { buildData, exportPDF, exportWord };
+    /* ══════════════════════════════════════════════════════
+       Excel / CSV Export — downloads as .xlsx (CSV format)
+    ══════════════════════════════════════════════════════ */
+    function exportExcel(data, filename) {
+        const esc = v => {
+            const s = String(v == null ? '' : v);
+            return s.includes(',') || s.includes('"') || s.includes('\n')
+                ? '"' + s.replace(/"/g, '""') + '"'
+                : s;
+        };
+        const rows = [];
+
+        // Header block
+        rows.push(['BuildMetrics — Structural Calculation Report']);
+        rows.push([]);
+        rows.push(['Project', esc(data.projectName || '—'), 'Date', esc(data.date || '—')]);
+        rows.push(['Calculation', esc(data.calcName || '—'), 'Standard', esc(data.standard || '—')]);
+        rows.push(['Status', data.pass === true ? 'PASS' : data.pass === false ? 'FAIL' : 'PENDING']);
+        rows.push([]);
+
+        // Inputs
+        rows.push(['INPUT PARAMETERS']);
+        rows.push(['Parameter', 'Value', 'Unit']);
+        (data.inputs || []).forEach(inp => {
+            rows.push([esc(inp.label), esc(inp.value), esc(inp.unit || '')]);
+        });
+        rows.push([]);
+
+        // Results
+        rows.push(['DESIGN CHECKS & RESULTS']);
+        rows.push(['Check / Result', 'Value', 'Status']);
+        (data.results || []).forEach(r => {
+            const status = r.status === true ? 'PASS' : r.status === false ? 'FAIL' : '';
+            rows.push([esc(r.label), esc(r.value), status]);
+        });
+        rows.push([]);
+
+        // Summary
+        rows.push(['SUMMARY']);
+        rows.push([esc(data.summary || '')]);
+        rows.push([]);
+        rows.push(['Disclaimer: Results require verification by a licensed structural engineer before use in design or construction.']);
+
+        const csv = rows.map(r => (Array.isArray(r) ? r : [r]).join(',')).join('\r\n');
+        const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename || (data.calcType + '-report.csv');
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    }
+
+    return { buildData, exportPDF, exportWord, exportExcel };
 })();
 window.CalcReport = CalcReport;
