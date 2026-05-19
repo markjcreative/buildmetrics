@@ -1,0 +1,14 @@
+<!-- Trigger: subscription payment fails -->
+<!-- Variables: {{name}}, {{amount}}, {{next_retry}}, {{update_billing_url}} -->
+<div class="warn-icon success-icon">⚠️</div>
+<div class="badge" style="background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.3);color:#F87171">Payment Failed</div>
+<h1>Action required: payment failed</h1>
+<p>Hi <strong>{{name}}</strong>, we were unable to process your payment of <strong>{{amount}}</strong> for your BuildMetrics subscription.</p>
+<div class="highlight-box">
+  <p style="margin:0;font-size:0.85rem;color:rgba(255,255,255,0.7)">Your access will remain active while we retry. We'll attempt the payment again on <strong>{{next_retry}}</strong>.</p>
+</div>
+<p style="text-align:center">
+  <a href="{{update_billing_url}}" class="btn">Update Payment Method →</a>
+</p>
+<div class="divider"></div>
+<p style="font-size:0.82rem;color:rgba(255,255,255,0.4)">If you need help, contact us at <a href="mailto:support@buildmetrics.uk" style="color:#60A5FA">support@buildmetrics.uk</a></p>

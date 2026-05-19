@@ -1,0 +1,17 @@
+<!-- Trigger: weekly cron job (every Monday) -->
+<!-- Variables: {{name}}, {{week}}, {{calcs_run}}, {{projects_active}}, {{pdfs_exported}}, {{dashboard_url}} -->
+<div class="badge">Weekly Summary</div>
+<h1>Your week in BuildMetrics 📊</h1>
+<p>Hi <strong>{{name}}</strong>, here's a summary of your activity for the week of <strong>{{week}}</strong>.</p>
+<div class="highlight-box">
+  <table class="data">
+    <tr><td>Calculations run</td><td>{{calcs_run}}</td></tr>
+    <tr><td>Active projects</td><td>{{projects_active}}</td></tr>
+    <tr><td>PDF reports exported</td><td>{{pdfs_exported}}</td></tr>
+  </table>
+</div>
+<p style="text-align:center;margin-top:20px">
+  <a href="{{dashboard_url}}" class="btn">Go to Dashboard →</a>
+</p>
+<div class="divider"></div>
+<p style="font-size:0.82rem;color:rgba(255,255,255,0.4)">You're receiving this because weekly summaries are enabled. <a href="{{unsubscribe_url}}" style="color:rgba(255,255,255,0.4)">Unsubscribe</a></p>

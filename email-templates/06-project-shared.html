@@ -1,0 +1,13 @@
+<!-- Trigger: a user shares a project with another user -->
+<!-- Variables: {{recipient_name}}, {{sender_name}}, {{project_name}}, {{project_url}}, {{message}} -->
+<div class="badge">Shared With You</div>
+<h1>{{sender_name}} shared a project with you</h1>
+<p>Hi <strong>{{recipient_name}}</strong>, <strong>{{sender_name}}</strong> has given you access to a BuildMetrics project.</p>
+<div class="highlight-box">
+  <p style="margin:0 0 4px;font-size:0.8rem;color:rgba(255,255,255,0.4)">Project</p>
+  <p style="margin:0;font-size:1rem;font-weight:700;color:#fff">{{project_name}}</p>
+  {{#if message}}<p style="margin:10px 0 0;font-size:0.84rem;color:rgba(255,255,255,0.6);font-style:italic">"{{message}}"</p>{{/if}}
+</div>
+<p style="text-align:center">
+  <a href="{{project_url}}" class="btn">Open Project →</a>
+</p>

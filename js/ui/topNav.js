@@ -46,6 +46,9 @@ const TopNav = (() => {
       });
     }
 
+    // Init notification bell
+    if (window.Notifications) Notifications.init();
+
     // Wire mobile menu open/close
     const menuBtn = document.getElementById('hdr-menu-btn');
     const drawer = document.getElementById('mobile-drawer');

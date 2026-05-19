@@ -1,0 +1,52 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # ── Deploy landing page → buildmetrics.uk (public_html/)
+  deploy-landing:
+    name: Deploy Landing Page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy landing/ → public_html/
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME_LANDING }}
+          password: ${{ secrets.FTP_PASSWORD_LANDING }}
+          local-dir: ./landing/
+          server-dir: /public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+
+  # ── Deploy app → app.buildmetrics.uk (public_html/app/)
+  deploy-app:
+    name: Deploy App
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy app → public_html/app/
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME_APP }}
+          password: ${{ secrets.FTP_PASSWORD_APP }}
+          local-dir: ./
+          server-dir: /public_html/app/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            landing/**
+            .github/**
+            email-templates/**
+            beamcalc-pro/**
+            .claude/**
+            markjcreative-landing.html

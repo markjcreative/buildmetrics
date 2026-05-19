@@ -1,0 +1,21 @@
+<!-- Trigger: a calculation check fails (utilisation > 1.0) -->
+<!-- Variables: {{name}}, {{calc_name}}, {{check_name}}, {{utilisation}}, {{project_name}}, {{calc_url}} -->
+<div class="warn-icon success-icon">⚠️</div>
+<div class="badge" style="background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.3);color:#F87171">Check Failed</div>
+<h1>Calculation check requires attention</h1>
+<p>Hi <strong>{{name}}</strong>, a check in your calculation did not pass and requires your review.</p>
+<div class="highlight-box">
+  <table class="data">
+    <tr><td>Calculation</td><td>{{calc_name}}</td></tr>
+    <tr><td>Project</td><td>{{project_name}}</td></tr>
+    <tr><td>Failed check</td><td>{{check_name}}</td></tr>
+    <tr><td>Utilisation</td><td style="color:#F87171"><strong>{{utilisation}} — FAIL</strong></td></tr>
+  </table>
+</div>
+<p style="text-align:center">
+  <a href="{{calc_url}}" class="btn">Review Calculation →</a>
+</p>
+<div class="divider"></div>
+<p style="font-size:0.78rem;color:rgba(255,255,255,0.35);background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:12px 14px;line-height:1.6">
+  All calculations must be verified by a suitably qualified engineer before use in any professional context.
+</p>
