@@ -286,41 +286,99 @@
       padding: 6px;
     }
 
-    /* Mobile nav */
+    /* Mobile nav — slide-in panel */
     #mobile-nav {
-      display: none;
+      display: flex;
+      flex-direction: column;
       position: fixed;
       inset: 0;
-      z-index: 999;
-      background: rgba(15,23,42,0.97);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      flex-direction: column;
+      z-index: 1100;
+      background: #0F172A;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+    }
+    #mobile-nav.open { transform: translateX(0); }
+    #mobile-nav.open ~ * { pointer-events: none; }
+
+    .mn-header {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 16px;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
     }
-    #mobile-nav.open { display: flex; }
-    #mobile-nav a {
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: rgba(255,255,255,0.85);
+    .mn-header-logo {
+      display: flex; align-items: center; gap: 10px;
       text-decoration: none;
-      padding: 10px 0;
-      transition: color 0.2s;
     }
-    #mobile-nav a:hover { color: var(--white); }
-    #mobile-nav .mn-close {
-      position: absolute;
-      top: 20px; right: 24px;
-      background: rgba(255,255,255,0.1);
-      border: none;
+    .mn-header-logo-icon {
+      width: 34px; height: 34px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mn-header-logo-name {
+      font-size: 1rem; font-weight: 700; color: var(--white);
+    }
+    .mn-close {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: 10px;
       width: 40px; height: 40px;
       display: flex; align-items: center; justify-content: center;
       color: var(--white);
       cursor: pointer;
+      flex-shrink: 0;
     }
+    .mn-close:hover { background: rgba(255,255,255,0.15); }
+
+    .mn-links {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 16px;
+    }
+    .mn-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: rgba(255,255,255,0.8);
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.15s, color 0.15s;
+    }
+    .mn-link:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+    .mn-link-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.25);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: #60A5FA;
+    }
+    .mn-link-text { display: flex; flex-direction: column; gap: 1px; }
+    .mn-link-label { font-size: 0.95rem; font-weight: 600; color: var(--white); line-height: 1.2; }
+    .mn-link-sub { font-size: 0.75rem; color: rgba(255,255,255,0.4); font-weight: 400; }
+    .mn-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin: 8px 16px;
+    }
+    .mn-footer {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .mn-footer .btn { text-align: center; justify-content: center; }
 
     /* ══════════════════════════════════════
        HERO
@@ -2158,6 +2216,7 @@
       <li><a href="#features">Features</a></li>
       <li><a href="#calculators">Calculators</a></li>
       <li><a href="#how">How It Works</a></li>
+      <li><a href="#who">Who It's For</a></li>
       <li><a href="#pricing">Pricing</a></li>
     </ul>
 
@@ -2174,16 +2233,87 @@
   </div>
 </nav>
 
-<!-- Mobile nav overlay -->
-<div id="mobile-nav">
-  <button class="mn-close" id="mn-close">
-    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
-  </button>
-  <a href="#features" onclick="closeMobileNav()">Features</a>
-  <a href="#calculators" onclick="closeMobileNav()">Calculators</a>
-  <a href="#how" onclick="closeMobileNav()">How It Works</a>
-  <a href="#pricing" onclick="closeMobileNav()">Pricing</a>
-  <a href="../login.html" style="color:#60A5FA;margin-top:8px">Get Started Free →</a>
+<!-- Mobile nav panel -->
+<div id="mobile-nav" role="dialog" aria-modal="true" aria-label="Navigation menu">
+  <div class="mn-header">
+    <a href="#hero" class="mn-header-logo" onclick="closeMobileNav()">
+      <div class="mn-header-logo-icon">
+        <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
+          <rect x="6" y="8" width="3" height="15" rx="1" fill="white"/>
+          <rect x="21" y="8" width="3" height="15" rx="1" fill="white"/>
+          <rect x="6" y="8" width="18" height="3" rx="1" fill="white"/>
+          <rect x="12" y="15" width="6" height="2.5" rx="1" fill="rgba(255,255,255,0.55)"/>
+        </svg>
+      </div>
+      <span class="mn-header-logo-name">BuildMetrics</span>
+    </a>
+    <button class="mn-close" id="mn-close" onclick="closeMobileNav()" aria-label="Close menu">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <nav class="mn-links">
+    <a href="#features" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">Features</span>
+        <span class="mn-link-sub">What BuildMetrics can do</span>
+      </div>
+    </a>
+    <a href="#calculators" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1-4H9m0 0a1 1 0 000 2h6a1 1 0 000-2M9 3h6"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">Calculators</span>
+        <span class="mn-link-sub">Beam, slab, column & more</span>
+      </div>
+    </a>
+    <a href="#how" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">How It Works</span>
+        <span class="mn-link-sub">From sign-up to PDF in minutes</span>
+      </div>
+    </a>
+    <a href="#who" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">Who It's For</span>
+        <span class="mn-link-sub">Structural, civil & consulting engineers</span>
+      </div>
+    </a>
+    <a href="#reports" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">PDF Reports</span>
+        <span class="mn-link-sub">Professional calculation reports</span>
+      </div>
+    </a>
+    <div class="mn-divider"></div>
+    <a href="#pricing" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);color:#34D399;">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">Pricing</span>
+        <span class="mn-link-sub">Free for all engineers in 2026</span>
+      </div>
+    </a>
+  </nav>
+
+  <div class="mn-footer">
+    <a href="../login.html" class="btn btn-primary">Get Started Free</a>
+    <a href="../login.html" class="btn btn-outline">Sign In</a>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════
@@ -3229,15 +3359,14 @@
   });
 
   /* ── Mobile nav ── */
-  document.getElementById('nav-hamburger').addEventListener('click', () => {
-    document.getElementById('mobile-nav').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  });
-  document.getElementById('mn-close').addEventListener('click', closeMobileNav);
   function closeMobileNav() {
     document.getElementById('mobile-nav').classList.remove('open');
     document.body.style.overflow = '';
   }
+  document.getElementById('nav-hamburger').addEventListener('click', function() {
+    document.getElementById('mobile-nav').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  });
 
   /* ── Scroll reveal ── */
   const observer = new IntersectionObserver((entries) => {
