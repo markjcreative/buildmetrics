@@ -726,7 +726,10 @@
       margin-top: 32px;
     }
 
-    .calc-tag {
+    .calc-tag,
+    .calc-tag:visited,
+    .calc-tag:focus,
+    .calc-tag:active {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -739,11 +742,13 @@
       color: rgba(255,255,255,0.8);
       transition: var(--transition);
       text-decoration: none;
+      outline: none;
     }
     .calc-tag:hover {
       background: rgba(37,99,235,0.15);
       border-color: rgba(37,99,235,0.3);
       color: var(--white);
+      text-decoration: none;
     }
 
     .calc-tag-dot {
@@ -799,35 +804,23 @@
        FULLSCREEN IMAGE SECTION
     ══════════════════════════════════════ */
     #engineer-section {
-      position: relative;
-      min-height: 70vh;
-      display: flex;
-      align-items: center;
+      background: var(--navy);
+      padding: 100px 0;
       overflow: hidden;
     }
 
-    .engineer-bg {
-      position: absolute;
-      inset: 0;
-      background-image: url('https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1920&q=80');
-      background-size: cover;
-      background-position: center 30%;
-    }
-    .engineer-bg::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, rgba(15,23,42,0.92) 40%, rgba(15,23,42,0.4) 100%);
+    .engineer-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
     }
 
     .engineer-content {
       position: relative;
-      z-index: 2;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 80px 24px;
-      max-width: 580px;
-      margin-left: max(24px, calc((100vw - 1200px) / 2 + 24px));
     }
 
     .engineer-quote {
@@ -838,9 +831,7 @@
       margin: 24px 0 28px;
     }
 
-    .engineer-quote span {
-      color: #60A5FA;
-    }
+    .engineer-quote span { color: #60A5FA; }
 
     .engineer-checklist {
       display: flex;
@@ -867,47 +858,294 @@
       font-size: 0.7rem;
     }
 
+    /* Animated calculator demo */
+    .engineer-right {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .anim-calc-wrap {
+      width: 100%;
+      max-width: 400px;
+      background: #0D1929;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(37,99,235,0.15);
+    }
+
+    .anim-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 11px 16px;
+      background: #1A2744;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .anim-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .anim-dot.r { background: #FF5F57; }
+    .anim-dot.a { background: #FEBC2E; }
+    .anim-dot.g { background: #28C840; }
+
+    .anim-title-text {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.35);
+      margin-left: 8px;
+      flex: 1;
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+
+    .anim-body { padding: 18px; }
+
+    .anim-page-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+
+    .anim-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .anim-input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 8px;
+      padding: 8px 11px;
+    }
+
+    .anim-input-lbl { font-size: 0.58rem; color: rgba(255,255,255,0.35); margin-bottom: 3px; }
+    .anim-input-val { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.9); }
+
+    .anim-btn {
+      width: 100%;
+      height: 36px;
+      background: #2563EB;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+      animation: anim-btn-glow 8s ease infinite;
+    }
+
+    .anim-btn-label  { position: absolute; animation: anim-label-hide 8s infinite; }
+    .anim-btn-loading{ position: absolute; animation: anim-loading-show 8s infinite; opacity: 0; display: flex; align-items: center; gap: 6px; }
+
+    .anim-spinner {
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes anim-btn-glow {
+      0%, 28%  { box-shadow: none; transform: scale(1); background: #2563EB; }
+      35%, 48% { box-shadow: 0 0 28px rgba(37,99,235,0.7); transform: scale(1.02); background: #1D4ED8; }
+      55%, 100%{ box-shadow: none; transform: scale(1); background: #2563EB; }
+    }
+
+    @keyframes anim-label-hide {
+      0%, 28%  { opacity: 1; }
+      35%, 55% { opacity: 0; }
+      62%, 100%{ opacity: 1; }
+    }
+
+    @keyframes anim-loading-show {
+      0%, 28%  { opacity: 0; }
+      35%, 55% { opacity: 1; }
+      62%, 100%{ opacity: 0; }
+    }
+
+    .anim-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin-bottom: 12px;
+    }
+
+    .anim-result {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .anim-result-info { flex: 1; }
+    .anim-result-name { font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 2px; }
+    .anim-result-val  { font-size: 0.6rem; color: rgba(255,255,255,0.35); }
+
+    .anim-pass {
+      font-size: 0.6rem;
+      font-weight: 700;
+      background: rgba(34,197,94,0.15);
+      color: #4ADE80;
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 100px;
+      padding: 2px 8px;
+    }
+
+    .anim-bar-wrap { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+    .anim-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg,#2563EB,#60A5FA); }
+
+    .anim-result-1 { animation: anim-res1 8s ease infinite; }
+    .anim-result-2 { animation: anim-res2 8s ease infinite; }
+    .anim-result-3 { animation: anim-res3 8s ease infinite; }
+
+    .anim-overall {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 9px;
+      animation: anim-overall 8s ease infinite;
+    }
+
+    .anim-overall-label { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.7); }
+    .anim-overall-val   { font-size: 0.78rem; font-weight: 800; color: #4ADE80; }
+
+    @keyframes anim-res1 {
+      0%, 48%  { opacity: 0; transform: translateY(6px); }
+      56%, 86% { opacity: 1; transform: translateY(0); }
+      94%, 100%{ opacity: 0; transform: translateY(0); }
+    }
+    @keyframes anim-res2 {
+      0%, 54%  { opacity: 0; transform: translateY(6px); }
+      62%, 86% { opacity: 1; transform: translateY(0); }
+      94%, 100%{ opacity: 0; transform: translateY(0); }
+    }
+    @keyframes anim-res3 {
+      0%, 60%  { opacity: 0; transform: translateY(6px); }
+      68%, 86% { opacity: 1; transform: translateY(0); }
+      94%, 100%{ opacity: 0; transform: translateY(0); }
+    }
+    @keyframes anim-overall {
+      0%, 66%  { opacity: 0; transform: scale(0.9); }
+      74%, 86% { opacity: 1; transform: scale(1); }
+      94%, 100%{ opacity: 0; }
+    }
+
+    @media (max-width: 900px) {
+      .engineer-layout { grid-template-columns: 1fr; gap: 48px; }
+      .engineer-right { display: none; }
+    }
+
     /* ══════════════════════════════════════
        HOW IT WORKS
     ══════════════════════════════════════ */
     #how {
-      background: rgba(255,255,255,0.02);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .how-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1920&q=80');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .how-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(15,23,42,0.88) 0%, rgba(15,23,42,0.82) 50%, rgba(15,23,42,0.92) 100%);
+    }
+
+    #how .section-inner {
+      position: relative;
+      z-index: 2;
     }
 
     .how-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 32px;
+      gap: 24px;
       position: relative;
     }
 
     .how-grid::before {
       content: '';
       position: absolute;
-      top: 30px;
+      top: 28px;
       left: calc(16.6% + 24px);
-      right: calc(16.6% + 24px);
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(37,99,235,0.4), transparent);
+      background: linear-gradient(90deg, rgba(37,99,235,0.6), rgba(99,102,241,0.6));
+      width: 0;
+      transition: width 1.4s cubic-bezier(0.4,0,0.2,1) 0.4s;
+    }
+
+    .how-grid.line-drawn::before {
+      width: calc(66.4% - 48px);
     }
 
     .how-card {
       text-align: center;
-      padding: 32px 20px;
+      padding: 36px 24px;
       position: relative;
+      background: rgba(15,23,42,0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-lg);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .how-card:hover {
+      border-color: rgba(37,99,235,0.35);
+      box-shadow: 0 8px 32px rgba(37,99,235,0.15);
     }
 
     .how-num {
       width: 56px; height: 56px;
       border-radius: 50%;
       background: linear-gradient(135deg, #1E3A8A, #2563EB);
-      border: 1px solid rgba(37,99,235,0.4);
+      border: 1px solid rgba(37,99,235,0.5);
       display: flex; align-items: center; justify-content: center;
       font-size: 1.1rem;
       font-weight: 800;
       color: var(--white);
       margin: 0 auto 20px;
-      box-shadow: 0 8px 24px rgba(37,99,235,0.3);
+      box-shadow: 0 8px 24px rgba(37,99,235,0.35);
+    }
+
+    .how-card.visible .how-num {
+      animation: step-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .how-card[data-step="2"].visible .how-num { animation-delay: 0.18s; }
+    .how-card[data-step="3"].visible .how-num { animation-delay: 0.36s; }
+
+    @keyframes step-pop {
+      0%   { transform: scale(0.15); }
+      65%  { transform: scale(1.22); }
+      100% { transform: scale(1); }
+    }
+
+    .how-icon {
+      font-size: 1.8rem;
+      margin-bottom: 4px;
     }
 
     .how-title {
@@ -919,7 +1157,7 @@
 
     .how-desc {
       font-size: 0.85rem;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.55);
       line-height: 1.65;
     }
 
@@ -2331,30 +2569,88 @@
      ENGINEER FULLSCREEN IMAGE SECTION
 ════════════════════════════════════════ -->
 <section id="engineer-section">
-  <div class="engineer-bg"></div>
-  <div class="engineer-content">
-    <div class="section-eyebrow reveal" style="color:#93C5FD">Built for the real world</div>
-    <h2 class="engineer-quote reveal reveal-delay-1">
-      Calculations that <span>check themselves</span> — so you can focus on the design.
-    </h2>
-    <div class="engineer-checklist reveal reveal-delay-2">
-      <div class="engineer-check">
-        <div class="check-tick">✓</div>
-        Every result references the relevant Eurocode clause
-      </div>
-      <div class="engineer-check">
-        <div class="check-tick">✓</div>
-        Pass / fail status on every check — at a glance
-      </div>
-      <div class="engineer-check">
-        <div class="check-tick">✓</div>
-        Printable reports with engineer sign-off blocks
-      </div>
-      <div class="engineer-check">
-        <div class="check-tick">✓</div>
-        Save, reload and share calcs across your project team
+  <div class="engineer-layout">
+
+    <!-- Left: text -->
+    <div class="engineer-content">
+      <div class="section-eyebrow reveal" style="color:#93C5FD">Built for the real world</div>
+      <h2 class="engineer-quote reveal reveal-delay-1">
+        Calculations that <span>check themselves</span> — so you can focus on the design.
+      </h2>
+      <div class="engineer-checklist reveal reveal-delay-2">
+        <div class="engineer-check">
+          <div class="check-tick">✓</div>
+          Every result references the relevant Eurocode clause
+        </div>
+        <div class="engineer-check">
+          <div class="check-tick">✓</div>
+          Pass / fail status on every check — at a glance
+        </div>
+        <div class="engineer-check">
+          <div class="check-tick">✓</div>
+          Printable reports with engineer sign-off blocks
+        </div>
+        <div class="engineer-check">
+          <div class="check-tick">✓</div>
+          Save, reload and share calcs across your project team
+        </div>
       </div>
     </div>
+
+    <!-- Right: animated calculator -->
+    <div class="engineer-right reveal reveal-delay-2">
+      <div class="anim-calc-wrap">
+        <div class="anim-titlebar">
+          <div class="anim-dot r"></div>
+          <div class="anim-dot a"></div>
+          <div class="anim-dot g"></div>
+          <span class="anim-title-text">Beam Design — EN 1993-1-1 (EC3)</span>
+        </div>
+        <div class="anim-body">
+          <div class="anim-page-title">Beam Design</div>
+          <div class="anim-inputs">
+            <div class="anim-input"><div class="anim-input-lbl">Span</div><div class="anim-input-val">6.0 m</div></div>
+            <div class="anim-input"><div class="anim-input-lbl">UDL</div><div class="anim-input-val">12.0 kN/m</div></div>
+            <div class="anim-input"><div class="anim-input-lbl">Section</div><div class="anim-input-val">356×171 UB</div></div>
+            <div class="anim-input"><div class="anim-input-lbl">Grade</div><div class="anim-input-val">S275</div></div>
+          </div>
+          <div class="anim-btn">
+            <span class="anim-btn-label">Calculate →</span>
+            <span class="anim-btn-loading"><span class="anim-spinner"></span> Running…</span>
+          </div>
+          <div class="anim-divider"></div>
+          <div class="anim-result anim-result-1">
+            <div class="anim-result-info">
+              <div class="anim-result-name">Bending Moment</div>
+              <div class="anim-result-val">MEd = 54.0 kNm &nbsp;/&nbsp; McRd = 211.4 kNm</div>
+              <div class="anim-bar-wrap"><div class="anim-bar-fill" style="width:26%"></div></div>
+            </div>
+            <div class="anim-pass" style="margin-left:12px">✓ PASS</div>
+          </div>
+          <div class="anim-result anim-result-2">
+            <div class="anim-result-info">
+              <div class="anim-result-name">Shear Force</div>
+              <div class="anim-result-val">VEd = 36.0 kN &nbsp;/&nbsp; VplRd = 284.6 kN</div>
+              <div class="anim-bar-wrap"><div class="anim-bar-fill" style="width:13%"></div></div>
+            </div>
+            <div class="anim-pass" style="margin-left:12px">✓ PASS</div>
+          </div>
+          <div class="anim-result anim-result-3">
+            <div class="anim-result-info">
+              <div class="anim-result-name">Deflection</div>
+              <div class="anim-result-val">δ = 9.6 mm &nbsp;/&nbsp; Limit = 24.0 mm</div>
+              <div class="anim-bar-wrap"><div class="anim-bar-fill" style="width:40%"></div></div>
+            </div>
+            <div class="anim-pass" style="margin-left:12px">✓ PASS</div>
+          </div>
+          <div class="anim-overall">
+            <span class="anim-overall-label">Overall Result</span>
+            <span class="anim-overall-val">✓ ALL CHECKS PASS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -2362,26 +2658,27 @@
      HOW IT WORKS
 ════════════════════════════════════════ -->
 <section id="how">
+  <div class="how-bg"></div>
   <div class="section-inner">
     <div class="section-head" style="text-align:center">
       <div class="section-eyebrow reveal" style="justify-content:center">How It Works</div>
       <h2 class="section-title reveal reveal-delay-1" style="text-align:center">From sign-up to sign-off<br>in minutes</h2>
     </div>
 
-    <div class="how-grid">
-      <div class="how-card reveal">
+    <div class="how-grid" id="how-grid">
+      <div class="how-card reveal" data-step="1">
         <div class="how-num">1</div>
         <h3 class="how-title">Create a free account</h3>
         <p class="how-desc">Sign up in under 30 seconds. No credit card, no software download — just your email and a password.</p>
       </div>
-      <div class="how-card reveal reveal-delay-1">
+      <div class="how-card reveal reveal-delay-1" data-step="2">
         <div class="how-num">2</div>
         <h3 class="how-title">Run your calculations</h3>
         <p class="how-desc">Select a calculator, enter your inputs, and hit Calculate. Results appear instantly with full workings shown.</p>
       </div>
-      <div class="how-card reveal reveal-delay-2">
+      <div class="how-card reveal reveal-delay-2" data-step="3">
         <div class="how-num">3</div>
-        <h3 class="how-title">Export & submit</h3>
+        <h3 class="how-title">Export &amp; submit</h3>
         <p class="how-desc">Download a professional PDF or Excel report. Save to your project register. Share with clients or checking engineers.</p>
       </div>
     </div>
@@ -2697,6 +2994,16 @@
   if (carouselTrack) {
     const clone = carouselTrack.innerHTML;
     carouselTrack.innerHTML += clone;
+  }
+
+  /* ── How It Works connector line ── */
+  const howGrid = document.getElementById('how-grid');
+  if (howGrid) {
+    new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        howGrid.classList.add('line-drawn');
+      }
+    }, { threshold: 0.3 }).observe(howGrid);
   }
 
   /* ── Smooth active nav highlight on scroll ── */
