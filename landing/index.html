@@ -257,11 +257,9 @@
     .hero-bg {
       position: absolute;
       inset: 0;
-      background-image: url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1920&q=80');
+      background-image: url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1920&q=80');
       background-size: cover;
       background-position: center;
-      transform: scale(1.05);
-      transition: transform 8s ease;
     }
 
     .hero-bg::after {
@@ -1100,18 +1098,22 @@
       box-shadow: 0 4px 12px rgba(37,99,235,0.4);
     }
 
-    .pricing-plan { font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .pricing-plan { font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
     .pricing-price {
       font-size: 2.8rem;
       font-weight: 900;
       color: var(--white);
       letter-spacing: -0.04em;
-      line-height: 1;
-      margin-bottom: 4px;
+      line-height: 1.15;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      flex-wrap: wrap;
     }
-    .pricing-price sup { font-size: 1.2rem; font-weight: 700; vertical-align: super; }
-    .pricing-price .period { font-size: 0.9rem; font-weight: 500; color: rgba(255,255,255,0.4); }
-    .pricing-tagline { font-size: 0.82rem; color: rgba(255,255,255,0.45); margin-bottom: 24px; }
+    .pricing-price sup { font-size: 1.3rem; font-weight: 700; line-height: 1; margin-top: 6px; }
+    .pricing-price .period { font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.4); letter-spacing: 0; }
+    .pricing-tagline { font-size: 0.84rem; color: rgba(255,255,255,0.5); margin-top: 4px; margin-bottom: 24px; line-height: 1.5; }
 
     .pricing-divider { height: 1px; background: rgba(255,255,255,0.08); margin-bottom: 24px; }
 
@@ -1148,7 +1150,7 @@
     .cta-bg {
       position: absolute;
       inset: 0;
-      background-image: url('https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1920&q=80');
+      background-image: url('https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1920&q=80');
       background-size: cover;
       background-position: center;
     }
@@ -1298,6 +1300,380 @@
       .stats-inner { grid-template-columns: 1fr 1fr; gap: 16px; }
       .pricing-grid { max-width: 100%; }
     }
+
+    /* ══════════════════════════════════════
+       APP SCREENSHOTS CAROUSEL
+    ══════════════════════════════════════ */
+    #screenshots {
+      padding: 80px 0;
+      background: var(--navy-mid);
+      overflow: hidden;
+    }
+
+    .screenshots-head {
+      text-align: center;
+      padding: 0 24px;
+      margin-bottom: 48px;
+    }
+
+    .screenshots-head .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue-light);
+      margin-bottom: 12px;
+    }
+
+    .screenshots-head h2 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+    }
+
+    .screenshots-head p {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      color: var(--slate-light);
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .carousel-track-wrap {
+      position: relative;
+    }
+
+    /* fade edges */
+    .carousel-track-wrap::before,
+    .carousel-track-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 120px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .carousel-track-wrap::before { left: 0; background: linear-gradient(to right, var(--navy-mid), transparent); }
+    .carousel-track-wrap::after  { right: 0; background: linear-gradient(to left,  var(--navy-mid), transparent); }
+
+    .carousel-track {
+      display: flex;
+      gap: 20px;
+      width: max-content;
+      animation: carousel-scroll 40s linear infinite;
+      padding: 8px 0 16px;
+    }
+
+    .carousel-track:hover { animation-play-state: paused; }
+
+    @keyframes carousel-scroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* App window frame */
+    .app-frame {
+      width: 420px;
+      flex-shrink: 0;
+      background: #0F172A;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: default;
+    }
+
+    .app-frame:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(37,99,235,0.3);
+    }
+
+    /* Title bar */
+    .app-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #1E293B;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .app-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .app-dot.red   { background: #FF5F57; }
+    .app-dot.amber { background: #FEBC2E; }
+    .app-dot.green { background: #28C840; }
+
+    .app-titlebar-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.35);
+      margin-left: 8px;
+      flex: 1;
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+
+    .app-body { padding: 16px; }
+
+    /* ── Shared mock UI pieces ── */
+    .mock-topbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .mock-logo {
+      width: 26px; height: 26px;
+      background: #2563EB;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .mock-logo-text {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .mock-nav-pills {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .mock-pill {
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    .mock-section-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 10px;
+    }
+
+    .mock-page-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 14px;
+      letter-spacing: -0.02em;
+    }
+
+    .mock-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+
+    .mock-card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .mock-card-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .mock-badge {
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 100px;
+    }
+    .mock-badge.pass { background: rgba(34,197,94,0.2); color: #4ADE80; }
+    .mock-badge.fail { background: rgba(239,68,68,0.2);  color: #F87171; }
+    .mock-badge.blue { background: rgba(37,99,235,0.25); color: #93C5FD; }
+
+    .mock-sub {
+      font-size: 0.62rem;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .mock-bar-wrap {
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .mock-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #2563EB, #3B82F6);
+    }
+
+    .mock-input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .mock-input {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 7px;
+      padding: 8px 10px;
+    }
+
+    .mock-input-label {
+      font-size: 0.58rem;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 3px;
+    }
+
+    .mock-input-val {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .mock-result-box {
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .mock-result-label { font-size: 0.65rem; color: rgba(255,255,255,0.5); }
+    .mock-result-val   { font-size: 0.9rem; font-weight: 800; color: #4ADE80; }
+
+    .mock-project-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .mock-proj-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .mock-proj-icon {
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      margin-bottom: 8px;
+    }
+
+    .mock-proj-name {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 3px;
+    }
+
+    .mock-proj-meta {
+      font-size: 0.58rem;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .mock-report-header {
+      background: #1E293B;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mock-report-icon {
+      width: 30px; height: 36px;
+      background: linear-gradient(135deg, #1F2937, #374151);
+      border-radius: 5px;
+      border: 1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+
+    .mock-line {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.08);
+      margin-bottom: 6px;
+    }
+
+    .mock-stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .mock-stat {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .mock-stat-val {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--white);
+    }
+
+    .mock-stat-lbl {
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 2px;
+    }
+
+    .mock-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mock-btn {
+      flex: 1;
+      height: 30px;
+      border-radius: 8px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mock-btn.primary { background: #2563EB; color: white; }
+    .mock-btn.ghost   { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.1); }
+
+    .mock-util-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+
+    .mock-util-label { font-size: 0.6rem; color: rgba(255,255,255,0.4); }
+    .mock-util-pct   { font-size: 0.65rem; font-weight: 700; color: #60A5FA; }
+
   </style>
 </head>
 <body>
@@ -1489,6 +1865,302 @@
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════
+     APP SCREENSHOTS CAROUSEL
+════════════════════════════════════════ -->
+<section id="screenshots">
+  <div class="screenshots-head reveal">
+    <div class="section-label">— The Platform</div>
+    <h2>Everything you need, beautifully designed.</h2>
+    <p>A professional tool built for engineers — clean, fast, and compliant.</p>
+  </div>
+
+  <div class="carousel-track-wrap">
+    <div class="carousel-track" id="carousel-track">
+
+      <!-- Card 1: Beam Calculator -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">Beam Design — EC3</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+            <div class="mock-nav-pills">
+              <div class="mock-pill" style="width:44px"></div>
+              <div class="mock-pill" style="width:56px"></div>
+            </div>
+          </div>
+          <div class="mock-page-title">Beam Design</div>
+          <div class="mock-input-row">
+            <div class="mock-input"><div class="mock-input-label">Span</div><div class="mock-input-val">6.0 m</div></div>
+            <div class="mock-input"><div class="mock-input-label">UDL</div><div class="mock-input-val">12 kN/m</div></div>
+            <div class="mock-input"><div class="mock-input-label">Section</div><div class="mock-input-val">356×171 UB</div></div>
+            <div class="mock-input"><div class="mock-input-label">Grade</div><div class="mock-input-val">S275</div></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Bending Moment</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">Myd = 54.0 kNm / McRd = 211.4 kNm</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:26%"></div></div>
+            <div class="mock-util-row"><span class="mock-util-label">Utilisation</span><span class="mock-util-pct">25.6%</span></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Shear Check</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">VEd = 36.0 kN / VplRd = 284.6 kN</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:13%"></div></div>
+          </div>
+          <div class="mock-btn-row">
+            <div class="mock-btn primary">↓ PDF Report</div>
+            <div class="mock-btn ghost">Excel</div>
+            <div class="mock-btn ghost">Save</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Dashboard -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">Dashboard</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+            <div class="mock-nav-pills">
+              <div class="mock-pill" style="width:60px"></div>
+              <div class="mock-pill" style="width:44px"></div>
+            </div>
+          </div>
+          <div class="mock-page-title">Good morning, Mark 👋</div>
+          <div class="mock-stat-row">
+            <div class="mock-stat"><div class="mock-stat-val">12</div><div class="mock-stat-lbl">Projects</div></div>
+            <div class="mock-stat"><div class="mock-stat-val">47</div><div class="mock-stat-lbl">Calcs</div></div>
+            <div class="mock-stat"><div class="mock-stat-val">9</div><div class="mock-stat-lbl">Passed</div></div>
+            <div class="mock-stat"><div class="mock-stat-val">2</div><div class="mock-stat-lbl">Review</div></div>
+          </div>
+          <div class="mock-section-label">Recent Projects</div>
+          <div class="mock-project-grid">
+            <div class="mock-proj-card">
+              <div class="mock-proj-icon" style="background:linear-gradient(135deg,#1E40AF,#3B82F6)"></div>
+              <div class="mock-proj-name">Riverside Flats</div>
+              <div class="mock-proj-meta">8 calculations</div>
+            </div>
+            <div class="mock-proj-card">
+              <div class="mock-proj-icon" style="background:linear-gradient(135deg,#065F46,#10B981)"></div>
+              <div class="mock-proj-name">Office Block B</div>
+              <div class="mock-proj-meta">5 calculations</div>
+            </div>
+            <div class="mock-proj-card">
+              <div class="mock-proj-icon" style="background:linear-gradient(135deg,#6B21A8,#A855F7)"></div>
+              <div class="mock-proj-name">Parkway Bridge</div>
+              <div class="mock-proj-meta">3 calculations</div>
+            </div>
+            <div class="mock-proj-card">
+              <div class="mock-proj-icon" style="background:linear-gradient(135deg,#7C2D12,#F97316)"></div>
+              <div class="mock-proj-name">Sports Hall</div>
+              <div class="mock-proj-meta">6 calculations</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: RC Slab -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">RC Slab — EC2</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+            <div class="mock-nav-pills">
+              <div class="mock-pill" style="width:44px"></div>
+              <div class="mock-pill" style="width:56px"></div>
+            </div>
+          </div>
+          <div class="mock-page-title">RC Slab Design</div>
+          <div class="mock-input-row">
+            <div class="mock-input"><div class="mock-input-label">Thickness</div><div class="mock-input-val">200 mm</div></div>
+            <div class="mock-input"><div class="mock-input-label">Concrete</div><div class="mock-input-val">C30/37</div></div>
+            <div class="mock-input"><div class="mock-input-label">Rebar</div><div class="mock-input-val">T16@200</div></div>
+            <div class="mock-input"><div class="mock-input-label">Cover</div><div class="mock-input-val">25 mm</div></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Flexural Capacity</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">MRd = 38.4 kNm/m &gt; MEd = 24.1 kNm/m</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:63%"></div></div>
+            <div class="mock-util-row"><span class="mock-util-label">Utilisation</span><span class="mock-util-pct">62.8%</span></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Deflection Check</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">L/d = 28.4 &lt; Allowable 35.0</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:81%;background:linear-gradient(90deg,#F59E0B,#FBBF24)"></div></div>
+          </div>
+          <div class="mock-result-box">
+            <span class="mock-result-label">Overall Result</span>
+            <span class="mock-result-val">✓ PASS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: PDF Report -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">PDF Report Preview</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+          </div>
+          <div class="mock-page-title">Calculation Report</div>
+          <div class="mock-report-header">
+            <div class="mock-report-icon"></div>
+            <div style="flex:1">
+              <div class="mock-line" style="width:70%"></div>
+              <div class="mock-line" style="width:45%;margin-top:6px"></div>
+            </div>
+            <div class="mock-badge blue">PDF</div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-section-label" style="margin-bottom:8px">Project Information</div>
+            <div class="mock-line" style="width:80%"></div>
+            <div class="mock-line" style="width:60%"></div>
+            <div class="mock-line" style="width:50%"></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-section-label" style="margin-bottom:8px">Results Summary</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div class="mock-line" style="width:55%;margin:0"></div>
+              <span class="mock-badge pass">PASS</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div class="mock-line" style="width:50%;margin:0"></div>
+              <span class="mock-badge pass">PASS</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="mock-line" style="width:45%;margin:0"></div>
+              <span class="mock-badge pass">PASS</span>
+            </div>
+          </div>
+          <div class="mock-btn-row">
+            <div class="mock-btn primary">↓ Download PDF</div>
+            <div class="mock-btn ghost">↓ Excel</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Steel Column -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">Steel Column — EC3</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+            <div class="mock-nav-pills">
+              <div class="mock-pill" style="width:44px"></div>
+              <div class="mock-pill" style="width:56px"></div>
+            </div>
+          </div>
+          <div class="mock-page-title">Steel Column</div>
+          <div class="mock-input-row">
+            <div class="mock-input"><div class="mock-input-label">Height</div><div class="mock-input-val">4.5 m</div></div>
+            <div class="mock-input"><div class="mock-input-label">Axial Load</div><div class="mock-input-val">850 kN</div></div>
+            <div class="mock-input"><div class="mock-input-label">Section</div><div class="mock-input-val">203×203 UC</div></div>
+            <div class="mock-input"><div class="mock-input-label">Grade</div><div class="mock-input-val">S355</div></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Buckling Resistance</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">NEd = 850 kN / NbRd = 1,142 kN</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:74%"></div></div>
+            <div class="mock-util-row"><span class="mock-util-label">Utilisation</span><span class="mock-util-pct">74.4%</span></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Cross-Section Check</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">Class 1 — Full plastic capacity available</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:68%"></div></div>
+          </div>
+          <div class="mock-result-box">
+            <span class="mock-result-label">Overall Result</span>
+            <span class="mock-result-val">✓ PASS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6: Projects Page -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">Projects</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+          </div>
+          <div class="mock-page-title">My Projects</div>
+          <div style="display:flex;gap:6px;margin-bottom:14px">
+            <div class="mock-btn primary" style="flex:0;padding:0 14px;height:28px;font-size:0.62rem">+ New Project</div>
+            <div class="mock-btn ghost"   style="flex:0;padding:0 12px;height:28px;font-size:0.62rem">All</div>
+            <div class="mock-btn ghost"   style="flex:0;padding:0 12px;height:28px;font-size:0.62rem">Active</div>
+          </div>
+          <div class="mock-card" style="margin-bottom:8px">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Riverside Flats — Block A</span>
+              <span class="mock-badge blue">Active</span>
+            </div>
+            <div class="mock-sub" style="margin-top:4px">8 calcs · Last updated 2 days ago</div>
+            <div class="mock-bar-wrap" style="margin-top:8px"><div class="mock-bar-fill" style="width:75%"></div></div>
+          </div>
+          <div class="mock-card" style="margin-bottom:8px">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Office Block B — Frame</span>
+              <span class="mock-badge blue">Active</span>
+            </div>
+            <div class="mock-sub" style="margin-top:4px">5 calcs · Last updated 1 week ago</div>
+            <div class="mock-bar-wrap" style="margin-top:8px"><div class="mock-bar-fill" style="width:40%"></div></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Sports Hall Roof</span>
+              <span class="mock-badge" style="background:rgba(251,191,36,0.15);color:#FCD34D">Review</span>
+            </div>
+            <div class="mock-sub" style="margin-top:4px">3 calcs · 1 check failed</div>
+            <div class="mock-bar-wrap" style="margin-top:8px"><div class="mock-bar-fill" style="width:55%;background:linear-gradient(90deg,#F59E0B,#FCD34D)"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /carousel-track (original set) -->
+  </div>
+</section>
 
 <!-- ═══════════════════════════════════════
      FEATURES
@@ -2019,13 +2691,13 @@
   const utilFill = document.getElementById('util-fill');
   if (utilFill) utilObserver.observe(utilFill.closest('.hgc-util'));
 
-  /* ── Hero parallax bg ── */
-  const heroBg = document.getElementById('hero-bg');
-  window.addEventListener('scroll', () => {
-    if (window.scrollY < window.innerHeight) {
-      heroBg.style.transform = `scale(1.05) translateY(${window.scrollY * 0.2}px)`;
-    }
-  }, { passive: true });
+
+  /* ── Carousel: duplicate cards for seamless infinite loop ── */
+  const carouselTrack = document.getElementById('carousel-track');
+  if (carouselTrack) {
+    const clone = carouselTrack.innerHTML;
+    carouselTrack.innerHTML += clone;
+  }
 
   /* ── Smooth active nav highlight on scroll ── */
   const sections = document.querySelectorAll('section[id], div[id="stats"]');
