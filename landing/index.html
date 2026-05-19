@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BuildMetrics — Professional Structural Engineering Software</title>
+  <meta name="description" content="Eurocode-compliant structural calculations in your browser. Beam, column, slab, footing, retaining wall and more. Free for 2026." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:      #2563EB;
+      --blue-mid:  #1D4ED8;
+      --blue-light:#3B82F6;
+      --navy:      #0F172A;
+      --navy-mid:  #1E293B;
+      --navy-light:#334155;
+      --slate:     #64748B;
+      --slate-light:#94A3B8;
+      --white:     #FFFFFF;
+      --off-white: #F8FAFC;
+      --border:    rgba(255,255,255,0.12);
+      --glass-bg:  rgba(255,255,255,0.08);
+      --glass-bg-strong: rgba(255,255,255,0.13);
+      --radius:    14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ══════════════════════════════════════
+       NAVBAR
+    ══════════════════════════════════════ */
+    #navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 0 24px;
+      transition: var(--transition);
+    }
+
+    #navbar.scrolled {
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 4px 32px rgba(0,0,0,0.3);
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .nav-logo-icon {
+      width: 36px; height: 36px;
+      background: var(--blue);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .nav-logo-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.08); }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.85);
+    }
+    .btn-outline:hover { border-color: rgba(255,255,255,0.5); color: var(--white); background: rgba(255,255,255,0.06); }
+
+    .btn-primary {
+      background: var(--blue);
+      color: var(--white);
+      box-shadow: 0 4px 16px rgba(37,99,235,0.4);
+    }
+    .btn-primary:hover {
+      background: var(--blue-mid);
+      box-shadow: 0 6px 24px rgba(37,99,235,0.55);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary-lg {
+      padding: 15px 32px;
+      font-size: 1rem;
+      border-radius: 12px;
+      background: var(--blue);
+      color: var(--white);
+      box-shadow: 0 8px 32px rgba(37,99,235,0.45);
+    }
+    .btn-primary-lg:hover {
+      background: var(--blue-mid);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(37,99,235,0.6);
+    }
+
+    .btn-ghost-lg {
+      padding: 15px 32px;
+      font-size: 1rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+      border: 1.5px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+    }
+    .btn-ghost-lg:hover {
+      background: rgba(255,255,255,0.18);
+      border-color: rgba(255,255,255,0.35);
+      transform: translateY(-2px);
+    }
+
+    .nav-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--white);
+      padding: 6px;
+    }
+
+    /* Mobile nav */
+    #mobile-nav {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(15,23,42,0.97);
+      backdrop-filter: blur(20px);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    #mobile-nav.open { display: flex; }
+    #mobile-nav a {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      padding: 10px 0;
+      transition: color 0.2s;
+    }
+    #mobile-nav a:hover { color: var(--white); }
+    #mobile-nav .mn-close {
+      position: absolute;
+      top: 20px; right: 24px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 10px;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white);
+      cursor: pointer;
+    }
+
+    /* ══════════════════════════════════════
+       HERO
+    ══════════════════════════════════════ */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1920&q=80');
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.05);
+      transition: transform 8s ease;
+    }
+
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(15,23,42,0.85) 0%,
+        rgba(15,23,42,0.6) 50%,
+        rgba(37,99,235,0.25) 100%
+      );
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 120px 24px 80px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .hero-left {}
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(37,99,235,0.2);
+      border: 1px solid rgba(37,99,235,0.4);
+      backdrop-filter: blur(10px);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #93C5FD;
+      margin-bottom: 24px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero-badge-dot {
+      width: 6px; height: 6px;
+      background: #60A5FA;
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    .hero-title {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+
+    .hero-title .accent {
+      background: linear-gradient(135deg, #60A5FA, #2563EB);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.7;
+      margin-bottom: 36px;
+      max-width: 480px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+    }
+
+    .hero-social-proof {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .hero-avatars {
+      display: flex;
+    }
+    .hero-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--navy);
+      background: linear-gradient(135deg, #2563EB, #7C3AED);
+      margin-left: -8px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white);
+    }
+    .hero-avatar:first-child { margin-left: 0; }
+
+    .hero-social-text {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.55);
+    }
+    .hero-social-text strong { color: rgba(255,255,255,0.85); }
+
+    /* Hero right — glass card */
+    .hero-glass-card {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+    }
+
+    .hgc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .hgc-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hgc-badge {
+      background: rgba(34,197,94,0.2);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86EFAC;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .hgc-calc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .hgc-calc-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .hgc-calc-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hgc-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .hgc-calc-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .hgc-calc-std {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .hgc-pass {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 100px;
+    }
+    .hgc-pass.pass { background: rgba(34,197,94,0.15); color: #86EFAC; }
+    .hgc-pass.fail { background: rgba(239,68,68,0.15); color: #FCA5A5; }
+
+    .hgc-util {
+      margin-bottom: 16px;
+    }
+    .hgc-util-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+    }
+    .hgc-util-label span:last-child { color: #60A5FA; font-weight: 600; }
+    .hgc-util-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .hgc-util-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2563EB, #60A5FA);
+      border-radius: 100px;
+      width: 0;
+      transition: width 1.5s ease 0.5s;
+    }
+
+    .hgc-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .hgc-action-btn {
+      flex: 1;
+      padding: 9px;
+      border-radius: 9px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      transition: var(--transition);
+    }
+    .hgc-action-btn.primary { background: var(--blue); color: var(--white); }
+    .hgc-action-btn.primary:hover { background: var(--blue-mid); }
+    .hgc-action-btn.secondary { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1); }
+    .hgc-action-btn.secondary:hover { background: rgba(255,255,255,0.14); }
+
+    /* Hero scroll indicator */
+    .hero-scroll {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.35);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      animation: bounce 2.5s ease infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ══════════════════════════════════════
+       STATS BAR
+    ══════════════════════════════════════ */
+    #stats {
+      background: rgba(255,255,255,0.04);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 32px 24px;
+    }
+
+    .stats-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff, #93C5FD);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.03em;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.45);
+      font-weight: 500;
+    }
+
+    .stat-divider {
+      width: 1px;
+      background: rgba(255,255,255,0.1);
+      margin: auto;
+      height: 40px;
+      display: none;
+    }
+
+    /* ══════════════════════════════════════
+       SECTION SHARED
+    ══════════════════════════════════════ */
+    section { padding: 96px 24px; }
+
+    .section-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #60A5FA;
+      margin-bottom: 16px;
+    }
+
+    .section-eyebrow::before {
+      content: '';
+      width: 20px;
+      height: 2px;
+      background: #2563EB;
+      border-radius: 2px;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.7;
+      max-width: 540px;
+    }
+
+    .section-head {
+      margin-bottom: 56px;
+    }
+
+    /* ══════════════════════════════════════
+       FEATURES
+    ══════════════════════════════════════ */
+    #features {
+      background: var(--navy);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--blue), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(37,99,235,0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.3);
+    }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+      flex-shrink: 0;
+    }
+
+    .feature-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.65;
+    }
+
+    /* ══════════════════════════════════════
+       CALCULATORS SHOWCASE
+    ══════════════════════════════════════ */
+    #calculators {
+      position: relative;
+      overflow: hidden;
+    }
+
+    #calculators::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1920&q=80');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.07;
+    }
+
+    #calculators .section-inner { position: relative; z-index: 1; }
+
+    .calc-showcase-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+
+    .calc-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 32px;
+    }
+
+    .calc-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      transition: var(--transition);
+      text-decoration: none;
+    }
+    .calc-tag:hover {
+      background: rgba(37,99,235,0.15);
+      border-color: rgba(37,99,235,0.3);
+      color: var(--white);
+    }
+
+    .calc-tag-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Right: stacked glass cards */
+    .calc-cards-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .calc-showcase-card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: var(--transition);
+    }
+    .calc-showcase-card:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(37,99,235,0.3);
+      transform: translateX(4px);
+    }
+
+    .csc-icon {
+      width: 42px; height: 42px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .csc-body { flex: 1; min-width: 0; }
+    .csc-name { font-size: 0.88rem; font-weight: 700; color: var(--white); }
+    .csc-std { font-size: 0.72rem; color: rgba(255,255,255,0.4); }
+
+    .csc-arrow {
+      color: rgba(255,255,255,0.25);
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .calc-showcase-card:hover .csc-arrow { color: #60A5FA; transform: translateX(2px); }
+
+    /* ══════════════════════════════════════
+       FULLSCREEN IMAGE SECTION
+    ══════════════════════════════════════ */
+    #engineer-section {
+      position: relative;
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .engineer-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1920&q=80');
+      background-size: cover;
+      background-position: center 30%;
+    }
+    .engineer-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(15,23,42,0.92) 40%, rgba(15,23,42,0.4) 100%);
+    }
+
+    .engineer-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px;
+      max-width: 580px;
+      margin-left: max(24px, calc((100vw - 1200px) / 2 + 24px));
+    }
+
+    .engineer-quote {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.4;
+      margin: 24px 0 28px;
+    }
+
+    .engineer-quote span {
+      color: #60A5FA;
+    }
+
+    .engineer-checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .engineer-check {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .check-tick {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.2);
+      border: 1px solid rgba(34,197,94,0.3);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: #86EFAC;
+      font-size: 0.7rem;
+    }
+
+    /* ══════════════════════════════════════
+       HOW IT WORKS
+    ══════════════════════════════════════ */
+    #how {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      position: relative;
+    }
+
+    .how-grid::before {
+      content: '';
+      position: absolute;
+      top: 30px;
+      left: calc(16.6% + 24px);
+      right: calc(16.6% + 24px);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(37,99,235,0.4), transparent);
+    }
+
+    .how-card {
+      text-align: center;
+      padding: 32px 20px;
+      position: relative;
+    }
+
+    .how-num {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1E3A8A, #2563EB);
+      border: 1px solid rgba(37,99,235,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--white);
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 24px rgba(37,99,235,0.3);
+    }
+
+    .how-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+
+    .how-desc {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.65;
+    }
+
+    /* ══════════════════════════════════════
+       REPORTS & EXPORT
+    ══════════════════════════════════════ */
+    #reports {
+      background: var(--navy);
+    }
+
+    .reports-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .report-features {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 32px;
+    }
+
+    .report-feature {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .rf-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .rf-title { font-size: 0.9rem; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+    .rf-desc { font-size: 0.82rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+    /* PDF mockup */
+    .pdf-mockup {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    }
+
+    .pdf-header {
+      background: #1E3A8A;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pdf-title-block {}
+    .pdf-brand { font-size: 0.7rem; font-weight: 700; color: #93C5FD; letter-spacing: 0.05em; }
+    .pdf-doc-title { font-size: 0.9rem; font-weight: 700; color: var(--white); }
+    .pdf-status-pass {
+      background: rgba(34,197,94,0.2);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86EFAC;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 100px;
+    }
+
+    .pdf-meta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .pdf-meta-cell {
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .pdf-meta-label { font-size: 0.65rem; color: rgba(255,255,255,0.35); margin-bottom: 2px; }
+    .pdf-meta-value { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.85); }
+
+    .pdf-table-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 6px 10px;
+      background: rgba(37,99,235,0.15);
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #60A5FA;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    .pdf-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      align-items: center;
+    }
+    .pdf-row:nth-child(even) { background: rgba(255,255,255,0.03); }
+    .pdf-row-label { color: rgba(255,255,255,0.55); }
+    .pdf-row-value { color: rgba(255,255,255,0.9); font-weight: 600; text-align: right; }
+    .pdf-row-pass { color: #86EFAC; font-size: 0.68rem; font-weight: 700; }
+    .pdf-row-fail { color: #FCA5A5; font-size: 0.68rem; font-weight: 700; }
+
+    /* ══════════════════════════════════════
+       FREE 2026 SECTION
+    ══════════════════════════════════════ */
+    #pricing {
+      position: relative;
+      overflow: hidden;
+    }
+
+    #pricing::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(37,99,235,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .pricing-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 48px;
+      text-align: left;
+    }
+
+    .pricing-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-xl);
+      padding: 32px 28px;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .pricing-card.featured {
+      background: rgba(37,99,235,0.12);
+      border-color: rgba(37,99,235,0.4);
+      box-shadow: 0 0 0 1px rgba(37,99,235,0.2), 0 24px 64px rgba(37,99,235,0.2);
+    }
+
+    .pricing-featured-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #2563EB, #3B82F6);
+      color: var(--white);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 100px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+    }
+
+    .pricing-plan { font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .pricing-price {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .pricing-price sup { font-size: 1.2rem; font-weight: 700; vertical-align: super; }
+    .pricing-price .period { font-size: 0.9rem; font-weight: 500; color: rgba(255,255,255,0.4); }
+    .pricing-tagline { font-size: 0.82rem; color: rgba(255,255,255,0.45); margin-bottom: 24px; }
+
+    .pricing-divider { height: 1px; background: rgba(255,255,255,0.08); margin-bottom: 24px; }
+
+    .pricing-features { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .pf-item { display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: rgba(255,255,255,0.75); }
+    .pf-item svg { flex-shrink: 0; color: #60A5FA; }
+    .pf-item.dim { color: rgba(255,255,255,0.3); }
+    .pf-item.dim svg { color: rgba(255,255,255,0.2); }
+
+    .pricing-btn {
+      display: block;
+      text-align: center;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .pricing-btn.primary { background: var(--blue); color: var(--white); box-shadow: 0 4px 16px rgba(37,99,235,0.35); }
+    .pricing-btn.primary:hover { background: var(--blue-mid); transform: translateY(-1px); }
+    .pricing-btn.outline { background: transparent; border: 1.5px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+    .pricing-btn.outline:hover { border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+    /* ══════════════════════════════════════
+       FINAL CTA
+    ══════════════════════════════════════ */
+    #cta {
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .cta-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1920&q=80');
+      background-size: cover;
+      background-position: center;
+    }
+    .cta-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(37,99,235,0.4) 100%);
+    }
+
+    .cta-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 120px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .cta-glass {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 32px;
+      padding: 64px 56px;
+      max-width: 680px;
+      width: 100%;
+      box-shadow: 0 48px 96px rgba(0,0,0,0.4);
+    }
+
+    .cta-glass .section-title { font-size: clamp(1.6rem, 4vw, 2.4rem); text-align: center; }
+    .cta-glass .section-sub { text-align: center; margin: 0 auto 36px; }
+
+    .cta-free-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86EFAC;
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      letter-spacing: 0.02em;
+    }
+
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
+    #footer {
+      background: rgba(0,0,0,0.3);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 48px 24px 32px;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+
+    .footer-brand {}
+    .footer-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 14px; }
+    .footer-logo-name { font-size: 1rem; font-weight: 700; color: var(--white); }
+    .footer-tagline { font-size: 0.82rem; color: rgba(255,255,255,0.4); line-height: 1.6; max-width: 240px; margin-bottom: 20px; }
+
+    .footer-col-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); margin-bottom: 14px; }
+    .footer-links { display: flex; flex-direction: column; gap: 9px; }
+    .footer-links a { font-size: 0.84rem; color: rgba(255,255,255,0.55); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--white); }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .footer-copy { font-size: 0.78rem; color: rgba(255,255,255,0.3); }
+
+    .footer-standards {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .std-chip {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.35);
+      white-space: nowrap;
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      .hero-content { grid-template-columns: 1fr; gap: 40px; }
+      .hero-glass-card { max-width: 480px; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .calc-showcase-layout { grid-template-columns: 1fr; gap: 40px; }
+      .reports-layout { grid-template-columns: 1fr; gap: 40px; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 48px auto 0; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+    }
+
+    @media (max-width: 768px) {
+      section { padding: 64px 20px; }
+      .nav-links { display: none; }
+      .nav-cta .btn-outline { display: none; }
+      .nav-hamburger { display: flex; }
+
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .features-grid { grid-template-columns: 1fr; }
+      .how-grid { grid-template-columns: 1fr; }
+      .how-grid::before { display: none; }
+      .footer-top { grid-template-columns: 1fr; gap: 24px; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .footer-standards { justify-content: center; }
+      .cta-glass { padding: 40px 24px; }
+      .hero-actions { flex-direction: column; align-items: flex-start; }
+      .engineer-content { margin-left: 24px; padding: 60px 24px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title { font-size: 2rem; }
+      .stats-inner { grid-template-columns: 1fr 1fr; gap: 16px; }
+      .pricing-grid { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════ -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 30 30" fill="none">
+          <rect x="6" y="8" width="3" height="15" rx="1" fill="white"/>
+          <rect x="21" y="8" width="3" height="15" rx="1" fill="white"/>
+          <rect x="6" y="8" width="18" height="3" rx="1" fill="white"/>
+          <rect x="12" y="15" width="6" height="2.5" rx="1" fill="rgba(255,255,255,0.55)"/>
+        </svg>
+      </div>
+      <span class="nav-logo-name">BuildMetrics</span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#calculators">Calculators</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+    </ul>
+
+    <div class="nav-cta">
+      <a href="../login.html" class="btn btn-outline">Sign In</a>
+      <a href="../login.html" class="btn btn-primary">Get Started Free</a>
+    </div>
+
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile nav overlay -->
+<div id="mobile-nav">
+  <button class="mn-close" id="mn-close">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+  </button>
+  <a href="#features" onclick="closeMobileNav()">Features</a>
+  <a href="#calculators" onclick="closeMobileNav()">Calculators</a>
+  <a href="#how" onclick="closeMobileNav()">How It Works</a>
+  <a href="#pricing" onclick="closeMobileNav()">Pricing</a>
+  <a href="../login.html" style="color:#60A5FA;margin-top:8px">Get Started Free →</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     HERO
+════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-bg" id="hero-bg"></div>
+
+  <div class="hero-content">
+    <div class="hero-left">
+      <div class="hero-badge reveal">
+        <span class="hero-badge-dot"></span>
+        Free for all engineers in 2026
+      </div>
+
+      <h1 class="hero-title reveal reveal-delay-1">
+        Structural<br>Engineering<br>
+        <span class="accent">Made Simple.</span>
+      </h1>
+
+      <p class="hero-sub reveal reveal-delay-2">
+        Eurocode-compliant calculations for beams, columns, slabs, footings and more — all in your browser. No software to install. Professional PDF reports in one click.
+      </p>
+
+      <div class="hero-actions reveal reveal-delay-3">
+        <a href="../login.html" class="btn btn-primary-lg">
+          <svg width="17" height="17" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Start For Free
+        </a>
+        <a href="#calculators" class="btn btn-ghost-lg">See all calculators</a>
+      </div>
+
+      <div class="hero-social-proof reveal reveal-delay-4">
+        <div class="hero-avatars">
+          <div class="hero-avatar">CE</div>
+          <div class="hero-avatar">SE</div>
+          <div class="hero-avatar">MJ</div>
+          <div class="hero-avatar">AR</div>
+          <div class="hero-avatar" style="background:linear-gradient(135deg,#059669,#10B981)">+</div>
+        </div>
+        <p class="hero-social-text"><strong>Built for engineers</strong> — by engineers</p>
+      </div>
+    </div>
+
+    <div class="hero-right reveal reveal-delay-2">
+      <div class="hero-glass-card">
+        <div class="hgc-header">
+          <span class="hgc-title">Beam Design — B1</span>
+          <span class="hgc-badge">✓ PASS</span>
+        </div>
+
+        <div class="hgc-calc-list">
+          <div class="hgc-calc-item">
+            <div class="hgc-calc-left">
+              <div class="hgc-icon" style="background:rgba(37,99,235,0.2);">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="#60A5FA" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="#60A5FA" stroke-width="1.5" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>
+              </div>
+              <div>
+                <div class="hgc-calc-name">356×171 UB 51</div>
+                <div class="hgc-calc-std">EN 1993-1-1 (EC3)</div>
+              </div>
+            </div>
+            <span class="hgc-pass pass">✓ PASS</span>
+          </div>
+
+          <div class="hgc-calc-item">
+            <div class="hgc-calc-left">
+              <div class="hgc-icon" style="background:rgba(124,58,237,0.2);">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="18" rx="1.5" stroke="#A78BFA" stroke-width="1.8"/></svg>
+              </div>
+              <div>
+                <div class="hgc-calc-name">203×203 UC 60</div>
+                <div class="hgc-calc-std">EN 1993-1-1 (EC3)</div>
+              </div>
+            </div>
+            <span class="hgc-pass pass">✓ PASS</span>
+          </div>
+
+          <div class="hgc-calc-item">
+            <div class="hgc-calc-left">
+              <div class="hgc-icon" style="background:rgba(239,68,68,0.15);">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="1" stroke="#FCA5A5" stroke-width="1.8"/></svg>
+              </div>
+              <div>
+                <div class="hgc-calc-name">RC Slab — S3</div>
+                <div class="hgc-calc-std">EN 1992-1-1 (EC2)</div>
+              </div>
+            </div>
+            <span class="hgc-pass fail">✗ FAIL</span>
+          </div>
+        </div>
+
+        <div class="hgc-util">
+          <div class="hgc-util-label">
+            <span>Utilisation — Beam B1</span>
+            <span>76.4%</span>
+          </div>
+          <div class="hgc-util-bar">
+            <div class="hgc-util-fill" id="util-fill"></div>
+          </div>
+        </div>
+
+        <div class="hgc-actions">
+          <button class="hgc-action-btn primary">⬇ PDF Report</button>
+          <button class="hgc-action-btn secondary">📊 Excel</button>
+          <button class="hgc-action-btn secondary">💾 Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-scroll" onclick="document.getElementById('stats').scrollIntoView({behavior:'smooth'})">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+    Scroll
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     STATS BAR
+════════════════════════════════════════ -->
+<div id="stats">
+  <div class="stats-inner">
+    <div class="stat-item reveal">
+      <div class="stat-value">9+</div>
+      <div class="stat-label">Structural Calculators</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-1">
+      <div class="stat-value">5</div>
+      <div class="stat-label">Eurocode Standards</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-2">
+      <div class="stat-value">100%</div>
+      <div class="stat-label">Browser-Based</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-3">
+      <div class="stat-value">Free</div>
+      <div class="stat-label">For All of 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     FEATURES
+════════════════════════════════════════ -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-eyebrow reveal">Why BuildMetrics</div>
+      <h2 class="section-title reveal reveal-delay-1">Everything you need to<br>design with confidence</h2>
+      <p class="section-sub reveal reveal-delay-2">From quick checks to full project registers — built to the standards you work to every day.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon" style="background:rgba(37,99,235,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#60A5FA" stroke-width="1.8" stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="feature-title">Eurocode Compliant</h3>
+        <p class="feature-desc">All calculations follow EC2, EC3, EC5, EC7, and EN 1991 — with UK National Annex parameters built in.</p>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#34D399" stroke-width="1.8" stroke-linecap="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke="#34D399" stroke-width="1.6" stroke-linecap="round" d="M9 13h6M9 17h4"/></svg>
+        </div>
+        <h3 class="feature-title">Professional PDF Reports</h3>
+        <p class="feature-desc">One-click A4 PDF reports with all inputs, design checks, pass/fail status, and sign-off blocks — ready to submit.</p>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#FCD34D" stroke-width="1.8" stroke-linecap="round" d="M4 7h16M4 12h10M4 17h6"/><rect x="14" y="14" width="6" height="6" rx="1" stroke="#FCD34D" stroke-width="1.5"/></svg>
+        </div>
+        <h3 class="feature-title">Design Register</h3>
+        <p class="feature-desc">Save every calculation to a project, browse them all in the design register, and reload past results instantly.</p>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon" style="background:rgba(139,92,246,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#A78BFA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+        </div>
+        <h3 class="feature-title">Multi-Span Beams</h3>
+        <p class="feature-desc">Full 2-span, 3-span, and overhanging beam analysis using the three-moment theorem — BMD, SFD, and deflection.</p>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon" style="background:rgba(236,72,153,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#F472B6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        </div>
+        <h3 class="feature-title">Cost Estimation</h3>
+        <p class="feature-desc">Estimate material costs for your structural elements — steel, concrete, rebar, timber — and export a full cost report.</p>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon" style="background:rgba(6,182,212,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#22D3EE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+        </div>
+        <h3 class="feature-title">AI Assistant</h3>
+        <p class="feature-desc">Ask engineering questions, get code references, or check your design logic — your AI co-engineer is always on hand.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     CALCULATORS
+════════════════════════════════════════ -->
+<section id="calculators">
+  <div class="section-inner">
+    <div class="calc-showcase-layout">
+      <div>
+        <div class="section-eyebrow reveal">Structural Calculators</div>
+        <h2 class="section-title reveal reveal-delay-1">9 calculators.<br>One platform.</h2>
+        <p class="section-sub reveal reveal-delay-2">Every calc you reach for on a typical project — covered, compliant, and instantly accessible.</p>
+
+        <div class="calc-tags reveal reveal-delay-3">
+          <a href="../calcs/beam.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#3B82F6"></span> Beam Design
+          </a>
+          <a href="../calcs/column.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#8B5CF6"></span> Steel Column
+          </a>
+          <a href="../calcs/concrete-column.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#F59E0B"></span> Concrete Column
+          </a>
+          <a href="../calcs/rc-beam.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#EF4444"></span> RC Beam
+          </a>
+          <a href="../calcs/timber-column.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#10B981"></span> Timber Column
+          </a>
+          <a href="../calcs/slab.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#06B6D4"></span> RC Slab
+          </a>
+          <a href="../calcs/footing.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#EC4899"></span> Pad Footing
+          </a>
+          <a href="../calcs/retaining-wall.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#6366F1"></span> Retaining Wall
+          </a>
+          <a href="../calcs/connection.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#0EA5E9"></span> Connection Design
+          </a>
+        </div>
+      </div>
+
+      <div class="calc-cards-stack reveal reveal-delay-2">
+        <a href="../calcs/beam.html" class="calc-showcase-card">
+          <div class="csc-icon" style="background:rgba(37,99,235,0.2);">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="#60A5FA" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="#60A5FA" stroke-width="1.5" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>
+          </div>
+          <div class="csc-body">
+            <div class="csc-name">Beam Design</div>
+            <div class="csc-std">Steel & Timber — EC3 / EC5 · Multi-span support</div>
+          </div>
+          <svg class="csc-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        </a>
+
+        <a href="../calcs/rc-beam.html" class="calc-showcase-card">
+          <div class="csc-icon" style="background:rgba(239,68,68,0.15);">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="1.5" stroke="#FCA5A5" stroke-width="1.8"/><path stroke="#FCA5A5" stroke-width="1.3" stroke-dasharray="2 2" d="M3 12h18"/></svg>
+          </div>
+          <div class="csc-body">
+            <div class="csc-name">RC Beam</div>
+            <div class="csc-std">EC2 · Flexure, shear, deflection & crack control</div>
+          </div>
+          <svg class="csc-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        </a>
+
+        <a href="../calcs/concrete-column.html" class="calc-showcase-card">
+          <div class="csc-icon" style="background:rgba(245,158,11,0.15);">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5" stroke="#FCD34D" stroke-width="1.8"/><path stroke="#FCD34D" stroke-width="1.3" stroke-dasharray="2 2" d="M9 6v12M15 6v12M5 9h14M5 15h14"/></svg>
+          </div>
+          <div class="csc-body">
+            <div class="csc-name">Concrete Column</div>
+            <div class="csc-std">EC2 · Axial capacity + N-M interaction diagram</div>
+          </div>
+          <svg class="csc-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        </a>
+
+        <a href="../calcs/footing.html" class="calc-showcase-card">
+          <div class="csc-icon" style="background:rgba(16,185,129,0.15);">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="8" rx="1" stroke="#34D399" stroke-width="1.8"/><rect x="3" y="14" width="18" height="6" rx="1" stroke="#34D399" stroke-width="1.8"/><path stroke="#34D399" stroke-width="1.5" stroke-linecap="round" d="M12 12v2"/></svg>
+          </div>
+          <div class="csc-body">
+            <div class="csc-name">Pad Footing</div>
+            <div class="csc-std">EC2 / EC7 · Bearing, punching shear · Auto-size</div>
+          </div>
+          <svg class="csc-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        </a>
+
+        <a href="../calcs/connection.html" class="calc-showcase-card">
+          <div class="csc-icon" style="background:rgba(14,165,233,0.15);">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" stroke="#38BDF8" stroke-width="1.8"/><circle cx="5" cy="5" r="1.8" stroke="#38BDF8" stroke-width="1.5"/><circle cx="19" cy="5" r="1.8" stroke="#38BDF8" stroke-width="1.5"/><circle cx="5" cy="19" r="1.8" stroke="#38BDF8" stroke-width="1.5"/><circle cx="19" cy="19" r="1.8" stroke="#38BDF8" stroke-width="1.5"/><path stroke="#38BDF8" stroke-width="1.4" d="M6.5 6.5l4 4M13.5 13.5l4 4M17.5 6.5l-4 4M10.5 13.5l-4 4"/></svg>
+          </div>
+          <div class="csc-body">
+            <div class="csc-name">Connection Design</div>
+            <div class="csc-std">EC3 · Bolt groups & weld capacity checks</div>
+          </div>
+          <svg class="csc-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     ENGINEER FULLSCREEN IMAGE SECTION
+════════════════════════════════════════ -->
+<section id="engineer-section">
+  <div class="engineer-bg"></div>
+  <div class="engineer-content">
+    <div class="section-eyebrow reveal" style="color:#93C5FD">Built for the real world</div>
+    <h2 class="engineer-quote reveal reveal-delay-1">
+      Calculations that <span>check themselves</span> — so you can focus on the design.
+    </h2>
+    <div class="engineer-checklist reveal reveal-delay-2">
+      <div class="engineer-check">
+        <div class="check-tick">✓</div>
+        Every result references the relevant Eurocode clause
+      </div>
+      <div class="engineer-check">
+        <div class="check-tick">✓</div>
+        Pass / fail status on every check — at a glance
+      </div>
+      <div class="engineer-check">
+        <div class="check-tick">✓</div>
+        Printable reports with engineer sign-off blocks
+      </div>
+      <div class="engineer-check">
+        <div class="check-tick">✓</div>
+        Save, reload and share calcs across your project team
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════ -->
+<section id="how">
+  <div class="section-inner">
+    <div class="section-head" style="text-align:center">
+      <div class="section-eyebrow reveal" style="justify-content:center">How It Works</div>
+      <h2 class="section-title reveal reveal-delay-1" style="text-align:center">From sign-up to sign-off<br>in minutes</h2>
+    </div>
+
+    <div class="how-grid">
+      <div class="how-card reveal">
+        <div class="how-num">1</div>
+        <h3 class="how-title">Create a free account</h3>
+        <p class="how-desc">Sign up in under 30 seconds. No credit card, no software download — just your email and a password.</p>
+      </div>
+      <div class="how-card reveal reveal-delay-1">
+        <div class="how-num">2</div>
+        <h3 class="how-title">Run your calculations</h3>
+        <p class="how-desc">Select a calculator, enter your inputs, and hit Calculate. Results appear instantly with full workings shown.</p>
+      </div>
+      <div class="how-card reveal reveal-delay-2">
+        <div class="how-num">3</div>
+        <h3 class="how-title">Export & submit</h3>
+        <p class="how-desc">Download a professional PDF or Excel report. Save to your project register. Share with clients or checking engineers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     REPORTS
+════════════════════════════════════════ -->
+<section id="reports">
+  <div class="section-inner">
+    <div class="reports-layout">
+      <div>
+        <div class="section-eyebrow reveal">Reports & Exports</div>
+        <h2 class="section-title reveal reveal-delay-1">Reports your clients<br>will actually trust</h2>
+        <p class="section-sub reveal reveal-delay-2">Every calculation generates a clean, professional report. No post-processing. No formatting. Just download and submit.</p>
+
+        <div class="report-features">
+          <div class="report-feature reveal reveal-delay-1">
+            <div class="rf-icon" style="background:rgba(239,68,68,0.12);">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="#FCA5A5" stroke-width="1.8" stroke-linecap="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <div class="rf-title">A4 PDF Report</div>
+              <div class="rf-desc">Professional layout with your project name, calculation reference, all inputs, results, and engineer sign-off blocks.</div>
+            </div>
+          </div>
+
+          <div class="report-feature reveal reveal-delay-2">
+            <div class="rf-icon" style="background:rgba(16,185,129,0.12);">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="#34D399" stroke-width="1.8" stroke-linecap="round" d="M3 10h18M3 14h18M10 3v18M6 3h12a1 1 0 011 1v16a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/></svg>
+            </div>
+            <div>
+              <div class="rf-title">Excel / CSV Export</div>
+              <div class="rf-desc">Full structured data export — inputs, results, pass/fail status — ready to drop into your own spreadsheets.</div>
+            </div>
+          </div>
+
+          <div class="report-feature reveal reveal-delay-3">
+            <div class="rf-icon" style="background:rgba(37,99,235,0.12);">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="#60A5FA" stroke-width="1.8"/><path stroke="#60A5FA" stroke-width="1.5" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/></svg>
+            </div>
+            <div>
+              <div class="rf-title">Design Register</div>
+              <div class="rf-desc">Every saved calculation lives in your project register — searchable, filterable, and re-openable at any time.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-2">
+        <div class="pdf-mockup">
+          <div class="pdf-header">
+            <div class="pdf-title-block">
+              <div class="pdf-brand">BUILDMETRICS</div>
+              <div class="pdf-doc-title">Steel Column — Ground Floor</div>
+            </div>
+            <div class="pdf-status-pass">✓ PASS</div>
+          </div>
+
+          <div class="pdf-meta-row">
+            <div class="pdf-meta-cell">
+              <div class="pdf-meta-label">Project</div>
+              <div class="pdf-meta-value">Office Block Phase 2</div>
+            </div>
+            <div class="pdf-meta-cell">
+              <div class="pdf-meta-label">Standard</div>
+              <div class="pdf-meta-value">EN 1993-1-1 (EC3)</div>
+            </div>
+            <div class="pdf-meta-cell">
+              <div class="pdf-meta-label">Date</div>
+              <div class="pdf-meta-value">May 2026</div>
+            </div>
+            <div class="pdf-meta-cell">
+              <div class="pdf-meta-label">Reference</div>
+              <div class="pdf-meta-value">BM-A4X7K2</div>
+            </div>
+          </div>
+
+          <div class="pdf-table-head">
+            <span>Check / Result</span>
+            <span>Status</span>
+          </div>
+          <div class="pdf-row"><span class="pdf-row-label">Section: 203×203 UC 60</span><span class="pdf-row-value">—</span></div>
+          <div class="pdf-row"><span class="pdf-row-label">Applied Force NEd</span><span class="pdf-row-value">850 kN</span></div>
+          <div class="pdf-row"><span class="pdf-row-label">Buckling Resistance Nb,Rd</span><span class="pdf-row-value">1 124 kN</span></div>
+          <div class="pdf-row"><span class="pdf-row-label">Slenderness λ̄</span><span class="pdf-row-value">0.612</span></div>
+          <div class="pdf-row"><span class="pdf-row-label">Utilisation NEd / Nb,Rd</span><span class="pdf-row-value">75.6% <span class="pdf-row-pass">✓ PASS</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     PRICING
+════════════════════════════════════════ -->
+<section id="pricing">
+  <div class="pricing-inner">
+    <div class="section-eyebrow reveal" style="justify-content:center">Pricing</div>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center">Simple, transparent pricing.<br>Free for all of 2026.</h2>
+    <p class="section-sub reveal reveal-delay-2" style="text-align:center;margin:0 auto;">We're giving every engineer full access while we build and refine. No credit card needed.</p>
+
+    <div class="pricing-grid reveal reveal-delay-1">
+
+      <div class="pricing-card">
+        <div class="pricing-plan">Starter</div>
+        <div class="pricing-price">Free<span class="period"> / mo</span></div>
+        <div class="pricing-tagline">For individuals getting started</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 9 calculators</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> PDF & Excel reports</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> 3 active projects</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Design register</div>
+          <div class="pf-item dim"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Team sharing</div>
+          <div class="pf-item dim"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Priority support</div>
+        </div>
+        <a href="../login.html" class="pricing-btn outline">Get started free</a>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="pricing-featured-badge">⭐ Free for 2026</div>
+        <div class="pricing-plan">Professional</div>
+        <div class="pricing-price"><sup>£</sup>0<span class="period"> / mo in 2026</span></div>
+        <div class="pricing-tagline">Full access, no limits — all year</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 9 calculators</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> PDF & Excel reports</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited projects</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Design register + search</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Cost estimation tool</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> AI engineering assistant</div>
+        </div>
+        <a href="../login.html" class="pricing-btn primary">Start free — no card needed</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-plan">Team</div>
+        <div class="pricing-price"><sup>£</sup>?<span class="period"> / mo</span></div>
+        <div class="pricing-tagline">Coming in 2027 — join the waitlist</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Everything in Professional</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Team workspace</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Shared project registers</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Admin dashboard</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Priority support</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Custom templates</div>
+        </div>
+        <a href="mailto:hello@buildmetrics.io" class="pricing-btn outline">Join the waitlist</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     CTA
+════════════════════════════════════════ -->
+<section id="cta">
+  <div class="cta-bg"></div>
+  <div class="cta-content">
+    <div class="cta-glass reveal">
+      <div class="cta-free-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8v4l3 3"/></svg>
+        Free for all of 2026
+      </div>
+      <h2 class="section-title">Start designing with confidence today</h2>
+      <p class="section-sub" style="margin:0 auto 36px;">Join engineers already using BuildMetrics. No credit card, no setup, no limits — just sign up and start calculating.</p>
+      <div class="cta-actions">
+        <a href="../login.html" class="btn btn-primary-lg">
+          Create Free Account →
+        </a>
+        <a href="#calculators" class="btn btn-ghost-lg">View calculators</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     FOOTER
+════════════════════════════════════════ -->
+<footer id="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#hero" class="footer-logo">
+          <div class="nav-logo-icon">
+            <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
+              <rect x="6" y="8" width="3" height="15" rx="1" fill="white"/>
+              <rect x="21" y="8" width="3" height="15" rx="1" fill="white"/>
+              <rect x="6" y="8" width="18" height="3" rx="1" fill="white"/>
+              <rect x="12" y="15" width="6" height="2.5" rx="1" fill="rgba(255,255,255,0.55)"/>
+            </svg>
+          </div>
+          <span class="footer-logo-name">BuildMetrics</span>
+        </a>
+        <p class="footer-tagline">Professional Eurocode-compliant structural engineering calculations — free for all of 2026.</p>
+        <div class="footer-standards" style="flex-wrap:wrap;gap:6px;">
+          <span class="std-chip">EC2</span>
+          <span class="std-chip">EC3</span>
+          <span class="std-chip">EC5</span>
+          <span class="std-chip">EC7</span>
+          <span class="std-chip">EN 1991</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Calculators</div>
+        <div class="footer-links">
+          <a href="../calcs/beam.html">Beam Design</a>
+          <a href="../calcs/column.html">Steel Column</a>
+          <a href="../calcs/concrete-column.html">Concrete Column</a>
+          <a href="../calcs/rc-beam.html">RC Beam</a>
+          <a href="../calcs/timber-column.html">Timber Column</a>
+          <a href="../calcs/slab.html">RC Slab</a>
+          <a href="../calcs/footing.html">Pad Footing</a>
+          <a href="../calcs/retaining-wall.html">Retaining Wall</a>
+          <a href="../calcs/connection.html">Connection Design</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Platform</div>
+        <div class="footer-links">
+          <a href="../dashboard.html">Dashboard</a>
+          <a href="../projects.html">Projects</a>
+          <a href="../calcs/design-register.html">Design Register</a>
+          <a href="../cost-report.html">Cost Report</a>
+          <a href="../tools.html">Quick Tools</a>
+          <a href="../ai-assistant.html">AI Assistant</a>
+          <a href="../standards.html">Standards Library</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Company</div>
+        <div class="footer-links">
+          <a href="#">About</a>
+          <a href="#">Blog</a>
+          <a href="mailto:hello@buildmetrics.io">Contact</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+        <div class="footer-col-title" style="margin-top:24px;">Follow</div>
+        <div class="footer-links">
+          <a href="#">LinkedIn</a>
+          <a href="#">Twitter / X</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2026 BuildMetrics. All rights reserved. Results require verification by a licensed structural engineer.</p>
+      <div class="footer-standards">
+        <span class="std-chip">Eurocode Compliant</span>
+        <span class="std-chip">Browser-based</span>
+        <span class="std-chip">No install required</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+  /* ── Navbar scroll effect ── */
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  /* ── Mobile nav ── */
+  document.getElementById('nav-hamburger').addEventListener('click', () => {
+    document.getElementById('mobile-nav').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  });
+  document.getElementById('mn-close').addEventListener('click', closeMobileNav);
+  function closeMobileNav() {
+    document.getElementById('mobile-nav').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  /* ── Scroll reveal ── */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  /* ── Hero util bar animate ── */
+  const utilObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        document.getElementById('util-fill').style.width = '76.4%';
+        utilObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  const utilFill = document.getElementById('util-fill');
+  if (utilFill) utilObserver.observe(utilFill.closest('.hgc-util'));
+
+  /* ── Hero parallax bg ── */
+  const heroBg = document.getElementById('hero-bg');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY < window.innerHeight) {
+      heroBg.style.transform = `scale(1.05) translateY(${window.scrollY * 0.2}px)`;
+    }
+  }, { passive: true });
+
+  /* ── Smooth active nav highlight on scroll ── */
+  const sections = document.querySelectorAll('section[id], div[id="stats"]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(section => {
+      if (window.scrollY >= section.offsetTop - 100) {
+        current = section.id;
+      }
+    });
+    navLinks.forEach(link => {
+      link.style.color = link.getAttribute('href') === '#' + current
+        ? '#fff'
+        : '';
+      link.style.background = link.getAttribute('href') === '#' + current
+        ? 'rgba(255,255,255,0.08)'
+        : '';
+    });
+  }, { passive: true });
+</script>
+</body>
+</html>
