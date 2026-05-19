@@ -81,6 +81,9 @@
   }
   </script>
 
+  <!-- Lenis smooth scroll -->
+  <script src="https://unpkg.com/lenis@1.1.16/dist/lenis.min.js"></script>
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3433,27 +3436,25 @@
     });
   }, { passive: true });
 
-  /* ── Fluid scroll ── */
+  /* ── Lenis smooth scroll ── */
+  const lenis = new Lenis({
+    duration: 3,
+    lerp: 0.03,
+    smoothWheel: true,
+    wheelMultiplier: 1
+  });
+
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  /* Helper for programmatic scrolls (hero button, mobile nav links) */
   function fluidScrollTo(target) {
     const el = typeof target === 'string' ? document.querySelector(target) : target;
     if (!el) return;
-    const navH = document.getElementById('navbar').offsetHeight;
-    const start = window.scrollY;
-    const end = el.getBoundingClientRect().top + start - navH;
-    const duration = Math.min(Math.max(Math.abs(end - start) * 0.4, 400), 1000);
-    const startTime = performance.now();
-
-    function easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    }
-
-    function step(now) {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      window.scrollTo(0, start + (end - start) * easeInOutCubic(progress));
-      if (progress < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
+    lenis.scrollTo(el, { offset: -document.getElementById('navbar').offsetHeight });
   }
 
   /* Intercept all in-page anchor clicks */
