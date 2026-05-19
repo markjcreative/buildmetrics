@@ -2197,6 +2197,139 @@
       .who-grid { grid-template-columns: 1fr; }
     }
 
+    /* ── Waitlist Modal ── */
+    #waitlist-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #waitlist-overlay.open { display: flex; }
+
+    .wl-modal {
+      background: #1E293B;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+      animation: wl-in 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes wl-in {
+      from { opacity: 0; transform: scale(0.92) translateY(16px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .wl-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+    }
+    .wl-close:hover { background: rgba(255,255,255,0.13); color: #fff; }
+    .wl-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.3);
+      border-radius: 100px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #60A5FA;
+      margin-bottom: 16px;
+    }
+    .wl-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 8px;
+      letter-spacing: -0.03em;
+    }
+    .wl-sub {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .wl-form { display: flex; flex-direction: column; gap: 14px; }
+    .wl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .wl-field { display: flex; flex-direction: column; gap: 5px; }
+    .wl-field label { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+    .wl-field input, .wl-field select {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 0.92rem;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+      box-sizing: border-box;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .wl-field input::placeholder { color: rgba(255,255,255,0.25); }
+    .wl-field input:focus, .wl-field select:focus { border-color: rgba(59,130,246,0.6); }
+    .wl-field select option { background: #1E293B; color: #fff; }
+    .wl-submit {
+      margin-top: 6px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .wl-submit:hover { background: #2563EB; transform: translateY(-1px); }
+    .wl-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .wl-success {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px 0 8px;
+      gap: 12px;
+    }
+    .wl-success-icon {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: rgba(16,185,129,0.15);
+      border: 2px solid rgba(16,185,129,0.4);
+      display: flex; align-items: center; justify-content: center;
+      color: #34D399;
+    }
+    .wl-success h3 { font-size: 1.3rem; font-weight: 800; color: #fff; }
+    .wl-success p { font-size: 0.88rem; color: rgba(255,255,255,0.5); line-height: 1.6; max-width: 300px; }
+    .wl-error { font-size: 0.82rem; color: #F87171; margin-top: -6px; display: none; }
+    @media (max-width: 500px) {
+      .wl-modal { padding: 28px 20px; }
+      .wl-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -2227,8 +2360,8 @@
     </ul>
 
     <div class="nav-cta">
-      <a href="../login.html" class="btn btn-outline">Sign In</a>
-      <a href="../login.html" class="btn btn-primary">Get Started Free</a>
+      <a href="mailto:support@buildmetrics.uk" class="btn btn-outline">Sign In</a>
+      <a href="#" onclick="openWaitlist();return false;" class="btn btn-primary">Get Started Free</a>
     </div>
 
     <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
@@ -2317,8 +2450,8 @@
   </nav>
 
   <div class="mn-footer">
-    <a href="../login.html" class="btn btn-primary">Get Started Free</a>
-    <a href="../login.html" class="btn btn-outline">Sign In</a>
+    <a href="#" onclick="openWaitlist();return false;" class="btn btn-primary">Get Started Free</a>
+    <a href="mailto:support@buildmetrics.uk" class="btn btn-outline">Sign In</a>
   </div>
 </div>
 
@@ -2345,7 +2478,7 @@
       </p>
 
       <div class="hero-actions reveal reveal-delay-3">
-        <a href="../login.html" class="btn btn-primary-lg">
+        <a href="#" onclick="openWaitlist();return false;" class="btn btn-primary-lg">
           <svg width="17" height="17" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
           Start For Free
         </a>
@@ -3207,7 +3340,7 @@
           <div class="pf-item dim"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Team sharing</div>
           <div class="pf-item dim"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Priority support</div>
         </div>
-        <a href="../login.html" class="pricing-btn outline">Get started free</a>
+        <a href="#" onclick="openWaitlist();return false;" class="pricing-btn outline">Get started free</a>
       </div>
 
       <div class="pricing-card featured">
@@ -3224,7 +3357,7 @@
           <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Cost estimation tool</div>
           <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> AI engineering assistant</div>
         </div>
-        <a href="../login.html" class="pricing-btn primary">Start free — no card needed</a>
+        <a href="#" onclick="openWaitlist();return false;" class="pricing-btn primary">Start free — no card needed</a>
       </div>
 
       <div class="pricing-card">
@@ -3240,7 +3373,7 @@
           <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Priority support</div>
           <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Custom templates</div>
         </div>
-        <a href="mailto:hello@buildmetrics.io" class="pricing-btn outline">Join the waitlist</a>
+        <a href="#" onclick="openWaitlist();return false;" class="pricing-btn outline">Join the waitlist</a>
       </div>
 
     </div>
@@ -3261,7 +3394,7 @@
       <h2 class="section-title">Start designing with confidence today</h2>
       <p class="section-sub" style="margin:0 auto 36px;">Join engineers already using BuildMetrics. No credit card, no setup, no limits — just sign up and start calculating.</p>
       <div class="cta-actions">
-        <a href="../login.html" class="btn btn-primary-lg">
+        <a href="#" onclick="openWaitlist();return false;" class="btn btn-primary-lg">
           Create Free Account →
         </a>
         <a href="#calculators" class="btn btn-ghost-lg">View calculators</a>
@@ -3331,7 +3464,7 @@
         <div class="footer-links">
           <a href="#">About</a>
           <a href="#">Blog</a>
-          <a href="mailto:hello@buildmetrics.io">Contact</a>
+          <a href="mailto:support@buildmetrics.uk">Contact</a>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms of Service</a>
         </div>
@@ -3468,6 +3601,123 @@
       fluidScrollTo(target);
     });
   });
+</script>
+
+<!-- ── Waitlist Modal ── -->
+<div id="waitlist-overlay" role="dialog" aria-modal="true" aria-label="Join the waitlist">
+  <div class="wl-modal">
+    <button class="wl-close" onclick="closeWaitlist()" aria-label="Close">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+
+    <div id="wl-form-wrap">
+      <div class="wl-badge">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+        Early Access
+      </div>
+      <div class="wl-title">Join the BuildMetrics<br>Waitlist</div>
+      <p class="wl-sub">Be first in line when we open access. We'll notify you as soon as your spot is ready.</p>
+
+      <form class="wl-form" id="wl-form" onsubmit="submitWaitlist(event)">
+        <div class="wl-row">
+          <div class="wl-field">
+            <label for="wl-name">Full Name *</label>
+            <input id="wl-name" name="name" type="text" placeholder="Jane Smith" required />
+          </div>
+          <div class="wl-field">
+            <label for="wl-email">Work Email *</label>
+            <input id="wl-email" name="email" type="email" placeholder="jane@firm.co.uk" required />
+          </div>
+        </div>
+        <div class="wl-row">
+          <div class="wl-field">
+            <label for="wl-company">Company / Practice</label>
+            <input id="wl-company" name="company" type="text" placeholder="Smith Engineers Ltd" />
+          </div>
+          <div class="wl-field">
+            <label for="wl-role">Your Role</label>
+            <select id="wl-role" name="role">
+              <option value="">Select role…</option>
+              <option>Structural Engineer</option>
+              <option>Civil Engineer</option>
+              <option>Chartered Engineer</option>
+              <option>Graduate Engineer</option>
+              <option>Consulting Engineer</option>
+              <option>Project Manager</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <p class="wl-error" id="wl-error"></p>
+        <button class="wl-submit" type="submit" id="wl-submit">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Join the Waitlist
+        </button>
+        <p style="font-size:0.75rem;color:rgba(255,255,255,0.3);text-align:center;margin-top:4px">No spam. Unsubscribe any time.</p>
+      </form>
+    </div>
+
+    <div class="wl-success" id="wl-success">
+      <div class="wl-success-icon">
+        <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h3>You're on the list!</h3>
+      <p>Thanks for signing up. We'll email you at <strong id="wl-confirmed-email"></strong> as soon as your access is ready.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openWaitlist() {
+    document.getElementById('waitlist-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (typeof lenis !== 'undefined') lenis.stop();
+  }
+  function closeWaitlist() {
+    document.getElementById('waitlist-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+    if (typeof lenis !== 'undefined') lenis.start();
+  }
+  document.getElementById('waitlist-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeWaitlist();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeWaitlist();
+  });
+
+  async function submitWaitlist(e) {
+    e.preventDefault();
+    const btn = document.getElementById('wl-submit');
+    const err = document.getElementById('wl-error');
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    const data = {
+      name:    document.getElementById('wl-name').value.trim(),
+      email:   document.getElementById('wl-email').value.trim(),
+      company: document.getElementById('wl-company').value.trim(),
+      role:    document.getElementById('wl-role').value,
+    };
+
+    try {
+      const res = await fetch('/api/waitlist.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Something went wrong.');
+      document.getElementById('wl-confirmed-email').textContent = data.email;
+      document.getElementById('wl-form-wrap').style.display = 'none';
+      document.getElementById('wl-success').style.display = 'flex';
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Join the Waitlist';
+    }
+  }
 </script>
 </body>
 </html>
