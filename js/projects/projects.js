@@ -1,102 +1,77 @@
 /**
- * projects.js — Project management using localStorage
- * BuildMetrics | Client-side only
+ * projects.js — Project management backed by MySQL via /api/projects.php
  */
 
 const Projects = (() => {
-    const STORE_KEY = 'bcp_projects';
+    const API = '/api/projects.php';
 
-    function _all() {
-        try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
-        catch { return []; }
+    function headers() { return Auth.authHeaders(); }
+
+    /* ── Fetch all projects ──────────────────────────────────── */
+    async function getAll() {
+        const res = await fetch(API, { headers: headers() });
+        if (!res.ok) return [];
+        return res.json();
     }
 
-    function _save(projects) {
-        localStorage.setItem(STORE_KEY, JSON.stringify(projects));
+    /* ── Get single project ──────────────────────────────────── */
+    async function get(id) {
+        const all = await getAll();
+        return all.find(p => p.id === id) || null;
     }
 
-    function _userId() {
-        const u = Auth.currentUser();
-        return u ? u.id : null;
+    /* ── Create project ──────────────────────────────────────── */
+    async function create(name, description = '', colour = '#2563EB') {
+        const res  = await fetch(API, {
+            method: 'POST', headers: headers(),
+            body: JSON.stringify({ name, description, colour }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Failed to create project');
+        return json;
     }
 
-    function list() {
-        const uid = _userId();
-        return _all().filter(p => p.ownerId === uid).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    /* ── Update project ──────────────────────────────────────── */
+    async function update(id, updates) {
+        const res  = await fetch(`${API}?id=${id}`, {
+            method: 'PUT', headers: headers(), body: JSON.stringify(updates),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Failed to update project');
+        return json;
     }
 
-    function get(id) {
-        return _all().find(p => p.id === id) || null;
+    /* ── Delete project ──────────────────────────────────────── */
+    async function remove(id) {
+        const res = await fetch(`${API}?id=${id}`, { method: 'DELETE', headers: headers() });
+        if (!res.ok) { const j = await res.json(); throw new Error(j.error); }
+        return true;
     }
 
-    function create(name, description = '') {
-        const uid = _userId();
-        if (!uid) throw new Error('Not logged in.');
-        if (!name.trim()) throw new Error('Project name is required.');
-
-        const project = {
-            id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-            ownerId: uid,
-            name: name.trim(),
-            description: description.trim(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        const all = _all();
-        all.push(project);
-        _save(all);
-        return project;
-    }
-
-    function update(id, updates) {
-        const all = _all();
-        const idx = all.findIndex(p => p.id === id);
-        if (idx === -1) throw new Error('Project not found.');
-        if (all[idx].ownerId !== _userId()) throw new Error('Not authorized.');
-        if (updates.name !== undefined) all[idx].name = updates.name.trim();
-        if (updates.description !== undefined) all[idx].description = updates.description.trim();
-        if (updates.color !== undefined) all[idx].color = updates.color;
-        all[idx].updatedAt = new Date().toISOString();
-        _save(all);
-        return all[idx];
-    }
-
-    function remove(id) {
-        const all = _all();
-        const project = all.find(p => p.id === id);
-        if (project && project.ownerId !== _userId()) throw new Error('Not authorized.');
-        // Also remove all calculations for this project
-        History.deleteByProject(id);
-        _save(all.filter(p => p.id !== id));
-    }
-
-    function setActive(id) {
-        try {
-            const session = JSON.parse(localStorage.getItem('bcp_session'));
-            if (session) { session.activeProjectId = id; localStorage.setItem('bcp_session', JSON.stringify(session)); }
-        } catch { }
-    }
-
+    /* ── Active project helpers (still uses session for current selection) ── */
     function getActiveId() {
+        try { return JSON.parse(localStorage.getItem('bm_user'))?.activeProjectId || null; }
+        catch { return null; }
+    }
+
+    function setActiveId(id) {
         try {
-            const session = JSON.parse(localStorage.getItem('bcp_session'));
-            return session ? session.activeProjectId : null;
-        } catch { return null; }
+            const u = JSON.parse(localStorage.getItem('bm_user')) || {};
+            u.activeProjectId = id;
+            localStorage.setItem('bm_user', JSON.stringify(u));
+        } catch {}
     }
 
-    function getActive() {
+    async function setActive(id) {
+        setActiveId(id);
+    }
+
+    async function getActive() {
         const id = getActiveId();
-        return id ? get(id) : null;
+        return id ? await get(id) : null;
     }
 
-    function touch(id) {
-        // Update the project's updatedAt timestamp
-        const all = _all();
-        const idx = all.findIndex(p => p.id === id);
-        if (idx !== -1) { all[idx].updatedAt = new Date().toISOString(); _save(all); }
-    }
-
-    return { list, get, create, update, remove, setActive, getActiveId, getActive, touch };
+    return { getAll, get, create, update, remove, setActive, getActive, getActiveId, setActiveId };
 })();
 
 window.Projects = Projects;

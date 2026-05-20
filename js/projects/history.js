@@ -1,67 +1,62 @@
 /**
- * history.js — Calculation history management using localStorage
- * BuildMetrics | Client-side only
+ * history.js — Calculation history backed by MySQL via /api/calculations.php
  */
 
-const History = (() => {
-    const STORE_KEY = 'bcp_history';
+const CalcHistory = (() => {
+    const API = '/api/calculations.php';
 
-    function _all() {
-        try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
-        catch { return []; }
+    function headers() { return Auth.authHeaders(); }
+
+    /* ── List calculations ───────────────────────────────────── */
+    async function getAll({ project_id, type } = {}) {
+        let url = API;
+        const params = new URLSearchParams();
+        if (project_id) params.set('project_id', project_id);
+        if (type)       params.set('type', type);
+        if ([...params].length) url += '?' + params.toString();
+        const res = await fetch(url, { headers: headers() });
+        if (!res.ok) return [];
+        return res.json();
     }
 
-    function _save(items) {
-        localStorage.setItem(STORE_KEY, JSON.stringify(items));
+    /* ── Save (create or update) ─────────────────────────────── */
+    async function save({ id, calc_type, name, inputs, results, project_id } = {}) {
+        const res  = await fetch(API, {
+            method: 'POST', headers: headers(),
+            body: JSON.stringify({ id, calc_type, name, inputs, results, project_id }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Failed to save calculation');
+        return json;
     }
 
-    function list(projectId) {
-        return _all()
-            .filter(h => h.projectId === projectId)
-            .sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+    /* ── Update ──────────────────────────────────────────────── */
+    async function update(id, updates) {
+        const res = await fetch(`${API}?id=${id}`, {
+            method: 'PUT', headers: headers(), body: JSON.stringify(updates),
+        });
+        return res.ok;
     }
 
-    function get(calcId) {
-        return _all().find(h => h.id === calcId) || null;
+    /* ── Delete one ──────────────────────────────────────────── */
+    async function remove(id) {
+        const res = await fetch(`${API}?id=${id}`, { method: 'DELETE', headers: headers() });
+        return res.ok;
     }
 
-    function save(projectId, name, config, results, summary) {
-        const all = _all();
-        const calc = {
-            id: 'calc_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-            projectId,
-            name: name.trim() || 'Untitled Calculation',
-            savedAt: new Date().toISOString(),
-            config: JSON.parse(JSON.stringify(config)),   // deep clone
-            results: JSON.parse(JSON.stringify(results)), // deep clone
-            summary: summary || {}
-        };
-        all.push(calc);
-        _save(all);
-        // Touch the parent project's updatedAt
-        if (window.Projects) Projects.touch(projectId);
-        return calc;
+    /* ── Clear all history ───────────────────────────────────── */
+    async function clear() {
+        const res = await fetch(`${API}?clear=1`, { method: 'DELETE', headers: headers() });
+        return res.ok;
     }
 
-    function remove(calcId) {
-        const calc = _all().find(h => h.id === calcId);
-        if (calc && window.Projects) {
-            const project = Projects.get(calc.projectId);
-            const uid = window.Auth ? Auth.currentUser()?.id : null;
-            if (project && uid && project.ownerId !== uid) throw new Error('Not authorized.');
-        }
-        _save(_all().filter(h => h.id !== calcId));
+    /* ── Count ───────────────────────────────────────────────── */
+    async function count() {
+        const all = await getAll();
+        return all.length;
     }
 
-    function deleteByProject(projectId) {
-        _save(_all().filter(h => h.projectId !== projectId));
-    }
-
-    function count(projectId) {
-        return _all().filter(h => h.projectId === projectId).length;
-    }
-
-    return { list, get, save, remove, deleteByProject, count };
+    return { getAll, save, update, remove, clear, count };
 })();
 
-window.History = History;
+window.CalcHistory = CalcHistory;

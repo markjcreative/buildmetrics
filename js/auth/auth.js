@@ -1,198 +1,121 @@
 /**
- * auth.js — Client-side authentication using SubtleCrypto + localStorage
- * BuildMetrics | No backend required
+ * auth.js — API-backed authentication for BuildMetrics
+ * All user data stored in MySQL via /api/auth.php
  */
 
 const Auth = (() => {
-    const USERS_KEY = 'bcp_users';
-    const SESSION_KEY = 'bcp_session';
+    const SESSION_KEY = 'bm_token';
+    const USER_KEY    = 'bm_user';
+    const API         = '/api/auth.php';
 
-    /* ── Crypto ──────────────────────────────────────────────── */
-    function generateSalt() {
-        return Array.from(crypto.getRandomValues(new Uint8Array(16)))
-            .map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    const GOOGLE_CLIENT_ID = '440038191618-he1pm3lglml6r6trivqce2q6u8sjbon8.apps.googleusercontent.com';
 
-    async function hashPassword(password, salt) {
-        // Fallback to legacy salt for existing accounts that predate per-user salts
-        const effectiveSalt = salt || 'bcp_salt_v1';
-        const encoder = new TextEncoder();
-        const data = encoder.encode(password + effectiveSalt);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    /* ── Token helpers ───────────────────────────────────────── */
+    function getToken()       { return localStorage.getItem(SESSION_KEY) || ''; }
+    function setToken(t)      { localStorage.setItem(SESSION_KEY, t); }
+    function clearSession()   { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(USER_KEY); }
 
-    /* ── User Store ──────────────────────────────────────────── */
-    function getUsers() {
-        try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); }
-        catch { return []; }
-    }
-
-    function saveUsers(users) {
-        localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
-
-    /* ── Auth Actions ────────────────────────────────────────── */
-    async function register(email, password, name) {
-        const users = getUsers();
-        const exists = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-        if (exists) throw new Error('An account with this email already exists.');
-        if (password.length < 6) throw new Error('Password must be at least 6 characters.');
-
-        const salt = generateSalt();
-        const hash = await hashPassword(password, salt);
-        const user = {
-            id: 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-            email: email.toLowerCase().trim(),
-            name: name.trim(),
-            hash,
-            salt,
-            designation: '',
-            company: '',
-            createdAt: new Date().toISOString()
-        };
-        users.push(user);
-        saveUsers(users);
-        _setSession(user);
-        // Fire welcome email (non-blocking — doesn't affect registration flow)
-        fetch('/api/send-email.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'welcome', to: user.email, name: user.name }),
-        }).catch(() => {});
-        return user;
-    }
-
-    async function login(email, password) {
-        const users = getUsers();
-        const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase().trim());
-        if (idx === -1) throw new Error('No account found with this email address.');
-        const user = users[idx];
-        const hash = await hashPassword(password, user.salt);
-        if (hash !== user.hash) throw new Error('Incorrect password. Please try again.');
-
-        // Transparently migrate legacy accounts (no per-user salt) on successful login
-        if (!user.salt) {
-            const newSalt = generateSalt();
-            users[idx].salt = newSalt;
-            users[idx].hash = await hashPassword(password, newSalt);
-            saveUsers(users);
-        }
-
-        _setSession(users[idx]);
-        return users[idx];
-    }
-
-    function logout() {
-        localStorage.removeItem(SESSION_KEY);
-        window.location.href = '/login';
-    }
-
-    function currentUser() {
-        try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
+    function setUser(u)       { localStorage.setItem(USER_KEY, JSON.stringify(u)); }
+    function currentUser()    {
+        try { return JSON.parse(localStorage.getItem(USER_KEY)); }
         catch { return null; }
     }
 
+    function authHeaders() {
+        return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() };
+    }
+
+    async function apiPost(action, data) {
+        const res  = await fetch(`${API}?action=${action}`, {
+            method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Request failed');
+        return json;
+    }
+
+    /* ── Register ────────────────────────────────────────────── */
+    async function register(email, password, name) {
+        const data = await apiPost('register', { email, password, name });
+        setToken(data.token);
+        setUser(data.user);
+        // Welcome email (non-blocking)
+        fetch('/api/send-email.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'welcome', to: data.user.email, name: data.user.name }),
+        }).catch(() => {});
+        return data.user;
+    }
+
+    /* ── Login ───────────────────────────────────────────────── */
+    async function login(email, password) {
+        const data = await apiPost('login', { email, password });
+        setToken(data.token);
+        setUser(data.user);
+        return data.user;
+    }
+
+    /* ── Google Sign-In ──────────────────────────────────────── */
+    async function loginWithGoogle(credential) {
+        const data = await apiPost('google', { credential });
+        setToken(data.token);
+        setUser(data.user);
+        if (data.is_new) {
+            fetch('/api/send-email.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'welcome', to: data.user.email, name: data.user.name }),
+            }).catch(() => {});
+        }
+        return { user: data.user, isNew: data.is_new };
+    }
+
+    /* ── Logout ──────────────────────────────────────────────── */
+    async function logout() {
+        try {
+            await fetch(`${API}?action=logout`, { method: 'POST', headers: authHeaders() });
+        } catch (_) {}
+        clearSession();
+        window.location.href = '/login';
+    }
+
+    /* ── Guard ───────────────────────────────────────────────── */
     function guard() {
-        if (!currentUser()) {
+        if (!getToken() || !currentUser()) {
             window.location.href = '/login';
             return false;
         }
         return true;
     }
 
-    function _setSession(user) {
-        // Store a safe copy (no hash) as the session
-        const { hash, ...safeUser } = user;
-        localStorage.setItem(SESSION_KEY, JSON.stringify(safeUser));
-    }
-
-    /* ── Profile Update ──────────────────────────────────────── */
+    /* ── Profile update ──────────────────────────────────────── */
     async function updateProfile(updates) {
-        const session = currentUser();
-        if (!session) throw new Error('Not logged in.');
-        const users = getUsers();
-        const idx = users.findIndex(u => u.id === session.id);
-        if (idx === -1) throw new Error('User not found.');
-
-        const allowed = ['name', 'designation', 'company'];
-        allowed.forEach(k => { if (updates[k] !== undefined) users[idx][k] = updates[k]; });
-        saveUsers(users);
-        _setSession(users[idx]);
-        return users[idx];
+        const data = await apiPost('update', updates);
+        setUser(data);
+        return data;
     }
 
-    async function resetPassword(oldPassword, newPassword) {
-        const session = currentUser();
-        if (!session) throw new Error('Not logged in.');
-        const users = getUsers();
-        const idx = users.findIndex(u => u.id === session.id);
-        if (idx === -1) throw new Error('User not found.');
-
-        const oldHash = await hashPassword(oldPassword, users[idx].salt);
-        if (oldHash !== users[idx].hash) throw new Error('Current password is incorrect.');
-        if (newPassword.length < 6) throw new Error('New password must be at least 6 characters.');
-
-        const newSalt = generateSalt();
-        users[idx].salt = newSalt;
-        users[idx].hash = await hashPassword(newPassword, newSalt);
-        saveUsers(users);
-        return true;
+    /* ── Refresh user from server ────────────────────────────── */
+    async function refreshUser() {
+        const res  = await fetch(`${API}?action=me`, { headers: authHeaders() });
+        const json = await res.json();
+        if (!res.ok) { clearSession(); window.location.href = '/login'; return null; }
+        setUser(json);
+        return json;
     }
 
-    /* ── Google Sign-In ──────────────────────────────────────── */
-    async function loginWithGoogle(credential) {
-        const res = await fetch('/api/google-auth.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ credential }),
-        });
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-
-        // Find or create account in localStorage
-        const users = getUsers();
-        let idx = users.findIndex(u => u.email.toLowerCase() === data.email.toLowerCase());
-        const isNew = idx === -1;
-
-        if (isNew) {
-            const user = {
-                id: data.id,
-                email: data.email,
-                name: data.name,
-                picture: data.picture,
-                provider: 'google',
-                designation: '',
-                company: '',
-                createdAt: new Date().toISOString(),
-            };
-            users.push(user);
-            saveUsers(users);
-            _setSession(user);
-            // Fire welcome email (non-blocking)
-            sendEmail('welcome', data.email, data.name).catch(() => {});
-            return { user, isNew: true };
-        } else {
-            // Keep profile picture in sync
-            users[idx].picture = data.picture;
-            users[idx].provider = users[idx].provider || 'google';
-            saveUsers(users);
-            _setSession(users[idx]);
-            return { user: users[idx], isNew: false };
-        }
-    }
-
-    /* ── Transactional Email (Resend) ────────────────────────── */
+    /* ── Email helper ────────────────────────────────────────── */
     async function sendEmail(type, to, name, extras = {}) {
         return fetch('/api/send-email.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type, to, name, ...extras }),
         }).then(r => r.json());
     }
 
-    return { register, login, logout, currentUser, guard, updateProfile, resetPassword, loginWithGoogle, sendEmail };
+    return {
+        register, login, loginWithGoogle, logout, guard,
+        currentUser, updateProfile, refreshUser, sendEmail,
+        getToken, authHeaders,
+    };
 })();
 
 window.Auth = Auth;
