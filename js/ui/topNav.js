@@ -22,7 +22,7 @@ const TopNav = (() => {
     // Auth guard
     const user = window.Auth ? Auth.currentUser() : null;
     if (!opts.skipAuth && !user) {
-      window.location.href = '/login.html';
+      window.location.href = '/login';
       return;
     }
 

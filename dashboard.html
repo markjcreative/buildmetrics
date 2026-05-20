@@ -509,7 +509,7 @@ const PROJECT_COLORS = ['#2563EB','#16A34A','#D97706','#7C3AED','#DC2626','#0891
 document.addEventListener('DOMContentLoaded', function() {
   TopNav.init();
   const user = Auth.currentUser();
-  if (!user) return;
+  if (!user) { window.location.href = '/login'; return; }
 
   // Greeting
   const hour = new Date().getHours();

@@ -120,7 +120,7 @@
   </div>
 
   <script>
-    if (Auth.currentUser()) window.location.href = '/dashboard.html';
+    if (Auth.currentUser()) window.location.href = '/dashboard';
 
     // Pre-fill email if redirected from login page
     const _urlEmail = new URLSearchParams(window.location.search).get('email');
@@ -147,7 +147,7 @@
       btn.disabled = true; btn.textContent = 'Creating account…';
       try {
         await Auth.register(email, password, name);
-        window.location.href = '/dashboard.html';
+        window.location.href = '/dashboard';
       } catch (e) {
         showAlert(e.message);
         btn.disabled = false; btn.textContent = 'Create Free Account →';
@@ -159,7 +159,7 @@
       btn.disabled = true; btn.textContent = 'Signing up…';
       try {
         await Auth.loginWithGoogle(response.credential);
-        window.location.href = '/dashboard.html';
+        window.location.href = '/dashboard';
       } catch (e) {
         showAlert(e.message || 'Google sign-up failed.');
         btn.disabled = false;
