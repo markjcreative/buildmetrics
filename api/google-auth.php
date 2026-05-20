@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ── CONFIG ─────────────────────────────────────────────────────────────────
-$GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';   // ← paste your Client ID here
+$GOOGLE_CLIENT_ID = '440038191618-he1pm3lglml6r6trivqce2q6u8sjbon8.apps.googleusercontent.com';   // ← paste your Client ID here
 // ───────────────────────────────────────────────────────────────────────────
 
 $body = json_decode(file_get_contents('php://input'), true);
