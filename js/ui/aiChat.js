@@ -1,5 +1,5 @@
 /* BuildMetrics — AI Engineering Assistant Chat Widget
-   Glassmorphism trigger card + full chat panel.
+   Single glassmorphism card: compact trigger → expands inline to full chat.
    Call AIChat.init() once after TopNav.init().
 */
 const AIChat = (() => {
@@ -53,117 +53,122 @@ const AIChat = (() => {
     ).join('');
 
     root.innerHTML =
-      /* ── Glassmorphism trigger card ── */
-      '<div id="ai-card" role="button" tabindex="0" aria-label="Open AI Engineering Assistant">' +
+      /* ── Single glassmorphism card — two views inside ── */
+      '<div id="ai-card">' +
         '<div class="ai-card-glow"></div>' +
-        '<div class="ai-card-inner">' +
-          /* Top row */
-          '<div class="ai-card-top">' +
-            '<div class="ai-card-brand">' +
-              '<div class="ai-card-icon">' +
-                '<svg width="18" height="18" fill="none" viewBox="0 0 24 24">' +
-                  '<path stroke="white" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"' +
+
+        /* ── VIEW 1: Compact trigger ── */
+        '<div class="ai-trigger-view">' +
+          '<div class="ai-card-inner">' +
+            '<div class="ai-card-top">' +
+              '<div class="ai-card-brand">' +
+                '<div class="ai-card-icon">' +
+                  '<svg width="18" height="18" fill="none" viewBox="0 0 24 24">' +
+                    '<path stroke="white" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"' +
+                      ' d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12' +
+                      ' l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0' +
+                      ' 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>' +
+                  '</svg>' +
+                '</div>' +
+                '<div>' +
+                  '<div class="ai-card-title">AI Assistant</div>' +
+                  '<div class="ai-card-online"><span class="ai-card-dot"></span>Online</div>' +
+                '</div>' +
+              '</div>' +
+              '<button class="ai-card-dismiss" id="ai-card-dismiss" aria-label="Dismiss">' +
+                '<svg width="13" height="13" fill="none" viewBox="0 0 24 24">' +
+                  '<path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/>' +
+                '</svg>' +
+              '</button>' +
+            '</div>' +
+            '<div class="ai-card-typewriter">' +
+              '<span id="ai-typewriter-text"></span>' +
+              '<span class="ai-cursor">|</span>' +
+            '</div>' +
+            '<button class="ai-card-cta" id="ai-card-open">' +
+              '<svg width="14" height="14" fill="none" viewBox="0 0 24 24">' +
+                '<path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"' +
+                  ' d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0' +
+                  ' 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75' +
+                  ' 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972' +
+                  ' 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226' +
+                  ' C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/>' +
+              '</svg>' +
+              'Ask anything about engineering' +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+
+        /* ── VIEW 2: Expanded chat (same card, glassmorphism maintained) ── */
+        '<div class="ai-chat-view">' +
+
+          /* Chat header */
+          '<div class="ai-chat-hdr">' +
+            '<div class="ai-chat-hdr-left">' +
+              '<div class="ai-chat-avatar">' +
+                '<svg width="17" height="17" fill="none" viewBox="0 0 24 24">' +
+                  '<path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"' +
                     ' d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12' +
                     ' l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0' +
                     ' 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>' +
                 '</svg>' +
               '</div>' +
               '<div>' +
-                '<div class="ai-card-title">AI Assistant</div>' +
-                '<div class="ai-card-online"><span class="ai-card-dot"></span>Online</div>' +
+                '<div class="ai-chat-name">BuildMetrics AI</div>' +
+                '<div class="ai-chat-status"><span class="ai-status-dot"></span>Online · Engineering Assistant</div>' +
               '</div>' +
             '</div>' +
-            '<button class="ai-card-dismiss" id="ai-card-dismiss" aria-label="Dismiss">' +
-              '<svg width="13" height="13" fill="none" viewBox="0 0 24 24">' +
+            '<button class="ai-chat-close-btn" id="ai-chat-close" aria-label="Close chat">' +
+              '<svg width="14" height="14" fill="none" viewBox="0 0 24 24">' +
                 '<path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/>' +
               '</svg>' +
             '</button>' +
           '</div>' +
 
-          /* Typewriter */
-          '<div class="ai-card-typewriter">' +
-            '<span id="ai-typewriter-text"></span>' +
-            '<span class="ai-cursor">|</span>' +
+          /* Messages */
+          '<div class="ai-msgs" id="ai-msgs">' +
+            '<div class="ai-welcome" id="ai-welcome">' +
+              '<div class="ai-welcome-icon">⚙️</div>' +
+              '<div class="ai-welcome-title">Structural Engineering AI</div>' +
+              '<p class="ai-welcome-sub">Ask me anything about Eurocodes, structural design, materials, or how to use the BuildMetrics calculators.</p>' +
+              '<div class="ai-samples" id="ai-samples">' + sampleChips + '</div>' +
+            '</div>' +
           '</div>' +
 
-          /* CTA */
-          '<button class="ai-card-cta" id="ai-card-open">' +
-            '<svg width="14" height="14" fill="none" viewBox="0 0 24 24">' +
-              '<path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"' +
-                ' d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0' +
-                ' 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75' +
-                ' 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972' +
-                ' 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226' +
-                ' C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/>' +
-            '</svg>' +
-            'Ask anything about engineering' +
-          '</button>' +
-        '</div>' +
-      '</div>' +
-
-      /* ── Full chat panel ── */
-      '<div id="ai-chat-panel" role="dialog" aria-label="AI Engineering Assistant">' +
-
-        '<div class="ai-panel-hdr">' +
-          '<div class="ai-panel-hdr-left">' +
-            '<div class="ai-panel-avatar">' +
-              '<svg width="18" height="18" fill="none" viewBox="0 0 24 24">' +
-                '<path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"' +
-                  ' d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12' +
-                  ' l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0' +
-                  ' 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>' +
+          /* Input */
+          '<div class="ai-input-wrap">' +
+            '<textarea id="ai-input" class="ai-input" placeholder="Ask an engineering question…" rows="1"></textarea>' +
+            '<button id="ai-send" class="ai-send-btn" aria-label="Send">' +
+              '<svg width="15" height="15" fill="none" viewBox="0 0 24 24">' +
+                '<path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"' +
+                  ' d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>' +
               '</svg>' +
-            '</div>' +
-            '<div class="ai-panel-hdr-info">' +
-              '<div class="ai-panel-name">BuildMetrics AI</div>' +
-              '<div class="ai-panel-status"><span class="ai-status-dot"></span>Online · Engineering Assistant</div>' +
-            '</div>' +
+            '</button>' +
           '</div>' +
-          '<button class="ai-panel-close-btn" id="ai-panel-close" aria-label="Close">' +
-            '<svg width="15" height="15" fill="none" viewBox="0 0 24 24">' +
-              '<path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/>' +
-            '</svg>' +
-          '</button>' +
-        '</div>' +
+          '<div class="ai-footer-bar">Powered by OpenAI · BuildMetrics Engineering AI</div>' +
 
-        '<div class="ai-msgs" id="ai-msgs">' +
-          '<div class="ai-welcome" id="ai-welcome">' +
-            '<div class="ai-welcome-icon">⚙️</div>' +
-            '<div class="ai-welcome-title">Structural Engineering AI</div>' +
-            '<p class="ai-welcome-sub">Ask me anything about Eurocodes, structural design, materials, or how to use the BuildMetrics calculators.</p>' +
-            '<div class="ai-samples" id="ai-samples">' + sampleChips + '</div>' +
-          '</div>' +
         '</div>' +
-
-        '<div class="ai-input-wrap">' +
-          '<textarea id="ai-input" class="ai-input" placeholder="Ask an engineering question…" rows="1"></textarea>' +
-          '<button id="ai-send" class="ai-send-btn" aria-label="Send">' +
-            '<svg width="15" height="15" fill="none" viewBox="0 0 24 24">' +
-              '<path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"' +
-                ' d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>' +
-            '</svg>' +
-          '</button>' +
-        '</div>' +
-        '<div class="ai-footer-bar">Powered by OpenAI · BuildMetrics Engineering AI</div>' +
-
       '</div>';
 
     document.body.appendChild(root);
 
-    /* Events */
-    document.getElementById('ai-card').addEventListener('click', function(e) {
-      if (!e.target.closest('#ai-card-dismiss') && !e.target.closest('#ai-card-open')) _openChat();
+    /* Events — trigger view */
+    document.getElementById('ai-card-open').addEventListener('click', function(e) {
+      e.stopPropagation();
+      _openChat();
     });
-    document.getElementById('ai-card-open').addEventListener('click', _openChat);
+    document.getElementById('ai-card').addEventListener('click', function(e) {
+      if (!_open && !e.target.closest('#ai-card-dismiss') && !e.target.closest('#ai-card-open')) {
+        _openChat();
+      }
+    });
     document.getElementById('ai-card-dismiss').addEventListener('click', function(e) {
       e.stopPropagation();
       _dismissCard();
     });
-    document.getElementById('ai-card').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') _openChat();
-    });
 
-    document.getElementById('ai-panel-close').addEventListener('click', _closeChat);
+    /* Events — chat view */
+    document.getElementById('ai-chat-close').addEventListener('click', _closeChat);
     document.getElementById('ai-send').addEventListener('click', _handleSend);
     document.getElementById('ai-input').addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _handleSend(); }
@@ -183,9 +188,7 @@ const AIChat = (() => {
   function _tickTypewriter() {
     const el = document.getElementById('ai-typewriter-text');
     if (!el) return;
-
     const target = TAGLINES[_tagIdx];
-
     if (!_deleting) {
       if (_charIdx < target.length) {
         el.textContent = target.slice(0, ++_charIdx);
@@ -216,33 +219,32 @@ const AIChat = (() => {
     if (_tymerT) clearTimeout(_tymerT);
   }
 
-  /* ── Open / close chat ── */
+  /* ── Open chat: expand card inline ── */
   function _openChat() {
+    if (_open) return;
     _open = true;
-    _dismissCard();
-    const panel = document.getElementById('ai-chat-panel');
-    if (panel) panel.classList.add('open');
+    if (_tymerT) clearTimeout(_tymerT);
+
+    const card = document.getElementById('ai-card');
+    if (card) card.classList.add('chat-open');
+
     setTimeout(function() {
       const i = document.getElementById('ai-input');
       if (i) i.focus();
-    }, 250);
+    }, 320);
   }
 
+  /* ── Close chat: collapse back to trigger card ── */
   function _closeChat() {
     _open = false;
-    const panel = document.getElementById('ai-chat-panel');
-    if (panel) panel.classList.remove('open');
-    /* Show card again */
     const card = document.getElementById('ai-card');
-    if (card) {
-      card.style.display = '';
-      card.style.opacity = '';
-      card.style.transform = '';
-      _charIdx  = 0;
-      _deleting = false;
-      if (_tymerT) clearTimeout(_tymerT);
-      _startTypewriter();
-    }
+    if (card) card.classList.remove('chat-open');
+
+    /* Restart typewriter */
+    _charIdx  = 0;
+    _deleting = false;
+    if (_tymerT) clearTimeout(_tymerT);
+    setTimeout(_startTypewriter, 350);
   }
 
   /* ── Send ── */
@@ -315,7 +317,7 @@ const AIChat = (() => {
   function _showTyping() {
     const c = document.getElementById('ai-msgs');
     if (!c) return null;
-    const id = 'typing-' + Date.now();
+    const id  = 'typing-' + Date.now();
     const row = document.createElement('div');
     row.className = 'ai-row ai-row-ai';
     row.id = id;
@@ -405,52 +407,61 @@ const AIChat = (() => {
         bottom: 24px;
         right: 24px;
         z-index: 2000;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 12px;
         font-family: 'Inter', -apple-system, sans-serif;
       }
 
       /* ════════════════════════════════════
-         GLASSMORPHISM TRIGGER CARD
+         SINGLE GLASSMORPHISM CARD
+         Transitions between compact ↔ chat
       ════════════════════════════════════ */
       #ai-card {
         width: 300px;
-        background: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(239,246,255,0.88) 100%);
+        background: linear-gradient(135deg, rgba(255,255,255,0.94) 0%, rgba(239,246,255,0.90) 100%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
         backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid rgba(147,197,253,0.45);
+        border: 1px solid rgba(147,197,253,0.50);
         border-radius: 18px;
         box-shadow:
           0 0 0 1px rgba(37,99,235,0.05),
-          0 8px 32px rgba(37,99,235,0.10),
+          0 8px 32px rgba(37,99,235,0.12),
           0 2px 8px rgba(0,0,0,0.06);
-        cursor: pointer;
-        transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
-                    box-shadow 0.22s ease,
-                    border-color 0.22s ease,
-                    opacity 0.22s ease;
         position: relative;
         overflow: hidden;
+        cursor: pointer;
+        /* Compact → expanded transition */
+        transition:
+          width 0.32s cubic-bezier(0.4,0,0.2,1),
+          height 0.32s cubic-bezier(0.4,0,0.2,1),
+          border-radius 0.32s ease,
+          box-shadow 0.32s ease;
         animation: ai-card-in 0.4s cubic-bezier(0.34,1.56,0.64,1);
         transform-origin: bottom right;
       }
+
+      /* Expanded (chat-open) state */
+      #ai-card.chat-open {
+        width: 340px;
+        height: 520px;
+        border-radius: 20px;
+        cursor: default;
+        box-shadow:
+          0 0 0 1px rgba(37,99,235,0.08),
+          0 20px 60px rgba(37,99,235,0.16),
+          0 4px 16px rgba(0,0,0,0.08);
+      }
+
       @keyframes ai-card-in {
         from { opacity: 0; transform: scale(0.88) translateY(20px); }
         to   { opacity: 1; transform: scale(1) translateY(0); }
       }
-      #ai-card:hover {
-        transform: translateY(-2px) scale(1.01);
-        border-color: rgba(96,165,250,0.6);
+
+      #ai-card:not(.chat-open):hover {
+        border-color: rgba(96,165,250,0.65);
         box-shadow:
           0 0 0 1px rgba(37,99,235,0.08),
-          0 12px 40px rgba(37,99,235,0.14),
+          0 12px 40px rgba(37,99,235,0.16),
           0 2px 8px rgba(0,0,0,0.06);
-      }
-      #ai-card:focus-visible {
-        outline: 2px solid #3B82F6;
-        outline-offset: 2px;
+        transform: translateY(-2px) scale(1.01);
       }
 
       /* Subtle blue shimmer */
@@ -459,22 +470,31 @@ const AIChat = (() => {
         top: -40px; right: -40px;
         width: 140px; height: 140px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(147,197,253,0.25) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(147,197,253,0.30) 0%, transparent 70%);
         animation: ai-glow-drift 6s ease-in-out infinite;
         pointer-events: none;
+        z-index: 0;
       }
       @keyframes ai-glow-drift {
         0%, 100% { transform: translate(0,0); opacity: 0.8; }
         50%       { transform: translate(-20px,20px); opacity: 0.4; }
       }
 
-      .ai-card-inner {
-        padding: 14px 16px 14px;
+      /* ════════════════════════════════════
+         VIEW 1 — COMPACT TRIGGER
+      ════════════════════════════════════ */
+      .ai-trigger-view {
+        display: block;
         position: relative;
         z-index: 1;
       }
+      #ai-card.chat-open .ai-trigger-view {
+        display: none;
+      }
 
-      /* Top row: brand + dismiss */
+      .ai-card-inner {
+        padding: 14px 16px 14px;
+      }
       .ai-card-top {
         display: flex;
         align-items: center;
@@ -572,7 +592,6 @@ const AIChat = (() => {
         box-shadow: 0 4px 16px rgba(37,99,235,0.45);
         font-family: 'Inter', sans-serif;
         letter-spacing: -0.1px;
-        margin-bottom: 10px;
       }
       .ai-card-cta:hover {
         transform: translateY(-1px);
@@ -580,110 +599,174 @@ const AIChat = (() => {
         filter: brightness(1.08);
       }
 
-      .ai-card-footer {
-        text-align: center;
-        font-size: 0.65rem;
-        color: rgba(255,255,255,0.2);
-        letter-spacing: 0.04em;
-      }
-
-      /* Divider line inside card */
-      .ai-card-inner::before {
-        content: '';
-        display: block;
-        position: absolute;
-        top: 68px;
-        left: 18px; right: 18px;
-        height: 1px;
-        background: rgba(255,255,255,0.06);
-      }
-
       /* ════════════════════════════════════
-         CHAT PANEL
+         VIEW 2 — EXPANDED CHAT
+         (glassmorphism maintained)
       ════════════════════════════════════ */
-      #ai-chat-panel {
+      .ai-chat-view {
         display: none;
         flex-direction: column;
-        width: 390px;
-        height: 540px;
-        background: #fff;
-        border-radius: 20px;
-        border: 1.5px solid #E2E8F0;
-        box-shadow: 0 24px 64px rgba(15,23,42,0.2), 0 4px 16px rgba(15,23,42,0.08);
-        overflow: hidden;
-        animation: ai-panel-in 0.22s cubic-bezier(0.34,1.56,0.64,1);
-        transform-origin: bottom right;
+        height: 100%;
+        position: relative;
+        z-index: 1;
       }
-      #ai-chat-panel.open { display: flex; }
-      @keyframes ai-panel-in {
-        from { opacity: 0; transform: scale(0.9) translateY(16px); }
-        to   { opacity: 1; transform: scale(1) translateY(0); }
+      #ai-card.chat-open .ai-chat-view {
+        display: flex;
       }
 
-      /* Panel header */
-      .ai-panel-hdr {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 14px 16px;
+      /* Chat header — gradient on top of the glass card */
+      .ai-chat-hdr {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 14px;
         background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 55%, #7C3AED 100%);
         flex-shrink: 0;
+        border-radius: 19px 19px 0 0;
       }
-      .ai-panel-hdr-left { display: flex; align-items: center; gap: 11px; }
-      .ai-panel-avatar {
-        width: 36px; height: 36px; border-radius: 11px;
-        background: rgba(255,255,255,0.16);
-        border: 1.5px solid rgba(255,255,255,0.22);
+      .ai-chat-hdr-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .ai-chat-avatar {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.18);
+        border: 1.5px solid rgba(255,255,255,0.24);
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
       }
-      .ai-panel-name { font-size: 0.88rem; font-weight: 700; color: #fff; }
-      .ai-panel-status { font-size: 0.7rem; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 5px; margin-top: 2px; }
-      .ai-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 6px rgba(74,222,128,0.7); flex-shrink: 0; }
-      .ai-panel-close-btn {
-        width: 30px; height: 30px; border-radius: 8px;
-        background: rgba(255,255,255,0.14); border: none; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        color: rgba(255,255,255,0.75); transition: background 0.14s;
+      .ai-chat-name {
+        font-size: 0.87rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.1px;
       }
-      .ai-panel-close-btn:hover { background: rgba(255,255,255,0.24); color: #fff; }
+      .ai-chat-status {
+        font-size: 0.68rem;
+        color: rgba(255,255,255,0.72);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 2px;
+      }
+      .ai-status-dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: #4ADE80;
+        box-shadow: 0 0 6px rgba(74,222,128,0.7);
+        flex-shrink: 0;
+      }
+      .ai-chat-close-btn {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.14);
+        border: none;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        color: rgba(255,255,255,0.78);
+        transition: background 0.14s, color 0.14s;
+        flex-shrink: 0;
+      }
+      .ai-chat-close-btn:hover {
+        background: rgba(255,255,255,0.26);
+        color: #fff;
+      }
 
-      /* Messages */
+      /* Messages area — semi-transparent to show glassmorphism behind */
       .ai-msgs {
-        flex: 1; overflow-y: auto; padding: 16px;
-        display: flex; flex-direction: column; gap: 12px;
-        background: #F8FAFC;
-        scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent;
+        flex: 1;
+        overflow-y: auto;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: rgba(248,250,252,0.75);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+        scrollbar-width: thin;
+        scrollbar-color: #CBD5E1 transparent;
       }
       .ai-msgs::-webkit-scrollbar { width: 4px; }
       .ai-msgs::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
 
-      /* Welcome */
-      .ai-welcome { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 8px 4px 4px; transition: opacity 0.18s; }
-      .ai-welcome-icon { font-size: 2.2rem; margin-bottom: 8px; }
-      .ai-welcome-title { font-size: 0.92rem; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
-      .ai-welcome-sub { font-size: 0.78rem; color: #64748B; line-height: 1.6; margin: 0 0 16px; max-width: 280px; }
-      .ai-samples { display: flex; flex-direction: column; gap: 6px; width: 100%; text-align: left; }
-      .ai-sample {
-        display: flex; align-items: center; gap: 8px;
-        padding: 9px 12px;
-        background: #fff; border: 1.5px solid #E2E8F0; border-radius: 10px;
-        cursor: pointer; font-size: 0.78rem; font-weight: 500; color: #334155;
-        text-align: left; transition: all 0.14s; font-family: 'Inter', sans-serif; line-height: 1.4;
+      /* Welcome screen */
+      .ai-welcome {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 6px 4px 4px;
+        transition: opacity 0.18s;
       }
-      .ai-sample:hover { border-color: #93C5FD; background: #EFF6FF; color: #1D4ED8; transform: translateX(2px); }
-      .ai-sample-icon { font-size: 0.95rem; flex-shrink: 0; }
+      .ai-welcome-icon { font-size: 2rem; margin-bottom: 6px; }
+      .ai-welcome-title { font-size: 0.88rem; font-weight: 800; color: #0F172A; margin-bottom: 4px; }
+      .ai-welcome-sub { font-size: 0.76rem; color: #64748B; line-height: 1.55; margin: 0 0 12px; max-width: 270px; }
+      .ai-samples { display: flex; flex-direction: column; gap: 5px; width: 100%; text-align: left; }
+      .ai-sample {
+        display: flex; align-items: center; gap: 7px;
+        padding: 8px 11px;
+        background: rgba(255,255,255,0.85);
+        border: 1.5px solid rgba(226,232,240,0.8);
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.76rem;
+        font-weight: 500;
+        color: #334155;
+        text-align: left;
+        transition: all 0.14s;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.4;
+      }
+      .ai-sample:hover {
+        border-color: #93C5FD;
+        background: rgba(239,246,255,0.92);
+        color: #1D4ED8;
+        transform: translateX(2px);
+      }
+      .ai-sample-icon { font-size: 0.9rem; flex-shrink: 0; }
 
       /* Message rows */
-      .ai-row { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+      .ai-row { display: flex; align-items: flex-end; gap: 7px; max-width: 100%; }
       .ai-row-user { flex-direction: row-reverse; }
-      .ai-bot-avatar { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg,#EFF6FF,#E0E7FF); display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; border: 1px solid #BFDBFE; }
+      .ai-bot-avatar {
+        width: 24px; height: 24px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, rgba(239,246,255,0.9), rgba(224,231,255,0.9));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.74rem;
+        flex-shrink: 0;
+        border: 1px solid rgba(191,219,254,0.6);
+      }
 
       /* Bubbles */
-      .ai-bubble { max-width: 83%; padding: 9px 13px; border-radius: 14px; font-size: 0.81rem; line-height: 1.55; word-wrap: break-word; }
-      .ai-bubble-user { background: linear-gradient(135deg,#2563EB,#1D4ED8); color: #fff; border-radius: 14px 14px 4px 14px; font-weight: 500; }
-      .ai-bubble-ai { background: #fff; color: #1E293B; border: 1.5px solid #E2E8F0; border-radius: 14px 14px 14px 4px; box-shadow: 0 1px 4px rgba(15,23,42,0.06); }
+      .ai-bubble {
+        max-width: 84%;
+        padding: 9px 12px;
+        border-radius: 14px;
+        font-size: 0.80rem;
+        line-height: 1.55;
+        word-wrap: break-word;
+      }
+      .ai-bubble-user {
+        background: linear-gradient(135deg, #2563EB, #1D4ED8);
+        color: #fff;
+        border-radius: 14px 14px 4px 14px;
+        font-weight: 500;
+      }
+      .ai-bubble-ai {
+        background: rgba(255,255,255,0.90);
+        color: #1E293B;
+        border: 1.5px solid rgba(226,232,240,0.7);
+        border-radius: 14px 14px 14px 4px;
+        box-shadow: 0 1px 4px rgba(15,23,42,0.05);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+      }
 
-      /* Typing */
-      .ai-typing { display: flex !important; align-items: center; gap: 4px; padding: 12px 16px; min-width: 50px; }
+      /* Typing dots */
+      .ai-typing { display: flex !important; align-items: center; gap: 4px; padding: 12px 14px; min-width: 48px; }
       .ai-typing span { width: 6px; height: 6px; border-radius: 50%; background: #94A3B8; display: inline-block; animation: ai-bounce 1.2s ease-in-out infinite; }
       .ai-typing span:nth-child(2) { animation-delay: 0.2s; }
       .ai-typing span:nth-child(3) { animation-delay: 0.4s; }
@@ -692,27 +775,80 @@ const AIChat = (() => {
       /* Markdown */
       .ai-md-p { margin: 0 0 5px; } .ai-md-p:last-child { margin-bottom: 0; }
       .ai-spacer { height: 4px; }
-      .ai-md-h { font-size: 0.83rem; font-weight: 700; color: #0F172A; margin: 7px 0 3px; }
-      .ai-md-ul, .ai-md-ol { padding-left: 16px; margin: 3px 0 5px; }
-      .ai-md-ul li, .ai-md-ol li { margin-bottom: 3px; font-size: 0.81rem; }
-      .ai-md-pre { background: #0F172A; color: #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 0.73rem; overflow-x: auto; margin: 5px 0; font-family: 'SF Mono','Fira Code',Consolas,monospace; line-height: 1.5; }
-      .ai-md-code { background: #F1F5F9; color: #0F172A; border-radius: 4px; padding: 1px 5px; font-size: 0.79em; font-family: 'SF Mono','Fira Code',Consolas,monospace; border: 1px solid #E2E8F0; }
+      .ai-md-h { font-size: 0.82rem; font-weight: 700; color: #0F172A; margin: 6px 0 3px; }
+      .ai-md-ul, .ai-md-ol { padding-left: 15px; margin: 3px 0 5px; }
+      .ai-md-ul li, .ai-md-ol li { margin-bottom: 3px; font-size: 0.79rem; }
+      .ai-md-pre { background: #0F172A; color: #E2E8F0; border-radius: 8px; padding: 9px 11px; font-size: 0.71rem; overflow-x: auto; margin: 5px 0; font-family: 'SF Mono','Fira Code',Consolas,monospace; line-height: 1.5; }
+      .ai-md-code { background: rgba(241,245,249,0.9); color: #0F172A; border-radius: 4px; padding: 1px 5px; font-size: 0.79em; font-family: 'SF Mono','Fira Code',Consolas,monospace; border: 1px solid #E2E8F0; }
 
-      /* Input */
-      .ai-input-wrap { display: flex; align-items: flex-end; gap: 8px; padding: 12px 14px; background: #fff; border-top: 1.5px solid #F1F5F9; flex-shrink: 0; }
-      .ai-input { flex: 1; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 9px 13px; font-family: 'Inter',sans-serif; font-size: 0.82rem; color: #0F172A; resize: none; outline: none; min-height: 38px; max-height: 120px; line-height: 1.5; background: #F8FAFC; transition: border-color 0.14s, background 0.14s; }
-      .ai-input:focus { border-color: #93C5FD; background: #fff; }
+      /* Input area — glass tinted */
+      .ai-input-wrap {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        padding: 10px 12px;
+        background: rgba(255,255,255,0.88);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid rgba(147,197,253,0.30);
+        flex-shrink: 0;
+      }
+      .ai-input {
+        flex: 1;
+        border: 1.5px solid rgba(203,213,225,0.7);
+        border-radius: 11px;
+        padding: 8px 12px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.81rem;
+        color: #0F172A;
+        resize: none;
+        outline: none;
+        min-height: 36px;
+        max-height: 120px;
+        line-height: 1.5;
+        background: rgba(248,250,252,0.8);
+        transition: border-color 0.14s, background 0.14s;
+      }
+      .ai-input:focus {
+        border-color: #93C5FD;
+        background: rgba(255,255,255,0.95);
+      }
       .ai-input::placeholder { color: #94A3B8; }
-      .ai-send-btn { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg,#2563EB,#7C3AED); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; transition: transform 0.14s, box-shadow 0.14s; box-shadow: 0 2px 8px rgba(37,99,235,0.35); }
-      .ai-send-btn:hover:not(:disabled) { transform: scale(1.06); box-shadow: 0 4px 14px rgba(37,99,235,0.45); }
+      .ai-send-btn {
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #2563EB, #7C3AED);
+        border: none;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff;
+        flex-shrink: 0;
+        transition: transform 0.14s, box-shadow 0.14s;
+        box-shadow: 0 2px 8px rgba(37,99,235,0.38);
+      }
+      .ai-send-btn:hover:not(:disabled) { transform: scale(1.07); box-shadow: 0 4px 14px rgba(37,99,235,0.48); }
       .ai-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-      .ai-footer-bar { padding: 5px 14px; font-size: 0.65rem; color: #CBD5E1; background: #fff; text-align: center; border-top: 1px solid #F8FAFC; flex-shrink: 0; letter-spacing: 0.02em; }
+
+      /* Footer bar */
+      .ai-footer-bar {
+        padding: 5px 14px;
+        font-size: 0.63rem;
+        color: #CBD5E1;
+        background: rgba(255,255,255,0.80);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+        text-align: center;
+        border-top: 1px solid rgba(241,245,249,0.8);
+        flex-shrink: 0;
+        border-radius: 0 0 19px 19px;
+        letter-spacing: 0.02em;
+      }
 
       /* Mobile */
       @media (max-width: 480px) {
-        #ai-chat-root { bottom: 16px; right: 16px; }
-        #ai-card { width: calc(100vw - 32px); }
-        #ai-chat-panel { width: calc(100vw - 32px); height: 480px; }
+        #ai-chat-root { bottom: 14px; right: 14px; }
+        #ai-card { width: calc(100vw - 28px); }
+        #ai-card.chat-open { width: calc(100vw - 28px); height: 480px; }
       }
     `;
     document.head.appendChild(s);
