@@ -23,10 +23,10 @@
     <div class="app-container">
 
       <!-- ── Page header ───────────────────────────────────────── -->
-      <div class="dash-hero">
+      <div class="page-hero" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
         <div>
-          <h1 class="dash-greeting" style="font-size:1.4rem;">Your Projects</h1>
-          <p class="dash-sub-line" id="proj-sub">Loading…</p>
+          <h1>📁 Your Projects</h1>
+          <p id="proj-sub">Loading…</p>
         </div>
         <button class="btn btn-primary" id="btn-new-project" style="font-size:0.85rem;padding:9px 18px;gap:6px;white-space:nowrap">
           <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
@@ -172,64 +172,77 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// ── Render ────────────────────────────────────────────────────
-function renderAll() {
-  const projects = window.Projects ? Projects.list() : [];
-  const allCalcs = _getHistory();
-  const now = new Date();
-  const monthCalcs = allCalcs.filter(function(h) {
-    const d = new Date(h.savedAt || h.timestamp);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
-
-  const subEl = document.getElementById('proj-sub');
-  subEl.textContent = projects.length + ' project' + (projects.length !== 1 ? 's' : '') +
-    ' · ' + allCalcs.length + ' calculation' + (allCalcs.length !== 1 ? 's' : '') +
-    (monthCalcs.length > 0 ? ' · ' + monthCalcs.length + ' this month' : '');
-
-  const listEl = document.getElementById('projects-list');
+// ── Render (async — fetches from MySQL API) ───────────────────
+async function renderAll() {
+  const subEl   = document.getElementById('proj-sub');
+  const listEl  = document.getElementById('projects-list');
   const emptyEl = document.getElementById('proj-empty');
+  subEl.textContent = 'Loading…';
 
-  if (projects.length === 0) {
-    listEl.innerHTML = '';
-    emptyEl.style.display = 'block';
-    return;
+  try {
+    const [projects, allCalcs] = await Promise.all([
+      Projects.getAll(),
+      CalcHistory.getAll()
+    ]);
+
+    const now = new Date();
+    const monthCalcs = allCalcs.filter(function(h) {
+      const d = new Date(h.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+
+    subEl.textContent = projects.length + ' project' + (projects.length !== 1 ? 's' : '') +
+      ' · ' + allCalcs.length + ' calculation' + (allCalcs.length !== 1 ? 's' : '') +
+      (monthCalcs.length > 0 ? ' · ' + monthCalcs.length + ' this month' : '');
+
+    if (projects.length === 0) {
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    const sorted = projects.slice().sort(function(a, b) {
+      const aLast = _lastCalcTime(a.id, allCalcs);
+      const bLast = _lastCalcTime(b.id, allCalcs);
+      return (bLast || b.created_at || 0) > (aLast || a.created_at || 0) ? 1 : -1;
+    });
+
+    listEl.innerHTML = sorted.map(function(proj, idx) {
+      return renderProjectCard(proj, idx, allCalcs);
+    }).join('');
+
+  } catch(e) {
+    subEl.textContent = 'Failed to load — please refresh.';
+    console.error('renderAll error:', e);
   }
-  emptyEl.style.display = 'none';
-
-  const sorted = projects.slice().sort(function(a, b) {
-    const aLast = _lastCalcTime(a.id, allCalcs);
-    const bLast = _lastCalcTime(b.id, allCalcs);
-    return (bLast || b.createdAt || 0) > (aLast || a.createdAt || 0) ? 1 : -1;
-  });
-
-  listEl.innerHTML = sorted.map(function(proj, idx) {
-    return renderProjectCard(proj, idx, allCalcs);
-  }).join('');
 }
 
 function renderProjectCard(proj, idx, allCalcs) {
-  const calcs = allCalcs.filter(function(h) { return h.projectId === proj.id; })
-    .sort(function(a, b) { return new Date(b.savedAt || b.timestamp) - new Date(a.savedAt || a.timestamp); });
+  // API returns `colour` (British spelling) and `project_id` / `created_at`
+  const calcs = allCalcs.filter(function(h) { return h.project_id === proj.id; })
+    .sort(function(a, b) { return new Date(b.created_at) - new Date(a.created_at); });
 
-  const color = proj.color || PROJECT_COLORS[idx % PROJECT_COLORS.length];
+  const color = proj.colour || PROJECT_COLORS[idx % PROJECT_COLORS.length];
   const calcCount = calcs.length;
   const lastCalc = calcs[0];
   const metaText = calcCount === 0
     ? 'No calculations yet'
     : calcCount + ' calculation' + (calcCount !== 1 ? 's' : '') +
-      (lastCalc ? ' · Updated ' + _timeAgo(lastCalc.savedAt || lastCalc.timestamp) : '');
+      (lastCalc ? ' · Updated ' + _timeAgo(lastCalc.created_at) : '');
 
   const visible = calcs.slice(0, 5);
 
   const calcRowsHtml = visible.length === 0
     ? '<div class="calc-empty">No calculations yet — <a class="calc-empty-link" href="#" onclick="openAddCalc(event,\'' + proj.id + '\')">add one →</a></div>'
     : visible.map(function(h) {
-        const ct = (h.config && h.config.calcType) || 'beam';
+        const ct = h.calc_type || 'beam';
         const pageUrl = (TYPE_PAGES[ct] || '/index.html') + '?load=' + h.id;
         const color2 = TYPE_COLORS[ct] || '#2563EB';
         const label = TYPE_LABELS[ct] || 'CALC';
-        const summary = h.summary || '';
+        // results may be object or null; check for summary/status field
+        const res = h.results || {};
+        const summary = typeof res === 'object' ? (res.summary || res.status || '') : String(res || '');
         const passMatch = typeof summary === 'string' ? summary.match(/\b(PASS|FAIL)\b/i) : null;
         const passText = passMatch ? passMatch[0].toUpperCase() : '';
         const passClass = passText === 'PASS' ? 'status-pass' : passText === 'FAIL' ? 'status-fail' : '';
@@ -239,7 +252,7 @@ function renderProjectCard(proj, idx, allCalcs) {
           '<span class="calc-type-pill" style="background:' + color2 + '1A;color:' + color2 + '">' + label + '</span>' +
           '<span class="calc-row-name">' + _esc(h.name || 'Untitled') + '</span>' +
           (passText ? '<span class="calc-row-status ' + passClass + '">' + passIcon + passText + '</span>' : '') +
-          '<span class="calc-row-time">' + _timeAgo(h.savedAt || h.timestamp) + '</span>' +
+          '<span class="calc-row-time">' + _timeAgo(h.created_at) + '</span>' +
           '</a>';
       }).join('') +
       (calcCount > 5
@@ -308,19 +321,22 @@ function openNewProjectModal() {
 function closeNewProjectModal() {
   document.getElementById('modal-new-project').classList.remove('open');
 }
-function createProject() {
+async function createProject() {
   const name = document.getElementById('np-name').value.trim();
   if (!name) { document.getElementById('np-name').focus(); return; }
   const desc = document.getElementById('np-desc').value.trim();
+  const btn = document.getElementById('btn-create-project');
+  btn.disabled = true;
   try {
-    const proj = Projects.create(name, desc);
-    const allProjects = Projects.list();
-    const idx = allProjects.findIndex(function(p) { return p.id === proj.id; });
-    Projects.update(proj.id, { color: PROJECT_COLORS[idx % PROJECT_COLORS.length] });
+    const existing = await Projects.getAll();
+    const colour = PROJECT_COLORS[existing.length % PROJECT_COLORS.length];
+    await Projects.create(name, desc, colour);
     closeNewProjectModal();
     renderAll();
   } catch(e) {
     alert(e.message || 'Could not create project.');
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -330,20 +346,19 @@ function openProjectOptions(e, projectId, projectName) {
   _optionsProjectId = projectId;
   document.getElementById('po-title').textContent = projectName;
 
-  document.getElementById('po-rename-btn').onclick = function() {
+  document.getElementById('po-rename-btn').onclick = async function() {
     document.getElementById('modal-project-options').classList.remove('open');
     const newName = prompt('Rename project:', projectName);
     if (newName && newName.trim()) {
-      Projects.update(projectId, { name: newName.trim() });
+      await Projects.update(projectId, { name: newName.trim() });
       renderAll();
     }
   };
 
-  document.getElementById('po-delete-btn').onclick = function() {
+  document.getElementById('po-delete-btn').onclick = async function() {
     document.getElementById('modal-project-options').classList.remove('open');
     if (confirm('Delete "' + projectName + '" and all its calculations? This cannot be undone.')) {
-      History.deleteByProject(projectId);
-      Projects.remove(projectId);
+      await Projects.remove(projectId);
       renderAll();
     }
   };
@@ -352,16 +367,13 @@ function openProjectOptions(e, projectId, projectName) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────
-function _getHistory() {
-  try { return JSON.parse(localStorage.getItem('bcp_history') || '[]'); } catch { return []; }
-}
 function _lastCalcTime(projectId, calcs) {
-  const pc = calcs.filter(function(h) { return h.projectId === projectId; });
+  const pc = calcs.filter(function(h) { return h.project_id === projectId; });
   if (!pc.length) return null;
   return pc.reduce(function(max, h) {
-    const ts = h.savedAt || h.timestamp;
+    const ts = h.created_at;
     return new Date(ts) > new Date(max) ? ts : max;
-  }, pc[0].savedAt || pc[0].timestamp);
+  }, pc[0].created_at);
 }
 function _timeAgo(ts) {
   if (!ts) return '';
