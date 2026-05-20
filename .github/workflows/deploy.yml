@@ -25,6 +25,7 @@ jobs:
           server:    ${{ secrets.FTP_SERVER }}
           username:  ${{ secrets.FTP_USERNAME }}
           password:  ${{ secrets.FTP_PASSWORD }}
+          port:      21
           local-dir: ./landing/          # contents of /landing go to root
           server-dir: /public_html/
           exclude: |
@@ -47,8 +48,9 @@ jobs:
           server:    ${{ secrets.FTP_SERVER }}
           username:  ${{ secrets.FTP_USERNAME }}
           password:  ${{ secrets.FTP_PASSWORD }}
+          port:      21
           local-dir: ./                  # repo root (the app)
-          server-dir: ${{ secrets.FTP_APP_DIR }}   # e.g. /public_html/app.buildmetrics.uk/
+          server-dir: ${{ secrets.FTP_APP_DIR }}   # /public_html/app/
           exclude: |
             **/.git*
             **/.git*/**
