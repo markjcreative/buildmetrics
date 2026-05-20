@@ -80,11 +80,6 @@ const AIChat = (() => {
             '</button>' +
           '</div>' +
 
-          /* Hero text */
-          '<div class="ai-card-hero">' +
-            'Let AI help you with your<br><span class="ai-card-hero-accent">engineering solutions</span>' +
-          '</div>' +
-
           /* Typewriter */
           '<div class="ai-card-typewriter">' +
             '<span id="ai-typewriter-text"></span>' +
@@ -103,8 +98,6 @@ const AIChat = (() => {
             '</svg>' +
             'Ask anything about engineering' +
           '</button>' +
-
-          '<div class="ai-card-footer">Powered by OpenAI</div>' +
         '</div>' +
       '</div>' +
 
@@ -424,15 +417,15 @@ const AIChat = (() => {
       ════════════════════════════════════ */
       #ai-card {
         width: 300px;
-        background: rgba(15,23,42,0.82);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
-        backdrop-filter: blur(24px) saturate(180%);
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(239,246,255,0.88) 100%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(147,197,253,0.45);
+        border-radius: 18px;
         box-shadow:
-          0 0 0 1px rgba(255,255,255,0.04),
-          0 24px 56px rgba(0,0,0,0.55),
-          0 0 80px rgba(37,99,235,0.1);
+          0 0 0 1px rgba(37,99,235,0.05),
+          0 8px 32px rgba(37,99,235,0.10),
+          0 2px 8px rgba(0,0,0,0.06);
         cursor: pointer;
         transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
                     box-shadow 0.22s ease,
@@ -448,36 +441,35 @@ const AIChat = (() => {
         to   { opacity: 1; transform: scale(1) translateY(0); }
       }
       #ai-card:hover {
-        transform: translateY(-3px) scale(1.01);
-        border-color: rgba(96,165,250,0.3);
+        transform: translateY(-2px) scale(1.01);
+        border-color: rgba(96,165,250,0.6);
         box-shadow:
-          0 0 0 1px rgba(96,165,250,0.12),
-          0 28px 64px rgba(0,0,0,0.6),
-          0 0 100px rgba(37,99,235,0.18);
+          0 0 0 1px rgba(37,99,235,0.08),
+          0 12px 40px rgba(37,99,235,0.14),
+          0 2px 8px rgba(0,0,0,0.06);
       }
       #ai-card:focus-visible {
         outline: 2px solid #3B82F6;
         outline-offset: 2px;
       }
 
-      /* Animated glow sweep */
+      /* Subtle blue shimmer */
       .ai-card-glow {
         position: absolute;
-        top: -60px; left: -60px;
-        width: 200px; height: 200px;
+        top: -40px; right: -40px;
+        width: 140px; height: 140px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(37,99,235,0.22) 0%, transparent 65%);
+        background: radial-gradient(circle, rgba(147,197,253,0.25) 0%, transparent 70%);
         animation: ai-glow-drift 6s ease-in-out infinite;
         pointer-events: none;
       }
       @keyframes ai-glow-drift {
-        0%, 100% { transform: translate(0,0); opacity: 0.7; }
-        33%       { transform: translate(80px,40px); opacity: 1; }
-        66%       { transform: translate(30px,80px); opacity: 0.5; }
+        0%, 100% { transform: translate(0,0); opacity: 0.8; }
+        50%       { transform: translate(-20px,20px); opacity: 0.4; }
       }
 
       .ai-card-inner {
-        padding: 18px 18px 16px;
+        padding: 14px 16px 14px;
         position: relative;
         z-index: 1;
       }
@@ -487,7 +479,7 @@ const AIChat = (() => {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 14px;
+        margin-bottom: 10px;
       }
       .ai-card-brand {
         display: flex;
@@ -495,83 +487,67 @@ const AIChat = (() => {
         gap: 10px;
       }
       .ai-card-icon {
-        width: 36px; height: 36px;
+        width: 34px; height: 34px;
         border-radius: 10px;
         background: linear-gradient(135deg, #2563EB, #7C3AED);
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+        box-shadow: 0 3px 10px rgba(37,99,235,0.35);
       }
       .ai-card-title {
-        font-size: 0.9rem;
+        font-size: 0.88rem;
         font-weight: 700;
-        color: #fff;
+        color: #0F172A;
         letter-spacing: -0.2px;
       }
       .ai-card-online {
         display: flex;
         align-items: center;
         gap: 5px;
-        font-size: 0.68rem;
-        color: rgba(255,255,255,0.45);
+        font-size: 0.67rem;
+        color: #64748B;
         margin-top: 2px;
       }
       .ai-card-dot {
         width: 6px; height: 6px;
         border-radius: 50%;
-        background: #4ADE80;
-        box-shadow: 0 0 6px rgba(74,222,128,0.8);
+        background: #22C55E;
+        box-shadow: 0 0 5px rgba(34,197,94,0.7);
         flex-shrink: 0;
         animation: ai-dot-pulse 2.4s ease-in-out infinite;
       }
       @keyframes ai-dot-pulse {
-        0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(74,222,128,0.8); }
-        50%       { opacity: 0.6; box-shadow: 0 0 10px rgba(74,222,128,0.4); }
+        0%, 100% { opacity: 1; box-shadow: 0 0 5px rgba(34,197,94,0.7); }
+        50%       { opacity: 0.6; box-shadow: 0 0 8px rgba(34,197,94,0.3); }
       }
       .ai-card-dismiss {
-        width: 26px; height: 26px;
-        border-radius: 7px;
-        background: rgba(255,255,255,0.07);
-        border: 1px solid rgba(255,255,255,0.1);
-        color: rgba(255,255,255,0.35);
+        width: 24px; height: 24px;
+        border-radius: 6px;
+        background: rgba(15,23,42,0.05);
+        border: 1px solid rgba(15,23,42,0.08);
+        color: #94A3B8;
         cursor: pointer;
         display: flex; align-items: center; justify-content: center;
         transition: all 0.14s;
         flex-shrink: 0;
       }
       .ai-card-dismiss:hover {
-        background: rgba(239,68,68,0.18);
-        border-color: rgba(239,68,68,0.3);
-        color: #FCA5A5;
-      }
-
-      /* Hero headline */
-      .ai-card-hero {
-        font-size: 1rem;
-        font-weight: 700;
-        color: rgba(255,255,255,0.88);
-        line-height: 1.45;
-        margin-bottom: 10px;
-        letter-spacing: -0.2px;
-      }
-      .ai-card-hero-accent {
-        background: linear-gradient(90deg, #60A5FA, #A78BFA);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        background: rgba(239,68,68,0.08);
+        border-color: rgba(239,68,68,0.2);
+        color: #EF4444;
       }
 
       /* Typewriter */
       .ai-card-typewriter {
-        font-size: 0.78rem;
-        color: rgba(255,255,255,0.45);
+        font-size: 0.76rem;
+        color: #64748B;
         min-height: 1.3em;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
         font-style: italic;
       }
       .ai-cursor {
         display: inline-block;
-        color: #60A5FA;
+        color: #3B82F6;
         animation: ai-blink 0.9s step-end infinite;
         margin-left: 1px;
       }
@@ -584,7 +560,7 @@ const AIChat = (() => {
         align-items: center;
         justify-content: center;
         gap: 8px;
-        padding: 11px 16px;
+        padding: 10px 16px;
         background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
         border: none;
         border-radius: 12px;
