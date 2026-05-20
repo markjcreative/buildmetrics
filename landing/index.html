@@ -2358,6 +2358,28 @@
       .wl-modal { padding: 28px 20px; }
       .wl-row { grid-template-columns: 1fr; }
     }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE PADDING — FINAL OVERRIDES
+       Must live at the end of the stylesheet
+       so they beat section-specific rules
+       (#who, #screenshots) defined above.
+    ══════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      #screenshots      { padding: 64px 0; }
+      .screenshots-head { padding: 0 24px; }
+      #who              { padding: 72px 24px; }
+    }
+    @media (max-width: 768px) {
+      #screenshots      { padding: 56px 0; }
+      .screenshots-head { padding: 0 20px; }
+      #who              { padding: 56px 20px; }
+    }
+    @media (max-width: 480px) {
+      #screenshots      { padding: 44px 0; }
+      .screenshots-head { padding: 0 16px; }
+      #who              { padding: 44px 16px; }
+    }
   </style>
 </head>
 <body>
