@@ -41,8 +41,8 @@ function resend_post($api_key, $path, $data) {
     return ['code' => $code, 'body' => json_decode($res, true)];
 }
 
-// 1. Add contact to Resend audience
-resend_post($RESEND_API_KEY, "/audiences/{$AUDIENCE_ID}/contacts", [
+// 1. Add contact to Resend audience (skipped if AUDIENCE_ID not set)
+if ($AUDIENCE_ID && $AUDIENCE_ID !== 'YOUR_AUDIENCE_ID') resend_post($RESEND_API_KEY, "/audiences/{$AUDIENCE_ID}/contacts", [
     'email'      => $email,
     'first_name' => explode(' ', $name)[0],
     'last_name'  => implode(' ', array_slice(explode(' ', $name), 1)) ?: '',
