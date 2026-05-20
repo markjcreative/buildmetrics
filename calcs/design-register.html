@@ -131,14 +131,23 @@ document.addEventListener('DOMContentLoaded', () => {
   loadData();
 });
 
-function loadData() {
-  const projects = Projects.list();
-  allData = projects.map(proj => ({
-    project: proj,
-    calcs: History.list(proj.id),
-  }));
-  renderStats();
-  renderContent(allData);
+async function loadData() {
+  try {
+    const [projects, calcs] = await Promise.all([
+      Projects.getAll(),
+      CalcHistory.getAll(),
+    ]);
+    allData = projects.map(proj => ({
+      project: proj,
+      calcs: calcs.filter(c => c.project_id === proj.id),
+    }));
+    renderStats();
+    renderContent(allData);
+  } catch (e) {
+    console.error('loadData error:', e);
+    document.getElementById('dr-content').innerHTML =
+      '<div class="dr-empty"><div class="dr-empty-icon">⚠️</div><h3>Failed to load data</h3><p>Please refresh the page.</p></div>';
+  }
 }
 
 function renderStats() {
@@ -199,34 +208,41 @@ function renderContent(data) {
 }
 
 function calcRow(calc, projectId) {
-  const ct    = calc.config?.calcType || calc.config?.material || 'unknown';
-  const meta  = CALC_TYPE_LABELS[ct] || { label: ct, icon: '📄' };
-  const pass  = calc.results?.pass;
+  // MySQL API: calc_type, inputs, results, created_at
+  const ct   = calc.calc_type || (calc.inputs && calc.inputs.calcType) || 'unknown';
+  const meta = CALC_TYPE_LABELS[ct] || { label: ct, icon: '📄' };
+  // Pass/fail from results object
+  const res  = calc.results || {};
+  const pass = res.pass !== undefined ? res.pass : (
+    typeof res.summary === 'string' && /\bPASS\b/i.test(res.summary) ? true :
+    typeof res.summary === 'string' && /\bFAIL\b/i.test(res.summary) ? false : undefined
+  );
   const passChip = pass === true
     ? '<span class="pass-chip pass">PASS</span>'
     : pass === false
     ? '<span class="pass-chip fail">FAIL</span>'
     : '<span class="pass-chip unknown">—</span>';
-  const date = new Date(calc.savedAt).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-  const url  = CALC_URLS[ct] || '/dashboard.html';
+  const summary = res.summary || '—';
+  const date = new Date(calc.created_at || calc.updated_at).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  const url  = (CALC_URLS[ct] || '/dashboard.html') + '?load=' + calc.id;
 
-  return `<tr data-calc-id="${calc.id}" data-search="${escHtml((calc.name + ' ' + (calc.summary || '') + ' ' + meta.label).toLowerCase())}">
+  return `<tr data-calc-id="${calc.id}" data-search="${escHtml((calc.name + ' ' + summary + ' ' + meta.label).toLowerCase())}">
     <td><span class="calc-type-badge">${meta.icon} ${meta.label}</span></td>
     <td><a href="${url}" style="color:var(--text-primary);text-decoration:none;font-weight:600">${escHtml(calc.name)}</a></td>
-    <td><div class="calc-summary" title="${escHtml(calc.summary || '')}">${escHtml(calc.summary || '—')}</div></td>
+    <td><div class="calc-summary" title="${escHtml(summary)}">${escHtml(summary)}</div></td>
     <td>${passChip}</td>
     <td style="white-space:nowrap;color:var(--text-muted);font-size:0.78rem">${date}</td>
     <td><button class="btn-del" onclick="deleteCalc('${calc.id}','${projectId}')" title="Delete">🗑</button></td>
   </tr>`;
 }
 
-function deleteCalc(calcId, projectId) {
+async function deleteCalc(calcId, projectId) {
   if (!confirm('Delete this calculation? This cannot be undone.')) return;
   try {
-    History.remove(calcId);
+    await CalcHistory.remove(calcId);
     loadData();
   } catch (e) {
-    alert(e.message);
+    alert(e.message || 'Delete failed.');
   }
 }
 
