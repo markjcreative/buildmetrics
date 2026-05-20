@@ -1,6 +1,13 @@
-# Redirect old hyphenated URL to clean version
-Redirect 301 /sign-up /signup
-Redirect 301 /sign-up/ /signup/
+# BuildMetrics — Hostinger Apache config
 
-# Serve index.html for clean directory URLs
+Options -Indexes
+
+# PHP file handling
+AddHandler application/x-httpd-php .php
+
+# Directory index
 DirectoryIndex index.html index.php
+
+# Redirect old sign-up URL
+RewriteEngine On
+RewriteRule ^sign-up/?$ /signup [R=301,L]

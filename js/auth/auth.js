@@ -1,12 +1,12 @@
 /**
  * auth.js — API-backed authentication for BuildMetrics
- * All user data stored in MySQL via /api/auth.php
+ * All user data stored in MySQL via /api/bm-auth.php
  */
 
 const Auth = (() => {
     const SESSION_KEY = 'bm_token';
     const USER_KEY    = 'bm_user';
-    const API         = '/api/auth.php';
+    const API         = '/api/bm-auth.php';
 
     const GOOGLE_CLIENT_ID = '440038191618-he1pm3lglml6r6trivqce2q6u8sjbon8.apps.googleusercontent.com';
 
