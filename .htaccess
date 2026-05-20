@@ -2,9 +2,6 @@
 
 Options -Indexes
 
-# PHP file handling
-AddHandler application/x-httpd-php .php
-
 # Directory index
 DirectoryIndex index.html index.php
 
