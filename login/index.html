@@ -124,7 +124,7 @@
       btn.disabled = true; btn.textContent = 'Signing in…';
       try {
         await Auth.login(email, password);
-        window.location.href = '/dashboard.html';
+        window.location.href = '/dashboard';
       } catch (e) {
         if (e.message && e.message.toLowerCase().includes('no account found')) {
           window.location.href = '/signup?email=' + encodeURIComponent(email);
@@ -140,7 +140,7 @@
       btn.disabled = true; btn.textContent = 'Signing in…';
       try {
         await Auth.loginWithGoogle(response.credential);
-        window.location.href = '/dashboard.html';
+        window.location.href = '/dashboard';
       } catch (e) {
         showAlert(e.message || 'Google sign-in failed.');
         btn.disabled = false;
