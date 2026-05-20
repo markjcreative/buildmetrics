@@ -11,11 +11,9 @@
   <link rel="stylesheet" href="/css/app.css">
   <link rel="stylesheet" href="/css/calcs.css">
   <style>
-    .page-body { max-width: 1100px; margin: 0 auto; padding: 32px 24px; flex: 1; width: 100%; box-sizing: border-box; }
+    .page-body { padding: 0; }
 
     .tools-header { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
-    .tools-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
-    .tools-header p { font-size: 0.88rem; color: var(--text-secondary); margin: 0; }
 
     /* ── Top-level tab bar ── */
     .tools-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; border-bottom: 2px solid var(--border); padding-bottom: 0; }
@@ -124,7 +122,7 @@
 
     /* ── Responsive ── */
     @media (max-width: 768px) {
-      .page-body { padding: 20px 16px; }
+      .page-body { padding: 0; }
       .tool-card { padding: 18px; }
       .form-row, .form-row.cols-2, .form-row.cols-3, .form-row.cols-4 { grid-template-columns: 1fr; }
       .uc-grid { grid-template-columns: 1fr; }
@@ -141,7 +139,7 @@
     <div class="app-container">
       <div class="page-body">
 
-        <div class="tools-header">
+        <div class="tools-header page-hero">
           <h1>🔧 Quick Engineering Tools</h1>
           <p>Fast-access calculators and conversion tools for everyday structural engineering tasks.</p>
         </div>

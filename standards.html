@@ -9,12 +9,10 @@
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/app.css">
   <style>
-    .page-body { max-width: 1200px; margin: 0 auto; padding: 32px 24px; width: 100%; box-sizing: border-box; }
+    .page-body { padding: 0; }
 
     /* ── Page header ── */
     .page-header { margin-bottom: 24px; }
-    .page-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
-    .page-header p { font-size: 0.88rem; color: var(--text-muted); margin: 0; }
 
     /* ── Main tabs ── */
     .main-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
@@ -78,7 +76,7 @@
 
     /* ── Responsive ── */
     @media (max-width: 768px) {
-      .page-body { padding: 20px 16px; }
+      .page-body { padding: 0; }
       .data-table th, .data-table td { padding: 8px 10px; }
       .materials-grid { grid-template-columns: 1fr; }
     }
@@ -96,7 +94,7 @@
     <div class="app-container">
       <div class="page-body">
 
-        <div class="page-header">
+        <div class="page-header page-hero">
           <h1>📐 Engineering Standards Library</h1>
           <p>Steel section tables, material grade properties, and EN 1991 imposed load reference data.</p>
         </div>
