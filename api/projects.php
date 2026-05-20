@@ -1,4 +1,5 @@
 <?php
+// v2
 /**
  * projects.php — Projects CRUD
  * GET    /api/projects.php          → list user's projects

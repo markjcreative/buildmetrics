@@ -1,4 +1,5 @@
 <?php
+// v2
 /**
  * db.php — MySQL connection for BuildMetrics
  */
