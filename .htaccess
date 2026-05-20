@@ -7,4 +7,5 @@ DirectoryIndex index.html index.php
 
 # Redirect old sign-up URL
 RewriteEngine On
+RewriteBase /
 RewriteRule ^sign-up/?$ /signup [R=301,L]
