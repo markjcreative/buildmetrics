@@ -24,13 +24,14 @@ const AIChat = (() => {
     { q: 'Typical imposed loads for office floors?',       icon: '📊' },
   ];
 
-  let _msgs     = [];
-  let _busy     = false;
-  let _open     = false;
-  let _tagIdx   = 0;
-  let _charIdx  = 0;
-  let _deleting = false;
-  let _tymerT   = null;
+  let _msgs          = [];
+  let _busy          = false;
+  let _open          = false;
+  let _tagIdx        = 0;
+  let _charIdx       = 0;
+  let _deleting      = false;
+  let _tymerT        = null;
+  let _compactHeight = 0;  // saved when card is in compact state
 
   /* ── Public ── */
   function init() {
@@ -168,7 +169,10 @@ const AIChat = (() => {
     });
 
     /* Events — chat view */
-    document.getElementById('ai-chat-close').addEventListener('click', _closeChat);
+    document.getElementById('ai-chat-close').addEventListener('click', function(e) {
+      e.stopPropagation();   // prevent bubbling to #ai-card which would re-open
+      _closeChat();
+    });
     document.getElementById('ai-send').addEventListener('click', _handleSend);
     document.getElementById('ai-input').addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _handleSend(); }
@@ -226,25 +230,56 @@ const AIChat = (() => {
     if (_tymerT) clearTimeout(_tymerT);
 
     const card = document.getElementById('ai-card');
-    if (card) card.classList.add('chat-open');
+    if (!card) return;
+
+    // Pin the current compact dimensions so CSS transition has a start value
+    _compactHeight = card.offsetHeight;
+    card.style.height = _compactHeight + 'px';
+    card.style.width  = card.offsetWidth + 'px';
+
+    // Next frame: animate to expanded size and switch content
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        card.style.height = '520px';
+        card.style.width  = '340px';
+        card.classList.add('chat-open');
+      });
+    });
 
     setTimeout(function() {
       const i = document.getElementById('ai-input');
       if (i) i.focus();
-    }, 320);
+    }, 340);
   }
 
   /* ── Close chat: collapse back to trigger card ── */
   function _closeChat() {
     _open = false;
     const card = document.getElementById('ai-card');
-    if (card) card.classList.remove('chat-open');
+    if (!card) return;
+
+    // Animate height/width back to compact while still showing chat content
+    card.style.height = '520px';
+    card.style.width  = '340px';
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        card.style.height = (_compactHeight || 145) + 'px';
+        card.style.width  = '300px';
+      });
+    });
+
+    // After animation: switch content back to trigger view, clear inline sizes
+    setTimeout(function() {
+      card.classList.remove('chat-open');
+      card.style.height = '';
+      card.style.width  = '';
+    }, 340);
 
     /* Restart typewriter */
     _charIdx  = 0;
     _deleting = false;
     if (_tymerT) clearTimeout(_tymerT);
-    setTimeout(_startTypewriter, 350);
+    setTimeout(_startTypewriter, 400);
   }
 
   /* ── Send ── */
