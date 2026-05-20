@@ -32,7 +32,7 @@
     .form-group input{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-family:'Inter',sans-serif;font-size:0.9rem;padding:11px 14px;transition:border-color .15s,box-shadow .15s;outline:none}
     .form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
     .form-group input::placeholder{color:var(--text-muted)}
-    .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-row-2{display:flex;flex-direction:column;gap:14px}
 
     .btn-auth{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;transition:all .15s;margin-top:4px}
     .btn-auth:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,.30)}
@@ -53,7 +53,7 @@
     .auth-footer-link a:hover{text-decoration:underline}
 
     .page-footer{margin-top:24px;font-size:0.72rem;color:rgba(255,255,255,.35);text-align:center}
-    @media(max-width:480px){.auth-card{padding:28px 24px 32px}.form-row-2{grid-template-columns:1fr}}
+    @media(max-width:480px){.auth-card{padding:28px 24px 32px}}
     @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
@@ -121,6 +121,13 @@
 
   <script>
     if (Auth.currentUser()) window.location.href = '/dashboard.html';
+
+    // Pre-fill email if redirected from login page
+    const _urlEmail = new URLSearchParams(window.location.search).get('email');
+    if (_urlEmail) {
+      const emailField = document.getElementById('reg-email');
+      if (emailField) emailField.value = _urlEmail;
+    }
 
     const GOOGLE_CLIENT_ID = '440038191618-he1pm3lglml6r6trivqce2q6u8sjbon8.apps.googleusercontent.com';
 

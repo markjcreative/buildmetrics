@@ -21,8 +21,7 @@
     .auth-brand-name{font-size:1.3rem;font-weight:800;color:var(--text-primary);letter-spacing:-0.5px}
     .auth-brand-sub{font-size:0.75rem;color:var(--text-muted);letter-spacing:0.4px;text-transform:uppercase;margin-top:2px}
 
-    .auth-heading{font-size:1.15rem;font-weight:700;color:var(--text-primary);margin-bottom:4px}
-    .auth-sub{font-size:0.83rem;color:var(--text-muted);margin-bottom:24px}
+    .auth-heading{font-size:1.05rem;font-weight:700;color:var(--text-primary);text-align:center;margin-bottom:20px}
 
     .auth-alert{padding:11px 14px;border-radius:var(--radius);font-size:0.82rem;font-weight:500;display:none;margin-bottom:16px}
     .auth-alert.error{background:#FEF2F2;border:1px solid #FECACA;color:var(--red);display:block}
@@ -71,6 +70,7 @@
       </div>
     </div>
 
+    <p class="auth-heading">Welcome back</p>
     <div class="auth-alert" id="auth-alert"></div>
 
     <!-- Google -->
@@ -126,6 +126,10 @@
         await Auth.login(email, password);
         window.location.href = '/dashboard.html';
       } catch (e) {
+        if (e.message && e.message.toLowerCase().includes('no account found')) {
+          window.location.href = '/signup?email=' + encodeURIComponent(email);
+          return;
+        }
         showAlert(e.message);
         btn.disabled = false; btn.textContent = 'Sign In →';
       }
