@@ -50,7 +50,7 @@ jobs:
           password:  ${{ secrets.FTP_PASSWORD }}
           port:      21
           local-dir: ./                  # repo root (the app)
-          server-dir: ${{ secrets.FTP_APP_DIR }}   # /public_html/app/
+          server-dir: /public_html/buildmetrics_app/
           exclude: |
             **/.git*
             **/.git*/**
