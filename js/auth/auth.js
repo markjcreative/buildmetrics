@@ -86,7 +86,7 @@ const Auth = (() => {
 
     function logout() {
         localStorage.removeItem(SESSION_KEY);
-        window.location.href = '/login.html';
+        window.location.href = '/login';
     }
 
     function currentUser() {
@@ -96,7 +96,7 @@ const Auth = (() => {
 
     function guard() {
         if (!currentUser()) {
-            window.location.href = '/login.html';
+            window.location.href = '/login';
             return false;
         }
         return true;

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — BuildMetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="/js/auth/auth.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--accent:#2563EB;--accent-hover:#1D4ED8;--border:#E4E4E7;--text-primary:#09090B;--text-secondary:#52525B;--text-muted:#A1A1AA;--red:#DC2626;--red-tint:#FEF2F2;--radius:10px}
+    body{font-family:'Inter',-apple-system,sans-serif;background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 50%,#0F172A 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;-webkit-font-smoothing:antialiased}
+
+    .auth-card{width:100%;max-width:420px;background:#fff;border-radius:16px;border-top:3px solid #2563EB;box-shadow:0 24px 80px rgba(0,0,0,0.4);padding:36px 40px 40px}
+
+    .auth-brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:28px;text-align:center}
+    .auth-brand-logo{width:52px;height:52px;background:#2563EB;border-radius:14px;display:flex;align-items:center;justify-content:center}
+    .auth-brand-name{font-size:1.3rem;font-weight:800;color:var(--text-primary);letter-spacing:-0.5px}
+    .auth-brand-sub{font-size:0.75rem;color:var(--text-muted);letter-spacing:0.4px;text-transform:uppercase;margin-top:2px}
+
+    .auth-heading{font-size:1.15rem;font-weight:700;color:var(--text-primary);margin-bottom:4px}
+    .auth-sub{font-size:0.83rem;color:var(--text-muted);margin-bottom:24px}
+
+    .auth-alert{padding:11px 14px;border-radius:var(--radius);font-size:0.82rem;font-weight:500;display:none;margin-bottom:16px}
+    .auth-alert.error{background:#FEF2F2;border:1px solid #FECACA;color:var(--red);display:block}
+
+    .auth-form{display:flex;flex-direction:column;gap:16px}
+    .form-group{display:flex;flex-direction:column;gap:6px}
+    .form-group label{font-size:0.78rem;font-weight:600;color:var(--text-secondary)}
+    .form-group input{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-family:'Inter',sans-serif;font-size:0.9rem;padding:11px 14px;transition:border-color .15s,box-shadow .15s;outline:none}
+    .form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+    .form-group input::placeholder{color:var(--text-muted)}
+
+    .forgot-link{text-align:right;margin-top:-8px}
+    .forgot-link a{font-size:0.75rem;color:var(--accent);text-decoration:none;font-weight:500}
+    .forgot-link a:hover{text-decoration:underline}
+
+    .btn-auth{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;transition:all .15s;margin-top:4px}
+    .btn-auth:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,.30)}
+    .btn-auth:disabled{opacity:.65;cursor:not-allowed;transform:none}
+
+    .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;color:var(--text-primary);cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s}
+    .btn-google:hover{border-color:#CBD5E1;background:#F8FAFC;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+    .btn-google:disabled{opacity:.6;cursor:not-allowed}
+
+    .auth-or{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--text-muted);font-size:0.75rem;font-weight:500}
+    .auth-or::before,.auth-or::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    .auth-footer-link{text-align:center;margin-top:20px;font-size:0.82rem;color:var(--text-muted)}
+    .auth-footer-link a{color:var(--accent);font-weight:600;text-decoration:none}
+    .auth-footer-link a:hover{text-decoration:underline}
+
+    .page-footer{margin-top:24px;font-size:0.72rem;color:rgba(255,255,255,.35);text-align:center}
+    @media(max-width:480px){.auth-card{padding:28px 24px 32px}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-brand-logo">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect x="6" y="8" width="3" height="15" rx="1" fill="white"/><rect x="21" y="8" width="3" height="15" rx="1" fill="white"/><rect x="6" y="8" width="18" height="3" rx="1" fill="white"/><rect x="12" y="15" width="6" height="2.5" rx="1" fill="rgba(255,255,255,0.55)"/></svg>
+      </div>
+      <div>
+        <div class="auth-brand-name">BuildMetrics</div>
+        <div class="auth-brand-sub">Structural Analysis</div>
+      </div>
+    </div>
+
+    <div class="auth-alert" id="auth-alert"></div>
+
+    <!-- Google -->
+    <button class="btn-google" id="btn-google" onclick="doGoogleSignIn()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="auth-or">or</div>
+
+    <form class="auth-form" onsubmit="return false;">
+      <div class="form-group">
+        <label for="login-email">Email Address</label>
+        <input type="email" id="login-email" placeholder="you@company.com" required autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+      </div>
+      <button class="btn-auth" id="btn-login" onclick="doLogin()">Sign In →</button>
+    </form>
+
+    <div class="auth-footer-link" style="margin-top:16px">
+      Don't have an account? <a href="/sign-up">Create one free</a>
+    </div>
+  </div>
+
+  <div class="page-footer">© 2025 BuildMetrics · <a href="https://buildmetrics.uk" style="color:rgba(255,255,255,.45);text-decoration:none;">buildmetrics.uk</a></div>
+
+  <div id="g_id_onload"
+       data-client_id="440038191618-he1pm3lglml6r6trivqce2q6u8sjbon8.apps.googleusercontent.com"
+       data-callback="handleGoogleCredential"
+       data-auto_prompt="false">
+  </div>
+
+  <script>
+    if (Auth.currentUser()) window.location.href = '/dashboard.html';
+
+    const GOOGLE_CLIENT_ID = '440038191618-he1pm3lglml6r6trivqce2q6u8sjbon8.apps.googleusercontent.com';
+
+    function showAlert(msg) {
+      const el = document.getElementById('auth-alert');
+      el.textContent = msg; el.className = 'auth-alert error';
+    }
+
+    async function doLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      if (!email || !password) { showAlert('Please fill in all fields.'); return; }
+      const btn = document.getElementById('btn-login');
+      btn.disabled = true; btn.textContent = 'Signing in…';
+      try {
+        await Auth.login(email, password);
+        window.location.href = '/dashboard.html';
+      } catch (e) {
+        showAlert(e.message);
+        btn.disabled = false; btn.textContent = 'Sign In →';
+      }
+    }
+
+    async function handleGoogleCredential(response) {
+      const btn = document.getElementById('btn-google');
+      btn.disabled = true; btn.textContent = 'Signing in…';
+      try {
+        await Auth.loginWithGoogle(response.credential);
+        window.location.href = '/dashboard.html';
+      } catch (e) {
+        showAlert(e.message || 'Google sign-in failed.');
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg> Continue with Google`;
+      }
+    }
+
+    function doGoogleSignIn() {
+      if (typeof google === 'undefined') { showAlert('Google Sign-In loading — try again in a moment.'); return; }
+      google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential });
+      google.accounts.id.prompt();
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
+</body>
+</html>
