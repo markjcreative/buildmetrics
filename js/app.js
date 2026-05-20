@@ -1,15 +1,11 @@
 /**
  * app.js — Application bootstrap, auth, project context, save/restore logic
+ * (Main beam calculator — index.html)
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
     // ── Auth Guard ──────────────────────────────────────────────────────
     if (!Auth.guard()) return;
-
-    const user = Auth.currentUser();
-
-    // ── Project Context ─────────────────────────────────────────────────
-    // (nav-project-badge removed in topNav redesign — project shown in save modal)
 
     // ── Initialize Input Panel ───────────────────────────────────────────
     InputPanel.initInputPanel();
@@ -18,11 +14,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(location.search);
     const loadId = params.get('load');
     if (loadId) {
-        const calc = History.get(loadId);
-        if (calc) {
-            restoreCalcState(calc);
-            // Clean URL
-            history.replaceState({}, '', '/index.html');
+        try {
+            const all = await CalcHistory.getAll();
+            const calc = all.find(c => c.id === loadId);
+            if (calc) {
+                // MySQL API stores inputs under `inputs`; normalise for restoreCalcState
+                restoreCalcState({ ...calc, config: calc.inputs || calc.config });
+                history.replaceState({}, '', '/');
+            }
+        } catch (e) {
+            console.error('Failed to load calculation:', e);
         }
     }
 
@@ -62,43 +63,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (e.key === 'Enter') doSaveCalc();
     });
 
-    // Project picker (when no active project)
-    document.getElementById('btn-create-proj-pick').addEventListener('click', () => {
+    // ── Project picker (when no active project) ──────────────────────────
+    document.getElementById('btn-create-proj-pick').addEventListener('click', async () => {
         const name = document.getElementById('new-proj-name').value.trim();
         if (!name) { document.getElementById('new-proj-name').focus(); return; }
         try {
-            const proj = Projects.create(name);
-            Projects.setActive(proj.id);
+            const proj = await Projects.create(name);
+            await Projects.setActive(proj.id);
             document.getElementById('proj-picker-modal').classList.remove('open');
-            // Re-open save modal now that we have a project
             openSaveCalcModal();
         } catch (e) {
             showToast(e.message || 'Could not create project.', 'error');
         }
     });
 
-    // ── Auto-fill PDF modal from profile ────────────────────────────────
-    // Override showProjectInfoModal to pre-fill from user profile + project
+    // ── Auto-fill PDF modal from profile + active project ────────────────
     const _origShow = PDFReport.showProjectInfoModal.bind(PDFReport);
     window._origShowModal = _origShow;
 
     PDFReport.showProjectInfoModal = () => {
-        return new Promise(resolve => {
+        return new Promise(async resolve => {
             const modal = document.getElementById('pdf-modal');
-            // Pre-fill from active project + user profile
-            const proj = Projects.getActive();
-            const u = Auth.currentUser();
+            const proj = await Projects.getActive();
+            const u    = Auth.currentUser();
             if (proj) document.getElementById('modal-project').value = proj.name;
             if (u) {
-                document.getElementById('modal-engineer').value = u.name || '';
-                document.getElementById('modal-firm').value = u.company || '';
+                document.getElementById('modal-engineer').value = u.name    || '';
+                document.getElementById('modal-firm').value     = u.company || '';
             }
             modal.classList.add('open');
             document.getElementById('btn-modal-confirm').onclick = () => {
                 const info = {
                     projectName: document.getElementById('modal-project').value,
-                    engineer: document.getElementById('modal-engineer').value,
-                    firm: document.getElementById('modal-firm').value,
+                    engineer:    document.getElementById('modal-engineer').value,
+                    firm:        document.getElementById('modal-firm').value,
                 };
                 modal.classList.remove('open');
                 resolve(info);
@@ -131,15 +129,10 @@ let sketchCanvas = null;
 function initSketchpad() {
     if (typeof fabric === 'undefined') return;
 
-    sketchCanvas = new fabric.Canvas('sketch-canvas', {
-        isDrawingMode: true
-    });
-
-    // Default brush styling
+    sketchCanvas = new fabric.Canvas('sketch-canvas', { isDrawingMode: true });
     sketchCanvas.freeDrawingBrush.color = '#1E293B';
     sketchCanvas.freeDrawingBrush.width = 3;
 
-    // Tools
     document.getElementById('btn-sketch-pen').addEventListener('click', () => {
         sketchCanvas.isDrawingMode = true;
         sketchCanvas.freeDrawingBrush.color = '#1E293B';
@@ -147,28 +140,21 @@ function initSketchpad() {
     });
 
     document.getElementById('btn-sketch-erase').addEventListener('click', () => {
-        // Eraser in fabric can be tricky without an extension, 
-        // A simple approach is to use a white brush, or allow selecting and deleting path objects.
-        // We will make the brush act as an eraser by making it white and thick.
         sketchCanvas.isDrawingMode = true;
-        sketchCanvas.freeDrawingBrush.color = '#fafafa'; // background color
+        sketchCanvas.freeDrawingBrush.color = '#fafafa';
         sketchCanvas.freeDrawingBrush.width = 20;
     });
 
     document.getElementById('btn-sketch-clear').addEventListener('click', () => {
-        if (confirm('Clear the entire sketchpad?')) {
-            sketchCanvas.clear();
-        }
+        if (confirm('Clear the entire sketchpad?')) sketchCanvas.clear();
     });
 }
 
 /* ── Save Calculation Modal ─────────────────────────────────── */
-function openSaveCalcModal() {
-    // Ensure there's a project to save to
-    const proj = Projects.getActive();
+async function openSaveCalcModal() {
+    const proj = await Projects.getActive();
     if (!proj) {
-        // Show project picker
-        renderProjectPicker();
+        await renderProjectPicker();
         document.getElementById('proj-picker-modal').classList.add('open');
         return;
     }
@@ -178,42 +164,60 @@ function openSaveCalcModal() {
     setTimeout(() => document.getElementById('save-calc-name').focus(), 100);
 }
 
-function renderProjectPicker() {
-    const projects = Projects.list();
+async function renderProjectPicker() {
     const list = document.getElementById('proj-picker-list');
-    if (projects.length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.82rem;padding:16px;">No existing projects — create one below.</div>';
-        return;
+    list.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.82rem;padding:16px;">Loading projects…</div>';
+    try {
+        const projects = await Projects.getAll();
+        if (projects.length === 0) {
+            list.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.82rem;padding:16px;">No existing projects — create one below.</div>';
+            return;
+        }
+        list.innerHTML = projects.map(p => `
+            <div onclick="pickProject('${p.id}')" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;font-size:0.85rem;font-weight:500;"
+                 onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-light)'"
+                 onmouseout="this.style.borderColor='var(--border)';this.style.background='white'">
+              📁 ${escHtml(p.name)}
+            </div>`).join('');
+    } catch (e) {
+        list.innerHTML = '<div style="text-align:center;color:var(--red);font-size:0.82rem;padding:16px;">Failed to load projects.</div>';
     }
-    list.innerHTML = projects.map(p => `
-        <div onclick="pickProject('${p.id}')" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;font-size:0.85rem;font-weight:500;"
-             onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-light)'"
-             onmouseout="this.style.borderColor='var(--border)';this.style.background='white'">
-          📁 ${escHtml(p.name)}
-        </div>`).join('');
 }
 
-window.pickProject = function (id) {
-    Projects.setActive(id);
+window.pickProject = async function(id) {
+    await Projects.setActive(id);
     document.getElementById('proj-picker-modal').classList.remove('open');
     openSaveCalcModal();
 };
 
-function doSaveCalc() {
-    const name = document.getElementById('save-calc-name').value.trim() || 'Untitled Calculation';
-    const proj = Projects.getActive();
+async function doSaveCalc() {
+    const nameEl = document.getElementById('save-calc-name');
+    const name   = nameEl.value.trim() || 'Untitled Calculation';
+    const btn    = document.getElementById('btn-save-confirm');
+
+    const proj = await Projects.getActive();
     if (!proj) { showToast('Please select a project first.', 'error'); return; }
     if (!window._lastResults || !window._lastConfig) { showToast('No calculation to save yet.', 'error'); return; }
 
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
     try {
-        History.save(proj.id, name, window._lastConfig, window._lastResults, window._lastResults.summary);
+        await CalcHistory.save({
+            calc_type:  'beam',
+            name:       name,
+            inputs:     window._lastConfig,
+            results:    { ...window._lastResults },
+            project_id: proj.id,
+        });
         document.getElementById('save-modal').classList.remove('open');
-        // Store for confirmation modal downloads
         window._savedCalcName = name;
         window._savedProjName = proj.name;
         openSaveConfirmModal(name, proj.name);
     } catch (e) {
-        showToast('Save failed: ' + e.message, 'error');
+        showToast('Save failed: ' + (e.message || 'Unknown error'), 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save →';
     }
 }
 
@@ -234,10 +238,10 @@ function _trackDownload() {
 window._downloadReportPDF = async function() {
     const projectInfo = await PDFReport.showProjectInfoModal();
     if (!projectInfo) return;
-    const btn = document.getElementById('sc-btn-pdf');
+    const btn  = document.getElementById('sc-btn-pdf');
     const orig = btn.innerHTML;
     btn.innerHTML = '⏳ Generating…';
-    btn.disabled = true;
+    btn.disabled  = true;
     try {
         await PDFReport.exportPDF(window._lastResults, window._lastConfig, projectInfo);
         _trackDownload();
@@ -245,7 +249,7 @@ window._downloadReportPDF = async function() {
         showToast('PDF generation failed: ' + e.message, 'error');
     }
     btn.innerHTML = orig;
-    btn.disabled = false;
+    btn.disabled  = false;
 };
 
 window._downloadReportWord = async function() {
@@ -253,10 +257,10 @@ window._downloadReportWord = async function() {
         showToast('Word export is loading, please try again.', 'error');
         return;
     }
-    const btn = document.getElementById('sc-btn-word');
+    const btn  = document.getElementById('sc-btn-word');
     const orig = btn.innerHTML;
     btn.innerHTML = '⏳ Generating…';
-    btn.disabled = true;
+    btn.disabled  = true;
     try {
         const data = _buildWordData(window._savedCalcName, window._savedProjName);
         await WordExport.exportBeam(data, (window._savedCalcName || 'calculation').toLowerCase().replace(/\s+/g, '-') + '.docx');
@@ -265,14 +269,14 @@ window._downloadReportWord = async function() {
         showToast('Word export failed: ' + e.message, 'error');
     }
     btn.innerHTML = orig;
-    btn.disabled = false;
+    btn.disabled  = false;
 };
 
 function _buildWordData(calcName, projectName) {
-    const res = window._lastResults;
-    const cfg = window._lastConfig;
+    const res  = window._lastResults;
+    const cfg  = window._lastConfig;
     const user = Auth.currentUser();
-    const s = res.summary || {};
+    const s    = res.summary || {};
     const span = cfg.span || 0;
     const maxDeflMm = Math.abs((s.maxDeflection || 0) * 1000);
     const L300 = (span / 300) * 1000;
@@ -281,33 +285,33 @@ function _buildWordData(calcName, projectName) {
         ? Math.round(span / Math.abs(s.maxDeflection)) : '∞';
 
     const inputs = [
-        { label: 'Span', value: span, unit: 'm' },
-        { label: "Young's Modulus (E)", value: cfg.E, unit: 'kN/m²' },
-        { label: 'Moment of Inertia (I)', value: cfg.I, unit: 'm⁴' },
-        { label: 'Cross-Section Area (A)', value: cfg.A, unit: 'm²' },
-        { label: 'Material', value: cfg.material || '', unit: '' },
-        { label: 'Section', value: cfg.sectionName || '', unit: '' },
-        { label: 'Design Standard', value: (cfg.standard || '').replace(/_/g, ' '), unit: '' },
+        { label: 'Span',                   value: span,        unit: 'm' },
+        { label: "Young's Modulus (E)",    value: cfg.E,       unit: 'kN/m²' },
+        { label: 'Moment of Inertia (I)',  value: cfg.I,       unit: 'm⁴' },
+        { label: 'Cross-Section Area (A)', value: cfg.A,       unit: 'm²' },
+        { label: 'Material',               value: cfg.material || '', unit: '' },
+        { label: 'Section',                value: cfg.sectionName || '', unit: '' },
+        { label: 'Design Standard',        value: (cfg.standard || '').replace(/_/g, ' '), unit: '' },
         ...(cfg.loads || []).map((l, i) => ({
             label: `Load ${i + 1} (${l.type})`,
-            value: l.type === 'point' ? `${l.P} kN @ x=${l.a}m` :
-                   l.type === 'udl'   ? `${l.w} kN/m from ${l.a}m to ${l.b}m` :
-                   l.type === 'moment'? `${l.M} kNm @ x=${l.a}m` : JSON.stringify(l),
+            value: l.type === 'point'  ? `${l.P} kN @ x=${l.a}m` :
+                   l.type === 'udl'    ? `${l.w} kN/m from ${l.a}m to ${l.b}m` :
+                   l.type === 'moment' ? `${l.M} kNm @ x=${l.a}m` : JSON.stringify(l),
             unit: ''
         })),
     ];
 
     const results = [
-        { label: 'Max Bending Moment (+)', value: (s.maxPositiveMoment || 0).toFixed(3), unit: 'kNm' },
-        { label: 'Max Bending Moment (−)', value: (s.maxNegativeMoment || 0).toFixed(3), unit: 'kNm' },
-        { label: 'Max Absolute Moment', value: (s.maxAbsMoment || 0).toFixed(3), unit: 'kNm' },
-        { label: 'Max Shear Force (+)', value: (s.maxShear || 0).toFixed(3), unit: 'kN' },
-        { label: 'Max Shear Force (−)', value: (s.minShear || 0).toFixed(3), unit: 'kN' },
-        { label: 'Max Absolute Shear', value: (s.maxAbsShear || 0).toFixed(3), unit: 'kN' },
-        { label: 'Max Deflection', value: maxDeflMm.toFixed(3), unit: 'mm' },
-        { label: 'Span/Deflection Ratio', value: `L / ${spanRatio}`, unit: '' },
-        { label: 'L/300 Deflection Limit', value: L300.toFixed(2), unit: 'mm', pass: maxDeflMm <= L300 },
-        { label: 'L/360 Deflection Limit', value: L360.toFixed(2), unit: 'mm', pass: maxDeflMm <= L360 },
+        { label: 'Max Bending Moment (+)',  value: (s.maxPositiveMoment || 0).toFixed(3), unit: 'kNm' },
+        { label: 'Max Bending Moment (−)',  value: (s.maxNegativeMoment || 0).toFixed(3), unit: 'kNm' },
+        { label: 'Max Absolute Moment',     value: (s.maxAbsMoment      || 0).toFixed(3), unit: 'kNm' },
+        { label: 'Max Shear Force (+)',     value: (s.maxShear          || 0).toFixed(3), unit: 'kN'  },
+        { label: 'Max Shear Force (−)',     value: (s.minShear          || 0).toFixed(3), unit: 'kN'  },
+        { label: 'Max Absolute Shear',      value: (s.maxAbsShear       || 0).toFixed(3), unit: 'kN'  },
+        { label: 'Max Deflection',          value: maxDeflMm.toFixed(3),                  unit: 'mm'  },
+        { label: 'Span/Deflection Ratio',   value: `L / ${spanRatio}`,                    unit: ''    },
+        { label: 'L/300 Deflection Limit',  value: L300.toFixed(2), unit: 'mm', pass: maxDeflMm <= L300 },
+        { label: 'L/360 Deflection Limit',  value: L360.toFixed(2), unit: 'mm', pass: maxDeflMm <= L360 },
     ];
     if (res.reactions) {
         res.reactions.forEach((r, i) => {
@@ -317,11 +321,11 @@ function _buildWordData(calcName, projectName) {
 
     return {
         projectName: projectName || '',
-        calcName: calcName || 'Beam Analysis',
-        date: new Date().toLocaleDateString('en-GB'),
-        standard: (cfg.standard || '').replace(/_/g, ' '),
-        engineer: user ? (user.name || user.email || '') : '',
-        company: user ? (user.company || '') : '',
+        calcName:    calcName || 'Beam Analysis',
+        date:        new Date().toLocaleDateString('en-GB'),
+        standard:    (cfg.standard || '').replace(/_/g, ' '),
+        engineer:    user ? (user.name || user.email || '') : '',
+        company:     user ? (user.company || '') : '',
         inputs,
         results,
         summary: `Max Moment: ${(s.maxAbsMoment||0).toFixed(3)} kNm  |  Max Shear: ${(s.maxAbsShear||0).toFixed(3)} kN  |  Max Deflection: ${maxDeflMm.toFixed(3)} mm (L/${spanRatio})`,
@@ -330,46 +334,46 @@ function _buildWordData(calcName, projectName) {
 
 /* ── Restore from History ────────────────────────────────────── */
 function restoreCalcState(calc) {
-    const config = calc.config;
+    // Support both `config` (legacy) and `inputs` (MySQL API) field names
+    const config = calc.config || calc.inputs;
+    if (!config) return;
 
-    // Reset form
     document.getElementById('support-list').innerHTML = '';
     document.getElementById('load-list').innerHTML = '';
     window.__supportCounter = 0;
-    window.__loadCounter = 0;
+    window.__loadCounter    = 0;
 
-    // Restore values
     document.getElementById('inp-span').value = config.span;
-    document.getElementById('inp-E').value = config.E;
-    document.getElementById('inp-I').value = config.I;
-    document.getElementById('inp-A').value = config.A;
+    document.getElementById('inp-E').value    = config.E;
+    document.getElementById('inp-I').value    = config.I;
+    document.getElementById('inp-A').value    = config.A;
 
-    // Material button
     document.querySelectorAll('.material-btn').forEach(b => b.classList.remove('active'));
     const matBtn = document.querySelector(`[data-material="${config.material}"]`);
     if (matBtn) matBtn.classList.add('active');
 
-    config.supports.forEach(s => addSupportRow(s.type, s.position));
-    config.loads.forEach(l => addLoadRow(l.type, l));
+    (config.supports || []).forEach(s => addSupportRow(s.type, s.position));
+    (config.loads    || []).forEach(l => addLoadRow(l.type, l));
 
     InputPanel.updateBeamPreview();
 
-    // Auto-run the calculation
     setTimeout(() => {
         try {
-            window._beamSolverPointLoads = config.loads.filter(l => l.type === 'point');
+            window._beamSolverPointLoads = (config.loads || []).filter(l => l.type === 'point');
             const results = BeamSolver.solveBeam(config);
             window._lastResults = results;
-            window._lastConfig = config;
+            window._lastConfig  = config;
             BeamResults.renderResults(results, config);
             BeamDiagrams.renderAll(results, config);
             document.getElementById('results-section').classList.add('visible');
             document.getElementById('btn-export-pdf').disabled = false;
             document.getElementById('btn-export-csv').disabled = false;
-            document.getElementById('btn-save-calc').disabled = false;
+            document.getElementById('btn-save-calc').disabled  = false;
             const tabs = document.getElementById('results-tabs');
             if (tabs) tabs.classList.add('visible');
-        } catch { }
+        } catch (e) {
+            console.error('restoreCalcState:', e);
+        }
     }, 300);
 }
 
@@ -381,10 +385,7 @@ function showToast(msg, type = 'default') {
     t.innerHTML = `<span class="bm-toast-icon">${icons[type] || icons.default}</span>${escHtml(msg)}`;
     document.body.appendChild(t);
     requestAnimationFrame(() => { requestAnimationFrame(() => { t.classList.add('show'); }); });
-    setTimeout(() => {
-        t.classList.remove('show');
-        setTimeout(() => t.remove(), 250);
-    }, 3000);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, 3000);
 }
 
 function escHtml(s) {

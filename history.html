@@ -277,48 +277,76 @@
   <script src="/js/ui/topNav.js"></script>
 
   <script>
-    Auth.guard();
-
-    const params = new URLSearchParams(location.search);
-    const projectId = params.get('project');
-    if (!projectId) { window.location.href = '/projects.html'; }
-
-    const project = Projects.get(projectId);
-    if (!project) { window.location.href = '/projects.html'; }
-
-    // Set active
-    Projects.setActive(projectId);
-
-    // Header + project name
-    document.getElementById('project-title').textContent = project.name;
-    if (project.description) document.getElementById('project-desc').textContent = project.description;
-
-    // New calculation — go to calculator with active project set
-    document.getElementById('btn-new-calc').addEventListener('click', () => {
-      window.location.href = '/index.html';
-    });
-
-    // ── Filter chip logic ──────────────────────────────────────────────
+    // ── State ─────────────────────────────────────────────────────────────
+    let _project = null;   // current project object (or null = all projects)
+    let _calcs   = [];     // loaded calculations cache
     let activeFilter = 'all';
 
-    document.getElementById('filter-bar').addEventListener('click', e => {
-      const chip = e.target.closest('.filter-chip');
-      if (!chip) return;
-      activeFilter = chip.dataset.filter;
-      document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c === chip));
-      applyFilter();
+    const CALC_PAGE_MAP = {
+      beam: '/index.html', column: '/calcs/column.html',
+      slab: '/calcs/slab.html', footing: '/calcs/footing.html',
+      retaining_wall: '/calcs/retaining-wall.html', connection: '/calcs/connection.html',
+    };
+
+    // ── Boot ──────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      TopNav.init();
+      if (!Auth.guard()) return;
+
+      document.getElementById('btn-new-calc').addEventListener('click', () => {
+        window.location.href = '/index.html';
+      });
+
+      document.getElementById('filter-bar').addEventListener('click', e => {
+        const chip = e.target.closest('.filter-chip');
+        if (!chip) return;
+        activeFilter = chip.dataset.filter;
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c === chip));
+        applyFilter();
+      });
+
+      const params    = new URLSearchParams(location.search);
+      const projectId = params.get('project');
+
+      if (projectId) {
+        // Project-scoped view
+        try {
+          const projects = await Projects.getAll();
+          _project = projects.find(p => p.id === projectId) || null;
+          if (!_project) { window.location.href = '/projects.html'; return; }
+
+          await Projects.setActive(projectId);
+          document.getElementById('project-title').textContent = '🕐 ' + _project.name;
+          if (_project.description) document.getElementById('project-desc').textContent = _project.description;
+
+          _calcs = await CalcHistory.getAll({ project_id: projectId });
+        } catch (e) {
+          console.error('History load error:', e);
+        }
+      } else {
+        // All-projects view
+        try {
+          _calcs = await CalcHistory.getAll();
+        } catch (e) {
+          console.error('History load error:', e);
+        }
+      }
+
+      renderHistory();
     });
 
+    // ── Filter ────────────────────────────────────────────────────────────
     function applyFilter() {
       document.querySelectorAll('.calc-card[data-calc-type]').forEach(card => {
-        const type = card.dataset.calcType || 'beam';
+        const type   = card.dataset.calcType || 'beam';
         const hidden = activeFilter !== 'all' && type !== activeFilter;
         card.dataset.hidden = hidden ? 'true' : 'false';
       });
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────
     function relativeTime(dateStr) {
+      if (!dateStr) return '—';
       const diff = Date.now() - new Date(dateStr).getTime();
       const mins = Math.floor(diff / 60000);
       if (mins < 1) return 'just now';
@@ -327,25 +355,23 @@
       if (hours < 24) return `${hours}h ago`;
       const days = Math.floor(hours / 24);
       if (days < 30) return `${days}d ago`;
-      return new Date(dateStr).toLocaleString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      return new Date(dateStr).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
     }
 
     function typeBadgeClass(calcType) {
-      const map = { beam: 'beam', column: 'column', slab: 'slab', footing: 'footing', retaining_wall: 'retaining_wall', connection: 'connection' };
+      const map = { beam:'beam', column:'column', slab:'slab', footing:'footing', retaining_wall:'retaining_wall', connection:'connection' };
       return map[calcType] || 'default';
     }
-
     function typeBadgeLabel(calcType) {
-      const map = { beam: 'Beam', column: 'Column', slab: 'Slab', footing: 'Footing', retaining_wall: 'Wall', connection: 'Conn.' };
+      const map = { beam:'Beam', column:'Column', slab:'Slab', footing:'Footing', retaining_wall:'Wall', connection:'Conn.' };
       return map[calcType] || (calcType || 'Beam');
     }
 
-    // ── Render history ────────────────────────────────────────────────
+    // ── Render ────────────────────────────────────────────────────────────
     function renderHistory() {
-      const calcs = History.list(projectId);
       const container = document.getElementById('history-container');
 
-      if (calcs.length === 0) {
+      if (_calcs.length === 0) {
         container.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">🧮</div>
@@ -359,32 +385,26 @@
       const list = document.createElement('div');
       list.className = 'calc-list';
 
-      calcs.forEach(calc => {
-        const savedAt = relativeTime(calc.savedAt);
-        const s = calc.summary || {};
-        const moment = s.maxAbsMoment != null ? `${Number(s.maxAbsMoment).toFixed(2)} kNm` : '—';
-        const shear  = s.maxAbsShear   != null ? `${Number(s.maxAbsShear).toFixed(2)} kN`   : '—';
-        const defl   = s.maxDeflection != null ? `${(Number(s.maxDeflection) * 1000).toFixed(3)} mm` : '—';
-        const span   = calc.config && calc.config.span != null ? `${calc.config.span} m` : null;
-        const calcType = calc.calcType || 'beam';
+      _calcs.forEach(calc => {
+        // MySQL API: calc_type, inputs, results, created_at, project_name
+        const calcType   = calc.calc_type || 'beam';
+        const inputs     = calc.inputs || {};
+        const res        = calc.results || {};
+        const s          = (typeof res === 'object' && res !== null) ? res : {};
+        const savedAt    = relativeTime(calc.created_at || calc.updated_at);
+        const moment     = s.maxAbsMoment  != null ? `${Number(s.maxAbsMoment).toFixed(2)} kNm` : '—';
+        const shear      = s.maxAbsShear   != null ? `${Number(s.maxAbsShear).toFixed(2)} kN`   : '—';
+        const defl       = s.maxDeflection != null ? `${(Number(s.maxDeflection)*1000).toFixed(3)} mm` : '—';
+        const span       = inputs.span != null ? `${inputs.span} m` : null;
+        const projName   = (_project && _project.name) || calc.project_name || '';
         const badgeClass = typeBadgeClass(calcType);
         const badgeLabel = typeBadgeLabel(calcType);
-
-        // Determine load URL for this calc type
-        const calcPageMap = {
-          beam: '/index.html',
-          column: '/column.html',
-          slab: '/slab.html',
-          footing: '/footing.html',
-          retaining_wall: '/wall.html',
-          connection: '/connection.html',
-        };
-        const loadUrl = `${calcPageMap[calcType] || '/index.html'}?load=${calc.id}`;
+        const loadUrl    = `${CALC_PAGE_MAP[calcType] || '/index.html'}?load=${calc.id}`;
 
         const card = document.createElement('div');
         card.className = 'calc-card';
         card.dataset.calcType = calcType;
-        card.dataset.hidden = 'false';
+        card.dataset.hidden   = 'false';
         card.innerHTML = `
           <div class="calc-info">
             <div class="calc-top">
@@ -392,7 +412,7 @@
               <span class="calc-name">${escHtml(calc.name)}</span>
             </div>
             <div class="calc-meta">
-              <span>📁 ${escHtml(project.name)}</span>
+              ${projName ? `<span>📁 ${escHtml(projName)}</span>` : ''}
               <span>🕐 ${savedAt}</span>
               ${span ? `<span>↔ Span: ${span}</span>` : ''}
             </div>
@@ -403,7 +423,7 @@
             </div>
           </div>
           <div class="calc-actions">
-            <button class="btn-load" onclick="loadCalc('${escHtml(loadUrl)}')">Load →</button>
+            <button class="btn-load" onclick="window.location.href='${escHtml(loadUrl)}'">Load →</button>
             <button class="btn-csv" onclick="event.stopPropagation(); exportCsv('${calc.id}')" title="Export CSV">CSV</button>
             <button class="btn-del" onclick="event.stopPropagation(); deleteCalc('${calc.id}')" title="Delete">🗑</button>
           </div>`;
@@ -415,38 +435,41 @@
       applyFilter();
     }
 
-    function loadCalc(url) {
-      window.location.href = url;
-    }
-
     function exportCsv(id) {
-      const calc = History.get ? History.get(id) : null;
+      const calc = _calcs.find(c => c.id === id);
       if (!calc) { showToast('Calculation not found.', 'error'); return; }
-      const s = calc.summary || {};
+      const inputs = calc.inputs || {};
+      const s      = calc.results || {};
       const rows = [
-        ['Calculation Name', calc.name],
-        ['Saved At', new Date(calc.savedAt).toLocaleString('en-AU')],
-        ['Project', project.name],
-        ['Span (m)', calc.config && calc.config.span != null ? calc.config.span : ''],
-        ['Max Moment (kNm)', s.maxAbsMoment != null ? Number(s.maxAbsMoment).toFixed(4) : ''],
-        ['Max Shear (kN)', s.maxAbsShear != null ? Number(s.maxAbsShear).toFixed(4) : ''],
-        ['Max Deflection (mm)', s.maxDeflection != null ? (Number(s.maxDeflection) * 1000).toFixed(4) : ''],
+        ['Calculation Name',     calc.name],
+        ['Saved At',             new Date(calc.created_at).toLocaleString('en-GB')],
+        ['Project',              (_project && _project.name) || calc.project_name || ''],
+        ['Calc Type',            calc.calc_type || ''],
+        ['Span (m)',             inputs.span != null ? inputs.span : ''],
+        ['Max Moment (kNm)',     s.maxAbsMoment  != null ? Number(s.maxAbsMoment).toFixed(4)  : ''],
+        ['Max Shear (kN)',       s.maxAbsShear   != null ? Number(s.maxAbsShear).toFixed(4)   : ''],
+        ['Max Deflection (mm)',  s.maxDeflection != null ? (Number(s.maxDeflection)*1000).toFixed(4) : ''],
       ];
-      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${calc.name.replace(/[^a-z0-9]/gi, '_')}.csv`;
+      const a    = document.createElement('a');
+      a.href     = URL.createObjectURL(blob);
+      a.download = `${(calc.name || 'calculation').replace(/[^a-z0-9]/gi, '_')}.csv`;
       a.click();
       URL.revokeObjectURL(a.href);
       showToast('CSV exported.');
     }
 
-    function deleteCalc(id) {
+    async function deleteCalc(id) {
       if (!confirm('Delete this calculation? This cannot be undone.')) return;
-      History.remove(id);
-      renderHistory();
-      showToast('Calculation deleted.');
+      try {
+        await CalcHistory.remove(id);
+        _calcs = _calcs.filter(c => c.id !== id);
+        renderHistory();
+        showToast('Calculation deleted.', 'success');
+      } catch (e) {
+        showToast('Delete failed.', 'error');
+      }
     }
 
     function showToast(msg, type = 'default') {
@@ -462,11 +485,6 @@
     function escHtml(s) {
       return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      TopNav.init();
-      renderHistory();
-    });
   </script>
 </body>
 
