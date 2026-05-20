@@ -55,6 +55,12 @@ const Auth = (() => {
         users.push(user);
         saveUsers(users);
         _setSession(user);
+        // Fire welcome email (non-blocking — doesn't affect registration flow)
+        fetch('/api/send-email.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'welcome', to: user.email, name: user.name }),
+        }).catch(() => {});
         return user;
     }
 
@@ -135,7 +141,58 @@ const Auth = (() => {
         return true;
     }
 
-    return { register, login, logout, currentUser, guard, updateProfile, resetPassword };
+    /* ── Google Sign-In ──────────────────────────────────────── */
+    async function loginWithGoogle(credential) {
+        const res = await fetch('/api/google-auth.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential }),
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        // Find or create account in localStorage
+        const users = getUsers();
+        let idx = users.findIndex(u => u.email.toLowerCase() === data.email.toLowerCase());
+        const isNew = idx === -1;
+
+        if (isNew) {
+            const user = {
+                id: data.id,
+                email: data.email,
+                name: data.name,
+                picture: data.picture,
+                provider: 'google',
+                designation: '',
+                company: '',
+                createdAt: new Date().toISOString(),
+            };
+            users.push(user);
+            saveUsers(users);
+            _setSession(user);
+            // Fire welcome email (non-blocking)
+            sendEmail('welcome', data.email, data.name).catch(() => {});
+            return { user, isNew: true };
+        } else {
+            // Keep profile picture in sync
+            users[idx].picture = data.picture;
+            users[idx].provider = users[idx].provider || 'google';
+            saveUsers(users);
+            _setSession(users[idx]);
+            return { user: users[idx], isNew: false };
+        }
+    }
+
+    /* ── Transactional Email (Resend) ────────────────────────── */
+    async function sendEmail(type, to, name, extras = {}) {
+        return fetch('/api/send-email.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, to, name, ...extras }),
+        }).then(r => r.json());
+    }
+
+    return { register, login, logout, currentUser, guard, updateProfile, resetPassword, loginWithGoogle, sendEmail };
 })();
 
 window.Auth = Auth;
