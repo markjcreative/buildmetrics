@@ -1,6 +1,7 @@
 <?php
+// v2
 /**
- * auth.php — Authentication endpoints
+ * bm-auth.php — Authentication endpoints
  * POST /api/auth.php?action=register|login|logout|me|update|google
  */
 require_once __DIR__ . '/db.php';

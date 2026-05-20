@@ -1,4 +1,5 @@
 <?php
+// v2
 /**
  * send-email.php — Transactional emails via Resend
  * BuildMetrics | Add RESEND_API_KEY before deploying

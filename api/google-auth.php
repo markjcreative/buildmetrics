@@ -1,4 +1,5 @@
 <?php
+// v2
 /**
  * google-auth.php — Verify Google Identity Services JWT
  * BuildMetrics | Add GOOGLE_CLIENT_ID before deploying

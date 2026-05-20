@@ -1,4 +1,5 @@
 <?php
+// v2
 /**
  * calculations.php — Calculation history CRUD
  * GET    /api/calculations.php              → list (optional ?project_id=xx or ?type=xx)
