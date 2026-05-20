@@ -1665,7 +1665,15 @@
        RESPONSIVE
     ══════════════════════════════════════ */
     @media (max-width: 1024px) {
-      .hero-content { grid-template-columns: 1fr; gap: 40px; }
+      /* ── Tablet: standardise section padding ── */
+      section             { padding: 72px 24px; }
+      .hero-content       { grid-template-columns: 1fr; gap: 40px; padding: 80px 24px 60px; }
+      #engineer-section   { padding: 72px 0; }
+      #screenshots        { padding: 64px 0; }
+      .screenshots-head   { padding: 0 24px; }
+      #who                { padding: 72px 24px; }
+      #stats              { padding: 32px 24px; }
+      .cta-content        { padding: 72px 24px; }
       .hero-glass-card { max-width: 480px; }
       .features-grid { grid-template-columns: repeat(2, 1fr); }
       .calc-showcase-layout { grid-template-columns: 1fr; gap: 40px; }
@@ -1675,11 +1683,22 @@
     }
 
     @media (max-width: 768px) {
-      section { padding: 64px 20px; }
+      /* ── Mobile: standardise all section padding to 56px 20px ── */
+      section             { padding: 56px 20px; }
+      .hero-content       { padding: 64px 20px 48px; }   /* was 120px top — the main fix */
+      #engineer-section   { padding: 56px 0; }
+      .engineer-layout    { padding: 0 20px; }
+      .engineer-content   { margin-left: 0; padding: 0; } /* reset tablet hack, layout handles spacing */
+      #screenshots        { padding: 56px 0; }
+      .screenshots-head   { padding: 0 20px; }
+      #who                { padding: 56px 20px; }         /* was 100px 0 — no side padding on mobile */
+      #stats              { padding: 28px 20px; }
+      .cta-content        { padding: 56px 20px; }         /* was 120px top */
+      .cta-glass          { padding: 32px 20px; }         /* was 40px 24px */
+
       .nav-links { display: none; }
       .nav-cta { display: none; }
       .nav-hamburger { display: flex; }
-
       .stats-inner { grid-template-columns: repeat(2, 1fr); }
       .features-grid { grid-template-columns: 1fr; }
       .how-grid { grid-template-columns: 1fr; }
@@ -1687,12 +1706,21 @@
       .footer-top { grid-template-columns: 1fr; gap: 24px; }
       .footer-bottom { flex-direction: column; text-align: center; }
       .footer-standards { justify-content: center; }
-      .cta-glass { padding: 40px 24px; }
       .hero-actions { flex-direction: column; align-items: flex-start; }
-      .engineer-content { margin-left: 24px; padding: 60px 24px; }
     }
 
     @media (max-width: 480px) {
+      /* ── Small mobile: tighter padding, consistent 16px sides ── */
+      section             { padding: 44px 16px; }
+      .hero-content       { padding: 56px 16px 40px; }
+      #engineer-section   { padding: 44px 0; }
+      .engineer-layout    { padding: 0 16px; }
+      #screenshots        { padding: 44px 0; }
+      .screenshots-head   { padding: 0 16px; }
+      #who                { padding: 44px 16px; }
+      #stats              { padding: 24px 16px; }
+      .cta-content        { padding: 44px 16px; }
+      .cta-glass          { padding: 24px 16px; }
       .hero-title { font-size: 2rem; }
       .stats-inner { grid-template-columns: 1fr 1fr; gap: 16px; }
       .pricing-grid { max-width: 100%; }
