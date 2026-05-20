@@ -1,0 +1,68 @@
+-- BuildMetrics Database Schema
+-- Run once in Hostinger phpMyAdmin
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+CREATE TABLE IF NOT EXISTS users (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  email         VARCHAR(255) UNIQUE NOT NULL,
+  name          VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(255),
+  salt          VARCHAR(64),
+  google_id     VARCHAR(255),
+  provider      VARCHAR(20) DEFAULT 'email',
+  picture       VARCHAR(500),
+  designation   VARCHAR(255) DEFAULT '',
+  company       VARCHAR(255) DEFAULT '',
+  plan          VARCHAR(20) DEFAULT 'free',
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT NOT NULL,
+  token      VARCHAR(64) UNIQUE NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS projects (
+  id          VARCHAR(36) PRIMARY KEY,
+  user_id     INT NOT NULL,
+  name        VARCHAR(255) NOT NULL,
+  description TEXT,
+  colour      VARCHAR(7) DEFAULT '#2563EB',
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS calculations (
+  id          VARCHAR(36) PRIMARY KEY,
+  user_id     INT NOT NULL,
+  project_id  VARCHAR(36),
+  calc_type   VARCHAR(50) NOT NULL,
+  name        VARCHAR(255) NOT NULL,
+  inputs      JSON,
+  results     JSON,
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT NOT NULL,
+  type       VARCHAR(30) DEFAULT 'info',
+  title      VARCHAR(255) NOT NULL,
+  message    TEXT,
+  link       VARCHAR(500),
+  is_read    TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET FOREIGN_KEY_CHECKS = 1;
