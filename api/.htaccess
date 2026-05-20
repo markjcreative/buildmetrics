@@ -1,0 +1,10 @@
+# Disable LiteSpeed cache for API directory
+<IfModule LiteSpeed>
+    CacheDisable public /
+</IfModule>
+
+# No caching for PHP responses
+<FilesMatch "\.php$">
+    Header always set Cache-Control "no-store, no-cache, must-revalidate"
+    Header always set Pragma "no-cache"
+</FilesMatch>
