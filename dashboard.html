@@ -155,10 +155,10 @@
     <div class="app-container">
 
       <!-- ── Greeting ─────────────────────────────────────────── -->
-      <div class="dash-hero" style="margin-bottom:28px;">
+      <div class="dash-hero page-hero" style="margin-bottom:28px;">
         <div>
-          <h1 class="dash-greeting" id="dash-greeting">Good morning</h1>
-          <p class="dash-sub-line" id="dash-sub">Welcome back to BuildMetrics</p>
+          <h1 id="dash-greeting">👋 Good morning</h1>
+          <p id="dash-sub">Welcome back to BuildMetrics</p>
         </div>
       </div>
 
@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Greeting
   const hour = new Date().getHours();
-  const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const greet = hour < 12 ? '👋 Good morning' : hour < 18 ? '☀️ Good afternoon' : '🌙 Good evening';
   const firstName = (user.name || user.email || '').split(' ')[0];
   document.getElementById('dash-greeting').textContent = greet + (firstName ? ', ' + firstName : '');
 
