@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notifications — BuildMetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <style>
+    .notif-page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px; flex-wrap: wrap; gap: 12px;
+    }
+    .notif-page-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+    .notif-page-header p  { font-size: 0.875rem; color: var(--text-muted); margin: 4px 0 0; }
+    .notif-page-actions { display: flex; gap: 8px; }
+
+    .notif-filter-bar {
+      display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .nf-chip {
+      padding: 6px 14px; border-radius: 100px; font-size: 0.8rem; font-weight: 600;
+      border: 1.5px solid var(--border); background: var(--bg-surface);
+      color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+    }
+    .nf-chip:hover  { border-color: var(--accent); color: var(--accent); }
+    .nf-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .notif-full-list { display: flex; flex-direction: column; gap: 2px; }
+
+    .nf-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 16px 20px; border-radius: var(--radius-lg);
+      background: var(--bg-surface); border: 1.5px solid var(--border);
+      cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
+      position: relative;
+    }
+    .nf-item:hover { border-color: #BFDBFE; box-shadow: var(--shadow); }
+    .nf-item.unread { background: #EFF6FF; border-color: #BFDBFE; }
+    .nf-item.unread::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--accent); border-radius: 3px 0 0 3px;
+    }
+
+    .nf-icon {
+      width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .nf-body { flex: 1; min-width: 0; }
+    .nf-title { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+    .nf-msg   { font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; }
+    .nf-meta  { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .nf-cat   { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 100px; background: var(--bg-subtle); color: var(--text-muted); }
+    .nf-age   { font-size: 0.75rem; color: var(--text-muted); }
+    .nf-unread-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+      flex-shrink: 0; margin-top: 6px;
+    }
+
+    .notif-empty-state {
+      text-align: center; padding: 80px 20px;
+      color: var(--text-muted);
+    }
+    .notif-empty-state .empty-icon {
+      font-size: 3rem; margin-bottom: 16px;
+    }
+    .notif-empty-state h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-secondary); margin: 0 0 8px; }
+    .notif-empty-state p  { font-size: 0.875rem; margin: 0; }
+
+    .notif-summary-bar {
+      display: flex; align-items: center; gap: 20px;
+      padding: 12px 20px; background: var(--bg-subtle); border-radius: var(--radius-lg);
+      margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .nsb-stat { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--text-secondary); }
+    .nsb-stat strong { color: var(--text-primary); font-weight: 700; }
+    .nsb-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <main id="app-main">
+    <div class="app-container">
+
+      <div class="notif-page-header">
+        <div>
+          <h1>Notifications</h1>
+          <p id="notif-summary-text">Loading…</p>
+        </div>
+        <div class="notif-page-actions">
+          <button class="btn btn-outline" onclick="markAllRead()">Mark all read</button>
+          <button class="btn btn-outline" style="color:var(--red);border-color:var(--red)" onclick="clearAll()">Clear all</button>
+        </div>
+      </div>
+
+      <!-- Summary bar -->
+      <div class="notif-summary-bar" id="summary-bar">
+        <div class="nsb-stat"><div class="nsb-dot" style="background:#3B82F6"></div><span><strong id="cnt-all">0</strong> total</span></div>
+        <div class="nsb-stat"><div class="nsb-dot" style="background:#EF4444"></div><span><strong id="cnt-unread">0</strong> unread</span></div>
+        <div class="nsb-stat"><div class="nsb-dot" style="background:#10B981"></div><span><strong id="cnt-calcs">0</strong> calculations</span></div>
+        <div class="nsb-stat"><div class="nsb-dot" style="background:#6366F1"></div><span><strong id="cnt-projects">0</strong> projects</span></div>
+      </div>
+
+      <!-- Filter chips -->
+      <div class="notif-filter-bar">
+        <button class="nf-chip active" data-filter="all">All</button>
+        <button class="nf-chip" data-filter="unread">Unread</button>
+        <button class="nf-chip" data-filter="Calcs">Calculations</button>
+        <button class="nf-chip" data-filter="Projects">Projects</button>
+        <button class="nf-chip" data-filter="Reports">Reports</button>
+        <button class="nf-chip" data-filter="Collab">Collaboration</button>
+        <button class="nf-chip" data-filter="Billing">Billing</button>
+        <button class="nf-chip" data-filter="System">System</button>
+      </div>
+
+      <!-- List -->
+      <div class="notif-full-list" id="notif-full-list">
+        <div class="notif-empty-state">
+          <div class="empty-icon">🔔</div>
+          <h3>Loading notifications…</h3>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/notifications.js"></script>
+<script src="/js/ui/topNav.js"></script>
+
+<script>
+const STORAGE_KEY = 'bm_notifications';
+const TYPE_META = {
+  WELCOME:{icon:'👋',color:'#3B82F6',cat:'Auth'},EMAIL_VERIFY:{icon:'✉️',color:'#F59E0B',cat:'Auth'},
+  PASSWORD_RESET:{icon:'🔑',color:'#F59E0B',cat:'Auth'},PASSWORD_CHANGED:{icon:'🔒',color:'#10B981',cat:'Auth'},
+  LOGIN_NEW_DEVICE:{icon:'📱',color:'#EF4444',cat:'Auth'},PROFILE_UPDATED:{icon:'👤',color:'#6366F1',cat:'Auth'},
+  PROJECT_CREATED:{icon:'📁',color:'#10B981',cat:'Projects'},PROJECT_SHARED:{icon:'🔗',color:'#3B82F6',cat:'Projects'},
+  PROJECT_UPDATED:{icon:'✏️',color:'#6366F1',cat:'Projects'},PROJECT_DEADLINE:{icon:'⏰',color:'#F59E0B',cat:'Projects'},
+  PROJECT_COMPLETED:{icon:'✅',color:'#10B981',cat:'Projects'},PROJECT_DELETED:{icon:'🗑️',color:'#EF4444',cat:'Projects'},
+  CALC_SAVED:{icon:'💾',color:'#3B82F6',cat:'Calcs'},CALC_PASS:{icon:'✅',color:'#10B981',cat:'Calcs'},
+  CALC_FAIL:{icon:'⚠️',color:'#EF4444',cat:'Calcs'},CALC_SHARED:{icon:'🔗',color:'#3B82F6',cat:'Calcs'},
+  CALC_ERROR:{icon:'❌',color:'#EF4444',cat:'Calcs'},
+  PDF_READY:{icon:'📄',color:'#10B981',cat:'Reports'},PDF_DOWNLOADED:{icon:'⬇️',color:'#6366F1',cat:'Reports'},
+  REPORT_SHARED:{icon:'📤',color:'#3B82F6',cat:'Reports'},WORD_READY:{icon:'📝',color:'#10B981',cat:'Reports'},
+  TEAM_INVITE:{icon:'📨',color:'#3B82F6',cat:'Collab'},TEAM_JOINED:{icon:'🤝',color:'#10B981',cat:'Collab'},
+  TEAM_REMOVED:{icon:'👋',color:'#EF4444',cat:'Collab'},COMMENT_ADDED:{icon:'💬',color:'#6366F1',cat:'Collab'},
+  MENTION:{icon:'@',color:'#F59E0B',cat:'Collab'},REVIEW_REQUESTED:{icon:'👁️',color:'#6366F1',cat:'Collab'},
+  PLAN_FREE:{icon:'🎉',color:'#10B981',cat:'Billing'},PLAN_UPGRADED:{icon:'⭐',color:'#F59E0B',cat:'Billing'},
+  PLAN_RENEWAL:{icon:'🔄',color:'#F59E0B',cat:'Billing'},PAYMENT_FAILED:{icon:'💳',color:'#EF4444',cat:'Billing'},
+  INVOICE_READY:{icon:'🧾',color:'#6366F1',cat:'Billing'},
+  NEW_CALCULATOR:{icon:'🧮',color:'#3B82F6',cat:'System'},MAINTENANCE:{icon:'🔧',color:'#F59E0B',cat:'System'},
+  FEATURE_UPDATE:{icon:'🚀',color:'#6366F1',cat:'System'},WEEKLY_DIGEST:{icon:'📊',color:'#3B82F6',cat:'System'},
+  WAITLIST_CONFIRMED:{icon:'📋',color:'#3B82F6',cat:'System'},ACCESS_GRANTED:{icon:'🎉',color:'#10B981',cat:'System'},
+};
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+}
+function save(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+function timeAgo(ts) {
+  const m = Math.floor((Date.now()-ts)/60000);
+  if(m<1) return 'Just now'; if(m<60) return m+'m ago';
+  const h=Math.floor(m/60); if(h<24) return h+'h ago';
+  return Math.floor(h/24)+'d ago';
+}
+
+let currentFilter = 'all';
+
+function render() {
+  const all = load();
+  const unread = all.filter(n=>!n.read);
+  const calcs  = all.filter(n=>(TYPE_META[n.type]||{}).cat==='Calcs');
+  const proj   = all.filter(n=>(TYPE_META[n.type]||{}).cat==='Projects');
+
+  document.getElementById('cnt-all').textContent    = all.length;
+  document.getElementById('cnt-unread').textContent = unread.length;
+  document.getElementById('cnt-calcs').textContent  = calcs.length;
+  document.getElementById('cnt-projects').textContent = proj.length;
+  document.getElementById('notif-summary-text').textContent =
+    all.length ? unread.length + ' unread of ' + all.length + ' notifications' : 'No notifications';
+
+  let list = all;
+  if (currentFilter === 'unread') list = unread;
+  else if (currentFilter !== 'all') list = all.filter(n=>(TYPE_META[n.type]||{}).cat===currentFilter);
+
+  const container = document.getElementById('notif-full-list');
+  if (!list.length) {
+    container.innerHTML = '<div class="notif-empty-state"><div class="empty-icon">🔔</div><h3>No notifications here</h3><p>Nothing to show for this filter.</p></div>';
+    return;
+  }
+  container.innerHTML = list.map(n => {
+    const m = TYPE_META[n.type] || {icon:'🔔',color:'#3B82F6',cat:'System'};
+    return '<div class="nf-item'+(n.read?'':' unread')+'" data-id="'+n.id+'" '+(n.link?'onclick="window.location.href=\''+n.link+'\'"':'')+'>'+
+      '<div class="nf-icon" style="background:'+m.color+'18;color:'+m.color+'">'+m.icon+'</div>'+
+      '<div class="nf-body">'+
+        '<div class="nf-title">'+n.title+'</div>'+
+        '<div class="nf-msg">'+n.message+'</div>'+
+        '<div class="nf-meta">'+
+          '<span class="nf-cat">'+m.cat+'</span>'+
+          '<span class="nf-age">'+timeAgo(n.ts)+'</span>'+
+        '</div>'+
+      '</div>'+
+      (!n.read?'<div class="nf-unread-dot"></div>':'')+
+    '</div>';
+  }).join('');
+
+  container.querySelectorAll('.nf-item').forEach(el => {
+    el.addEventListener('click', function() {
+      const all = load();
+      const updated = all.map(n => n.id===this.dataset.id ? {...n,read:true} : n);
+      save(updated);
+      this.classList.remove('unread');
+      this.querySelector('.nf-unread-dot')?.remove();
+      if(window.Notifications) Notifications._updateBadge && Notifications._updateBadge();
+    });
+  });
+}
+
+function markAllRead() {
+  save(load().map(n=>({...n,read:true})));
+  if(window.Notifications) Notifications.markAllRead();
+  render();
+}
+function clearAll() {
+  if(!confirm('Clear all notifications?')) return;
+  save([]);
+  if(window.Notifications) Notifications.clear();
+  render();
+}
+
+// Filter chips
+document.querySelectorAll('.nf-chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    document.querySelectorAll('.nf-chip').forEach(c=>c.classList.remove('active'));
+    this.classList.add('active');
+    currentFilter = this.dataset.filter;
+    render();
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  TopNav.init();
+  render();
+});
+</script>
+</body>
+</html>

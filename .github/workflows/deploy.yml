@@ -1,52 +1,61 @@
 name: Deploy to Hostinger
 
+# ─── Trigger ──────────────────────────────────────────────────────────────────
+# Runs automatically on every push to main.
+# You can also trigger it manually via Actions → Run workflow.
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
+# ─── Jobs ─────────────────────────────────────────────────────────────────────
 jobs:
-  # ── Deploy landing page → buildmetrics.uk (public_html/)
+
+  # ── 1. Deploy landing page → buildmetrics.uk ─────────────────────────────
   deploy-landing:
-    name: Deploy Landing Page
+    name: "Deploy: buildmetrics.uk (landing)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Deploy landing/ → public_html/
+      - name: FTP upload → public_html/
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME_LANDING }}
-          password: ${{ secrets.FTP_PASSWORD_LANDING }}
-          local-dir: ./landing/
+          server:    ${{ secrets.FTP_SERVER }}
+          username:  ${{ secrets.FTP_USERNAME }}
+          password:  ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./landing/          # contents of /landing go to root
           server-dir: /public_html/
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
+            **/.DS_Store
 
-  # ── Deploy app → app.buildmetrics.uk (public_html/app/)
+  # ── 2. Deploy app → app.buildmetrics.uk ──────────────────────────────────
   deploy-app:
-    name: Deploy App
+    name: "Deploy: app.buildmetrics.uk"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Deploy app → public_html/app/
+      - name: FTP upload → subdomain document root
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME_APP }}
-          password: ${{ secrets.FTP_PASSWORD_APP }}
-          local-dir: ./
-          server-dir: /public_html/app/
+          server:    ${{ secrets.FTP_SERVER }}
+          username:  ${{ secrets.FTP_USERNAME }}
+          password:  ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./                  # repo root (the app)
+          server-dir: ${{ secrets.FTP_APP_DIR }}   # e.g. /public_html/app.buildmetrics.uk/
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
-            landing/**
+            **/.DS_Store
+            **/.claude/**
             .github/**
-            email-templates/**
+            landing/**
             beamcalc-pro/**
-            .claude/**
             markjcreative-landing.html

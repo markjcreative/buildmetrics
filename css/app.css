@@ -22,8 +22,8 @@ body {
 /* ─── Header ─────────────────────────────────────────────── */
 #app-header {
   height: 56px;
-  background: #ffffff;
-  border-bottom: 1px solid var(--border);
+  background: #0F172A;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -53,7 +53,7 @@ body {
 .header-logo-name {
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #ffffff;
   letter-spacing: -0.3px;
 }
 
@@ -70,20 +70,20 @@ body {
   border-radius: 7px;
   font-size: 0.82rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: rgba(255,255,255,0.58);
   text-decoration: none;
   transition: background 0.12s, color 0.12s;
   white-space: nowrap;
 }
 
 .header-nav a:hover {
-  background: var(--bg-subtle);
-  color: var(--text-primary);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.92);
 }
 
 .header-nav a.hn-active {
-  color: var(--accent);
-  background: var(--accent-light);
+  color: #60A5FA;
+  background: rgba(37,99,235,0.18);
 }
 
 /* Right section */
@@ -106,7 +106,7 @@ body {
 }
 
 .header-user:hover {
-  background: var(--bg-subtle);
+  background: rgba(255,255,255,0.07);
 }
 
 .header-avatar {
@@ -127,14 +127,14 @@ body {
 .header-user-name {
   font-size: 0.82rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: rgba(255,255,255,0.85);
 }
 
 .header-signout {
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 6px;
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.5);
   font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
   font-weight: 500;
@@ -145,9 +145,9 @@ body {
 }
 
 .header-signout:hover {
-  border-color: var(--border-strong);
-  color: var(--text-primary);
-  background: var(--bg-subtle);
+  border-color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.07);
 }
 
 /* Mobile menu button */
@@ -156,7 +156,7 @@ body {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: var(--text-primary);
+  color: rgba(255,255,255,0.7);
   padding: 6px;
   border-radius: 6px;
   line-height: 0;
@@ -164,7 +164,7 @@ body {
 }
 
 .header-menu-btn:hover {
-  background: var(--bg-subtle);
+  background: rgba(255,255,255,0.07);
 }
 
 /* ─── Mobile Fullscreen Menu ─────────────────────────────── */

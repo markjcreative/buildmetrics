@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ — BuildMetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <style>
+    .faq-hero { margin-bottom: 36px; }
+    .faq-hero h1 { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin: 0 0 6px; }
+    .faq-hero p  { font-size: 0.9rem; color: var(--text-muted); margin: 0; }
+
+    .faq-search-wrap { margin-bottom: 28px; position: relative; }
+    .faq-search {
+      width: 100%; padding: 11px 16px 11px 42px; border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg); font-size: 0.9rem; background: var(--bg-surface);
+      color: var(--text-primary); outline: none; font-family: inherit;
+      box-sizing: border-box;
+    }
+    .faq-search:focus { border-color: var(--accent); }
+    .faq-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+
+    .faq-layout { display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }
+    @media(max-width:768px){ .faq-layout { grid-template-columns: 1fr; } .faq-sidebar { display: none; } }
+
+    .faq-sidebar { position: sticky; top: 80px; }
+    .faq-sidebar-item {
+      display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+      border-radius: var(--radius); font-size: 0.85rem; font-weight: 500;
+      color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+      text-decoration: none;
+    }
+    .faq-sidebar-item:hover { background: var(--bg-subtle); color: var(--text-primary); }
+    .faq-sidebar-item.active { background: var(--accent-light); color: var(--accent); font-weight: 700; }
+    .faq-sidebar-icon { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; }
+
+    .faq-section { margin-bottom: 40px; scroll-margin-top: 80px; }
+    .faq-section-title {
+      font-size: 1rem; font-weight: 800; color: var(--text-primary);
+      margin: 0 0 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .faq-section-badge {
+      font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 100px;
+      background: var(--accent-light); color: var(--accent);
+    }
+
+    .faq-item {
+      border: 1.5px solid var(--border); border-radius: var(--radius-lg);
+      overflow: hidden; margin-bottom: 8px; background: var(--bg-surface);
+    }
+    .faq-q {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; cursor: pointer; gap: 12px;
+      font-size: 0.9rem; font-weight: 600; color: var(--text-primary);
+      transition: background 0.15s;
+    }
+    .faq-q:hover { background: var(--bg-subtle); }
+    .faq-q.open { color: var(--accent); background: var(--accent-light); }
+    .faq-chevron { flex-shrink: 0; transition: transform 0.2s; color: var(--text-muted); }
+    .faq-q.open .faq-chevron { transform: rotate(180deg); color: var(--accent); }
+    .faq-a {
+      display: none; padding: 0 20px 18px; font-size: 0.875rem;
+      color: var(--text-secondary); line-height: 1.75;
+      border-top: 1px solid var(--border);
+    }
+    .faq-a.open { display: block; }
+    .faq-a p { margin: 12px 0 0; }
+    .faq-a p:first-child { margin-top: 0; }
+    .faq-a ul { margin: 8px 0; padding-left: 20px; }
+    .faq-a li { margin-bottom: 4px; }
+    .faq-a a { color: var(--accent); }
+    .faq-a .warn {
+      background: #FEF2F2; border: 1px solid #FECACA; border-radius: var(--radius);
+      padding: 10px 14px; margin-top: 10px; font-size: 0.82rem; color: #DC2626;
+    }
+    .faq-a code {
+      background: var(--bg-subtle); padding: 1px 6px; border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82em; color: var(--accent);
+    }
+
+    .faq-contact-card {
+      background: var(--accent-light); border: 1.5px solid var(--accent-mid);
+      border-radius: var(--radius-lg); padding: 24px; text-align: center; margin-top: 40px;
+    }
+    .faq-contact-card h3 { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
+    .faq-contact-card p  { font-size: 0.875rem; color: var(--text-secondary); margin: 0 0 16px; }
+  </style>
+</head>
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <main id="app-main">
+    <div class="app-container">
+
+      <div class="faq-hero">
+        <h1>Frequently Asked Questions</h1>
+        <p>Everything you need to know about BuildMetrics. Can't find an answer? <a href="mailto:support@buildmetrics.uk" style="color:var(--accent)">Email us</a>.</p>
+      </div>
+
+      <div class="faq-search-wrap">
+        <svg class="faq-search-icon" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+        <input class="faq-search" type="text" placeholder="Search questions…" id="faq-search" />
+      </div>
+
+      <div class="faq-layout">
+
+        <!-- Sidebar -->
+        <aside class="faq-sidebar">
+          <a href="#general"     class="faq-sidebar-item active"><div class="faq-sidebar-icon" style="background:#EFF6FF">💡</div>General</a>
+          <a href="#calcs"       class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#F0FDF4">🧮</div>Calculators</a>
+          <a href="#reports"     class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#F5F3FF">📄</div>PDF Reports</a>
+          <a href="#eurocodes"   class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#FFFBEB">📐</div>Eurocodes</a>
+          <a href="#projects"    class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#F0FDF4">📁</div>Projects</a>
+          <a href="#account"     class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#FFF7ED">👤</div>Account</a>
+          <a href="#billing"     class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#F0FDF4">💳</div>Billing</a>
+          <a href="#technical"   class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#EFF6FF">⚙️</div>Technical</a>
+        </aside>
+
+        <!-- Questions -->
+        <div id="faq-body">
+
+          <!-- General -->
+          <div class="faq-section" id="general">
+            <div class="faq-section-title">💡 General <span class="faq-section-badge">6 questions</span></div>
+
+            <div class="faq-item">
+              <div class="faq-q">What is BuildMetrics?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>BuildMetrics is a browser-based structural engineering calculation platform built for UK engineers. It provides Eurocode-compliant calculators for beams, columns, slabs, footings, and more — with professional PDF report output. No software installation is required.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Who is BuildMetrics for?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>BuildMetrics is designed for:</p><ul><li>Structural and civil engineers in private practice</li><li>Graduate and chartered engineers</li><li>Engineering consultancies</li><li>Contractors needing quick preliminary checks</li><li>Engineering academics and students</li></ul></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Is BuildMetrics free to use?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Yes — BuildMetrics is completely free for all engineers during 2026. We will introduce paid plans in 2027 but all existing users will be notified well in advance with a generous transition period.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Are the calculations suitable for professional use?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a">
+                <p>BuildMetrics is intended as a calculation assistance tool. The outputs can be used as part of your engineering process, but:</p>
+                <div class="warn">⚠️ All results must be independently verified by a suitably qualified and experienced engineer before use in any professional or construction context. BuildMetrics does not accept liability for errors in, or omissions from, the calculations. See our <a href="/terms">Terms of Service</a> for full details.</div>
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">What browsers does BuildMetrics support?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>BuildMetrics works in all modern browsers: Chrome, Edge, Firefox, and Safari. We recommend Chrome or Edge for the best experience. Internet Explorer is not supported.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Do I need to install anything?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>No. BuildMetrics runs entirely in your browser. There is no software to download, install, or maintain. All calculations and data are accessible from any device with a browser and internet connection.</p></div>
+            </div>
+          </div>
+
+          <!-- Calculators -->
+          <div class="faq-section" id="calcs">
+            <div class="faq-section-title">🧮 Calculators <span class="faq-section-badge">7 questions</span></div>
+
+            <div class="faq-item">
+              <div class="faq-q">Which calculators are available?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>BuildMetrics currently includes:</p><ul><li><strong>Beam Design</strong> — Steel &amp; Timber (EC3 / EC5), multi-span</li><li><strong>RC Beam</strong> — EC2, flexure, shear, deflection &amp; crack control</li><li><strong>Concrete Column</strong> — EC2, axial + N-M interaction diagram</li><li><strong>Steel Column</strong> — EC3, axial compression, buckling</li><li><strong>Timber Column</strong> — EC5</li><li><strong>RC Slab</strong> — EC2, one-way and two-way</li><li><strong>Pad Footing</strong> — EC2/EC7, bearing &amp; punching shear</li><li><strong>Retaining Wall</strong> — EC7, sliding &amp; overturning</li><li><strong>Connection Design</strong> — EC3, bolt groups &amp; weld capacity</li></ul></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Can I use Imperial units?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Yes. Each calculator has a unit toggle in the input panel. Switch between metric (kN, mm, MPa) and Imperial (kip, in, psi) at any time — all inputs and outputs update automatically.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">How do I save a calculation?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Click the <strong>Save</strong> button in the top-right of any calculator. You'll be prompted to name the calculation and assign it to a project. Saved calculations appear in your Projects page and can be reopened at any time.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Can I run multiple calculations in one project?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Yes. Each project can contain an unlimited number of calculations across different calculator types. All calculations in a project are listed on the project page and can be exported together into a single PDF report package.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">What does the utilisation ratio mean?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>The utilisation ratio (<code>η = Ed / Rd</code>) is the ratio of applied design effect to design resistance. A value below <code>1.0</code> means the check passes. A value above <code>1.0</code> means the section is overstressed and the design fails that check. Aim for a utilisation below 0.95 in practice to allow for tolerances.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Can I edit a saved calculation?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Yes. Open the calculation from your Projects page, make your changes, and click Save again. A new revision is saved — the original is preserved in the calculation history.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Are steel section databases included?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Yes. The beam and column calculators include full UK and European standard steel section databases (UB, UC, CHS, RHS, SHS, Angles) with all section properties. Select a section from the dropdown to populate dimensions automatically.</p></div>
+            </div>
+          </div>
+
+          <!-- Reports -->
+          <div class="faq-section" id="reports">
+            <div class="faq-section-title">📄 PDF Reports <span class="faq-section-badge">4 questions</span></div>
+
+            <div class="faq-item">
+              <div class="faq-q">What does the PDF report include?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Each PDF report includes: project details, engineer name, calculation reference, all input parameters, step-by-step calculation workings with Eurocode clause references, utilisation checks with pass/fail status, diagrams (where applicable), and the BuildMetrics disclaimer.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Can I add my company logo to reports?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Custom branding (logo, company name, address) is available on paid plans. On the free plan, reports include the BuildMetrics branding. Go to Profile → Report Settings to configure your details.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Can I export to Word?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Word (.docx) export is available for calculations that need to be incorporated into larger report documents. Look for the <strong>Export → Word</strong> option in the calculator toolbar.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Does the report contain a disclaimer?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Yes. Every report contains a mandatory disclaimer stating that results are produced by a calculation assistance tool and must be independently verified by a qualified engineer. This cannot be removed and is required by our Terms of Service.</p></div>
+            </div>
+          </div>
+
+          <!-- Eurocodes -->
+          <div class="faq-section" id="eurocodes">
+            <div class="faq-section-title">📐 Eurocodes <span class="faq-section-badge">4 questions</span></div>
+
+            <div class="faq-item">
+              <div class="faq-q">Which Eurocodes does BuildMetrics follow?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><ul><li><strong>EC2</strong> — Design of concrete structures</li><li><strong>EC3</strong> — Design of steel structures</li><li><strong>EC5</strong> — Design of timber structures</li><li><strong>EC7</strong> — Geotechnical design (footings, retaining walls)</li></ul><p>UK National Annex parameters are applied by default.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Are UK National Annex values applied?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Yes. All calculators apply UK National Annex (NA) recommended values as the default. Where NA values differ from the base Eurocode, the NA value is used and referenced in the calculation output. Advanced settings allow you to override specific parameters where needed.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">What load combinations are used?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>BuildMetrics applies EN 1990 (EC0) load combinations with UK NA partial factors: <code>γG = 1.35</code> (permanent), <code>γQ = 1.5</code> (variable). Both STR and GEO combination sets are evaluated where relevant.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Will BuildMetrics be updated when Eurocodes are revised?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Yes. We monitor Eurocode revisions and UK NA updates and will update the calculation engines accordingly. All users are notified of significant changes via in-app notifications and email.</p></div>
+            </div>
+          </div>
+
+          <!-- Projects -->
+          <div class="faq-section" id="projects">
+            <div class="faq-section-title">📁 Projects <span class="faq-section-badge">3 questions</span></div>
+
+            <div class="faq-item">
+              <div class="faq-q">How many projects can I create?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>On the free plan there is no limit on the number of projects or calculations during 2026. Limits may apply on certain paid plan tiers in the future.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Can I share projects with colleagues?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Project sharing and team collaboration features are in active development. When released, you'll be able to invite colleagues by email to view or edit your projects. You'll receive an in-app notification when this feature goes live.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Where is my data stored?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Your project and calculation data is stored in your browser's local storage on your device. Data is not currently synchronised to a cloud server, which means it is tied to the browser and device you used to create it. Cloud sync is planned for a future release.</p></div>
+            </div>
+          </div>
+
+          <!-- Account -->
+          <div class="faq-section" id="account">
+            <div class="faq-section-title">👤 Account <span class="faq-section-badge">3 questions</span></div>
+
+            <div class="faq-item">
+              <div class="faq-q">How do I reset my password?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>On the login page, click <strong>Forgot password?</strong>. Enter your email address and we'll send a reset link valid for 30 minutes.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Can I change my email address?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Go to Profile → Account Settings → Change Email. You'll need to verify the new address before the change takes effect.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">How do I delete my account?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Email <a href="mailto:support@buildmetrics.uk">support@buildmetrics.uk</a> with your account email address and we will delete your account and all associated data within 30 days, in accordance with UK GDPR.</p></div>
+            </div>
+          </div>
+
+          <!-- Billing -->
+          <div class="faq-section" id="billing">
+            <div class="faq-section-title">💳 Billing <span class="faq-section-badge">3 questions</span></div>
+
+            <div class="faq-item">
+              <div class="faq-q">When will paid plans launch?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>BuildMetrics is free for all engineers throughout 2026. We plan to introduce paid plans in early 2027. Early access users will receive a discounted rate.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Will there always be a free tier?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Yes. We intend to maintain a free tier with access to core calculators indefinitely. Advanced features (team collaboration, custom branding, priority support) will be part of paid plans.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Do you offer discounts for students or small practices?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>We plan to offer academic and sole-trader pricing when paid plans launch. Email <a href="mailto:support@buildmetrics.uk">support@buildmetrics.uk</a> to register your interest.</p></div>
+            </div>
+          </div>
+
+          <!-- Technical -->
+          <div class="faq-section" id="technical">
+            <div class="faq-section-title">⚙️ Technical <span class="faq-section-badge">3 questions</span></div>
+
+            <div class="faq-item">
+              <div class="faq-q">Can I use BuildMetrics offline?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>BuildMetrics requires an internet connection for the initial page load. Once loaded, the calculation engines run entirely in the browser and do not require further network access — so calculations continue to work if you lose connectivity mid-session.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Is my data secure?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>All data is encrypted in transit via HTTPS. Currently, project data is stored in your browser's local storage and does not leave your device. We do not have access to your calculation data. See our <a href="/privacy">Privacy Policy</a> for full details.</p></div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">How do I report a bug or suggest a feature?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Email <a href="mailto:support@buildmetrics.uk">support@buildmetrics.uk</a> with a description of the issue or your feature request. For bugs, please include the calculator name, inputs used, and a screenshot if possible. We read and respond to every message.</p></div>
+            </div>
+          </div>
+
+          <!-- Contact card -->
+          <div class="faq-contact-card">
+            <h3>Still have questions?</h3>
+            <p>Our team is happy to help with any technical or account queries.</p>
+            <a href="mailto:support@buildmetrics.uk" class="btn btn-primary">Email support@buildmetrics.uk</a>
+          </div>
+
+        </div><!-- /faq-body -->
+      </div><!-- /faq-layout -->
+
+    </div>
+  </main>
+</div>
+
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/notifications.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  TopNav.init();
+
+  // Accordion
+  document.querySelectorAll('.faq-q').forEach(function(q) {
+    q.addEventListener('click', function() {
+      const a = this.nextElementSibling;
+      const isOpen = a.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.faq-q').forEach(function(x){ x.classList.remove('open'); });
+      document.querySelectorAll('.faq-a').forEach(function(x){ x.classList.remove('open'); });
+      if (!isOpen) { this.classList.add('open'); a.classList.add('open'); }
+    });
+  });
+
+  // Search
+  document.getElementById('faq-search').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.faq-item').forEach(function(item) {
+      const text = item.textContent.toLowerCase();
+      item.style.display = text.includes(q) ? '' : 'none';
+    });
+    document.querySelectorAll('.faq-section').forEach(function(sec) {
+      const visible = [...sec.querySelectorAll('.faq-item')].some(i => i.style.display !== 'none');
+      sec.style.display = visible ? '' : 'none';
+    });
+  });
+
+  // Sidebar active state on scroll
+  const sections = document.querySelectorAll('.faq-section');
+  const sideLinks = document.querySelectorAll('.faq-sidebar-item');
+  window.addEventListener('scroll', function() {
+    let current = '';
+    sections.forEach(function(s) {
+      if (window.scrollY >= s.offsetTop - 120) current = s.id;
+    });
+    sideLinks.forEach(function(l) {
+      l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+    });
+  });
+});
+</script>
+</body>
+</html>

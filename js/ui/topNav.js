@@ -11,6 +11,9 @@ const TopNav = (() => {
     '/standards.html':  'standards',
     '/templates.html':  'templates',
     '/ai-assistant.html': 'ai',
+    '/tutorials.html':  'tutorials',
+    '/faq.html':        'faq',
+    '/notifications.html': 'notifications',
   };
 
   function init(opts) {
@@ -46,8 +49,25 @@ const TopNav = (() => {
       });
     }
 
-    // Init notification bell
-    if (window.Notifications) Notifications.init();
+    // Load and init notification bell
+    if (window.Notifications) {
+      Notifications.init();
+    } else {
+      var s = document.createElement('script');
+      s.src = '/js/ui/notifications.js';
+      s.onload = function() { Notifications.init(); };
+      document.head.appendChild(s);
+    }
+
+    // Load and init AI chat widget
+    if (window.AIChat) {
+      AIChat.init();
+    } else {
+      var ac = document.createElement('script');
+      ac.src = '/js/ui/aiChat.js';
+      ac.onload = function() { AIChat.init(); };
+      document.head.appendChild(ac);
+    }
 
     // Wire mobile menu open/close
     const menuBtn = document.getElementById('hdr-menu-btn');
@@ -97,7 +117,8 @@ const TopNav = (() => {
         '<a href="/tools.html" data-nav="tools">Quick Tools</a>' +
         '<a href="/standards.html" data-nav="standards">Standards</a>' +
         '<a href="/templates.html" data-nav="templates">Templates</a>' +
-        '<a href="/ai-assistant.html" data-nav="ai">AI Assistant</a>' +
+        '<a href="/tutorials.html" data-nav="tutorials">Tutorials</a>' +
+        '<a href="/faq.html" data-nav="faq">FAQ</a>' +
       '</nav>' +
       // Right
       '<div class="header-right">' +
@@ -136,7 +157,9 @@ const TopNav = (() => {
       { href: '/tools.html',        label: 'Quick Tools',  bg: '#134E4A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3-3a8 8 0 01-11 11l-6 6a2 2 0 01-3-3l6-6a8 8 0 0111-11l-3 3z"/></svg>' },
       { href: '/calcs/design-register.html', label: 'Register', bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/></svg>' },
       { href: '/cost-report.html',  label: 'Cost Report',  bg: '#166534', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>' },
-      { href: '/ai-assistant.html', label: 'AI Assistant', bg: '#581C87', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>' },
+      { href: '/tutorials.html',   label: 'Tutorials',    bg: '#0369A1', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>' },
+      { href: '/faq.html',         label: 'FAQ',          bg: '#065F46', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>' },
+      { href: '/notifications.html', label: 'Notifications', bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>' },
     ];
 
     const gridItems = navItems.map(item =>

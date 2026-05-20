@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorials — BuildMetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <style>
+    .tut-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .tut-layout { grid-template-columns: 1fr; }
+      .tut-sidebar { display: none; }
+    }
+
+    /* Sidebar */
+    .tut-sidebar {
+      position: sticky;
+      top: 88px;
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 0;
+      overflow: hidden;
+    }
+    .tut-sidebar-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0 20px 12px;
+    }
+    .tut-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+      text-decoration: none;
+      border-left: 3px solid transparent;
+    }
+    .tut-nav-item:hover { background: var(--bg-subtle); color: var(--text-primary); }
+    .tut-nav-item.active { background: #EFF6FF; color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+    .tut-nav-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .tut-sidebar-divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+    /* Page header */
+    .tut-page-header { margin-bottom: 32px; }
+    .tut-page-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0 0 6px; }
+    .tut-page-header p { font-size: 0.875rem; color: var(--text-muted); margin: 0; }
+
+    /* Tutorial section */
+    .tut-section {
+      scroll-margin-top: 88px;
+      margin-bottom: 48px;
+    }
+    .tut-section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1.5px solid var(--border);
+    }
+    .tut-section-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .tut-section-header h2 {
+      font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin: 0 0 3px;
+    }
+    .tut-section-header p {
+      font-size: 0.82rem; color: var(--text-muted); margin: 0;
+    }
+    .tut-section-badge {
+      margin-left: auto;
+      font-size: 0.7rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 100px;
+      background: var(--bg-subtle); color: var(--text-muted);
+      border: 1.5px solid var(--border);
+      white-space: nowrap;
+    }
+
+    /* Steps */
+    .tut-steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .tut-step {
+      display: flex;
+      gap: 16px;
+      padding: 16px 18px;
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .tut-step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-size: 0.78rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .tut-step-body { flex: 1; min-width: 0; }
+    .tut-step-title { font-size: 0.88rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .tut-step-desc { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; }
+
+    /* Info panels */
+    .tut-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 640px) { .tut-info-grid { grid-template-columns: 1fr; } }
+    .tut-info-card {
+      padding: 14px 16px;
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .tut-info-card-title { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .tut-info-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
+    .tut-info-list li { font-size: 0.82rem; color: var(--text-secondary); display: flex; align-items: baseline; gap: 7px; }
+    .tut-info-list li::before { content: '•'; color: var(--accent); font-size: 0.9rem; flex-shrink: 0; }
+
+    /* Tips */
+    .tut-tip {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius-lg);
+      margin-bottom: 12px;
+      font-size: 0.83rem;
+      line-height: 1.6;
+    }
+    .tut-tip.info { background: #EFF6FF; border: 1.5px solid #BFDBFE; color: #1D4ED8; }
+    .tut-tip.warn { background: #FFFBEB; border: 1.5px solid #FDE68A; color: #92400E; }
+    .tut-tip.success { background: #F0FDF4; border: 1.5px solid #BBF7D0; color: #166534; }
+    .tut-tip-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .tut-tip strong { font-weight: 700; }
+
+    /* Action link */
+    .tut-action {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.83rem; font-weight: 600; color: var(--accent);
+      text-decoration: none;
+      padding: 8px 16px; border-radius: 8px;
+      border: 1.5px solid #BFDBFE;
+      background: #EFF6FF;
+      transition: background 0.15s, border-color 0.15s;
+      margin-top: 4px;
+    }
+    .tut-action:hover { background: #DBEAFE; border-color: var(--accent); }
+    .tut-action svg { width: 14px; height: 14px; }
+
+    /* Check results table */
+    .tut-checks {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-bottom: 20px;
+    }
+    .tut-checks th {
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+    }
+    .tut-checks td {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+    .tut-checks tr:nth-child(even) td { background: var(--bg-subtle); }
+    .pass-pill { display: inline-block; padding: 2px 9px; border-radius: 100px; font-size: 0.72rem; font-weight: 700; background: #DCFCE7; color: #166534; }
+    .fail-pill { display: inline-block; padding: 2px 9px; border-radius: 100px; font-size: 0.72rem; font-weight: 700; background: #FEE2E2; color: #991B1B; }
+  </style>
+</head>
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <main id="app-main">
+    <div class="app-container">
+
+      <div class="tut-page-header">
+        <h1>Tutorials</h1>
+        <p>Step-by-step guides for every calculator and feature in BuildMetrics.</p>
+      </div>
+
+      <div class="tut-layout">
+
+        <!-- Sidebar -->
+        <aside class="tut-sidebar">
+          <div class="tut-sidebar-title">Getting Started</div>
+          <a class="tut-nav-item" href="#projects" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#10B981"></div>Projects &amp; Overview
+          </a>
+          <a class="tut-nav-item" href="#save-export" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#6366F1"></div>Saving &amp; Exporting
+          </a>
+          <div class="tut-sidebar-divider"></div>
+          <div class="tut-sidebar-title">Calculators</div>
+          <a class="tut-nav-item" href="#beam" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#1E40AF"></div>Beam Design
+          </a>
+          <a class="tut-nav-item" href="#rc-beam" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#7C2D12"></div>RC Beam
+          </a>
+          <a class="tut-nav-item" href="#concrete-col" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#78350F"></div>Concrete Column
+          </a>
+          <a class="tut-nav-item" href="#steel-col" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#6B21A8"></div>Steel Column
+          </a>
+          <a class="tut-nav-item" href="#timber-col" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#3F6212"></div>Timber Column
+          </a>
+          <a class="tut-nav-item" href="#slab" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#1E3A5F"></div>RC Slab
+          </a>
+          <a class="tut-nav-item" href="#footing" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#1C4532"></div>Pad Footing
+          </a>
+          <a class="tut-nav-item" href="#retaining" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#4A1D96"></div>Retaining Wall
+          </a>
+          <a class="tut-nav-item" href="#connection" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#0C4A6E"></div>Connection Design
+          </a>
+          <div class="tut-sidebar-divider"></div>
+          <div class="tut-sidebar-title">Features</div>
+          <a class="tut-nav-item" href="#reports" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#10B981"></div>PDF Reports
+          </a>
+          <a class="tut-nav-item" href="#quick-tools" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#F59E0B"></div>Quick Tools
+          </a>
+          <a class="tut-nav-item" href="#units" onclick="setActive(this)">
+            <div class="tut-nav-dot" style="background:#64748B"></div>Units &amp; Settings
+          </a>
+        </aside>
+
+        <!-- Main content -->
+        <div class="tut-content">
+
+          <!-- ── Projects ── -->
+          <section class="tut-section" id="projects">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#DCFCE7">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="#10B981" stroke-width="1.8" stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18"/><rect x="3" y="3" width="4" height="4" rx="1" fill="#10B981"/></svg>
+              </div>
+              <div>
+                <h2>Projects &amp; Overview</h2>
+                <p>Organise your calculations into projects for each job</p>
+              </div>
+              <span class="tut-section-badge">Getting Started</span>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Create a new project</div>
+                  <div class="tut-step-desc">From the Projects page, click <strong>+ New Project</strong>. Enter a project name, reference number, client name, and optional deadline. Click <strong>Create Project</strong> to confirm.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Add calculations to a project</div>
+                  <div class="tut-step-desc">Open a project card and click <strong>+ Add Calculation</strong>. Choose a calculator type from the dropdown — you'll be taken directly to that calculator with the project pre-selected.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">View project summary</div>
+                  <div class="tut-step-desc">Each project card shows a summary of saved calculations, pass/fail status at a glance, and last updated timestamp. Click the project name to expand the detail view.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">4</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Manage and archive projects</div>
+                  <div class="tut-step-desc">Use the <strong>⋯</strong> menu on any project to rename, duplicate, or delete it. Completed projects can be archived to keep your workspace tidy.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tut-tip info">
+              <span class="tut-tip-icon">💡</span>
+              <span><strong>Tip:</strong> Use the project reference number to match your calculations to your office document numbering system.</span>
+            </div>
+
+            <a class="tut-action" href="/projects.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open Projects
+            </a>
+          </section>
+
+          <!-- ── Saving & Exporting ── -->
+          <section class="tut-section" id="save-export">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#EDE9FE">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="#6366F1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path stroke="#6366F1" stroke-width="1.6" stroke-linecap="round" d="M17 21v-8H7v8M7 3v5h8"/></svg>
+              </div>
+              <div>
+                <h2>Saving &amp; Exporting</h2>
+                <p>Save calculations, generate PDF reports and Word exports</p>
+              </div>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Save a calculation</div>
+                  <div class="tut-step-desc">Once you've entered all inputs and reviewed the results, click <strong>Save Calculation</strong> in the results panel. A confirmation modal will appear showing pass/fail status.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Generate a PDF report</div>
+                  <div class="tut-step-desc">After saving, click <strong>Download PDF</strong> in the confirmation modal, or find the calculation in your project and click <strong>Export → PDF</strong>. The report includes all inputs, calculation steps, code references, and a pass/fail summary.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Export to Word</div>
+                  <div class="tut-step-desc">Click <strong>Download Word</strong> in the confirmation modal to get a .docx file you can edit and incorporate into your calculation package. The Word export preserves all formatting and formula references.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tut-tip warn">
+              <span class="tut-tip-icon">⚠️</span>
+              <span><strong>Professional use:</strong> All calculations must be checked and signed off by a suitably qualified engineer before use in any professional or construction context. BuildMetrics is a design aid, not a substitute for engineering judgement.</span>
+            </div>
+          </section>
+
+          <!-- ── Beam Design ── -->
+          <section class="tut-section" id="beam">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#DBEAFE">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="#1E40AF" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="#1E40AF" stroke-width="1.6" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>
+              </div>
+              <div>
+                <h2>Beam Design</h2>
+                <p>Universal beam and column sections to EC3 &amp; EC5</p>
+              </div>
+              <span class="tut-section-badge">EC3 / EC5</span>
+            </div>
+
+            <div class="tut-info-grid">
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Inputs Required</div>
+                <ul class="tut-info-list">
+                  <li>Span length and support conditions</li>
+                  <li>Applied loads: UDL and/or point loads</li>
+                  <li>Steel grade (S275, S355, etc.)</li>
+                  <li>Section size (UB, UC, PFC, etc.)</li>
+                  <li>Lateral restraint conditions</li>
+                </ul>
+              </div>
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Checks Performed</div>
+                <ul class="tut-info-list">
+                  <li>Bending moment capacity (EC3 §6.2.5)</li>
+                  <li>Shear capacity (EC3 §6.2.6)</li>
+                  <li>Lateral torsional buckling (EC3 §6.3.2)</li>
+                  <li>Web bearing &amp; buckling</li>
+                  <li>Deflection (span/360 SLS)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Set span and supports</div>
+                  <div class="tut-step-desc">Enter the clear span in metres. Select support conditions: Simply Supported, Fixed-Fixed, Fixed-Pin, or Cantilever. The calculator automatically derives moment coefficients from the boundary conditions.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Enter loads</div>
+                  <div class="tut-step-desc">Input dead load (Gk) and imposed load (Qk) as UDL in kN/m, or switch to point loads. The calculator applies the EC0 combination factor automatically (1.35Gk + 1.5Qk for the design load).</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Select a section</div>
+                  <div class="tut-step-desc">Choose a steel grade and section size from the dropdown. Use <strong>Auto-select</strong> to find the lightest adequate section. The section properties (Iy, Wpl, etc.) populate automatically from the BCSA steel tables.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">4</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Set LTB restraints</div>
+                  <div class="tut-step-desc">Specify the compression flange restraint length Lc. If the top flange is continuously restrained (e.g. by a concrete slab), set Lc = 0 to bypass the LTB check. Otherwise, enter the distance between restraint points.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">5</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Review results</div>
+                  <div class="tut-step-desc">The results panel shows utilisation ratios for each check. Values below 1.0 pass (shown in green); values at or above 1.0 fail (shown in red). Adjust the section size and re-run until all checks pass.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tut-tip info">
+              <span class="tut-tip-icon">💡</span>
+              <span><strong>LTB tip:</strong> For beams with the top flange embedded in a composite deck or restrained at close centres, you can often bypass LTB — confirm restraint conditions in your structural drawings before doing so.</span>
+            </div>
+
+            <a class="tut-action" href="/calcs/beam.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open Beam Design
+            </a>
+          </section>
+
+          <!-- ── RC Beam ── -->
+          <section class="tut-section" id="rc-beam">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#FEF2F2">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="1.5" stroke="#7C2D12" stroke-width="1.8"/><path stroke="#7C2D12" stroke-width="1.4" stroke-dasharray="2 2" d="M3 12h18"/></svg>
+              </div>
+              <div>
+                <h2>RC Beam</h2>
+                <p>Reinforced concrete beam design and shear checks to EC2</p>
+              </div>
+              <span class="tut-section-badge">EC2</span>
+            </div>
+
+            <div class="tut-info-grid">
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Inputs Required</div>
+                <ul class="tut-info-list">
+                  <li>Beam dimensions (b, h, d)</li>
+                  <li>Concrete grade (C25/30 to C40/50)</li>
+                  <li>Rebar grade (B500B)</li>
+                  <li>Applied design moment MEd and shear VEd</li>
+                  <li>Cover (nominal, fire, durability)</li>
+                </ul>
+              </div>
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Checks Performed</div>
+                <ul class="tut-info-list">
+                  <li>Flexural design — tension steel As,req</li>
+                  <li>Compression steel if doubly-reinforced</li>
+                  <li>Shear design — links Asw/s</li>
+                  <li>Minimum and maximum reinforcement limits</li>
+                  <li>Deflection (span-to-effective-depth)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Enter section geometry</div>
+                  <div class="tut-step-desc">Input beam width b and overall depth h in mm. The effective depth d is calculated automatically from h minus cover, link diameter, and half the main bar diameter — or you can override it manually.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Set design actions</div>
+                  <div class="tut-step-desc">Enter the design bending moment MEd (kNm) and design shear force VEd (kN). These are the factored ULS values — if you're working from an unfactored analysis, apply 1.35Gk + 1.5Qk manually first.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Select materials</div>
+                  <div class="tut-step-desc">Choose concrete class and rebar grade. The calculator uses fck, fcd, fyk, and fyd from EC2 Table 3.1 and §3.2.7. Partial factors γc = 1.5 and γs = 1.15 are applied automatically.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">4</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Choose reinforcement</div>
+                  <div class="tut-step-desc">The calculator provides the required area As,req. Select a bar arrangement (e.g. 3H20) from the dropdown — the provided area As,prov must be ≥ As,req. Repeat for shear links (diameter and spacing).</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tut-tip success">
+              <span class="tut-tip-icon">✅</span>
+              <span><strong>Cover guidance:</strong> For typical internal floors use 25mm nominal cover. For external elements exposed to rain use 35mm, and for XS/XD exposure classes use 45mm. Always check your project specification.</span>
+            </div>
+
+            <a class="tut-action" href="/calcs/rc-beam.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open RC Beam
+            </a>
+          </section>
+
+          <!-- ── Concrete Column ── -->
+          <section class="tut-section" id="concrete-col">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#FEF3C7">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5" stroke="#78350F" stroke-width="1.8"/><path stroke="#78350F" stroke-width="1.4" stroke-dasharray="2 2" d="M9 6v12M15 6v12M5 9h14M5 15h14"/></svg>
+              </div>
+              <div>
+                <h2>Concrete Column</h2>
+                <p>Axially loaded and biaxially bent RC columns to EC2</p>
+              </div>
+              <span class="tut-section-badge">EC2</span>
+            </div>
+
+            <div class="tut-info-grid">
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Inputs Required</div>
+                <ul class="tut-info-list">
+                  <li>Column dimensions (b × h) and clear height</li>
+                  <li>Concrete grade and rebar grade</li>
+                  <li>Design axial load NEd</li>
+                  <li>Design moments MEd,y and MEd,z</li>
+                  <li>Effective length factor (braced/unbraced)</li>
+                </ul>
+              </div>
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Checks Performed</div>
+                <ul class="tut-info-list">
+                  <li>Slenderness ratio λ vs λlim</li>
+                  <li>2nd-order effects (moment magnification)</li>
+                  <li>Biaxial bending interaction (EC2 §5.8.9)</li>
+                  <li>Reinforcement limits (0.002Ac to 0.04Ac)</li>
+                  <li>Link spacing and minimum bar diameter</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Define column geometry</div>
+                  <div class="tut-step-desc">Enter the column cross-section width and depth in mm, and the clear storey height in metres. Choose whether the column is braced or unbraced in each direction to set the effective length factor.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Input design actions</div>
+                  <div class="tut-step-desc">Enter NEd, MEd,y, and MEd,z as ULS design values. If bending is significant in one axis only, set the minor-axis moment to zero. The calculator will flag if biaxial interaction needs to be considered.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Check slenderness</div>
+                  <div class="tut-step-desc">The calculator determines if the column is slender (λ &gt; λlim). If slender, 2nd-order moments are added to the applied moments using the EC2 nominal curvature method before the section capacity check.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">4</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Select reinforcement</div>
+                  <div class="tut-step-desc">Choose a bar arrangement from the dropdown. The interaction diagram is plotted for the selected section and reinforcement — the design point (NEd, MEd) must fall inside the boundary. Increase bar sizes or add bars if needed.</div>
+                </div>
+              </div>
+            </div>
+
+            <a class="tut-action" href="/calcs/concrete-column.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open Concrete Column
+            </a>
+          </section>
+
+          <!-- ── Steel Column ── -->
+          <section class="tut-section" id="steel-col">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#F3E8FF">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="18" rx="1.5" stroke="#6B21A8" stroke-width="1.8"/><path stroke="#6B21A8" stroke-width="1.6" stroke-linecap="round" d="M6 3h12M6 21h12"/></svg>
+              </div>
+              <div>
+                <h2>Steel Column</h2>
+                <p>UC and hollow sections under axial load and bending to EC3</p>
+              </div>
+              <span class="tut-section-badge">EC3</span>
+            </div>
+
+            <div class="tut-info-grid">
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Inputs Required</div>
+                <ul class="tut-info-list">
+                  <li>Section size and steel grade</li>
+                  <li>Column height and effective length factors</li>
+                  <li>Design axial load NEd</li>
+                  <li>End moments My,Ed and Mz,Ed</li>
+                  <li>Major/minor axis buckling lengths</li>
+                </ul>
+              </div>
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Checks Performed</div>
+                <ul class="tut-info-list">
+                  <li>Section class classification (1–4)</li>
+                  <li>Cross-section resistance (EC3 §6.2)</li>
+                  <li>Flexural buckling (EC3 §6.3.1)</li>
+                  <li>Lateral torsional buckling (§6.3.2)</li>
+                  <li>Combined buckling interaction (§6.3.3)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Select section and grade</div>
+                  <div class="tut-step-desc">Choose a UC or CHS/RHS section and steel grade. The section class is determined automatically from the b/t and d/t ratios. Class 4 sections trigger a reduced effective area calculation.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Set buckling lengths</div>
+                  <div class="tut-step-desc">Enter the buckling length Lcr for each axis (typically 0.7L for fixed-fixed, 1.0L for pinned-pinned, 2.0L for cantilever). If the column is restrained at mid-height in one direction, use L/2 for that axis.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Enter design actions</div>
+                  <div class="tut-step-desc">Input the ULS axial load NEd and end moments. For pure axial columns (e.g. internal stanchions in a braced frame) leave moments as zero. The calculator applies minimum eccentricity automatically per EC3.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">4</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Check interaction</div>
+                  <div class="tut-step-desc">The combined interaction equations (Method 1 or Method 2) are computed. Utilisation ratios for each term are shown. If the combined ratio exceeds 1.0, try a heavier or wider-flange section.</div>
+                </div>
+              </div>
+            </div>
+
+            <a class="tut-action" href="/calcs/column.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open Steel Column
+            </a>
+          </section>
+
+          <!-- ── Timber Column ── -->
+          <section class="tut-section" id="timber-col">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#ECFCCB">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="#3F6212" stroke-width="1.8" stroke-linecap="round" d="M12 3v18M8 5l4-2 4 2M8 19l4 2 4-2"/></svg>
+              </div>
+              <div>
+                <h2>Timber Column</h2>
+                <p>Solid and glulam columns under compression to EC5</p>
+              </div>
+              <span class="tut-section-badge">EC5</span>
+            </div>
+
+            <div class="tut-info-grid">
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Inputs Required</div>
+                <ul class="tut-info-list">
+                  <li>Section dimensions (b × h) and height</li>
+                  <li>Timber grade (C16, C24, GL24h, etc.)</li>
+                  <li>Service class (1, 2, or 3)</li>
+                  <li>Load duration class (permanent to short-term)</li>
+                  <li>Design axial load NEd</li>
+                </ul>
+              </div>
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Checks Performed</div>
+                <ul class="tut-info-list">
+                  <li>Compressive stress fc,0,d</li>
+                  <li>Slenderness ratio (λy and λz)</li>
+                  <li>Instability factor kc (EC5 §6.3.2)</li>
+                  <li>Combined compression + bending</li>
+                  <li>kmod and kdef modification factors</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Select timber grade and class</div>
+                  <div class="tut-step-desc">Choose the strength class (e.g. C24 for solid structural timber, GL28h for glulam). Select the service class based on moisture exposure: Class 1 (dry internal), Class 2 (covered but exposed to moisture), Class 3 (external).</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Set section and load duration</div>
+                  <div class="tut-step-desc">Enter section size and height. Select load duration class — this determines the kmod factor applied to strength. For a column supporting a roof, use Medium-term; for floor columns, use Long-term or Permanent.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Review instability check</div>
+                  <div class="tut-step-desc">The relative slenderness ratio λrel,c is computed and compared to 0.3. For λrel,c &gt; 0.3, the instability factor kc reduces the compressive capacity. Slender columns benefit significantly from intermediate restraints.</div>
+                </div>
+              </div>
+            </div>
+
+            <a class="tut-action" href="/calcs/timber-column.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open Timber Column
+            </a>
+          </section>
+
+          <!-- ── RC Slab ── -->
+          <section class="tut-section" id="slab">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#DBEAFE">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="1" stroke="#1E3A5F" stroke-width="1.8"/><path stroke="#1E3A5F" stroke-width="1.4" stroke-linecap="round" d="M7 9v6M12 9v6M17 9v6"/></svg>
+              </div>
+              <div>
+                <h2>RC Slab</h2>
+                <p>One-way and two-way reinforced concrete slabs to EC2</p>
+              </div>
+              <span class="tut-section-badge">EC2</span>
+            </div>
+
+            <div class="tut-info-grid">
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Inputs Required</div>
+                <ul class="tut-info-list">
+                  <li>Slab thickness and span(s)</li>
+                  <li>Concrete grade and bar grade</li>
+                  <li>Dead load and imposed load (kN/m²)</li>
+                  <li>Support conditions (simply-sup / continuous)</li>
+                  <li>Nominal cover (top and bottom)</li>
+                </ul>
+              </div>
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Checks Performed</div>
+                <ul class="tut-info-list">
+                  <li>Flexural reinforcement (main + distribution)</li>
+                  <li>Two-way panel bending coefficients</li>
+                  <li>Deflection — span/effective depth ratio</li>
+                  <li>Minimum reinforcement (EC2 §9.2.1)</li>
+                  <li>Crack width control</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Choose slab type</div>
+                  <div class="tut-step-desc">Select one-way spanning (ly/lx &gt; 2) or two-way spanning. For two-way slabs, enter both short and long spans. The calculator uses EC2 moment coefficients based on the aspect ratio and edge conditions.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Enter loads</div>
+                  <div class="tut-step-desc">Input the characteristic dead load (self-weight is calculated automatically from thickness and 25 kN/m³) and imposed load. The calculator applies the EC0 combination for ULS moments and SLS for deflection.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Check deflection</div>
+                  <div class="tut-step-desc">Deflection is checked using the span/effective-depth ratio method from EC2 Table 7.4N. For simply supported spans the basic ratio is 20; for flat slabs 24. The ratio is modified by reinforcement stress and compression steel.</div>
+                </div>
+              </div>
+            </div>
+
+            <a class="tut-action" href="/calcs/slab.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open RC Slab
+            </a>
+          </section>
+
+          <!-- ── Pad Footing ── -->
+          <section class="tut-section" id="footing">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#D1FAE5">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="8" rx="1" stroke="#1C4532" stroke-width="1.8"/><rect x="3" y="14" width="18" height="6" rx="1" stroke="#1C4532" stroke-width="1.8"/><path stroke="#1C4532" stroke-width="1.5" stroke-linecap="round" d="M12 12v2"/></svg>
+              </div>
+              <div>
+                <h2>Pad Footing</h2>
+                <p>Isolated pad foundations to EC2 and EC7</p>
+              </div>
+              <span class="tut-section-badge">EC2 / EC7</span>
+            </div>
+
+            <div class="tut-info-grid">
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Inputs Required</div>
+                <ul class="tut-info-list">
+                  <li>Column size and design loads (N, Mx, My)</li>
+                  <li>Footing dimensions (L × B × h)</li>
+                  <li>Concrete grade and bar grade</li>
+                  <li>Soil bearing capacity (SLS and ULS)</li>
+                  <li>Foundation depth and soil unit weight</li>
+                </ul>
+              </div>
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Checks Performed</div>
+                <ul class="tut-info-list">
+                  <li>Bearing pressure — EC7 GEO check</li>
+                  <li>Flexural reinforcement bottom mat</li>
+                  <li>Punching shear at column face and 2d</li>
+                  <li>One-way shear at critical section</li>
+                  <li>Overturning and sliding stability</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Enter soil and load data</div>
+                  <div class="tut-step-desc">Input the characteristic allowable bearing pressure from your ground investigation report. Enter the SLS column load (unfactored) for the bearing check and ULS loads for structural design. Foundation self-weight is added automatically.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Size the footing</div>
+                  <div class="tut-step-desc">Start with a trial size (Area ≈ N/qallow). The bearing pressure diagram shows the stress distribution under eccentric loading. Adjust dimensions until the maximum pressure is below qallow and the resultant stays within the middle third.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Design the reinforcement</div>
+                  <div class="tut-step-desc">The critical moment for bending reinforcement is taken at the face of the column. Select bar size and spacing for the bottom mat in both directions. Check punching shear — if it fails, increase the footing depth.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tut-tip warn">
+              <span class="tut-tip-icon">⚠️</span>
+              <span><strong>Ground investigation:</strong> Always obtain bearing capacity values from a site investigation. Do not assume soil conditions without a GI report — assumed values can lead to significant settlement or failure.</span>
+            </div>
+
+            <a class="tut-action" href="/calcs/footing.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open Pad Footing
+            </a>
+          </section>
+
+          <!-- ── Retaining Wall ── -->
+          <section class="tut-section" id="retaining">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#EDE9FE">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="16" rx="1" stroke="#4A1D96" stroke-width="1.8"/><rect x="10" y="10" width="10" height="10" rx="1" stroke="#4A1D96" stroke-width="1.8"/></svg>
+              </div>
+              <div>
+                <h2>Retaining Wall</h2>
+                <p>Cantilever retaining walls — stability and structural design to EC7 &amp; EC2</p>
+              </div>
+              <span class="tut-section-badge">EC7 / EC2</span>
+            </div>
+
+            <div class="tut-info-grid">
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Inputs Required</div>
+                <ul class="tut-info-list">
+                  <li>Wall geometry (stem height, base width/thickness)</li>
+                  <li>Backfill: unit weight, angle of friction φ'</li>
+                  <li>Surcharge loading (kN/m²)</li>
+                  <li>Concrete grade and bar grade</li>
+                  <li>Passive resistance parameters</li>
+                </ul>
+              </div>
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Checks Performed</div>
+                <ul class="tut-info-list">
+                  <li>Active earth pressure (Rankine / Coulomb)</li>
+                  <li>Sliding stability (EC7 GEO)</li>
+                  <li>Overturning (EC7 EQU)</li>
+                  <li>Bearing under base</li>
+                  <li>Stem and base reinforcement design (EC2)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Define wall geometry</div>
+                  <div class="tut-step-desc">Enter the retained height (top of base to formation level), stem thickness, base length, and base thickness. The toe and heel lengths are split automatically — you can adjust the toe-to-heel ratio to optimise bearing and sliding.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Set backfill and surcharge</div>
+                  <div class="tut-step-desc">Input backfill unit weight (typically 18–20 kN/m³) and effective angle of friction φ' (typically 25–35°). Enter any surcharge on the retained side — this is treated as an equivalent surcharge pressure acting down the back of the wall.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Verify stability</div>
+                  <div class="tut-step-desc">Overturning and sliding factors of safety must both exceed 1.0 using EC7 Design Approach 1. If sliding fails, increase the base length or add a shear key beneath the base. If overturning fails, widen the heel.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">4</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Design stem and base reinforcement</div>
+                  <div class="tut-step-desc">The stem is designed as a cantilever fixed at the base. The base is designed for net upward pressure minus self-weight. Specify cover, bar diameter, and spacing — the calculator provides required areas for each zone.</div>
+                </div>
+              </div>
+            </div>
+
+            <a class="tut-action" href="/calcs/retaining-wall.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open Retaining Wall
+            </a>
+          </section>
+
+          <!-- ── Connection Design ── -->
+          <section class="tut-section" id="connection">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#E0F2FE">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" stroke="#0C4A6E" stroke-width="1.8"/><circle cx="5" cy="5" r="1.8" stroke="#0C4A6E" stroke-width="1.5"/><circle cx="19" cy="5" r="1.8" stroke="#0C4A6E" stroke-width="1.5"/><circle cx="5" cy="19" r="1.8" stroke="#0C4A6E" stroke-width="1.5"/><circle cx="19" cy="19" r="1.8" stroke="#0C4A6E" stroke-width="1.5"/><path stroke="#0C4A6E" stroke-width="1.4" d="M6.5 6.5l4 4M13.5 13.5l4 4M17.5 6.5l-4 4M10.5 13.5l-4 4"/></svg>
+              </div>
+              <div>
+                <h2>Connection Design</h2>
+                <p>Bolted and welded steel connections to EC3 Part 1-8</p>
+              </div>
+              <span class="tut-section-badge">EC3</span>
+            </div>
+
+            <div class="tut-info-grid">
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Connection Types</div>
+                <ul class="tut-info-list">
+                  <li>Fin plate — beam-to-column shear</li>
+                  <li>End plate — moment and simple</li>
+                  <li>Cleat — beam-to-beam notched</li>
+                  <li>Baseplate — pinned and moment</li>
+                  <li>Splice — compression and tension</li>
+                </ul>
+              </div>
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Checks Performed</div>
+                <ul class="tut-info-list">
+                  <li>Bolt shear and bearing (EC3 Table 3.4)</li>
+                  <li>Weld throat and direction factors</li>
+                  <li>Block shear and net tension</li>
+                  <li>Plate bending under eccentric load</li>
+                  <li>Column web panel shear (moment connections)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Select connection type</div>
+                  <div class="tut-step-desc">Choose the connection type from the dropdown. Each type shows a schematic with labelled dimensions. Select the supported and supporting member sections from the steel section database.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Enter bolt and plate parameters</div>
+                  <div class="tut-step-desc">Specify bolt grade (8.8 or 10.9), diameter, and arrangement (rows × columns). Enter plate thickness and grade. Edge and end distances are validated against EC3 minimum limits automatically.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Input design forces</div>
+                  <div class="tut-step-desc">Enter VEd (shear), NEd (axial), and MEd (moment) as ULS design values. For simple shear connections MEd is typically zero. The calculator distributes forces to bolts using the instantaneous centre of rotation method.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">4</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Review all component checks</div>
+                  <div class="tut-step-desc">Each component (bolt group, welds, plate, supporting member) is listed with its utilisation. Failing components are highlighted in red. Increase bolt size, plate thickness, or weld size to bring utilisation below 1.0.</div>
+                </div>
+              </div>
+            </div>
+
+            <a class="tut-action" href="/calcs/connection.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open Connection Design
+            </a>
+          </section>
+
+          <!-- ── PDF Reports ── -->
+          <section class="tut-section" id="reports">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#D1FAE5">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path stroke="#10B981" stroke-width="1.6" stroke-linecap="round" d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+              </div>
+              <div>
+                <h2>PDF Reports</h2>
+                <p>Generate professional calculation reports for your project file</p>
+              </div>
+              <span class="tut-section-badge">Feature</span>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Save the calculation first</div>
+                  <div class="tut-step-desc">A report can only be generated for a saved calculation. Click <strong>Save Calculation</strong> in any calculator. A confirmation modal will appear showing the pass/fail summary and download options.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Download PDF or Word</div>
+                  <div class="tut-step-desc">Click <strong>Download PDF</strong> for a formatted calculation sheet, or <strong>Download Word</strong> for an editable .docx. Both formats include: project information, all input parameters, calculation steps with formula references, and a pass/fail summary table.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">3</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Re-download at any time</div>
+                  <div class="tut-step-desc">Open any project, find the saved calculation, and click <strong>Export</strong> to regenerate the report with the current inputs. Reports reflect the state of the calculation at download time.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tut-tip info">
+              <span class="tut-tip-icon">📄</span>
+              <span><strong>Report contents:</strong> Each report includes the Eurocode clause references used, material partial factors applied, and a declaration box for the checking engineer's signature.</span>
+            </div>
+          </section>
+
+          <!-- ── Quick Tools ── -->
+          <section class="tut-section" id="quick-tools">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#FEF3C7">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3-3a8 8 0 01-11 11l-6 6a2 2 0 01-3-3l6-6a8 8 0 0111-11l-3 3z"/></svg>
+              </div>
+              <div>
+                <h2>Quick Tools</h2>
+                <p>Fast reference calculations without saving to a project</p>
+              </div>
+              <span class="tut-section-badge">Feature</span>
+            </div>
+
+            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.7">Quick Tools are lightweight calculators for common on-the-fly checks — section properties, load conversions, moment/shear diagrams, unit weight lookup, and more. Results are not saved to projects but can be copied or exported.</p>
+
+            <div class="tut-info-grid">
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Available Tools</div>
+                <ul class="tut-info-list">
+                  <li>Section properties lookup</li>
+                  <li>Simple beam M &amp; V diagrams</li>
+                  <li>Load path / tributary area</li>
+                  <li>Unit weight reference table</li>
+                  <li>Wind load (EN 1991-1-4)</li>
+                  <li>Snow load (EN 1991-1-3)</li>
+                  <li>Imposed load table (EN 1991-1-1)</li>
+                </ul>
+              </div>
+              <div class="tut-info-card">
+                <div class="tut-info-card-title">Unit Conversions</div>
+                <ul class="tut-info-list">
+                  <li>kN ↔ kip, lbf</li>
+                  <li>kN/m² ↔ psf, psi</li>
+                  <li>mm ↔ in, ft</li>
+                  <li>kNm ↔ kip·ft, kip·in</li>
+                  <li>MPa ↔ ksi, psi</li>
+                </ul>
+              </div>
+            </div>
+
+            <a class="tut-action" href="/tools.html">
+              <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Open Quick Tools
+            </a>
+          </section>
+
+          <!-- ── Units & Settings ── -->
+          <section class="tut-section" id="units">
+            <div class="tut-section-header">
+              <div class="tut-section-icon" style="background:#F1F5F9">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="#64748B" stroke-width="1.8"/><path stroke="#64748B" stroke-width="1.6" stroke-linecap="round" d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              </div>
+              <div>
+                <h2>Units &amp; Settings</h2>
+                <p>Switch between SI and imperial, and customise app preferences</p>
+              </div>
+              <span class="tut-section-badge">Settings</span>
+            </div>
+
+            <div class="tut-steps">
+              <div class="tut-step">
+                <div class="tut-step-num">1</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Toggle SI / Imperial</div>
+                  <div class="tut-step-desc">Each calculator has a unit toggle at the top of the input panel. Switching between SI (kN, m, mm) and Imperial (kip, ft, in) converts all current input values automatically. Output results update instantly.</div>
+                </div>
+              </div>
+              <div class="tut-step">
+                <div class="tut-step-num">2</div>
+                <div class="tut-step-body">
+                  <div class="tut-step-title">Profile and account settings</div>
+                  <div class="tut-step-desc">Click your name in the top-right corner to open your profile. Here you can update your name, company name, professional title, and notification preferences. Company name and title appear on exported PDF reports.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tut-tip info">
+              <span class="tut-tip-icon">💡</span>
+              <span><strong>Note:</strong> BuildMetrics uses Eurocode as its primary design code. The Imperial unit mode converts loads and dimensions but all checks remain EC-based with SI partial factors.</span>
+            </div>
+          </section>
+
+        </div><!-- /tut-content -->
+      </div><!-- /tut-layout -->
+
+    </div>
+  </main>
+</div>
+
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/notifications.js"></script>
+<script src="/js/ui/topNav.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  TopNav.init();
+
+  // Sidebar active state on scroll
+  const sections = document.querySelectorAll('.tut-section');
+  const navItems = document.querySelectorAll('.tut-nav-item');
+
+  const obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        navItems.forEach(function(item) { item.classList.remove('active'); });
+        const active = document.querySelector('.tut-nav-item[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(function(s) { obs.observe(s); });
+});
+
+function setActive(el) {
+  document.querySelectorAll('.tut-nav-item').forEach(function(i) { i.classList.remove('active'); });
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>

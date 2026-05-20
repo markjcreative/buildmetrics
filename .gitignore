@@ -1,1 +1,18 @@
+# System
+.DS_Store
+Thumbs.db
+
+# Vercel
 .vercel
+
+# Claude Code working files
+.claude/
+
+# Temporary / local-only
+*.log
+*.tmp
+beamcalc-pro/
+markjcreative-landing.html
+
+# Node (if ever used locally)
+node_modules/
