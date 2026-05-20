@@ -7,7 +7,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); echo json_encode(['error' => 'Method not allowed']); exit; }
 
-$RESEND_API_KEY  = 'YOUR_RESEND_API_KEY';   // ← paste your Resend API key here
+$RESEND_API_KEY  = 're_gnJDbVXH_Mzh7LctFsBMmc5RU8HpiWt3e';   // ← paste your Resend API key here
 $AUDIENCE_ID     = 'YOUR_AUDIENCE_ID';       // ← paste your Resend audience ID here
 $NOTIFY_EMAIL    = 'support@buildmetrics.uk';
 $FROM_EMAIL      = 'BuildMetrics <noreply@buildmetrics.uk>';

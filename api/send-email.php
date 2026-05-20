@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ── CONFIG ─────────────────────────────────────────────────────────────────
-$RESEND_API_KEY = 'YOUR_RESEND_API_KEY';      // ← paste your Resend API key
+$RESEND_API_KEY = 're_gnJDbVXH_Mzh7LctFsBMmc5RU8HpiWt3e';      // ← paste your Resend API key
 $FROM_NAME      = 'BuildMetrics';
 $FROM_EMAIL     = 'noreply@buildmetrics.uk';  // must be your verified domain
 $APP_URL        = 'https://app.buildmetrics.uk';
