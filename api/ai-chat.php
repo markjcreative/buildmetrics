@@ -10,7 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ── Configuration ─────────────────────────────────────────────────────────────
-$OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY'; // Replace with your key from platform.openai.com
+// Load API key from gitignored config file (never commit the key directly)
+$configFile = __DIR__ . '/config.php';
+if (file_exists($configFile)) {
+    require_once $configFile;
+}
+$OPENAI_API_KEY = defined('OPENAI_API_KEY') ? OPENAI_API_KEY : '';
 $MODEL          = 'gpt-4o-mini';
 $MAX_TOKENS     = 900;
 $MAX_HISTORY    = 20; // messages kept per session (controls cost)

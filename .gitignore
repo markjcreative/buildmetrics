@@ -8,6 +8,9 @@ Thumbs.db
 # Claude Code working files
 .claude/
 
+# API keys — never commit, upload manually to server
+api/config.php
+
 # Temporary / local-only
 *.log
 *.tmp
