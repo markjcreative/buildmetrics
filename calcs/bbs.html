@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bar Bending Schedule (BBS) — BuildMetrics</title>
+  <meta name="description" content="BS 8666:2020 Bar Bending Schedule calculator. Add bars by shape code, compute cut lengths and total steel weight." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
+
+  <style>
+    /* ── BBS table styles ── */
+    .bbs-bar-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .bbs-bar-table th {
+      padding: 7px 8px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 2px solid var(--border);
+      background: var(--bg-subtle);
+      white-space: nowrap;
+    }
+    .bbs-bar-table td {
+      padding: 6px 6px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .bbs-bar-table tr:hover td { background: var(--bg-subtle); }
+    .bbs-bar-table tr:last-child td { border-bottom: none; }
+    .bbs-bar-table input[type="text"],
+    .bbs-bar-table input[type="number"],
+    .bbs-bar-table select {
+      width: 100%;
+      padding: 5px 7px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      background: #fff;
+      box-sizing: border-box;
+      min-width: 0;
+    }
+    .bbs-bar-table input[type="text"]:focus,
+    .bbs-bar-table input[type="number"]:focus,
+    .bbs-bar-table select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.10);
+      outline: none;
+    }
+    .bbs-bar-table input.dim-input {
+      width: 60px;
+    }
+    .dim-cell { display: flex; gap: 3px; align-items: center; flex-wrap: wrap; }
+    .dim-label {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .btn-del-row {
+      background: none;
+      border: none;
+      color: #DC2626;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .btn-del-row:hover { background: #FEE2E2; }
+    .btn-add-row {
+      background: none;
+      border: 1.5px dashed var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      width: 100%;
+      text-align: center;
+      margin-top: 8px;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-add-row:hover {
+      background: var(--bg-subtle);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .bbs-result-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .bbs-result-table th {
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-subtle);
+      white-space: nowrap;
+    }
+    .bbs-result-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .bbs-result-table tr:hover td { background: var(--bg-subtle); }
+    .bbs-result-table tr:last-child td { border-bottom: none; }
+    .bbs-result-table .total-row td {
+      font-weight: 700;
+      background: #EFF6FF;
+      border-top: 2px solid #2563EB;
+      color: var(--text-primary);
+    }
+    .bbs-result-table td.mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .table-wrapper { overflow-x: auto; }
+    .bbs-input-wrap { padding: 12px 0; }
+    .element-selector { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 20px 12px; }
+    .el-chip {
+      padding: 5px 12px;
+      border-radius: 99px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--text-secondary);
+      font-family: 'Inter', sans-serif;
+    }
+    .el-chip.active {
+      background: #EFF6FF;
+      border-color: #2563EB;
+      color: #2563EB;
+    }
+    .el-chip:hover:not(.active) { background: var(--bg-subtle); }
+    .section-note {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      padding: 0 20px 10px;
+    }
+    .btn-download-csv {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      background: #16A34A;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-download-csv:hover { background: #15803D; transform: translateY(-1px); }
+    .bbs-table-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-subtle);
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bbs-table-header-row .card-header-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <main id="app-main" class="calc-layout">
+
+    <!-- Breadcrumb bar -->
+    <div class="calc-breadcrumb-bar">
+      <div class="calc-breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Bar Bending Schedule</span>
+      </div>
+      <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+        📁 <span id="calc-project-name">—</span>
+      </div>
+    </div>
+
+    <div class="calc-panels">
+
+      <!-- ── INPUT PANEL ─────────────────────────────────────────────── -->
+      <aside id="calc-input-panel" aria-label="BBS inputs">
+
+        <div class="calc-input-header">
+          <span style="font-size:1.2rem;">📋</span>
+          <span class="calc-input-title">Bar Bending Schedule</span>
+        </div>
+
+        <!-- Element type filter -->
+        <div class="input-section" id="sec-element">
+          <div class="section-header" onclick="toggleSection('sec-element')">
+            <span>🏗 Element Type</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body" style="padding-bottom:8px;">
+            <p style="font-size:0.76rem;color:var(--text-muted);margin:0 0 8px;">Label for the schedule header (no calculation effect).</p>
+            <div class="element-selector" id="el-selector" style="padding:0;">
+              <button class="el-chip active" data-el="Beam"       onclick="setElement(this)">Beam</button>
+              <button class="el-chip"        data-el="Column"     onclick="setElement(this)">Column</button>
+              <button class="el-chip"        data-el="Slab"       onclick="setElement(this)">Slab</button>
+              <button class="el-chip"        data-el="Wall"       onclick="setElement(this)">Wall</button>
+              <button class="el-chip"        data-el="Foundation" onclick="setElement(this)">Foundation</button>
+              <button class="el-chip"        data-el="Other"      onclick="setElement(this)">Other</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bar table section -->
+        <div class="input-section" id="sec-bars">
+          <div class="section-header" onclick="toggleSection('sec-bars')">
+            <span>🔩 Bar Schedule</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body" style="padding:10px 10px 14px;">
+            <p class="section-note" style="padding:0;margin-bottom:8px;">Enter dimensions A–E in mm. Only fields relevant to the selected shape are active.</p>
+            <div class="table-wrapper">
+              <table class="bbs-bar-table" id="bar-table">
+                <thead>
+                  <tr>
+                    <th style="min-width:36px">Mark</th>
+                    <th style="min-width:40px">Elem.</th>
+                    <th style="min-width:54px">Size</th>
+                    <th style="min-width:70px">Shape</th>
+                    <th style="min-width:180px">Dimensions (mm)</th>
+                    <th style="min-width:40px">Qty</th>
+                    <th style="min-width:28px"></th>
+                  </tr>
+                </thead>
+                <tbody id="bar-tbody"></tbody>
+              </table>
+            </div>
+            <button class="btn-add-row" onclick="addRow()">+ Add Bar</button>
+          </div>
+        </div>
+
+        <!-- Action bar -->
+        <div class="calc-action-bar" style="flex-wrap:wrap;gap:6px">
+          <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;min-width:120px">⚡ Calculate</button>
+          <button class="btn btn-secondary" onclick="resetCalc()" title="Reset inputs">↺ Reset</button>
+          <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save calculation" disabled>💾</button>
+        </div>
+      </aside>
+
+      <!-- ── RESULTS PANEL ──────────────────────────────────────────── -->
+      <main id="calc-results-panel" aria-label="BBS results">
+
+        <!-- Welcome state -->
+        <div id="calc-welcome" class="calc-welcome">
+          <div class="calc-welcome-icon">📋</div>
+          <h3>Bar Bending Schedule</h3>
+          <p>Enter your bar schedule in the input panel, then click <strong>Calculate</strong> to compute cut lengths and total steel weight to BS 8666:2020.</p>
+        </div>
+
+        <!-- Results -->
+        <div id="calc-results" style="display:none;">
+
+          <!-- Summary badges -->
+          <div class="calc-badges" id="badges">
+            <div class="calc-badge">
+              <div class="calc-badge-label">Total Bars</div>
+              <div class="calc-badge-value" id="badge-bars">—</div>
+              <div class="calc-badge-unit">No.</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Total Steel</div>
+              <div class="calc-badge-value" id="badge-weight">—</div>
+              <div class="calc-badge-unit">kg</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Element Type</div>
+              <div class="calc-badge-value" id="badge-element" style="font-size:1rem;padding-top:4px;">—</div>
+              <div class="calc-badge-unit">schedule</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Standard</div>
+              <div class="calc-badge-value" style="font-size:0.85rem;padding-top:4px;">BS 8666</div>
+              <div class="calc-badge-unit">:2020</div>
+            </div>
+          </div>
+
+          <!-- BBS results table -->
+          <div class="calc-results-card">
+            <div class="bbs-table-header-row">
+              <span class="card-header-title">Bar Bending Schedule — BS 8666:2020</span>
+              <button class="btn-download-csv" onclick="downloadCSV()">
+                ⬇ Download BBS (CSV)
+              </button>
+            </div>
+            <div class="table-wrapper" style="padding:0;">
+              <table class="bbs-result-table" id="bbs-result-table" aria-label="Bar bending schedule">
+                <thead>
+                  <tr>
+                    <th>Mark</th>
+                    <th>Element</th>
+                    <th>Size</th>
+                    <th>Shape</th>
+                    <th>Dimensions</th>
+                    <th>Cut Length (mm)</th>
+                    <th>No.</th>
+                    <th>Total Length (m)</th>
+                    <th>Wt (kg/m)</th>
+                    <th>Total (kg)</th>
+                  </tr>
+                </thead>
+                <tbody id="bbs-result-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Disclaimer -->
+          <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+            ⚠️ <strong>Disclaimer:</strong> Preliminary schedule only. All quantities must be verified by a licensed structural engineer before fabrication.
+          </div>
+        </div>
+      </main>
+    </div>
+  </main>
+</div>
+
+<!-- Save modal -->
+<div class="calc-modal-overlay" id="save-calc-modal">
+  <div class="calc-modal-box">
+    <h3>💾 Save Calculation</h3>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Give this BBS a name.</p>
+    <div class="form-row">
+      <label for="save-calc-name">Calculation name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. Ground Beam BBS — Grid A" maxlength="80" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-secondary modal-close" onclick="document.getElementById('save-calc-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" data-save-submit>Save →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script src="/js/engine/utils.js"></script>
+<script src="/js/engine/bbsSolver.js"></script>
+<script src="/js/ui/tutorial.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report/wordExport.js"></script>
+<script src="/js/report/calcReport.js"></script>
+
+<script>
+  // ── Constants ───────────────────────────────────────────────────
+  const SIZES    = [6, 8, 10, 12, 16, 20, 25, 32, 40];
+  const SHAPES   = BBSSolver.SHAPES;
+  const DIMS_MAP = BBSSolver.SHAPE_DIMS;
+
+  // ── State ───────────────────────────────────────────────────────
+  let lastResults  = null;
+  let lastConfig   = null;
+  let activeElement = 'Beam';
+  let rowCounter   = 0;
+
+  // ── Helpers ─────────────────────────────────────────────────────
+  function toggleSection(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  function setElement(btn) {
+    document.querySelectorAll('#el-selector .el-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeElement = btn.dataset.el;
+  }
+
+  // ── Row builder ─────────────────────────────────────────────────
+  function buildSizeOptions(selected) {
+    return SIZES.map(s => `<option value="${s}"${s == selected ? ' selected' : ''}>T${s}</option>`).join('');
+  }
+
+  function buildShapeOptions(selected) {
+    return Object.entries(SHAPES).map(([code, name]) =>
+      `<option value="${code}"${code === selected ? ' selected' : ''}>${code} – ${name}</option>`
+    ).join('');
+  }
+
+  function buildDimCells(id, shape, vals) {
+    const dims = DIMS_MAP[shape] || ['A'];
+    const labels = { A: 'A', B: 'B', C: shape === '38' ? 'Turns' : 'C', D: 'D', E: 'E' };
+    return ['A','B','C','D','E'].map(d => {
+      const active = dims.includes(d);
+      const val = vals && vals[d] ? vals[d] : '';
+      return `<span class="dim-pair" style="display:${active ? 'inline-flex' : 'none'};align-items:center;gap:2px;">
+        <span class="dim-label">${labels[d]}</span>
+        <input type="number" class="dim-input" data-dim="${d}" id="r${id}-${d}"
+          value="${val}" min="0" step="1"
+          style="width:52px;" ${active ? '' : 'disabled tabindex="-1"'}/>
+      </span>`;
+    }).join('');
+  }
+
+  function addRow(data) {
+    const id      = ++rowCounter;
+    const dia     = data ? data.dia   : 16;
+    const shape   = data ? data.shape : '00';
+    const mark    = data ? data.mark  : 'B' + id;
+    const elem    = data ? data.element : activeElement;
+    const qty     = data ? data.qty   : 1;
+
+    const tr = document.createElement('tr');
+    tr.dataset.rowId = id;
+    tr.innerHTML = `
+      <td><input type="text"   id="r${id}-mark"  value="${mark}"  maxlength="10" style="width:50px;"/></td>
+      <td><input type="text"   id="r${id}-elem"  value="${elem}"  maxlength="20" style="width:54px;"/></td>
+      <td>
+        <select id="r${id}-dia">
+          ${buildSizeOptions(dia)}
+        </select>
+      </td>
+      <td>
+        <select id="r${id}-shape" onchange="onShapeChange(${id})">
+          ${buildShapeOptions(shape)}
+        </select>
+      </td>
+      <td>
+        <div class="dim-cell" id="r${id}-dims">
+          ${buildDimCells(id, shape, data)}
+        </div>
+      </td>
+      <td><input type="number" id="r${id}-qty"   value="${qty}"   min="1" step="1" style="width:48px;"/></td>
+      <td><button class="btn-del-row" onclick="deleteRow(this)" title="Delete row">✕</button></td>
+    `;
+    document.getElementById('bar-tbody').appendChild(tr);
+    return id;
+  }
+
+  function onShapeChange(id) {
+    const shape = document.getElementById('r' + id + '-shape').value;
+    const dims  = DIMS_MAP[shape] || ['A'];
+    const cell  = document.getElementById('r' + id + '-dims');
+    cell.querySelectorAll('.dim-pair').forEach(span => {
+      const d      = span.querySelector('[data-dim]').dataset.dim;
+      const active = dims.includes(d);
+      span.style.display = active ? 'inline-flex' : 'none';
+      const input = span.querySelector('input');
+      input.disabled = !active;
+      if (!active) input.value = '';
+    });
+  }
+
+  function deleteRow(btn) {
+    const tr = btn.closest('tr');
+    if (document.getElementById('bar-tbody').children.length <= 1) {
+      CalcShared.showToast('At least one bar row required.', 'error');
+      return;
+    }
+    tr.remove();
+  }
+
+  // ── Collect bars from table ──────────────────────────────────────
+  function collectBars() {
+    const rows = document.querySelectorAll('#bar-tbody tr');
+    return Array.from(rows).map(tr => {
+      const id = tr.dataset.rowId;
+      const shape = document.getElementById('r' + id + '-shape').value;
+      const dims = DIMS_MAP[shape] || ['A'];
+      const result = {
+        mark:    document.getElementById('r' + id + '-mark').value.trim() || ('B' + id),
+        element: document.getElementById('r' + id + '-elem').value.trim() || activeElement,
+        dia:     +document.getElementById('r' + id + '-dia').value,
+        shape,
+        qty:     +document.getElementById('r' + id + '-qty').value || 1,
+      };
+      ['A','B','C','D','E'].forEach(d => {
+        const el = document.getElementById('r' + id + '-' + d);
+        result[d] = el && dims.includes(d) ? (+el.value || 0) : 0;
+      });
+      return result;
+    });
+  }
+
+  // ── Format dimension summary string ─────────────────────────────
+  function dimsString(bar) {
+    const dims = DIMS_MAP[bar.shape] || ['A'];
+    return dims.map(d => `${d}=${bar[d]}`).join(', ');
+  }
+
+  // ── Run calculation ──────────────────────────────────────────────
+  function runCalc() {
+    const bars = collectBars();
+    if (!bars.length) { CalcShared.showToast('Add at least one bar row.', 'error'); return; }
+
+    const results = BBSSolver.solve(bars);
+    lastConfig  = { bars, elementType: activeElement };
+    lastResults = results;
+
+    document.getElementById('calc-welcome').style.display = 'none';
+    document.getElementById('calc-results').style.display = '';
+    document.getElementById('btn-save').disabled = false;
+
+    renderBadges(results);
+    renderResultTable(results);
+  }
+
+  function renderBadges(r) {
+    document.getElementById('badge-bars').textContent    = r.totals.total_bars;
+    document.getElementById('badge-weight').textContent  = r.totals.total_weight_kg.toFixed(1);
+    document.getElementById('badge-element').textContent = activeElement;
+  }
+
+  function renderResultTable(r) {
+    const tbody = document.getElementById('bbs-result-body');
+    tbody.innerHTML = r.bars.map(b => `
+      <tr>
+        <td class="mono">${CalcShared.escHtml(b.mark)}</td>
+        <td>${CalcShared.escHtml(b.element)}</td>
+        <td class="mono">T${b.dia}</td>
+        <td class="mono">${b.shape}</td>
+        <td style="font-size:0.75rem;color:var(--text-muted);">${CalcShared.escHtml(dimsString(b))}</td>
+        <td class="mono">${b.cut_length_mm.toLocaleString()}</td>
+        <td class="mono">${b.qty}</td>
+        <td class="mono">${b.total_length_m.toFixed(2)}</td>
+        <td class="mono">${b.weight_per_m.toFixed(3)}</td>
+        <td class="mono">${b.total_kg.toFixed(2)}</td>
+      </tr>
+    `).join('') + `
+      <tr class="total-row">
+        <td colspan="6">Grand Total</td>
+        <td class="mono">${r.totals.total_bars}</td>
+        <td class="mono">${r.bars.reduce((s,b) => s + b.total_length_m, 0).toFixed(2)}</td>
+        <td>—</td>
+        <td class="mono">${r.totals.total_weight_kg.toFixed(2)}</td>
+      </tr>
+    `;
+  }
+
+  // ── CSV download ─────────────────────────────────────────────────
+  function downloadCSV() {
+    if (!lastResults) { CalcShared.showToast('Run the calculation first.', 'error'); return; }
+    const header = ['Mark','Element','Size','Shape Code','Dimensions','Cut Length (mm)','No.','Total Length (m)','Unit Weight (kg/m)','Total Weight (kg)'];
+    const rows = lastResults.bars.map(b => [
+      b.mark, b.element, 'T' + b.dia, b.shape, dimsString(b),
+      b.cut_length_mm, b.qty, b.total_length_m.toFixed(3),
+      b.weight_per_m.toFixed(3), b.total_kg.toFixed(2)
+    ]);
+    rows.push(['Grand Total','','','','','',
+      lastResults.totals.total_bars,
+      lastResults.bars.reduce((s,b) => s + b.total_length_m, 0).toFixed(3),
+      '', lastResults.totals.total_weight_kg.toFixed(2)]);
+
+    const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'BBS-BuildMetrics.csv'; a.click();
+    URL.revokeObjectURL(url);
+    CalcShared.showToast('BBS CSV downloaded!', 'success');
+  }
+
+  // ── Reset ────────────────────────────────────────────────────────
+  function resetCalc() {
+    lastResults = null; lastConfig = null;
+    document.getElementById('calc-welcome').style.display = '';
+    document.getElementById('calc-results').style.display = 'none';
+    document.getElementById('btn-save').disabled = true;
+    document.getElementById('bar-tbody').innerHTML = '';
+    rowCounter = 0;
+    seedRows();
+  }
+
+  // ── Save modal ───────────────────────────────────────────────────
+  function openSave() {
+    if (!lastResults) return;
+    CalcShared.openSaveModal('save-calc-modal');
+  }
+
+  // ── Pre-fill 3 example rows ──────────────────────────────────────
+  function seedRows() {
+    addRow({ mark:'B1', element:'Slab',  dia:16, shape:'00', A:6200, qty:12 });
+    addRow({ mark:'S1', element:'GB1',   dia:10, shape:'33', A:250, B:450, qty:48 });
+    addRow({ mark:'T1', element:'Col1',  dia:32, shape:'11', A:4500, B:600, qty:8 });
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    TopNav.init();
+    Auth.guard();
+    CalcShared.renderProjectBadge('calc-project-badge');
+    seedRows();
+
+    CalcShared.initSaveModal('save-calc-modal', 'bbs', () => {
+      if (!lastResults) return null;
+      return {
+        config:  lastConfig,
+        results: lastResults,
+        summary: `BBS — ${lastResults.totals.total_bars} bars, ${lastResults.totals.total_weight_kg.toFixed(1)} kg`,
+      };
+    });
+
+    CalcShared.loadFromUrl((cfg) => {
+      if (!cfg || !cfg.bars) return;
+      document.getElementById('bar-tbody').innerHTML = '';
+      rowCounter = 0;
+      if (cfg.elementType) activeElement = cfg.elementType;
+      cfg.bars.forEach(b => addRow(b));
+      runCalc();
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EC3 Steel Member Check — BuildMetrics</title>
+  <meta name="description" content="EN 1993-1-1 EC3 steel member verification — section classification, cross-section resistance, flexural buckling, and combined axial + bending check." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
+</head>
+
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <!-- topNav.js injects #mobile-drawer into body -->
+  <main id="app-main" class="calc-layout">
+
+    <!-- Breadcrumb bar -->
+    <div class="calc-breadcrumb-bar">
+      <div class="calc-breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">EC3 Steel Member</span>
+      </div>
+      <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+        📁 <span id="calc-project-name">—</span>
+      </div>
+    </div>
+
+    <!-- Calc panels fill remaining height -->
+    <div class="calc-panels">
+
+      <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
+      <aside id="calc-input-panel" aria-label="Steel member inputs">
+
+        <div class="calc-input-header">
+          <span style="font-size:1.2rem;">🔩</span>
+          <span class="calc-input-title">EC3 Steel Member Check</span>
+        </div>
+
+        <!-- Section 1: Section Properties -->
+        <div class="input-section" id="sec-section">
+          <div class="section-header" onclick="toggleSection('sec-section')">
+            <span>📐 Section Properties</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-section">UB section</label>
+              <select id="inp-section" onchange="autoFill()">
+                <option value="203x133x25">203×133×25 UB</option>
+                <option value="254x102x25">254×102×25 UB</option>
+                <option value="305x127x37">305×127×37 UB</option>
+                <option value="356x171x51" selected>356×171×51 UB</option>
+                <option value="406x178x60">406×178×60 UB</option>
+                <option value="457x191x74">457×191×74 UB</option>
+                <option value="533x210x92">533×210×92 UB</option>
+                <option value="610x229x101">610×229×101 UB</option>
+              </select>
+            </div>
+            <button class="btn btn-secondary" onclick="autoFill()" style="width:100%;margin-bottom:4px;">⚡ Auto-fill from table</button>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="inp-A">A</label>
+                <input type="number" id="inp-A" value="64.6" min="1" step="0.1" />
+                <span class="unit-tag">cm²</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-Iy">Iy</label>
+                <input type="number" id="inp-Iy" value="14100" min="1" step="10" />
+                <span class="unit-tag">cm⁴</span>
+              </div>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="inp-iz">iz</label>
+                <input type="number" id="inp-iz" value="3.86" min="0.1" step="0.01" />
+                <span class="unit-tag">cm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-Wpl">Wpl,y</label>
+                <input type="number" id="inp-Wpl" value="896" min="1" step="1" />
+                <span class="unit-tag">cm³</span>
+              </div>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="inp-Wel">Wel,y</label>
+                <input type="number" id="inp-Wel" value="796" min="1" step="1" />
+                <span class="unit-tag">cm³</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-h">h (depth)</label>
+                <input type="number" id="inp-h" value="355" min="50" step="1" />
+                <span class="unit-tag">mm</span>
+              </div>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="inp-b">b (width)</label>
+                <input type="number" id="inp-b" value="171" min="50" step="1" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-tf">tf</label>
+                <input type="number" id="inp-tf" value="11.5" min="1" step="0.1" />
+                <span class="unit-tag">mm</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="inp-tw">tw (web thickness)</label>
+              <input type="number" id="inp-tw" value="7.4" min="1" step="0.1" />
+              <span class="unit-tag">mm</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Material -->
+        <div class="input-section" id="sec-material">
+          <div class="section-header" onclick="toggleSection('sec-material')">
+            <span>🔧 Material</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-grade">Steel grade</label>
+              <select id="inp-grade" onchange="fillGrade()">
+                <option value="S275">S275 — fy=275 N/mm²</option>
+                <option value="S355" selected>S355 — fy=355 N/mm²</option>
+                <option value="S420">S420 — fy=420 N/mm²</option>
+              </select>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="inp-fy">fy</label>
+                <input type="number" id="inp-fy" value="355" min="200" max="700" step="5" />
+                <span class="unit-tag">N/mm²</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-fu">fu</label>
+                <input type="number" id="inp-fu" value="490" min="300" max="800" step="5" />
+                <span class="unit-tag">N/mm²</span>
+              </div>
+            </div>
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="inp-gM0">γM0</label>
+                <input type="number" id="inp-gM0" value="1.0" min="1.0" max="1.5" step="0.05" />
+              </div>
+              <div class="form-row">
+                <label for="inp-gM1">γM1</label>
+                <input type="number" id="inp-gM1" value="1.0" min="1.0" max="1.5" step="0.05" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Member Geometry -->
+        <div class="input-section" id="sec-geometry">
+          <div class="section-header" onclick="toggleSection('sec-geometry')">
+            <span>📏 Member Geometry</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-L">Member length L</label>
+              <input type="number" id="inp-L" value="5.0" min="0.5" max="50" step="0.5" />
+              <span class="unit-tag">m</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-Lcry">Lcr,y — eff. length (major axis)</label>
+              <input type="number" id="inp-Lcry" value="5.0" min="0.1" max="50" step="0.5" />
+              <span class="unit-tag">m</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-Lcrz">Lcr,z — eff. length (minor axis)</label>
+              <input type="number" id="inp-Lcrz" value="5.0" min="0.1" max="50" step="0.5" />
+              <span class="unit-tag">m</span>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);line-height:1.4;">
+              Lcr = k × L — use k = 1.0 (pinned–pinned), 0.7 (fixed–pinned), 0.5 (fixed–fixed).
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Design Actions -->
+        <div class="input-section" id="sec-actions">
+          <div class="section-header" onclick="toggleSection('sec-actions')">
+            <span>⬇ Design Actions (ULS)</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-NEd">NEd — Axial compression (positive)</label>
+              <input type="number" id="inp-NEd" value="200" min="0" step="10" />
+              <span class="unit-tag">kN</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-MyEd">My,Ed — Bending moment (major axis)</label>
+              <input type="number" id="inp-MyEd" value="80" min="0" step="5" />
+              <span class="unit-tag">kNm</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-VzEd">Vz,Ed — Shear force</label>
+              <input type="number" id="inp-VzEd" value="120" min="0" step="5" />
+              <span class="unit-tag">kN</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action bar -->
+        <div class="calc-action-bar" style="flex-wrap:wrap;gap:6px">
+          <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;min-width:120px">⚡ Calculate</button>
+          <button class="btn btn-secondary" onclick="resetCalc()" title="Reset inputs">↺</button>
+          <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save calculation" disabled>💾</button>
+        </div>
+      </aside>
+
+      <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
+      <main id="calc-results-panel" aria-label="Steel member results">
+
+        <!-- Welcome state -->
+        <div id="calc-welcome" class="calc-welcome">
+          <div class="calc-welcome-icon">🔩</div>
+          <h3>EC3 Steel Member Check</h3>
+          <p>Select a UB section, define the member geometry and ULS actions, then click <strong>Calculate</strong> to verify against EN 1993-1-1.</p>
+        </div>
+
+        <!-- Results (hidden until first calc) -->
+        <div id="calc-results" style="display:none;">
+
+          <!-- Summary badges -->
+          <div class="calc-badges" id="badges">
+            <div class="calc-badge">
+              <div class="calc-badge-label">Section Class</div>
+              <div class="calc-badge-value" id="badge-class">—</div>
+              <div class="calc-badge-unit">EC3 Table 5.2</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">χz Buckling factor</div>
+              <div class="calc-badge-value" id="badge-chi">—</div>
+              <div class="calc-badge-unit">z-z axis</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Combined utilisation</div>
+              <div class="calc-badge-value" id="badge-util">—</div>
+              <div class="calc-badge-unit">% (≤ 100%)</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Overall result</div>
+              <div class="calc-badge-value" id="badge-overall" style="font-size:1.1rem;">—</div>
+              <div class="calc-badge-unit">EC3 EN 1993-1-1</div>
+            </div>
+          </div>
+
+          <!-- Pass/Fail checks table -->
+          <div class="calc-results-card">
+            <div class="card-header">Design Checks — EN 1993-1-1</div>
+            <table class="calc-results-table" aria-label="EC3 design checks">
+              <thead>
+                <tr><th>Check</th><th>Clause</th><th>Status</th><th>Capacity</th><th>Utilisation</th></tr>
+              </thead>
+              <tbody id="checks-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Detailed results table -->
+          <div class="calc-results-card">
+            <div class="card-header">Detailed Results</div>
+            <table class="calc-results-table" aria-label="Detailed steel member results">
+              <thead>
+                <tr><th>Parameter</th><th>Value</th><th>Notes</th></tr>
+              </thead>
+              <tbody id="results-body"></tbody>
+            </table>
+          </div>
+
+          <!-- I-section SVG sketch -->
+          <div class="calc-diagram-card">
+            <div class="card-header">Section Diagram</div>
+            <div class="calc-diagram-body">
+              <svg id="section-svg" width="320" height="260" viewBox="0 0 320 260" aria-label="I-section diagram" style="max-width:100%;"></svg>
+            </div>
+          </div>
+
+          <!-- Disclaimer -->
+          <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+            ⚠️ <strong>Disclaimer:</strong> Preliminary design only. All calculations must be verified by a licensed structural engineer.
+          </div>
+        </div>
+      </main>
+    </div><!-- end calc-panels -->
+
+  </main>
+</div><!-- end app-wrap -->
+
+<!-- Save modal -->
+<div class="calc-modal-overlay" id="save-calc-modal">
+  <div class="calc-modal-box">
+    <h3>💾 Save Calculation</h3>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Give this steel member check a name.</p>
+    <div class="form-row">
+      <label for="save-calc-name">Calculation name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. Column B2 — EC3 Member Check" maxlength="80" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-secondary modal-close" onclick="document.getElementById('save-calc-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" data-save-submit>Save →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script src="/js/engine/utils.js"></script>
+<script src="/js/engine/steelMemberSolver.js"></script>
+<script src="/js/ui/tutorial.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report/wordExport.js"></script>
+<script src="/js/report/calcReport.js"></script>
+
+<script>
+  // ── UB section lookup table ─────────────────────────────────────
+  const UB_SECTIONS = {
+    '203x133x25': { A:32.0, Iy:2340,  iz:3.10, Wpl_y:260,  Wel_y:232,  h:203, b:133, tf:7.8,  tw:5.8  },
+    '254x102x25': { A:32.0, Iy:3410,  iz:2.23, Wpl_y:307,  Wel_y:275,  h:257, b:102, tf:8.4,  tw:6.1  },
+    '305x127x37': { A:47.2, Iy:7170,  iz:2.68, Wpl_y:539,  Wel_y:471,  h:304, b:123, tf:10.7, tw:7.2  },
+    '356x171x51': { A:64.6, Iy:14100, iz:3.86, Wpl_y:896,  Wel_y:796,  h:355, b:171, tf:11.5, tw:7.4  },
+    '406x178x60': { A:76.0, Iy:21500, iz:3.99, Wpl_y:1200, Wel_y:1060, h:406, b:178, tf:12.8, tw:7.8  },
+    '457x191x74': { A:94.6, Iy:33300, iz:4.20, Wpl_y:1650, Wel_y:1460, h:457, b:190, tf:14.5, tw:9.0  },
+    '533x210x92': { A:118,  Iy:55200, iz:4.51, Wpl_y:2360, Wel_y:2070, h:533, b:209, tf:15.6, tw:10.2 },
+    '610x229x101':{ A:129,  Iy:75800, iz:4.60, Wpl_y:2880, Wel_y:2520, h:602, b:228, tf:14.8, tw:10.6 },
+  };
+
+  const GRADE_DATA = {
+    'S275': { fy: 275, fu: 430 },
+    'S355': { fy: 355, fu: 490 },
+    'S420': { fy: 420, fu: 520 },
+  };
+
+  // ── UI helpers ──────────────────────────────────────────────────
+  function toggleSection(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  function autoFill() {
+    const key = document.getElementById('inp-section').value;
+    const s   = UB_SECTIONS[key];
+    if (!s) return;
+    document.getElementById('inp-A').value    = s.A;
+    document.getElementById('inp-Iy').value   = s.Iy;
+    document.getElementById('inp-iz').value   = s.iz;
+    document.getElementById('inp-Wpl').value  = s.Wpl_y;
+    document.getElementById('inp-Wel').value  = s.Wel_y;
+    document.getElementById('inp-h').value    = s.h;
+    document.getElementById('inp-b').value    = s.b;
+    document.getElementById('inp-tf').value   = s.tf;
+    document.getElementById('inp-tw').value   = s.tw;
+  }
+
+  function fillGrade() {
+    const g = GRADE_DATA[document.getElementById('inp-grade').value];
+    if (!g) return;
+    document.getElementById('inp-fy').value = g.fy;
+    document.getElementById('inp-fu').value = g.fu;
+  }
+
+  // ── State ───────────────────────────────────────────────────────
+  let lastResults = null;
+  let lastConfig  = null;
+
+  // ── Collect inputs ──────────────────────────────────────────────
+  function collectConfig() {
+    return {
+      section:  document.getElementById('inp-section').value,
+      A:        +document.getElementById('inp-A').value,
+      Iy:       +document.getElementById('inp-Iy').value,
+      iz:       +document.getElementById('inp-iz').value,
+      Wpl_y:    +document.getElementById('inp-Wpl').value,
+      Wel_y:    +document.getElementById('inp-Wel').value,
+      h:        +document.getElementById('inp-h').value,
+      b:        +document.getElementById('inp-b').value,
+      tf:       +document.getElementById('inp-tf').value,
+      tw:       +document.getElementById('inp-tw').value,
+      fy:       +document.getElementById('inp-fy').value,
+      fu:       +document.getElementById('inp-fu').value,
+      gammaM0:  +document.getElementById('inp-gM0').value,
+      gammaM1:  +document.getElementById('inp-gM1').value,
+      L:        +document.getElementById('inp-L').value,
+      Lcr_y:    +document.getElementById('inp-Lcry').value,
+      Lcr_z:    +document.getElementById('inp-Lcrz').value,
+      NEd:      +document.getElementById('inp-NEd').value,
+      My_Ed:    +document.getElementById('inp-MyEd').value,
+      Vz_Ed:    +document.getElementById('inp-VzEd').value,
+    };
+  }
+
+  // ── Run calculation ─────────────────────────────────────────────
+  function runCalc() {
+    try {
+      const config  = collectConfig();
+      const results = SteelMemberSolver.solve(config);
+      lastConfig  = config;
+      lastResults = results;
+
+      document.getElementById('calc-welcome').style.display = 'none';
+      document.getElementById('calc-results').style.display = '';
+      document.getElementById('btn-save').disabled = false;
+
+      renderBadges(results, config);
+      renderChecks(results, config);
+      renderTable(results, config);
+      renderDiagram(config);
+    } catch (e) {
+      CalcShared.showToast('Calculation error: ' + e.message, 'error');
+    }
+  }
+
+  function resetCalc() {
+    lastResults = null; lastConfig = null;
+    document.getElementById('calc-welcome').style.display = '';
+    document.getElementById('calc-results').style.display = 'none';
+    document.getElementById('btn-save').disabled = true;
+  }
+
+  // ── Render helpers ──────────────────────────────────────────────
+  function renderBadges(r, c) {
+    document.getElementById('badge-class').textContent   = 'Class ' + r.sectionClass;
+    document.getElementById('badge-chi').textContent     = CalcShared.fmt(r.chi_z, 3);
+    document.getElementById('badge-util').textContent    = CalcShared.fmt(r.util_combined, 1) + '%';
+
+    const overallEl = document.getElementById('badge-overall');
+    overallEl.textContent = r.pass ? '✓ PASS' : '✗ FAIL';
+    overallEl.style.color = r.pass ? '#15803D' : '#DC2626';
+  }
+
+  function renderChecks(r, c) {
+    const rows = [
+      {
+        label:  'Cross-section — Compression',
+        clause: 'Cl. 6.2.4',
+        pass:   r.NEd <= r.Nc_Rd,
+        cap:    r.Nc_Rd + ' kN',
+        util:   r.util_section_N + '%',
+      },
+      {
+        label:  'Cross-section — Bending',
+        clause: 'Cl. 6.2.5',
+        pass:   r.My_Ed <= r.Mc_Rd,
+        cap:    r.Mc_Rd + ' kNm',
+        util:   r.util_section_M + '%',
+      },
+      {
+        label:  'Buckling resistance (y-y)',
+        clause: 'Cl. 6.3.1',
+        pass:   r.NEd <= r.Nb_Rd_y,
+        cap:    r.Nb_Rd_y + ' kN',
+        util:   r.util_buckle_y + '%',
+      },
+      {
+        label:  'Buckling resistance (z-z)',
+        clause: 'Cl. 6.3.1',
+        pass:   r.NEd <= r.Nb_Rd_z,
+        cap:    r.Nb_Rd_z + ' kN',
+        util:   r.util_buckle_z + '%',
+      },
+      {
+        label:  'Shear resistance',
+        clause: 'Cl. 6.2.6',
+        pass:   r.pass_shear,
+        cap:    r.Vc_Rd + ' kN',
+        util:   r.util_shear + '%',
+      },
+      {
+        label:  'Combined N + M (linear)',
+        clause: 'Cl. 6.3.3',
+        pass:   r.pass_combined,
+        cap:    'η ≤ 1.0',
+        util:   r.util_combined + '%',
+      },
+    ];
+
+    document.getElementById('checks-body').innerHTML = rows.map(row =>
+      `<tr>
+        <td>${row.label}</td>
+        <td style="font-size:0.75rem;color:var(--text-muted)">${row.clause}</td>
+        <td>${CalcShared.passBadge(row.pass)}</td>
+        <td class="mono">${row.cap}</td>
+        <td class="mono" style="color:${row.pass ? '#15803D' : '#DC2626'}">${row.util}</td>
+      </tr>`
+    ).join('');
+  }
+
+  function renderTable(r, c) {
+    const rows = [
+      ['Design standard',         'EN 1993-1-1 (EC3)', ''],
+      ['Section',                 c.section + ' UB', ''],
+      ['Steel grade',             'fy = ' + c.fy + ' N/mm² / fu = ' + c.fu + ' N/mm²', ''],
+      ['ε (epsilon)',             r.eps, 'sqrt(235/fy)'],
+      ['Section class (flange)',  r.flange_class, 'c/t = ' + r.ct_flange],
+      ['Section class (web)',     r.web_class,    'c/t = ' + r.ct_web],
+      ['Overall section class',   r.sectionClass, ''],
+      ['W used (class 1/2 → Wpl)', r.W_eff_cm3 + ' cm³', sectionClass <= 2 ? 'Wpl,y' : 'Wel,y'],
+      ['A',                       r.A_mm2 + ' mm²', ''],
+      ['iy',                      r.iy_mm + ' mm', 'sqrt(Iy/A)'],
+      ['iz',                      r.iz_mm + ' mm', 'from input'],
+      ['Nc,Rd',                   r.Nc_Rd + ' kN', 'A·fy / γM0'],
+      ['Mc,Rd',                   r.Mc_Rd + ' kNm', 'W·fy / γM0'],
+      ['Av (shear area)',          r.A_v + ' mm²', ''],
+      ['Vc,Rd',                   r.Vc_Rd + ' kN', 'Av·fy / (√3·γM0)'],
+      ['λ̄z (slenderness z-z)',    r.lambda_bar_z, 'Lcr,z/' + c.Lcr_z + 'm'],
+      ['αz (buckling curve)',      r.alpha_z, 'curve ' + (r.alpha_z === 0.49 ? 'c' : 'b')],
+      ['φz',                      r.phi_z, ''],
+      ['χz',                      r.chi_z, 'buckling reduction'],
+      ['Nb,Rd,z',                 r.Nb_Rd_z + ' kN', 'χz·A·fy / γM1'],
+      ['λ̄y (slenderness y-y)',    r.lambda_bar_y, 'Lcr,y/' + c.Lcr_y + 'm'],
+      ['χy',                      r.chi_y, ''],
+      ['Nb,Rd,y',                 r.Nb_Rd_y + ' kN', 'χy·A·fy / γM1'],
+      ['ηN = NEd / Nb,Rd,z',      r.eta_N, ''],
+      ['ηM = My,Ed / Mc,Rd',      r.eta_M, ''],
+      ['η combined (ηN + ηM)',     r.eta_combined, r.pass_combined ? '✓ ≤ 1.0' : '✗ EXCEEDS 1.0'],
+    ];
+
+    // sectionClass is from results, not config
+    const sectionClass = r.sectionClass;
+
+    document.getElementById('results-body').innerHTML = rows.map(([p, v, n]) =>
+      `<tr><td>${p}</td><td class="mono">${v}</td><td style="color:var(--text-muted);font-size:0.8rem;">${n}</td></tr>`
+    ).join('');
+  }
+
+  // ── SVG I-section sketch ────────────────────────────────────────
+  function renderDiagram(c) {
+    const svg = document.getElementById('section-svg');
+    const W = 320, H = 260;
+    const cx = W / 2;
+    const cy = H / 2;
+
+    // Scale the section to fit in ~160×200 px
+    const scale = Math.min(160 / c.b, 200 / c.h);
+    const sw = c.b  * scale;   // scaled width
+    const sh = c.h  * scale;   // scaled height
+    const stf = c.tf * scale;
+    const stw = c.tw * scale;
+
+    const x0 = cx - sw / 2;
+    const y0 = cy - sh / 2;
+    const x1 = cx + sw / 2;
+    const y1 = cy + sh / 2;
+
+    // Top flange, web, bottom flange
+    const tf_path = `
+      M ${x0} ${y0}
+      H ${x1}
+      V ${y0 + stf}
+      H ${cx + stw / 2}
+      V ${y1 - stf}
+      H ${x1}
+      V ${y1}
+      H ${x0}
+      V ${y1 - stf}
+      H ${cx - stw / 2}
+      V ${y0 + stf}
+      H ${x0}
+      Z
+    `;
+
+    // Dimension lines
+    const dim_gap = 14;
+    // b dimension (top)
+    const b_y = y0 - dim_gap;
+    // h dimension (right)
+    const h_x = x1 + dim_gap;
+    // tf arrow (right of top flange)
+    const tf_label_x = x1 + 28;
+    // tw arrow (below top flange)
+    const tw_label_y = cy;
+
+    svg.innerHTML = `
+      <!-- I-section body -->
+      <path d="${tf_path}" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5" stroke-linejoin="round"/>
+
+      <!-- b dimension -->
+      <line x1="${x0}" y1="${b_y}" x2="${x1}" y2="${b_y}" stroke="#64748B" stroke-width="1"/>
+      <line x1="${x0}" y1="${b_y - 4}" x2="${x0}" y2="${b_y + 4}" stroke="#64748B" stroke-width="1"/>
+      <line x1="${x1}" y1="${b_y - 4}" x2="${x1}" y2="${b_y + 4}" stroke="#64748B" stroke-width="1"/>
+      <text x="${cx}" y="${b_y - 4}" text-anchor="middle" font-size="10" font-weight="600" fill="#1E40AF" font-family="Inter,sans-serif">b = ${c.b} mm</text>
+
+      <!-- h dimension (right side) -->
+      <line x1="${h_x}" y1="${y0}" x2="${h_x}" y2="${y1}" stroke="#64748B" stroke-width="1"/>
+      <line x1="${h_x - 4}" y1="${y0}" x2="${h_x + 4}" y2="${y0}" stroke="#64748B" stroke-width="1"/>
+      <line x1="${h_x - 4}" y1="${y1}" x2="${h_x + 4}" y2="${y1}" stroke="#64748B" stroke-width="1"/>
+      <text x="${h_x + 6}" y="${cy + 4}" text-anchor="start" font-size="10" font-weight="600" fill="#1E40AF" font-family="Inter,sans-serif">h = ${c.h}</text>
+
+      <!-- tf label -->
+      <line x1="${x1}" y1="${y0}" x2="${tf_label_x}" y2="${y0 + stf / 2}" stroke="#94A3B8" stroke-width="0.8" stroke-dasharray="3 2"/>
+      <text x="${tf_label_x + 2}" y="${y0 + stf / 2 + 4}" font-size="9" fill="#475569" font-family="Inter,sans-serif">tf=${c.tf}</text>
+
+      <!-- tw label -->
+      <line x1="${cx}" y1="${cy}" x2="${cx + sw / 2 + 36}" y2="${tw_label_y}" stroke="#94A3B8" stroke-width="0.8" stroke-dasharray="3 2"/>
+      <text x="${cx + sw / 2 + 38}" y="${tw_label_y + 4}" font-size="9" fill="#475569" font-family="Inter,sans-serif">tw=${c.tw}</text>
+
+      <!-- centroid marker -->
+      <circle cx="${cx}" cy="${cy}" r="3" fill="#EF4444" opacity="0.7"/>
+      <text x="${cx + 6}" y="${cy - 4}" font-size="8" fill="#EF4444" font-family="Inter,sans-serif">centroid</text>
+    `;
+  }
+
+  // ── Save modal ──────────────────────────────────────────────────
+  function openSave() {
+    if (!lastResults) return;
+    CalcShared.openSaveModal('save-calc-modal');
+  }
+
+  // ── Init ────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    TopNav.init();
+    Auth.guard();
+    CalcShared.renderProjectBadge('calc-project-badge');
+
+    // Auto-fill default section on load
+    autoFill();
+    fillGrade();
+
+    CalcShared.initSaveModal('save-calc-modal', 'steel-member', () => {
+      if (!lastResults) return null;
+      return {
+        config:  lastConfig,
+        results: lastResults,
+        summary: lastConfig.section + ' S' + (lastConfig.fy === 355 ? '355' : lastConfig.fy === 275 ? '275' : '420') +
+                 ', η=' + lastResults.eta_combined + ', ' + (lastResults.pass ? 'PASS' : 'FAIL'),
+      };
+    });
+
+    CalcShared.loadFromUrl((cfg) => {
+      if (!cfg) return;
+      const fields = ['section','A','Iy','iz','Wpl_y','Wel_y','h','b','tf','tw','fy','fu','gammaM0','gammaM1','L','Lcr_y','Lcr_z','NEd','My_Ed','Vz_Ed'];
+      const idMap  = { A:'inp-A', Iy:'inp-Iy', iz:'inp-iz', Wpl_y:'inp-Wpl', Wel_y:'inp-Wel',
+                       h:'inp-h', b:'inp-b', tf:'inp-tf', tw:'inp-tw', fy:'inp-fy', fu:'inp-fu',
+                       gammaM0:'inp-gM0', gammaM1:'inp-gM1', L:'inp-L', Lcr_y:'inp-Lcry', Lcr_z:'inp-Lcrz',
+                       NEd:'inp-NEd', My_Ed:'inp-MyEd', Vz_Ed:'inp-VzEd', section:'inp-section' };
+      fields.forEach(k => {
+        if (cfg[k] !== undefined) {
+          const el = document.getElementById(idMap[k]);
+          if (el) el.value = cfg[k];
+        }
+      });
+      runCalc();
+    });
+  });
+</script>
+</body>
+</html>
