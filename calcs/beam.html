@@ -824,11 +824,12 @@ function resetCalc() {
   autoCombo();
 }
 
-function doSave() {
+async function doSave() {
   if (!currentResults) { CalcShared.showToast('Run a calculation first.', 'error'); return; }
   const name = document.getElementById('save-calc-name').value.trim() || 'Beam Calc';
   const summary = `MEd=${currentResults.MEd.toFixed(1)}kNm, VEd=${currentResults.VEd.toFixed(1)}kN, η=${currentResults.utilisationPct}% — ${currentResults.pass?'PASS':'FAIL'}`;
-  if (CalcShared.saveAndConfirm('beam', name, getConfig(), currentResults, summary)) {
+  const ok = await CalcShared.saveAndConfirm('beam', name, getConfig(), currentResults, summary);
+  if (ok) {
     document.getElementById('save-modal').classList.remove('open');
     document.getElementById('save-calc-name').value = '';
   }
