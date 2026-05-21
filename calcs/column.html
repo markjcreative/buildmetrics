@@ -528,7 +528,7 @@ function resetCalc() {
   document.getElementById('results-content').style.display = 'none';
 }
 
-function doSave() {
+async function doSave() {
   if (!currentResults) {
     CalcShared.showToast('Run a calculation first.', 'error');
     return;
@@ -537,7 +537,7 @@ function doSave() {
   const config = getConfig();
   const summary = 'NEd=' + currentResults.NEd + 'kN, Nb,Rd=' + currentResults.Nb_Rd + 'kN, ' +
     currentResults.utilisationPct + '% — ' + (currentResults.pass ? 'PASS' : 'FAIL');
-  const ok = CalcShared.saveAndConfirm('column', name, config, currentResults, summary);
+  const ok = await CalcShared.saveAndConfirm('column', name, config, currentResults, summary);
   if (ok) {
     document.getElementById('save-modal').classList.remove('open');
     document.getElementById('save-calc-name').value = '';

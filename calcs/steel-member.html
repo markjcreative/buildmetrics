@@ -505,6 +505,8 @@
   }
 
   function renderTable(r, c) {
+    // sectionClass is from results, not config
+    const sectionClass = r.sectionClass;
     const rows = [
       ['Design standard',         'EN 1993-1-1 (EC3)', ''],
       ['Section',                 c.section + ' UB', ''],
@@ -533,9 +535,6 @@
       ['ηM = My,Ed / Mc,Rd',      r.eta_M, ''],
       ['η combined (ηN + ηM)',     r.eta_combined, r.pass_combined ? '✓ ≤ 1.0' : '✗ EXCEEDS 1.0'],
     ];
-
-    // sectionClass is from results, not config
-    const sectionClass = r.sectionClass;
 
     document.getElementById('results-body').innerHTML = rows.map(([p, v, n]) =>
       `<tr><td>${p}</td><td class="mono">${v}</td><td style="color:var(--text-muted);font-size:0.8rem;">${n}</td></tr>`

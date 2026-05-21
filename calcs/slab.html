@@ -565,7 +565,7 @@ function resetCalc() {
   document.getElementById('results-content').style.display = 'none';
 }
 
-function doSave() {
+async function doSave() {
   if (!currentResults) {
     CalcShared.showToast('Run a calculation first.', 'error');
     return;
@@ -575,7 +575,7 @@ function doSave() {
   const summary = 'MEd=' + CalcShared.fmt(currentResults.MEd, 2) + 'kNm/m, ' +
     'As,req=' + CalcShared.fmt(currentResults.As_req, 0) + 'mm²/m, spacing=' + currentResults.spacing + 'mm — ' +
     (currentResults.pass ? 'PASS' : 'FAIL');
-  const ok = CalcShared.saveAndConfirm('slab', name, config, currentResults, summary);
+  const ok = await CalcShared.saveAndConfirm('slab', name, config, currentResults, summary);
   if (ok) {
     document.getElementById('save-modal').classList.remove('open');
     document.getElementById('save-calc-name').value = '';
