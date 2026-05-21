@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Load Takedown — BuildMetrics</title>
+  <meta name="description" content="Structural load takedown calculator — accumulate floor dead and imposed loads to foundation, compute ULS and SLS design loads." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
+
+  <style>
+    /* ── Floor table inside input panel ── */
+    .floor-table-wrap {
+      overflow-x: auto;
+    }
+    .floor-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+      min-width: 520px;
+    }
+    .floor-table th {
+      padding: 6px 8px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-subtle);
+      white-space: nowrap;
+    }
+    .floor-table td {
+      padding: 4px 4px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .floor-table td input {
+      width: 100%;
+      padding: 6px 6px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      background: #fff;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+    }
+    .floor-table td input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.12);
+      outline: none;
+    }
+    .floor-table td.label-col input {
+      font-weight: 600;
+      width: 80px;
+    }
+    .floor-row-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #DC2626;
+      font-size: 1rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .floor-row-del:hover { background: #FEE2E2; }
+
+    /* ── Foundation load box ── */
+    .foundation-box {
+      background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+      border: 2px solid #2563EB;
+      border-radius: 14px;
+      padding: 20px 24px;
+      text-align: center;
+    }
+    .foundation-box .fnd-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #1D4ED8;
+      margin-bottom: 6px;
+    }
+    .foundation-box .fnd-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #1E40AF;
+      line-height: 1;
+    }
+    .foundation-box .fnd-unit {
+      font-size: 0.85rem;
+      color: #3B82F6;
+      margin-top: 4px;
+    }
+
+    /* ── Bar chart ── */
+    .bar-chart-wrap {
+      padding: 16px 0 8px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <!-- topNav.js injects #mobile-drawer into body -->
+  <main id="app-main" class="calc-layout">
+
+    <!-- Breadcrumb bar -->
+    <div class="calc-breadcrumb-bar">
+      <div class="calc-breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Load Takedown</span>
+      </div>
+      <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+        📁 <span id="calc-project-name">—</span>
+      </div>
+    </div>
+
+    <!-- Calc panels fill remaining height -->
+    <div class="calc-panels">
+
+      <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
+      <aside id="calc-input-panel" aria-label="Load takedown inputs">
+
+        <div class="calc-input-header">
+          <span style="font-size:1.2rem;">🏢</span>
+          <span class="calc-input-title">Load Takedown</span>
+        </div>
+
+        <!-- Section 1: Load Factors -->
+        <div class="input-section" id="sec-factors">
+          <div class="section-header" onclick="toggleSection('sec-factors')">
+            <span>⚖ Load Factors (ULS)</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="inp-gG">γG — Dead load</label>
+                <input type="number" id="inp-gG" value="1.35" min="1.0" max="2.0" step="0.05" />
+              </div>
+              <div class="form-row">
+                <label for="inp-gQ">γQ — Imposed</label>
+                <input type="number" id="inp-gQ" value="1.50" min="1.0" max="2.0" step="0.05" />
+              </div>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">
+              EN 1990 Table A1.2(B) — ULS fundamental combination.
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Floor Loads -->
+        <div class="input-section" id="sec-floors">
+          <div class="section-header" onclick="toggleSection('sec-floors')">
+            <span>🏗 Floor Loads (top → bottom)</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body" style="padding:10px 12px 16px;">
+            <div class="floor-table-wrap">
+              <table class="floor-table" id="floor-table">
+                <thead>
+                  <tr>
+                    <th>Label</th>
+                    <th>gk slab<br/>(kN/m²)</th>
+                    <th>qk slab<br/>(kN/m²)</th>
+                    <th>Area<br/>(m²)</th>
+                    <th>Wall Gk<br/>(kN)</th>
+                    <th>Extra Qk<br/>(kN)</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="floors-tbody">
+                  <!-- Rows injected by JS -->
+                </tbody>
+              </table>
+            </div>
+            <button class="btn btn-secondary" onclick="addFloor()" style="width:100%;margin-top:10px;">+ Add Floor</button>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;line-height:1.4;">
+              Rows ordered top to bottom. "Wall Gk" = wall / beam self-weight carried per storey. "Extra Qk" = any point-imposed load.
+            </div>
+          </div>
+        </div>
+
+        <!-- Action bar -->
+        <div class="calc-action-bar" style="flex-wrap:wrap;gap:6px">
+          <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;min-width:120px">⚡ Run Calculation</button>
+          <button class="btn btn-secondary" onclick="resetCalc()" title="Reset inputs">↺</button>
+          <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save calculation" disabled>💾</button>
+        </div>
+      </aside>
+
+      <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
+      <main id="calc-results-panel" aria-label="Load takedown results">
+
+        <!-- Welcome state -->
+        <div id="calc-welcome" class="calc-welcome">
+          <div class="calc-welcome-icon">🏢</div>
+          <h3>Load Takedown Calculator</h3>
+          <p>Add your floors from top to bottom, set load factors, then click <strong>Run Calculation</strong> to accumulate loads to foundation.</p>
+        </div>
+
+        <!-- Results (hidden until first calc) -->
+        <div id="calc-results" style="display:none;">
+
+          <!-- Summary badges -->
+          <div class="calc-badges" id="badges">
+            <div class="calc-badge">
+              <div class="calc-badge-label">Total Gk</div>
+              <div class="calc-badge-value" id="badge-gk">—</div>
+              <div class="calc-badge-unit">kN (characteristic dead)</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Total Qk</div>
+              <div class="calc-badge-value" id="badge-qk">—</div>
+              <div class="calc-badge-unit">kN (characteristic imposed)</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">SLS total</div>
+              <div class="calc-badge-value" id="badge-sls">—</div>
+              <div class="calc-badge-unit">kN (Gk + Qk)</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">ULS to foundation</div>
+              <div class="calc-badge-value" id="badge-uls" style="color:#1D4ED8">—</div>
+              <div class="calc-badge-unit">kN (factored)</div>
+            </div>
+          </div>
+
+          <!-- Takedown table -->
+          <div class="calc-results-card">
+            <div class="card-header">Load Takedown — Floor by Floor</div>
+            <table class="calc-results-table" aria-label="Load takedown table" style="min-width:560px;">
+              <thead>
+                <tr>
+                  <th>Floor</th>
+                  <th>Gk this floor (kN)</th>
+                  <th>Qk this floor (kN)</th>
+                  <th>ULS this floor (kN)</th>
+                  <th>Cum. Gk (kN)</th>
+                  <th>Cum. Qk (kN)</th>
+                  <th>Cum. ULS (kN)</th>
+                </tr>
+              </thead>
+              <tbody id="takedown-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Foundation design load box -->
+          <div class="foundation-box">
+            <div class="fnd-label">Foundation Design Load (ULS)</div>
+            <div class="fnd-value" id="fnd-uls">—</div>
+            <div class="fnd-unit">kN — 1.35 Gk + 1.50 Qk (EN 1990)</div>
+          </div>
+
+          <!-- Bar chart -->
+          <div class="calc-results-card">
+            <div class="card-header">Cumulative ULS Load per Level</div>
+            <div class="calc-diagram-body bar-chart-wrap">
+              <svg id="bar-chart-svg" width="480" height="200" viewBox="0 0 480 200" aria-label="Load takedown bar chart" style="max-width:100%;"></svg>
+            </div>
+          </div>
+
+          <!-- Disclaimer -->
+          <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+            ⚠️ <strong>Disclaimer:</strong> Preliminary design only. All calculations must be verified by a licensed structural engineer.
+          </div>
+        </div>
+      </main>
+    </div><!-- end calc-panels -->
+
+  </main>
+</div><!-- end app-wrap -->
+
+<!-- Save modal -->
+<div class="calc-modal-overlay" id="save-calc-modal">
+  <div class="calc-modal-box">
+    <h3>💾 Save Calculation</h3>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Give this load takedown a name.</p>
+    <div class="form-row">
+      <label for="save-calc-name">Calculation name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. Column A1 — Load Takedown" maxlength="80" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-secondary modal-close" onclick="document.getElementById('save-calc-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" data-save-submit>Save →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script src="/js/engine/utils.js"></script>
+<script src="/js/engine/loadTakedownSolver.js"></script>
+<script src="/js/ui/tutorial.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report/wordExport.js"></script>
+<script src="/js/report/calcReport.js"></script>
+
+<script>
+  // ── Default floor data ──────────────────────────────────────────
+  const DEFAULT_FLOORS = [
+    { label: 'Roof',    gk_slab: 1.5, qk_slab: 0.6, area: 25, gk_wall: 8,  qk_wall: 0 },
+    { label: 'Floor 3', gk_slab: 3.5, qk_slab: 3.0, area: 25, gk_wall: 12, qk_wall: 0 },
+    { label: 'Floor 2', gk_slab: 3.5, qk_slab: 3.0, area: 25, gk_wall: 12, qk_wall: 0 },
+    { label: 'Floor 1', gk_slab: 3.5, qk_slab: 3.0, area: 25, gk_wall: 15, qk_wall: 0 },
+  ];
+
+  // ── UI helpers ──────────────────────────────────────────────────
+  function toggleSection(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  // ── Floor row management ────────────────────────────────────────
+  let floorCount = 0;
+
+  function makeFloorRow(floor) {
+    const id = floorCount++;
+    const f  = floor || { label: 'Floor', gk_slab: 3.5, qk_slab: 3.0, area: 25, gk_wall: 10, qk_wall: 0 };
+    const tr = document.createElement('tr');
+    tr.dataset.rowId = id;
+    tr.innerHTML = `
+      <td class="label-col"><input type="text" value="${f.label}" placeholder="Label" style="width:76px" /></td>
+      <td><input type="number" value="${f.gk_slab}" min="0" step="0.1" /></td>
+      <td><input type="number" value="${f.qk_slab}" min="0" step="0.1" /></td>
+      <td><input type="number" value="${f.area}"    min="0" step="1"   /></td>
+      <td><input type="number" value="${f.gk_wall}" min="0" step="0.5" /></td>
+      <td><input type="number" value="${f.qk_wall || 0}" min="0" step="0.5" /></td>
+      <td><button class="floor-row-del" onclick="deleteFloor(this)" title="Remove floor">✕</button></td>
+    `;
+    return tr;
+  }
+
+  function addFloor(floor) {
+    const tbody = document.getElementById('floors-tbody');
+    tbody.appendChild(makeFloorRow(floor));
+  }
+
+  function deleteFloor(btn) {
+    const row = btn.closest('tr');
+    const tbody = document.getElementById('floors-tbody');
+    if (tbody.rows.length <= 1) {
+      CalcShared.showToast('At least one floor is required.', 'error');
+      return;
+    }
+    row.remove();
+  }
+
+  function collectFloors() {
+    const rows = document.querySelectorAll('#floors-tbody tr');
+    return Array.from(rows).map(tr => {
+      const inputs = tr.querySelectorAll('input');
+      return {
+        label:    inputs[0].value || 'Floor',
+        gk_slab:  +inputs[1].value,
+        qk_slab:  +inputs[2].value,
+        area:     +inputs[3].value,
+        gk_wall:  +inputs[4].value,
+        qk_wall:  +inputs[5].value,
+        self_weight: 0,
+      };
+    });
+  }
+
+  // ── State ───────────────────────────────────────────────────────
+  let lastResults = null;
+  let lastConfig  = null;
+
+  // ── Collect all inputs ──────────────────────────────────────────
+  function collectConfig() {
+    return {
+      floors:   collectFloors(),
+      safetyGk: +document.getElementById('inp-gG').value,
+      safetyQk: +document.getElementById('inp-gQ').value,
+    };
+  }
+
+  // ── Run calculation ─────────────────────────────────────────────
+  function runCalc() {
+    try {
+      const config  = collectConfig();
+      if (!config.floors.length) {
+        CalcShared.showToast('Add at least one floor.', 'error');
+        return;
+      }
+      const results = LoadTakedownSolver.solve(config);
+      lastConfig    = config;
+      lastResults   = results;
+
+      document.getElementById('calc-welcome').style.display = 'none';
+      document.getElementById('calc-results').style.display = '';
+      document.getElementById('btn-save').disabled = false;
+
+      renderBadges(results);
+      renderTable(results, config);
+      renderChart(results);
+    } catch (e) {
+      CalcShared.showToast('Calculation error: ' + e.message, 'error');
+    }
+  }
+
+  function resetCalc() {
+    lastResults = null; lastConfig = null;
+    document.getElementById('calc-welcome').style.display = '';
+    document.getElementById('calc-results').style.display = 'none';
+    document.getElementById('btn-save').disabled = true;
+  }
+
+  // ── Render helpers ──────────────────────────────────────────────
+  function renderBadges(r) {
+    document.getElementById('badge-gk').textContent  = CalcShared.fmt(r.totalGk, 1);
+    document.getElementById('badge-qk').textContent  = CalcShared.fmt(r.totalQk, 1);
+    document.getElementById('badge-sls').textContent = CalcShared.fmt(r.totalSLS, 1);
+    document.getElementById('badge-uls').textContent = CalcShared.fmt(r.totalULS, 1);
+    document.getElementById('fnd-uls').textContent   = CalcShared.fmt(r.totalULS, 1) + ' kN';
+  }
+
+  function renderTable(r, c) {
+    document.getElementById('takedown-body').innerHTML = r.floors.map((f, i) => {
+      const isLast = i === r.floors.length - 1;
+      return `<tr style="${isLast ? 'font-weight:700;background:rgba(37,99,235,0.04)' : ''}">
+        <td>${f.label}</td>
+        <td class="mono">${CalcShared.fmt(f.Gk_floor, 2)}</td>
+        <td class="mono">${CalcShared.fmt(f.Qk_floor, 2)}</td>
+        <td class="mono">${CalcShared.fmt(f.ULS_floor, 2)}</td>
+        <td class="mono">${CalcShared.fmt(f.cumGk,  2)}</td>
+        <td class="mono">${CalcShared.fmt(f.cumQk,  2)}</td>
+        <td class="mono" style="color:#1D4ED8;font-weight:700;">${CalcShared.fmt(f.cumULS, 2)}</td>
+      </tr>`;
+    }).join('') +
+    `<tr style="border-top:2px solid var(--border);font-weight:700;background:var(--bg-subtle);">
+      <td>Total (foundation)</td>
+      <td class="mono">${CalcShared.fmt(r.totalGk, 2)}</td>
+      <td class="mono">${CalcShared.fmt(r.totalQk, 2)}</td>
+      <td class="mono">${CalcShared.fmt(r.totalULS, 2)}</td>
+      <td class="mono">${CalcShared.fmt(r.totalGk,  2)}</td>
+      <td class="mono">${CalcShared.fmt(r.totalQk,  2)}</td>
+      <td class="mono" style="color:#1D4ED8;">${CalcShared.fmt(r.totalULS, 2)}</td>
+    </tr>`;
+  }
+
+  function renderChart(r) {
+    const svg    = document.getElementById('bar-chart-svg');
+    const W      = 480;
+    const H      = 200;
+    const padL   = 64;   // label
+    const padR   = 20;
+    const padT   = 20;
+    const padB   = 28;   // x-axis values
+    const barH   = Math.min(28, (H - padT - padB) / r.floors.length - 4);
+    const chartH = r.floors.length * (barH + 4);
+    const chartW = W - padL - padR;
+    const maxULS = r.totalULS || 1;
+
+    let bars = '';
+    r.floors.forEach((f, i) => {
+      const y   = padT + i * (barH + 4);
+      const bw  = (f.cumULS / maxULS) * chartW;
+      const pct = ((f.cumULS / maxULS) * 100).toFixed(0);
+      bars += `
+        <!-- Bar background -->
+        <rect x="${padL}" y="${y}" width="${chartW}" height="${barH}" fill="#F1F5F9" rx="4"/>
+        <!-- Filled bar -->
+        <rect x="${padL}" y="${y}" width="${Math.max(bw, 2)}" height="${barH}"
+              fill="url(#bar-grad)" rx="4"/>
+        <!-- Floor label -->
+        <text x="${padL - 6}" y="${y + barH / 2 + 4}" text-anchor="end"
+              font-size="9.5" font-weight="600" fill="#374151" font-family="Inter,sans-serif">${f.label}</text>
+        <!-- Value label -->
+        <text x="${padL + bw + 4}" y="${y + barH / 2 + 4}" text-anchor="start"
+              font-size="9" fill="#1D4ED8" font-family="JetBrains Mono,monospace">${CalcShared.fmt(f.cumULS, 0)} kN</text>
+      `;
+    });
+
+    const totalH = padT + r.floors.length * (barH + 4) + padB;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + totalH);
+    svg.setAttribute('height', totalH);
+
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="bar-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#2563EB"/>
+          <stop offset="100%" stop-color="#60A5FA"/>
+        </linearGradient>
+      </defs>
+      <!-- Axis label -->
+      <text x="${padL + chartW / 2}" y="${totalH - 4}" text-anchor="middle"
+            font-size="9" fill="#6B7280" font-family="Inter,sans-serif">Cumulative ULS load (kN)</text>
+      ${bars}
+      <!-- 0 line -->
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${totalH - padB}" stroke="#CBD5E1" stroke-width="1"/>
+      <!-- max tick -->
+      <line x1="${padL + chartW}" y1="${padT}" x2="${padL + chartW}" y2="${totalH - padB}" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="${padL + chartW}" y="${padT - 4}" text-anchor="middle"
+            font-size="8.5" fill="#94A3B8" font-family="JetBrains Mono,monospace">${CalcShared.fmt(maxULS, 0)}</text>
+    `;
+  }
+
+  // ── Save modal ──────────────────────────────────────────────────
+  function openSave() {
+    if (!lastResults) return;
+    CalcShared.openSaveModal('save-calc-modal');
+  }
+
+  // ── Init ────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    TopNav.init();
+    Auth.guard();
+    CalcShared.renderProjectBadge('calc-project-badge');
+
+    // Pre-fill default floors
+    DEFAULT_FLOORS.forEach(f => addFloor(f));
+
+    CalcShared.initSaveModal('save-calc-modal', 'load-takedown', () => {
+      if (!lastResults) return null;
+      const n = lastResults.floors.length;
+      return {
+        config:  lastConfig,
+        results: lastResults,
+        summary: n + ' floors, ULS=' + lastResults.totalULS + ' kN, Gk=' + lastResults.totalGk + ' kN',
+      };
+    });
+
+    CalcShared.loadFromUrl((cfg) => {
+      if (!cfg || !cfg.floors) return;
+      // Clear existing rows
+      document.getElementById('floors-tbody').innerHTML = '';
+      floorCount = 0;
+      cfg.floors.forEach(f => addFloor(f));
+      if (cfg.safetyGk) document.getElementById('inp-gG').value = cfg.safetyGk;
+      if (cfg.safetyQk) document.getElementById('inp-gQ').value = cfg.safetyQk;
+      runCalc();
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Section Properties — BuildMetrics</title>
+  <meta name="description" content="Structural section properties calculator. Compute area, second moment of area, section modulus and radius of gyration for common cross-sections." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
+
+  <style>
+    .section-type-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 0;
+    }
+    .st-tab {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .st-tab.active {
+      background: #EFF6FF;
+      border-color: #2563EB;
+      color: #2563EB;
+    }
+    .st-tab:hover:not(.active) { background: var(--bg-subtle); }
+
+    .dim-group { display: none; }
+    .dim-group.active { display: contents; }
+
+    .sp-sketch-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 0 4px;
+    }
+    .sp-sketch-svg {
+      max-width: 100%;
+      height: auto;
+    }
+    .sp-result-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+    }
+    .sp-result-table th {
+      padding: 9px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-subtle);
+    }
+    .sp-result-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+    .sp-result-table tr:last-child td { border-bottom: none; }
+    .sp-result-table tr:hover td { background: var(--bg-subtle); }
+    .sp-result-table td.mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .sp-result-table td.note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .sp-result-table .section-group-row td {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      background: var(--bg-subtle);
+      padding: 7px 16px;
+    }
+    .material-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .mat-chip {
+      padding: 5px 12px;
+      border-radius: 99px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .mat-chip.active { background: #EFF6FF; border-color: #2563EB; color: #2563EB; }
+    .mat-chip:hover:not(.active) { background: var(--bg-subtle); }
+    .mat-info-box {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+    .mat-info-box strong { color: var(--text-primary); }
+    .table-wrapper { overflow-x: auto; }
+  </style>
+</head>
+
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <main id="app-main" class="calc-layout">
+
+    <!-- Breadcrumb bar -->
+    <div class="calc-breadcrumb-bar">
+      <div class="calc-breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Section Properties</span>
+      </div>
+      <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+        📁 <span id="calc-project-name">—</span>
+      </div>
+    </div>
+
+    <div class="calc-panels">
+
+      <!-- ── INPUT PANEL ──────────────────────────────────────────── -->
+      <aside id="calc-input-panel" aria-label="Section inputs">
+
+        <div class="calc-input-header">
+          <span style="font-size:1.2rem;">📐</span>
+          <span class="calc-input-title">Section Properties</span>
+        </div>
+
+        <!-- Section type selector -->
+        <div class="input-section" id="sec-type">
+          <div class="section-header" onclick="toggleSection('sec-type')">
+            <span>🔷 Section Type</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="section-type-tabs" id="type-tabs">
+              <button class="st-tab active" data-type="rectangle" onclick="setType(this)">Rectangle</button>
+              <button class="st-tab"        data-type="circle"    onclick="setType(this)">Circle</button>
+              <button class="st-tab"        data-type="box"       onclick="setType(this)">Hollow Box</button>
+              <button class="st-tab"        data-type="isection"  onclick="setType(this)">I-Section</button>
+              <button class="st-tab"        data-type="tsection"  onclick="setType(this)">T-Section</button>
+              <button class="st-tab"        data-type="angle"     onclick="setType(this)">Angle</button>
+            </div>
+
+            <!-- Mini sketch updates per type -->
+            <div class="sp-sketch-wrap">
+              <svg id="sketch-svg" width="180" height="140" viewBox="0 0 180 140"
+                   class="sp-sketch-svg" aria-label="Section sketch"></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dimensions -->
+        <div class="input-section" id="sec-dims">
+          <div class="section-header" onclick="toggleSection('sec-dims')">
+            <span>📏 Dimensions</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body" id="dims-body">
+
+            <!-- Rectangle: b × h -->
+            <div class="dim-group active" id="dg-rectangle">
+              <div class="form-row">
+                <label for="inp-rect-b">Width b</label>
+                <input type="number" id="inp-rect-b" value="200" min="1" step="5" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-rect-h">Depth h</label>
+                <input type="number" id="inp-rect-h" value="400" min="1" step="5" />
+                <span class="unit-tag">mm</span>
+              </div>
+            </div>
+
+            <!-- Circle: dia -->
+            <div class="dim-group" id="dg-circle">
+              <div class="form-row">
+                <label for="inp-circ-d">Diameter d</label>
+                <input type="number" id="inp-circ-d" value="323.9" min="1" step="0.1" />
+                <span class="unit-tag">mm</span>
+              </div>
+            </div>
+
+            <!-- Hollow Box: B H b h -->
+            <div class="dim-group" id="dg-box">
+              <div class="form-row">
+                <label for="inp-box-B">Outer width B</label>
+                <input type="number" id="inp-box-B" value="200" min="1" step="5" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-box-H">Outer depth H</label>
+                <input type="number" id="inp-box-H" value="300" min="1" step="5" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-box-b">Inner width b</label>
+                <input type="number" id="inp-box-b" value="160" min="1" step="5" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-box-h">Inner depth h</label>
+                <input type="number" id="inp-box-h" value="260" min="1" step="5" />
+                <span class="unit-tag">mm</span>
+              </div>
+            </div>
+
+            <!-- I-Section: B tf hw tw -->
+            <div class="dim-group" id="dg-isection">
+              <div class="form-row">
+                <label for="inp-is-B">Flange width B</label>
+                <input type="number" id="inp-is-B" value="152" min="1" step="1" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-is-tf">Flange thickness tf</label>
+                <input type="number" id="inp-is-tf" value="10.8" min="1" step="0.1" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-is-hw">Web height hw</label>
+                <input type="number" id="inp-is-hw" value="201.3" min="1" step="0.1" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-is-tw">Web thickness tw</label>
+                <input type="number" id="inp-is-tw" value="6.3" min="1" step="0.1" />
+                <span class="unit-tag">mm</span>
+              </div>
+            </div>
+
+            <!-- T-Section: B tf hw tw -->
+            <div class="dim-group" id="dg-tsection">
+              <div class="form-row">
+                <label for="inp-ts-B">Flange width B</label>
+                <input type="number" id="inp-ts-B" value="600" min="1" step="5" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-ts-tf">Flange thickness tf</label>
+                <input type="number" id="inp-ts-tf" value="150" min="1" step="5" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-ts-hw">Web height hw</label>
+                <input type="number" id="inp-ts-hw" value="450" min="1" step="5" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-ts-tw">Web thickness tw</label>
+                <input type="number" id="inp-ts-tw" value="200" min="1" step="5" />
+                <span class="unit-tag">mm</span>
+              </div>
+            </div>
+
+            <!-- Angle: bA tA bB tB -->
+            <div class="dim-group" id="dg-angle">
+              <div class="form-row">
+                <label for="inp-ang-bA">Horizontal leg width bA</label>
+                <input type="number" id="inp-ang-bA" value="100" min="1" step="1" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-ang-tA">Horizontal leg thickness tA</label>
+                <input type="number" id="inp-ang-tA" value="10" min="1" step="1" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-ang-bB">Vertical leg height bB</label>
+                <input type="number" id="inp-ang-bB" value="100" min="1" step="1" />
+                <span class="unit-tag">mm</span>
+              </div>
+              <div class="form-row">
+                <label for="inp-ang-tB">Vertical leg thickness tB</label>
+                <input type="number" id="inp-ang-tB" value="10" min="1" step="1" />
+                <span class="unit-tag">mm</span>
+              </div>
+            </div>
+
+          </div><!-- end dims-body -->
+        </div>
+
+        <!-- Material selector -->
+        <div class="input-section" id="sec-material">
+          <div class="section-header" onclick="toggleSection('sec-material')">
+            <span>🧱 Material</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="material-chips" id="mat-chips">
+              <button class="mat-chip active" data-mat="steel"    onclick="setMaterial(this)">Steel</button>
+              <button class="mat-chip"        data-mat="concrete" onclick="setMaterial(this)">Concrete</button>
+              <button class="mat-chip"        data-mat="timber"   onclick="setMaterial(this)">Timber</button>
+            </div>
+            <div class="mat-info-box" id="mat-info">
+              <strong>Structural Steel (S275)</strong><br/>
+              E = 210,000 N/mm² &nbsp;|&nbsp; G = 81,000 N/mm²<br/>
+              fy = 275 N/mm² &nbsp;|&nbsp; γM0 = 1.00 (EC3)
+            </div>
+          </div>
+        </div>
+
+        <!-- Action bar -->
+        <div class="calc-action-bar" style="flex-wrap:wrap;gap:6px">
+          <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;min-width:120px">⚡ Calculate</button>
+          <button class="btn btn-secondary" onclick="resetCalc()" title="Reset inputs">↺ Reset</button>
+          <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save calculation" disabled>💾</button>
+        </div>
+      </aside>
+
+      <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
+      <main id="calc-results-panel" aria-label="Section properties results">
+
+        <!-- Welcome state -->
+        <div id="calc-welcome" class="calc-welcome">
+          <div class="calc-welcome-icon">📐</div>
+          <h3>Section Properties Calculator</h3>
+          <p>Select a section type, enter dimensions, then click <strong>Calculate</strong> to compute area, second moments of area, section moduli and radii of gyration.</p>
+        </div>
+
+        <!-- Results -->
+        <div id="calc-results" style="display:none;">
+
+          <!-- Summary badges -->
+          <div class="calc-badges" id="badges">
+            <div class="calc-badge">
+              <div class="calc-badge-label">Area A</div>
+              <div class="calc-badge-value" id="badge-A">—</div>
+              <div class="calc-badge-unit">mm²</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Ixx</div>
+              <div class="calc-badge-value" id="badge-Ixx">—</div>
+              <div class="calc-badge-unit">×10⁶ mm⁴</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Zxx (el.)</div>
+              <div class="calc-badge-value" id="badge-Zxx">—</div>
+              <div class="calc-badge-unit">×10³ mm³</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">rxx</div>
+              <div class="calc-badge-value" id="badge-rxx">—</div>
+              <div class="calc-badge-unit">mm</div>
+            </div>
+          </div>
+
+          <!-- Scaled section diagram -->
+          <div class="calc-diagram-card">
+            <div class="card-header" id="diagram-title">Cross-Section Diagram</div>
+            <div class="calc-diagram-body" style="padding:24px;min-height:180px;">
+              <svg id="section-svg" width="360" height="240" viewBox="0 0 360 240"
+                   aria-label="Cross-section diagram" style="max-width:100%;overflow:visible;"></svg>
+            </div>
+          </div>
+
+          <!-- Detailed properties table -->
+          <div class="calc-results-card">
+            <div class="card-header">Section Properties</div>
+            <table class="sp-result-table" aria-label="Section properties">
+              <thead>
+                <tr><th>Property</th><th>Symbol</th><th>Value</th><th>Units</th></tr>
+              </thead>
+              <tbody id="sp-result-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Disclaimer -->
+          <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+            ⚠️ <strong>Disclaimer:</strong> Preliminary section analysis only. All calculations must be verified by a licensed structural engineer.
+          </div>
+        </div>
+      </main>
+    </div>
+  </main>
+</div>
+
+<!-- Save modal -->
+<div class="calc-modal-overlay" id="save-calc-modal">
+  <div class="calc-modal-box">
+    <h3>💾 Save Calculation</h3>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Give this section analysis a name.</p>
+    <div class="form-row">
+      <label for="save-calc-name">Calculation name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. 203×133 UB — Bending check" maxlength="80" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-secondary modal-close" onclick="document.getElementById('save-calc-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" data-save-submit>Save →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script src="/js/engine/utils.js"></script>
+<script src="/js/engine/sectionSolver.js"></script>
+<script src="/js/ui/tutorial.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report/wordExport.js"></script>
+<script src="/js/report/calcReport.js"></script>
+
+<script>
+  // ── State ────────────────────────────────────────────────────────
+  let activeType     = 'rectangle';
+  let activeMaterial = 'steel';
+  let lastResults    = null;
+  let lastConfig     = null;
+
+  // ── Material data ─────────────────────────────────────────────────
+  const MATERIALS = {
+    steel: {
+      label: 'Structural Steel (S275)',
+      E: 210000, G: 81000, fy: 275,
+      note: 'E = 210,000 N/mm² | G = 81,000 N/mm²<br/>fy = 275 N/mm² | γM0 = 1.00 (EC3)',
+    },
+    concrete: {
+      label: 'Concrete (C30/37)',
+      E: 32836, G: 13681, fy: null,
+      note: 'Ecm = 32,836 N/mm² | Gcm = 13,681 N/mm²<br/>fck = 30 N/mm² | αcc = 0.85 (EC2)',
+    },
+    timber: {
+      label: 'Structural Timber (C24)',
+      E: 11000, G: 690, fy: null,
+      note: 'E0,mean = 11,000 N/mm² | Gmean = 690 N/mm²<br/>fm,k = 24 N/mm² (EN 338, C24)',
+    },
+  };
+
+  // ── Section type helpers ──────────────────────────────────────────
+  function toggleSection(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  function setType(btn) {
+    document.querySelectorAll('#type-tabs .st-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeType = btn.dataset.type;
+    document.querySelectorAll('.dim-group').forEach(g => g.classList.remove('active'));
+    const dg = document.getElementById('dg-' + activeType);
+    if (dg) dg.classList.add('active');
+    renderSketch(activeType, null);
+  }
+
+  function setMaterial(btn) {
+    document.querySelectorAll('#mat-chips .mat-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeMaterial = btn.dataset.mat;
+    const mat = MATERIALS[activeMaterial];
+    document.getElementById('mat-info').innerHTML =
+      `<strong>${mat.label}</strong><br/>${mat.note}`;
+  }
+
+  // ── Collect config ────────────────────────────────────────────────
+  function collectConfig() {
+    const base = { type: activeType };
+    switch (activeType) {
+      case 'rectangle':
+        return { ...base, b: +v('inp-rect-b'), h: +v('inp-rect-h') };
+      case 'circle':
+        return { ...base, dia: +v('inp-circ-d') };
+      case 'box':
+        return { ...base, B: +v('inp-box-B'), H: +v('inp-box-H'), b: +v('inp-box-b'), h: +v('inp-box-h') };
+      case 'isection':
+        return { ...base, B: +v('inp-is-B'), tf: +v('inp-is-tf'), hw: +v('inp-is-hw'), tw: +v('inp-is-tw') };
+      case 'tsection':
+        return { ...base, B: +v('inp-ts-B'), tf: +v('inp-ts-tf'), hw: +v('inp-ts-hw'), tw: +v('inp-ts-tw') };
+      case 'angle':
+        return { ...base, bA: +v('inp-ang-bA'), tA: +v('inp-ang-tA'), bB: +v('inp-ang-bB'), tB: +v('inp-ang-tB') };
+      default: return base;
+    }
+  }
+
+  function v(id) {
+    const el = document.getElementById(id);
+    return el ? el.value : 0;
+  }
+
+  // ── Run ───────────────────────────────────────────────────────────
+  function runCalc() {
+    let config;
+    try {
+      config = collectConfig();
+      validateConfig(config);
+    } catch (e) {
+      CalcShared.showToast(e.message, 'error');
+      return;
+    }
+
+    const results = SectionSolver.solve(config);
+    lastConfig  = { ...config, material: activeMaterial };
+    lastResults = results;
+
+    document.getElementById('calc-welcome').style.display = 'none';
+    document.getElementById('calc-results').style.display = '';
+    document.getElementById('btn-save').disabled = false;
+
+    renderBadges(results);
+    renderTable(results, config);
+    renderDiagram(results, config);
+  }
+
+  function validateConfig(c) {
+    const pos = (val, name) => {
+      if (!val || val <= 0) throw new Error(name + ' must be greater than zero.');
+    };
+    switch (c.type) {
+      case 'rectangle': pos(c.b,'Width b'); pos(c.h,'Depth h'); break;
+      case 'circle':    pos(c.dia,'Diameter d'); break;
+      case 'box':
+        pos(c.B,'Outer width B'); pos(c.H,'Outer depth H');
+        pos(c.b,'Inner width b'); pos(c.h,'Inner depth h');
+        if (c.b >= c.B) throw new Error('Inner width b must be less than outer width B.');
+        if (c.h >= c.H) throw new Error('Inner depth h must be less than outer depth H.');
+        break;
+      case 'isection':
+        pos(c.B,'Flange width B'); pos(c.tf,'Flange thickness tf');
+        pos(c.hw,'Web height hw'); pos(c.tw,'Web thickness tw');
+        if (c.tw >= c.B) throw new Error('Web thickness tw must be less than flange width B.');
+        break;
+      case 'tsection':
+        pos(c.B,'Flange width B'); pos(c.tf,'Flange thickness tf');
+        pos(c.hw,'Web height hw'); pos(c.tw,'Web thickness tw');
+        if (c.tw >= c.B) throw new Error('Web thickness tw must be less than flange width B.');
+        break;
+      case 'angle':
+        pos(c.bA,'Leg A width bA'); pos(c.tA,'Leg A thickness tA');
+        pos(c.bB,'Leg B height bB'); pos(c.tB,'Leg B thickness tB');
+        if (c.tA >= c.bA) throw new Error('tA must be less than bA.');
+        if (c.tB >= c.bB) throw new Error('tB must be less than bB.');
+        break;
+    }
+  }
+
+  // ── Badges ────────────────────────────────────────────────────────
+  function renderBadges(r) {
+    document.getElementById('badge-A').textContent   = r.A_mm2 ? r.A_mm2.toLocaleString() : '—';
+    document.getElementById('badge-Ixx').textContent = r.Ixx_e6 != null ? r.Ixx_e6 : '—';
+    document.getElementById('badge-Zxx').textContent = r.Zxx_e3 != null ? r.Zxx_e3 : '—';
+    document.getElementById('badge-rxx').textContent = r.rxx_mm != null ? r.rxx_mm : '—';
+  }
+
+  // ── Table ─────────────────────────────────────────────────────────
+  function renderTable(r, c) {
+    const mat  = MATERIALS[activeMaterial];
+    const rows = [];
+
+    rows.push(['group', 'Area']);
+    rows.push(['Cross-sectional area', 'A', r.A_mm2 != null ? r.A_mm2.toLocaleString() : '—', 'mm²']);
+
+    rows.push(['group', 'Second Moment of Area']);
+    rows.push(['About x-x axis', 'I<sub>xx</sub>', r.Ixx_e6, '×10⁶ mm⁴']);
+    rows.push(['About y-y axis', 'I<sub>yy</sub>', r.Iyy_e6, '×10⁶ mm⁴']);
+
+    rows.push(['group', 'Elastic Section Modulus']);
+    if (r.Zxx_top_e3 !== null && r.Zxx_bot_e3 !== null && r.type === 'tsection') {
+      rows.push(['About x-x (top fibre)', 'Z<sub>xx,top</sub>', r.Zxx_top_e3, '×10³ mm³']);
+      rows.push(['About x-x (bottom fibre)', 'Z<sub>xx,bot</sub>', r.Zxx_bot_e3, '×10³ mm³']);
+    } else {
+      rows.push(['About x-x axis', 'Z<sub>xx</sub>', r.Zxx_e3, '×10³ mm³']);
+    }
+    rows.push(['About y-y axis', 'Z<sub>yy</sub>', r.Zyy_e3, '×10³ mm³']);
+
+    rows.push(['group', 'Plastic Section Modulus']);
+    if (r.Wpl_xx_e3 != null) rows.push(['About x-x axis', 'W<sub>pl,xx</sub>', r.Wpl_xx_e3, '×10³ mm³']);
+    else rows.push(['About x-x axis', 'W<sub>pl,xx</sub>', 'N/A', '']);
+    if (r.Wpl_yy_e3 != null) rows.push(['About y-y axis', 'W<sub>pl,yy</sub>', r.Wpl_yy_e3, '×10³ mm³']);
+    else rows.push(['About y-y axis', 'W<sub>pl,yy</sub>', 'N/A', '']);
+
+    rows.push(['group', 'Radius of Gyration']);
+    rows.push(['About x-x axis', 'r<sub>xx</sub>', r.rxx_mm, 'mm']);
+    rows.push(['About y-y axis', 'r<sub>yy</sub>', r.ryy_mm, 'mm']);
+    if (r.rmin_mm != null) rows.push(['Minimum (angle)', 'r<sub>min</sub>', r.rmin_mm, 'mm']);
+
+    if (r.ybar_mm != null) {
+      rows.push(['group', 'Centroid']);
+      rows.push(['Distance from bottom (ȳ)', 'ȳ', r.ybar_mm, 'mm']);
+    }
+    if (r.y_c_mm != null) {
+      rows.push(['group', 'Centroid (Angle)']);
+      rows.push(['From bottom (y<sub>c</sub>)', 'y<sub>c</sub>', r.y_c_mm, 'mm']);
+      rows.push(['From left (x<sub>c</sub>)',   'x<sub>c</sub>', r.x_c_mm, 'mm']);
+    }
+
+    rows.push(['group', 'Material Properties (' + mat.label + ')']);
+    rows.push(['Elastic modulus E', 'E', mat.E.toLocaleString(), 'N/mm²']);
+    rows.push(['Shear modulus G', 'G', mat.G.toLocaleString(), 'N/mm²']);
+    if (mat.fy) rows.push(['Yield strength', 'f<sub>y</sub>', mat.fy, 'N/mm²']);
+
+    document.getElementById('sp-result-body').innerHTML = rows.map(row => {
+      if (row[0] === 'group') {
+        return `<tr class="section-group-row"><td colspan="4">${row[1]}</td></tr>`;
+      }
+      const [prop, sym, val, unit] = row;
+      const dispVal = (val === null || val === undefined || val === 'N/A') ? '<span style="color:var(--text-muted)">N/A</span>' : `<span class="mono">${val}</span>`;
+      return `<tr>
+        <td>${prop}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text-muted);">${sym}</td>
+        <td>${dispVal}</td>
+        <td class="note">${unit}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── SVG Sketch (input panel, schematic) ──────────────────────────
+  function renderSketch(type, config) {
+    const svg = document.getElementById('sketch-svg');
+    const W = 180, H = 140;
+    const fill   = '#EFF6FF';
+    const stroke = '#2563EB';
+    const web    = '#BFDBFE';
+    const lbl    = '#1E40AF';
+    const S = 1.5;
+
+    let content = '';
+    switch (type) {
+      case 'rectangle':
+        content = `
+          <rect x="40" y="20" width="100" height="100" fill="${fill}" stroke="${stroke}" stroke-width="${S}" rx="2"/>
+          <line x1="40" y1="70" x2="140" y2="70" stroke="#93C5FD" stroke-width="0.8" stroke-dasharray="3 2"/>
+          <line x1="90" y1="20" x2="90" y2="120" stroke="#93C5FD" stroke-width="0.8" stroke-dasharray="3 2"/>
+          <text x="90" y="135" text-anchor="middle" font-size="9" fill="${lbl}" font-family="Inter,sans-serif">b</text>
+          <text x="28" y="74"  text-anchor="middle" font-size="9" fill="${lbl}" font-family="Inter,sans-serif">h</text>`;
+        break;
+      case 'circle':
+        content = `
+          <circle cx="90" cy="70" r="50" fill="${fill}" stroke="${stroke}" stroke-width="${S}"/>
+          <line x1="90" y1="20" x2="90" y2="120" stroke="#93C5FD" stroke-width="0.8" stroke-dasharray="3 2"/>
+          <line x1="90" y1="70" x2="140" y2="70" stroke="${stroke}" stroke-width="1"/>
+          <text x="115" y="65" font-size="9" fill="${lbl}" font-family="Inter,sans-serif">d/2</text>
+          <text x="90"  y="135" text-anchor="middle" font-size="9" fill="${lbl}" font-family="Inter,sans-serif">d</text>`;
+        break;
+      case 'box':
+        content = `
+          <rect x="30" y="15" width="120" height="110" fill="${fill}" stroke="${stroke}" stroke-width="${S}" rx="2"/>
+          <rect x="50" y="30" width="80"  height="80"  fill="white"  stroke="${stroke}" stroke-width="1"   rx="1"/>
+          <text x="90"  y="130" text-anchor="middle" font-size="9" fill="${lbl}" font-family="Inter,sans-serif">B×H / b×h</text>`;
+        break;
+      case 'isection':
+        content = `
+          <rect x="25" y="20"  width="130" height="18" fill="${fill}" stroke="${stroke}" stroke-width="${S}" rx="1"/>
+          <rect x="77" y="38"  width="26"  height="64" fill="${fill}" stroke="${stroke}" stroke-width="${S}"/>
+          <rect x="25" y="102" width="130" height="18" fill="${fill}" stroke="${stroke}" stroke-width="${S}" rx="1"/>
+          <text x="90"  y="134" text-anchor="middle" font-size="9" fill="${lbl}" font-family="Inter,sans-serif">I-Section</text>
+          <text x="15"  y="32"  font-size="8" fill="${lbl}" font-family="Inter,sans-serif">tf</text>
+          <text x="90"  y="84"  text-anchor="middle" font-size="8" fill="${lbl}" font-family="Inter,sans-serif" opacity="0.6">tw</text>`;
+        break;
+      case 'tsection':
+        content = `
+          <rect x="20" y="20"  width="140" height="22" fill="${fill}" stroke="${stroke}" stroke-width="${S}" rx="1"/>
+          <rect x="72" y="42"  width="36"  height="80" fill="${fill}" stroke="${stroke}" stroke-width="${S}"/>
+          <text x="90"  y="136" text-anchor="middle" font-size="9" fill="${lbl}" font-family="Inter,sans-serif">T-Section</text>
+          <text x="10"  y="34"  font-size="8" fill="${lbl}" font-family="Inter,sans-serif">tf</text>`;
+        break;
+      case 'angle':
+        content = `
+          <polygon points="30,120 30,20 52,20 52,98 140,98 140,120"
+                   fill="${fill}" stroke="${stroke}" stroke-width="${S}"/>
+          <text x="85" y="136" text-anchor="middle" font-size="9" fill="${lbl}" font-family="Inter,sans-serif">L-Angle</text>
+          <text x="10" y="72"  font-size="8" fill="${lbl}" font-family="Inter,sans-serif">bB</text>
+          <text x="85" y="112" font-size="8" fill="${lbl}" font-family="Inter,sans-serif">bA</text>`;
+        break;
+    }
+    svg.innerHTML = content;
+  }
+
+  // ── SVG Cross-section diagram (results panel, to scale) ──────────
+  function renderDiagram(r, c) {
+    const svg = document.getElementById('section-svg');
+    const W = 360, H = 240;
+    const pad = 50;
+    const fill   = '#DBEAFE';
+    const stroke = '#2563EB';
+    const dim    = '#64748B';
+    const lbl    = '#1E40AF';
+    const font   = "font-family='Inter,sans-serif'";
+
+    document.getElementById('diagram-title').textContent =
+      ({ rectangle:'Rectangle', circle:'Circle', box:'Hollow Box', isection:'I-Section', tsection:'T-Section', angle:'Angle' }[c.type] || '') +
+      ' — Cross-Section';
+
+    let body = '';
+
+    function dimLine(x1,y1,x2,y2,text,textX,textY,horiz=true) {
+      const arr = `marker-end="url(#arr)" marker-start="url(#arrl)"`;
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${dim}" stroke-width="0.8" ${arr}/>
+              <text x="${textX}" y="${textY}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="${dim}" ${font}>${text}</text>`;
+    }
+
+    switch (c.type) {
+      case 'rectangle': {
+        const scale = Math.min((W - pad*2) / c.b, (H - pad*2) / c.h, 1.5);
+        const fw = c.b * scale, fh = c.h * scale;
+        const ox = (W - fw) / 2, oy = (H - fh) / 2;
+        body = `
+          <rect x="${ox}" y="${oy}" width="${fw}" height="${fh}" fill="${fill}" stroke="${stroke}" stroke-width="2" rx="2"/>
+          <line x1="${ox}" y1="${H/2}" x2="${ox+fw}" y2="${H/2}" stroke="#93C5FD" stroke-width="0.8" stroke-dasharray="4 3"/>
+          <line x1="${W/2}" y1="${oy}" x2="${W/2}" y2="${oy+fh}" stroke="#93C5FD" stroke-width="0.8" stroke-dasharray="4 3"/>
+          ${dimLine(ox, oy-14, ox+fw, oy-14, c.b+'mm', ox+fw/2, oy-22)}
+          ${dimLine(ox-14, oy, ox-14, oy+fh, c.h+'mm', ox-26, oy+fh/2)}
+        `;
+        break;
+      }
+      case 'circle': {
+        const maxR = (Math.min(W,H) - pad*2) / 2;
+        const dia  = c.dia;
+        const scale = maxR / (dia / 2);
+        const r_px = (dia / 2) * Math.min(scale, 1.5);
+        const cx = W/2, cy = H/2;
+        body = `
+          <circle cx="${cx}" cy="${cy}" r="${r_px}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+          <line x1="${cx}" y1="${cy}" x2="${cx+r_px}" y2="${cy}" stroke="${stroke}" stroke-width="1"/>
+          <text x="${cx + r_px/2}" y="${cy - 6}" text-anchor="middle" font-size="9" fill="${lbl}" ${font}>d/2</text>
+          <line x1="${cx-r_px}" y1="${cy}" x2="${cx+r_px}" y2="${cy}" stroke="#93C5FD" stroke-width="0.8" stroke-dasharray="4 3"/>
+          <line x1="${cx}" y1="${cy-r_px}" x2="${cx}" y2="${cy+r_px}" stroke="#93C5FD" stroke-width="0.8" stroke-dasharray="4 3"/>
+          ${dimLine(cx-r_px, cy+r_px+14, cx+r_px, cy+r_px+14, dia+'mm', cx, cy+r_px+22)}
+        `;
+        break;
+      }
+      case 'box': {
+        const scale = Math.min((W-pad*2)/c.B, (H-pad*2)/c.H, 1.5);
+        const fw = c.B*scale, fh = c.H*scale;
+        const iw = c.b*scale, ih = c.h*scale;
+        const ox = (W-fw)/2, oy = (H-fh)/2;
+        const ix = ox+(fw-iw)/2, iy = oy+(fh-ih)/2;
+        body = `
+          <rect x="${ox}" y="${oy}" width="${fw}" height="${fh}" fill="${fill}" stroke="${stroke}" stroke-width="2" rx="2"/>
+          <rect x="${ix}" y="${iy}" width="${iw}" height="${ih}" fill="white" stroke="${stroke}" stroke-width="1.5" rx="1"/>
+          ${dimLine(ox, oy-14, ox+fw, oy-14, c.B+'mm', ox+fw/2, oy-22)}
+          ${dimLine(ox-14, oy, ox-14, oy+fh, c.H+'mm', ox-26, oy+fh/2)}
+        `;
+        break;
+      }
+      case 'isection': {
+        const H_tot = c.hw + 2 * c.tf;
+        const scale = Math.min((W-pad*2)/c.B, (H-pad*2)/H_tot, 1.5);
+        const B_px  = c.B*scale, H_px = H_tot*scale;
+        const tf_px = c.tf*scale, tw_px = c.tw*scale, hw_px = c.hw*scale;
+        const ox = (W-B_px)/2, oy = (H-H_px)/2;
+        body = `
+          <rect x="${ox}"                y="${oy}"                width="${B_px}"  height="${tf_px}" fill="${fill}" stroke="${stroke}" stroke-width="2" rx="1"/>
+          <rect x="${ox+(B_px-tw_px)/2}" y="${oy+tf_px}"          width="${tw_px}" height="${hw_px}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+          <rect x="${ox}"                y="${oy+tf_px+hw_px}"     width="${B_px}"  height="${tf_px}" fill="${fill}" stroke="${stroke}" stroke-width="2" rx="1"/>
+          <line x1="${ox}" y1="${H/2}" x2="${ox+B_px}" y2="${H/2}" stroke="#93C5FD" stroke-width="0.8" stroke-dasharray="4 3"/>
+          ${dimLine(ox, oy-14, ox+B_px, oy-14, c.B+'mm', ox+B_px/2, oy-22)}
+          ${dimLine(ox-14, oy, ox-14, oy+H_px, H_tot.toFixed(1)+'mm', ox-28, oy+H_px/2)}
+        `;
+        break;
+      }
+      case 'tsection': {
+        const H_tot = c.hw + c.tf;
+        const scale = Math.min((W-pad*2)/c.B, (H-pad*2)/H_tot, 1.5);
+        const B_px  = c.B*scale, tf_px = c.tf*scale, hw_px = c.hw*scale, tw_px = c.tw*scale;
+        const ox = (W-B_px)/2, oy = (H - (tf_px+hw_px))/2;
+        body = `
+          <rect x="${ox}"                y="${oy}"       width="${B_px}"  height="${tf_px}" fill="${fill}" stroke="${stroke}" stroke-width="2" rx="1"/>
+          <rect x="${ox+(B_px-tw_px)/2}" y="${oy+tf_px}" width="${tw_px}" height="${hw_px}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+          ${dimLine(ox, oy-14, ox+B_px, oy-14, c.B+'mm', ox+B_px/2, oy-22)}
+          ${dimLine(ox-14, oy, ox-14, oy+tf_px+hw_px, H_tot+'mm', ox-28, oy+(tf_px+hw_px)/2)}
+        `;
+        break;
+      }
+      case 'angle': {
+        const scale = Math.min((W-pad*2)/c.bA, (H-pad*2)/c.bB, 1.5);
+        const bA_px = c.bA*scale, tA_px = c.tA*scale, bB_px = c.bB*scale, tB_px = c.tB*scale;
+        const ox = (W-bA_px)/2, oy = (H-bB_px)/2;
+        const pts = [
+          `${ox},${oy+bB_px}`,
+          `${ox},${oy}`,
+          `${ox+tB_px},${oy}`,
+          `${ox+tB_px},${oy+bB_px-tA_px}`,
+          `${ox+bA_px},${oy+bB_px-tA_px}`,
+          `${ox+bA_px},${oy+bB_px}`
+        ].join(' ');
+        body = `
+          <polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+          ${dimLine(ox, oy+bB_px+14, ox+bA_px, oy+bB_px+14, c.bA+'mm', ox+bA_px/2, oy+bB_px+22)}
+          ${dimLine(ox-14, oy, ox-14, oy+bB_px, c.bB+'mm', ox-26, oy+bB_px/2)}
+        `;
+        break;
+      }
+    }
+
+    svg.innerHTML = `
+      <defs>
+        <marker id="arr"  markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6" fill="none" stroke="${dim}" stroke-width="1"/>
+        </marker>
+        <marker id="arrl" markerWidth="6" markerHeight="6" refX="0" refY="3" orient="auto">
+          <path d="M6,0 L0,3 L6,6" fill="none" stroke="${dim}" stroke-width="1"/>
+        </marker>
+      </defs>
+      ${body}
+    `;
+  }
+
+  // ── Reset ────────────────────────────────────────────────────────
+  function resetCalc() {
+    lastResults = null; lastConfig = null;
+    document.getElementById('calc-welcome').style.display = '';
+    document.getElementById('calc-results').style.display = 'none';
+    document.getElementById('btn-save').disabled = true;
+  }
+
+  // ── Save ─────────────────────────────────────────────────────────
+  function openSave() {
+    if (!lastResults) return;
+    CalcShared.openSaveModal('save-calc-modal');
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    TopNav.init();
+    Auth.guard();
+    CalcShared.renderProjectBadge('calc-project-badge');
+    renderSketch('rectangle', null);
+
+    CalcShared.initSaveModal('save-calc-modal', 'section-properties', () => {
+      if (!lastResults) return null;
+      return {
+        config:  lastConfig,
+        results: lastResults,
+        summary: `${lastConfig.type} section — A=${lastResults.A_mm2} mm², Ixx=${lastResults.Ixx_e6}×10⁶ mm⁴`,
+      };
+    });
+
+    CalcShared.loadFromUrl((cfg) => {
+      if (!cfg || !cfg.type) return;
+      const tab = document.querySelector(`[data-type="${cfg.type}"]`);
+      if (tab) setType(tab);
+      if (cfg.material) {
+        const mc = document.querySelector(`[data-mat="${cfg.material}"]`);
+        if (mc) setMaterial(mc);
+      }
+      // restore dimension inputs
+      const fieldMap = {
+        rectangle: { b:'inp-rect-b', h:'inp-rect-h' },
+        circle:    { dia:'inp-circ-d' },
+        box:       { B:'inp-box-B', H:'inp-box-H', b:'inp-box-b', h:'inp-box-h' },
+        isection:  { B:'inp-is-B', tf:'inp-is-tf', hw:'inp-is-hw', tw:'inp-is-tw' },
+        tsection:  { B:'inp-ts-B', tf:'inp-ts-tf', hw:'inp-ts-hw', tw:'inp-ts-tw' },
+        angle:     { bA:'inp-ang-bA', tA:'inp-ang-tA', bB:'inp-ang-bB', tB:'inp-ang-tB' },
+      };
+      const map = fieldMap[cfg.type] || {};
+      Object.entries(map).forEach(([key, id]) => {
+        if (cfg[key] != null) {
+          const el = document.getElementById(id);
+          if (el) el.value = cfg[key];
+        }
+      });
+      runCalc();
+    });
+  });
+</script>
+</body>
+</html>

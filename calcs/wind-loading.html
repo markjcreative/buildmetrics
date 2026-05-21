@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EC1 Wind Loading — BuildMetrics</title>
+  <meta name="description" content="Eurocode 1 (EN 1991-1-4) wind loading calculator with UK National Annex. Computes peak velocity pressure, pressure coefficients and net wind forces on rectangular buildings." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/calcs.css" />
+</head>
+
+<body>
+<div id="app-wrap">
+  <header id="app-header"></header>
+  <!-- topNav.js injects #mobile-drawer into body -->
+  <main id="app-main" class="calc-layout">
+
+    <!-- Breadcrumb bar -->
+    <div class="calc-breadcrumb-bar">
+      <div class="calc-breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">EC1 Wind Loading</span>
+      </div>
+      <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
+        📁 <span id="calc-project-name">—</span>
+      </div>
+    </div>
+
+    <!-- Calc panels fill remaining height -->
+    <div class="calc-panels">
+
+      <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
+      <aside id="calc-input-panel" aria-label="Wind loading inputs">
+
+        <div class="calc-input-header">
+          <span style="font-size:1.2rem;">💨</span>
+          <span class="calc-input-title">EC1 Wind Loading (UK NA)</span>
+        </div>
+
+        <!-- Section 1: Site & Wind Speed -->
+        <div class="input-section" id="sec-site">
+          <div class="section-header" onclick="toggleSection('sec-site')">
+            <span>🗺 Site &amp; Wind Speed</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-vb0">v<sub>b,0</sub> — Fundamental basic wind velocity</label>
+              <input type="number" id="inp-vb0" value="23.0" min="10" max="60" step="0.5" />
+              <span class="unit-tag">m/s — from UK wind speed map / BS EN 1991-1-4 UK NA Figure NA.1</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-altitude">Site altitude above sea level</label>
+              <input type="number" id="inp-altitude" value="50" min="0" max="1200" step="5" />
+              <span class="unit-tag">m</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-cdir">c<sub>dir</sub> — Directional factor</label>
+              <input type="number" id="inp-cdir" value="1.0" min="0.5" max="1.0" step="0.05" />
+              <span class="unit-tag">UK NA Table NA.1 (conservative = 1.0)</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-cseason">c<sub>season</sub> — Seasonal factor</label>
+              <input type="number" id="inp-cseason" value="1.0" min="0.5" max="1.0" step="0.05" />
+              <span class="unit-tag">UK NA Table NA.2 (annual = 1.0)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Terrain & Exposure -->
+        <div class="input-section" id="sec-terrain">
+          <div class="section-header" onclick="toggleSection('sec-terrain')">
+            <span>🌿 Terrain &amp; Exposure</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-terrain">Terrain category</label>
+              <select id="inp-terrain">
+                <option value="0">Cat 0 — Sea / open sea coast (z₀=0.003 m)</option>
+                <option value="I">Cat I — Open country with low vegetation (z₀=0.01 m)</option>
+                <option value="II" selected>Cat II — Farmland with hedges &amp; scattered buildings (z₀=0.05 m)</option>
+                <option value="III">Cat III — Suburban areas / woodland (z₀=0.3 m)</option>
+                <option value="IV">Cat IV — Urban areas with dense buildings (z₀=1.0 m)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="inp-distanceSea">Distance from sea</label>
+              <input type="number" id="inp-distanceSea" value="10" min="0" max="500" step="1" />
+              <span class="unit-tag">km</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Building Geometry -->
+        <div class="input-section" id="sec-geometry">
+          <div class="section-header" onclick="toggleSection('sec-geometry')">
+            <span>📐 Building Geometry</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+
+            <!-- Plan sketch SVG -->
+            <div style="display:flex;justify-content:center;margin-bottom:8px;">
+              <svg width="200" height="130" viewBox="0 0 200 130" aria-label="Building plan showing b and d dimensions with wind direction arrow" style="max-width:100%;">
+                <!-- Wind arrow -->
+                <defs>
+                  <marker id="wind-arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L8,3 z" fill="#2563EB"/>
+                  </marker>
+                </defs>
+                <line x1="14" y1="65" x2="42" y2="65" stroke="#2563EB" stroke-width="2" marker-end="url(#wind-arr)"/>
+                <text x="5" y="58" font-size="9" fill="#2563EB" font-family="Inter,sans-serif" font-weight="700">WIND</text>
+                <!-- Building plan -->
+                <rect x="50" y="25" width="120" height="80" fill="#EFF6FF" stroke="#2563EB" stroke-width="2" rx="2"/>
+                <!-- b dimension (crosswind = height of rect) -->
+                <line x1="178" y1="25" x2="178" y2="105" stroke="#64748B" stroke-width="1.5"/>
+                <line x1="174" y1="25" x2="182" y2="25" stroke="#64748B" stroke-width="1.5"/>
+                <line x1="174" y1="105" x2="182" y2="105" stroke="#64748B" stroke-width="1.5"/>
+                <text x="184" y="68" font-size="10" fill="#1E40AF" font-family="Inter,sans-serif" font-weight="700">b</text>
+                <!-- d dimension (along-wind = width of rect) -->
+                <line x1="50" y1="114" x2="170" y2="114" stroke="#64748B" stroke-width="1.5"/>
+                <line x1="50" y1="110" x2="50" y2="118" stroke="#64748B" stroke-width="1.5"/>
+                <line x1="170" y1="110" x2="170" y2="118" stroke="#64748B" stroke-width="1.5"/>
+                <text x="104" y="128" font-size="10" fill="#1E40AF" text-anchor="middle" font-family="Inter,sans-serif" font-weight="700">d</text>
+                <!-- Labels -->
+                <text x="110" y="68" font-size="9" fill="#475569" text-anchor="middle" dominant-baseline="middle" font-family="Inter,sans-serif">PLAN</text>
+              </svg>
+            </div>
+
+            <div class="form-row">
+              <label for="inp-h">h — Building height</label>
+              <input type="number" id="inp-h" value="10" min="1" max="300" step="0.5" />
+              <span class="unit-tag">m</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-b">b — Crosswind width (⊥ to wind)</label>
+              <input type="number" id="inp-b" value="20" min="1" max="500" step="0.5" />
+              <span class="unit-tag">m</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-d">d — Along-wind depth (∥ to wind)</label>
+              <input type="number" id="inp-d" value="15" min="1" max="500" step="0.5" />
+              <span class="unit-tag">m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Advanced (collapsed by default) -->
+        <div class="input-section collapsed" id="sec-advanced">
+          <div class="section-header" onclick="toggleSection('sec-advanced')">
+            <span>⚙ Advanced</span>
+            <span class="section-chevron">▾</span>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <label for="inp-rho">ρ — Air density</label>
+              <input type="number" id="inp-rho" value="1.226" min="1.0" max="1.5" step="0.001" />
+              <span class="unit-tag">kg/m³ (standard = 1.226)</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-co">c<sub>o</sub> — Orography factor</label>
+              <input type="number" id="inp-co" value="1.0" min="1.0" max="2.5" step="0.05" />
+              <span class="unit-tag">1.0 for flat site (§4.3.3)</span>
+            </div>
+            <div class="form-row">
+              <label for="inp-cscd">c<sub>s</sub>c<sub>d</sub> — Structural factor</label>
+              <input type="number" id="inp-cscd" value="1.0" min="0.5" max="1.5" step="0.05" />
+              <span class="unit-tag">1.0 for buildings &lt; 100 m (§6)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action bar -->
+        <div class="calc-action-bar" style="flex-wrap:wrap;gap:6px">
+          <button class="btn btn-primary" id="btn-calc" onclick="runCalc()" style="flex:1;min-width:120px">⚡ Calculate</button>
+          <button class="btn btn-secondary" onclick="resetCalc()" title="Reset inputs">↺</button>
+          <button class="btn btn-secondary" id="btn-save" onclick="openSave()" title="Save calculation" disabled>💾</button>
+        </div>
+      </aside>
+
+      <!-- ── RESULTS PANEL ─────────────────────────────────────────── -->
+      <main id="calc-results-panel" aria-label="Wind loading results">
+
+        <!-- Welcome state -->
+        <div id="calc-welcome" class="calc-welcome">
+          <div class="calc-welcome-icon">💨</div>
+          <h3>EC1 Wind Loading Calculator</h3>
+          <p>Enter site conditions and building geometry, then click <strong>Calculate</strong> to determine wind pressures and forces per EN 1991-1-4 with UK National Annex.</p>
+        </div>
+
+        <!-- Results (hidden until first calc) -->
+        <div id="calc-results" style="display:none;">
+
+          <!-- Summary badges -->
+          <div class="calc-badges" id="badges">
+            <div class="calc-badge">
+              <div class="calc-badge-label">Peak pressure q<sub>p</sub></div>
+              <div class="calc-badge-value" id="badge-qp">—</div>
+              <div class="calc-badge-unit">kN/m²</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Mean wind v<sub>m</sub></div>
+              <div class="calc-badge-value" id="badge-vm">—</div>
+              <div class="calc-badge-unit">m/s</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Total wind force F<sub>w</sub></div>
+              <div class="calc-badge-value" id="badge-fw">—</div>
+              <div class="calc-badge-unit">kN</div>
+            </div>
+            <div class="calc-badge">
+              <div class="calc-badge-label">Roof uplift</div>
+              <div class="calc-badge-value" id="badge-uplift">—</div>
+              <div class="calc-badge-unit">kN</div>
+            </div>
+          </div>
+
+          <!-- Wind parameters table -->
+          <div class="calc-results-card">
+            <div class="card-header">Wind Parameters</div>
+            <table class="calc-results-table" aria-label="Wind parameters">
+              <thead>
+                <tr><th>Parameter</th><th>Value</th><th>Notes</th></tr>
+              </thead>
+              <tbody id="params-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Pressure coefficients table -->
+          <div class="calc-results-card">
+            <div class="card-header">Pressure Coefficients &amp; Net Pressures</div>
+            <table class="calc-results-table" aria-label="Pressure coefficients">
+              <thead>
+                <tr><th>Zone / Surface</th><th>C<sub>pe</sub></th><th>C<sub>pi</sub></th><th>Net w (kN/m²)</th></tr>
+              </thead>
+              <tbody id="cpe-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Forces summary table -->
+          <div class="calc-results-card">
+            <div class="card-header">Forces Summary</div>
+            <table class="calc-results-table" aria-label="Forces summary">
+              <thead>
+                <tr><th>Load</th><th>Value</th><th>Notes</th></tr>
+              </thead>
+              <tbody id="forces-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Building elevation diagram -->
+          <div class="calc-diagram-card">
+            <div class="card-header">Building Elevation — Wind Pressure Diagram</div>
+            <div class="calc-diagram-body">
+              <svg id="wind-svg" width="480" height="280" viewBox="0 0 480 280" aria-label="Building elevation with wind pressure arrows" style="max-width:100%;"></svg>
+            </div>
+          </div>
+
+          <!-- Disclaimer -->
+          <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:8px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
+            ⚠️ <strong>Disclaimer:</strong> v<sub>b,0</sub> must be read from the UK wind speed map (BS EN 1991-1-4 UK NA Figure NA.1) for the specific site. Results are preliminary — all calculations must be verified by a qualified structural engineer. Complex building geometries, topographic effects (c<sub>o</sub> &gt; 1.0) and dynamic analysis require specialist assessment.
+          </div>
+        </div>
+      </main>
+    </div><!-- end calc-panels -->
+
+  </main>
+</div><!-- end app-wrap -->
+
+<!-- Save modal -->
+<div class="calc-modal-overlay" id="save-calc-modal">
+  <div class="calc-modal-box">
+    <h3>💾 Save Calculation</h3>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Give this wind loading calculation a name.</p>
+    <div class="form-row">
+      <label for="save-calc-name">Calculation name</label>
+      <input type="text" id="save-calc-name" placeholder="e.g. Office Block — EC1 Wind" maxlength="80" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-secondary modal-close" onclick="document.getElementById('save-calc-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" data-save-submit>Save →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script src="/js/engine/utils.js"></script>
+<script src="/js/engine/windSolver.js"></script>
+<script src="/js/ui/tutorial.js"></script>
+<script src="/js/ui/calcShared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/js/report/wordExport.js"></script>
+<script src="/js/report/calcReport.js"></script>
+
+<script>
+  // ── UI helpers ──────────────────────────────────────────────────
+  function toggleSection(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  // ── State ───────────────────────────────────────────────────────
+  let lastResults = null;
+  let lastConfig  = null;
+
+  // ── Collect inputs ──────────────────────────────────────────────
+  function collectConfig() {
+    return {
+      vb0:         +document.getElementById('inp-vb0').value,
+      altitude:    +document.getElementById('inp-altitude').value,
+      cdir:        +document.getElementById('inp-cdir').value,
+      cseason:     +document.getElementById('inp-cseason').value,
+      terrainCat:  document.getElementById('inp-terrain').value,
+      distanceSea: +document.getElementById('inp-distanceSea').value,
+      h:           +document.getElementById('inp-h').value,
+      b:           +document.getElementById('inp-b').value,
+      d:           +document.getElementById('inp-d').value,
+      rho:         +document.getElementById('inp-rho').value,
+      co:          +document.getElementById('inp-co').value,
+      csCd:        +document.getElementById('inp-cscd').value,
+    };
+  }
+
+  // ── Run calculation ─────────────────────────────────────────────
+  function runCalc() {
+    try {
+      const config  = collectConfig();
+      const results = WindSolver.solve(config);
+      lastConfig    = config;
+      lastResults   = results;
+
+      document.getElementById('calc-welcome').style.display = 'none';
+      document.getElementById('calc-results').style.display = '';
+      document.getElementById('btn-save').disabled          = false;
+
+      renderBadges(results);
+      renderParams(results, config);
+      renderCpe(results);
+      renderForces(results);
+      renderDiagram(results, config);
+    } catch (e) {
+      CalcShared.showToast('Calculation error: ' + e.message, 'error');
+    }
+  }
+
+  function resetCalc() {
+    lastResults = null; lastConfig = null;
+    document.getElementById('calc-welcome').style.display = '';
+    document.getElementById('calc-results').style.display = 'none';
+    document.getElementById('btn-save').disabled = true;
+  }
+
+  // ── Render helpers ──────────────────────────────────────────────
+  function renderBadges(r) {
+    document.getElementById('badge-qp').textContent     = CalcShared.fmt(r.qp_kPa, 3);
+    document.getElementById('badge-vm').textContent     = CalcShared.fmt(r.vm, 1);
+    document.getElementById('badge-fw').textContent     = CalcShared.fmt(r.Fw_kN, 1);
+    document.getElementById('badge-uplift').textContent = CalcShared.fmt(r.roof_uplift_kN, 1);
+  }
+
+  function renderParams(r, c) {
+    const rows = [
+      ['Standard',                  'BS EN 1991-1-4 + UK NA',             ''],
+      ['v<sub>b,0</sub>',           r.vb0 + ' m/s',                       'Fundamental basic wind velocity'],
+      ['c<sub>dir</sub>',           r.cdir,                               'Directional factor'],
+      ['c<sub>season</sub>',        r.cseason,                            'Seasonal factor'],
+      ['v<sub>b</sub>',             CalcShared.fmt(r.vb, 3) + ' m/s',     'c<sub>dir</sub> × c<sub>season</sub> × v<sub>b,0</sub>'],
+      ['Altitude correction',        '+' + (r.vb_alt - r.vb).toFixed(3) + ' m/s', 'UK NA: v<sub>b,alt</sub> = v<sub>b</sub> × (1 + 0.001 × z<sub>alt</sub>)'],
+      ['v<sub>b,alt</sub>',         CalcShared.fmt(r.vb_alt, 3) + ' m/s', 'After altitude correction'],
+      ['Terrain category',          'Cat ' + r.terrainCat,                'z₀ = ' + ({0:0.003,I:0.01,II:0.05,III:0.3,IV:1.0}[r.terrainCat]) + ' m'],
+      ['k<sub>r</sub>',             CalcShared.fmt(r.kr, 4),              'Roughness factor — Eq. 4.5'],
+      ['z<sub>eff</sub>',           r.z_eff + ' m',                       'max(h, z<sub>min</sub>)'],
+      ['c<sub>r</sub>(z)',          CalcShared.fmt(r.cr, 4),              'k<sub>r</sub> × ln(z<sub>eff</sub> / z₀)'],
+      ['c<sub>o</sub>',             r.co,                                 'Orography factor'],
+      ['v<sub>m</sub>(z)',          CalcShared.fmt(r.vm, 3) + ' m/s',     'Mean wind velocity — Eq. 4.3'],
+      ['I<sub>v</sub>(z)',          CalcShared.fmt(r.Iv, 4),              'Turbulence intensity — Eq. 4.7'],
+      ['q<sub>p</sub>(z)',          CalcShared.fmt(r.qp_kPa, 4) + ' kN/m²', 'Peak velocity pressure — Eq. 4.8'],
+      ['c<sub>e</sub>(z)',          CalcShared.fmt(r.ce, 3),              'Exposure factor = q<sub>p</sub> / q<sub>b,alt</sub>'],
+      ['h/d ratio',                 CalcShared.fmt(r.h_d_ratio, 3),       'Building slenderness'],
+      ['c<sub>s</sub>c<sub>d</sub>', r.csCd,                              'Structural factor'],
+    ];
+    document.getElementById('params-body').innerHTML = rows.map(([p, v, n]) =>
+      `<tr><td>${p}</td><td class="mono">${v}</td><td style="color:var(--text-muted);font-size:0.8rem;">${n}</td></tr>`
+    ).join('');
+  }
+
+  function renderCpe(r) {
+    const rows = [
+      ['D — Windward wall',  CalcShared.fmt(r.cpe_D, 2),  r.cpi_press.toFixed(2) + ' (max pressure)', CalcShared.fmt(r.w_D, 3),  true],
+      ['E — Leeward wall',   CalcShared.fmt(r.cpe_E, 2),  r.cpi_suck.toFixed(2)  + ' (max suction)',  CalcShared.fmt(r.w_E, 3),  false],
+      ['A — Side walls',     CalcShared.fmt(r.cpe_A, 2),  r.cpi_suck.toFixed(2)  + ' (max suction)',  CalcShared.fmt(r.w_A, 3),  false],
+      ['H — Flat roof (int)', CalcShared.fmt(r.cpe_H, 2), r.cpi_press.toFixed(2) + ' (max uplift)',   CalcShared.fmt(r.w_roof, 3), false],
+    ];
+    document.getElementById('cpe-body').innerHTML = rows.map(([zone, cpe, cpi, w, pressure]) => {
+      const wColour = pressure
+        ? 'color:#15803D;font-weight:700;'
+        : 'color:#DC2626;font-weight:700;';
+      return `<tr>
+        <td>${zone}</td>
+        <td class="mono">${cpe}</td>
+        <td class="mono" style="color:var(--text-muted)">${cpi}</td>
+        <td class="mono" style="${wColour}">${w}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderForces(r) {
+    const rows = [
+      ['Windward pressure (D × b × h)',              CalcShared.fmt(r.w_D * r.b * r.h, 1) + ' kN',        '+ve into building'],
+      ['Leeward suction (|E| × b × h)',              CalcShared.fmt(Math.abs(r.w_E) * r.b * r.h, 1) + ' kN', '+ve away from building'],
+      ['Net horizontal force F<sub>w</sub>',         CalcShared.fmt(r.Fw_kN, 1) + ' kN',                   'D + |E| combined, × c<sub>s</sub>c<sub>d</sub>'],
+      ['Along-wind F<sub>w</sub> (C<sub>pe</sub> only)', CalcShared.fmt(r.Fw_along_kN, 1) + ' kN',         '(C<sub>pe,D</sub> − C<sub>pe,E</sub>) × q<sub>p</sub> × b × h'],
+      ['Roof uplift (zone H)',                        CalcShared.fmt(r.roof_uplift_kN, 1) + ' kN',          'C<sub>pe,H</sub>=−0.7, uplift on b×d'],
+    ];
+    document.getElementById('forces-body').innerHTML = rows.map(([label, val, note]) =>
+      `<tr>
+        <td>${label}</td>
+        <td class="mono" style="font-weight:700;">${val}</td>
+        <td style="color:var(--text-muted);font-size:0.8rem;">${note}</td>
+      </tr>`
+    ).join('');
+  }
+
+  // ── SVG elevation diagram ────────────────────────────────────────
+  function renderDiagram(r, c) {
+    const svg = document.getElementById('wind-svg');
+    const W = 480, H = 280;
+
+    // Building rect (elevation) — centred horizontally, leave space for labels
+    const bldLeft  = 130;
+    const bldRight = 340;
+    const bldTop   = 40;
+    const bldBot   = 210;
+    const bldW     = bldRight - bldLeft;
+    const bldH     = bldBot - bldTop;
+
+    // Arrow sizes
+    const arrLen  = 48;   // length of pressure arrows on windward side
+    const arrLenE = 36;   // suction arrows on leeward side
+    const arrLenR = 28;   // roof uplift arrows
+
+    const arrowSpacing = bldH / 5;
+
+    // Build windward arrows (pointing right INTO building face)
+    let wArrows = '';
+    for (let i = 0; i < 5; i++) {
+      const y = bldTop + arrowSpacing * (i + 0.5);
+      wArrows += `
+        <line x1="${bldLeft - arrLen}" y1="${y}" x2="${bldLeft - 4}" y2="${y}"
+              stroke="#2563EB" stroke-width="2.5" marker-end="url(#arr-blue)"/>`;
+    }
+
+    // Build leeward arrows (pointing right AWAY from building face, i.e. suction)
+    let eArrows = '';
+    for (let i = 0; i < 5; i++) {
+      const y = bldTop + arrowSpacing * (i + 0.5);
+      eArrows += `
+        <line x1="${bldRight + 4}" y1="${y}" x2="${bldRight + arrLenE}" y2="${y}"
+              stroke="#EF4444" stroke-width="2.5" marker-end="url(#arr-red)"/>`;
+    }
+
+    // Roof uplift arrows (pointing upward)
+    let roofArrows = '';
+    const roofSpacing = bldW / 5;
+    for (let i = 0; i < 5; i++) {
+      const x = bldLeft + roofSpacing * (i + 0.5);
+      roofArrows += `
+        <line x1="${x}" y1="${bldTop - 4}" x2="${x}" y2="${bldTop - arrLenR}"
+              stroke="#F59E0B" stroke-width="2" marker-end="url(#arr-amber)"/>`;
+    }
+
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.innerHTML = `
+      <defs>
+        <marker id="arr-blue"  markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#2563EB"/>
+        </marker>
+        <marker id="arr-red"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#EF4444"/>
+        </marker>
+        <marker id="arr-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#F59E0B"/>
+        </marker>
+      </defs>
+
+      <!-- Ground line -->
+      <line x1="60" y1="${bldBot}" x2="${W - 20}" y2="${bldBot}" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text x="66" y="${bldBot + 14}" font-size="9" fill="#94A3B8" font-family="Inter,sans-serif">GL</text>
+
+      <!-- Building elevation -->
+      <rect x="${bldLeft}" y="${bldTop}" width="${bldW}" height="${bldH}"
+            fill="#EFF6FF" stroke="#2563EB" stroke-width="2.5" rx="2"/>
+
+      <!-- Windward arrows (blue) -->
+      ${wArrows}
+
+      <!-- Leeward suction arrows (red) -->
+      ${eArrows}
+
+      <!-- Roof uplift arrows (amber) -->
+      ${roofArrows}
+
+      <!-- WIND label with big arrow -->
+      <text x="30" y="${bldTop + bldH/2 - 18}" text-anchor="middle" font-size="10" font-weight="700" fill="#2563EB" font-family="Inter,sans-serif">WIND</text>
+      <line x1="62" y1="${bldTop + bldH/2}" x2="${bldLeft - 56}" y2="${bldTop + bldH/2}" stroke="#2563EB" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+
+      <!-- Labels: h dimension -->
+      <line x1="${bldRight + arrLenE + 18}" y1="${bldTop}" x2="${bldRight + arrLenE + 18}" y2="${bldBot}" stroke="#64748B" stroke-width="1"/>
+      <line x1="${bldRight + arrLenE + 14}" y1="${bldTop}" x2="${bldRight + arrLenE + 22}" y2="${bldTop}" stroke="#64748B" stroke-width="1"/>
+      <line x1="${bldRight + arrLenE + 14}" y1="${bldBot}" x2="${bldRight + arrLenE + 22}" y2="${bldBot}" stroke="#64748B" stroke-width="1"/>
+      <text x="${bldRight + arrLenE + 30}" y="${bldTop + bldH/2 + 4}" font-size="11" fill="#1E40AF" font-weight="700" font-family="Inter,sans-serif">h=${c.h}m</text>
+
+      <!-- Labels: d dimension -->
+      <line x1="${bldLeft}" y1="${bldBot + 30}" x2="${bldRight}" y2="${bldBot + 30}" stroke="#64748B" stroke-width="1"/>
+      <line x1="${bldLeft}" y1="${bldBot + 26}" x2="${bldLeft}" y2="${bldBot + 34}" stroke="#64748B" stroke-width="1"/>
+      <line x1="${bldRight}" y1="${bldBot + 26}" x2="${bldRight}" y2="${bldBot + 34}" stroke="#64748B" stroke-width="1"/>
+      <text x="${bldLeft + bldW/2}" y="${bldBot + 44}" font-size="11" fill="#1E40AF" font-weight="700" text-anchor="middle" font-family="Inter,sans-serif">d=${c.d}m</text>
+
+      <!-- Pressure labels -->
+      <text x="${bldLeft - arrLen - 4}" y="${bldTop + 16}" text-anchor="end" font-size="9.5" fill="#2563EB" font-weight="700" font-family="Inter,sans-serif">+${CalcShared.fmt(r.w_D,3)}</text>
+      <text x="${bldLeft - arrLen - 4}" y="${bldTop + 28}" text-anchor="end" font-size="8" fill="#2563EB" font-family="Inter,sans-serif">kN/m²</text>
+      <text x="${bldLeft - arrLen - 4}" y="${bldTop + 40}" text-anchor="end" font-size="8" fill="#2563EB" font-family="Inter,sans-serif">Zone D</text>
+
+      <text x="${bldRight + arrLenE + 2}" y="${bldTop + 16}" font-size="9.5" fill="#EF4444" font-weight="700" font-family="Inter,sans-serif">${CalcShared.fmt(r.w_E,3)}</text>
+      <text x="${bldRight + arrLenE + 2}" y="${bldTop + 28}" font-size="8" fill="#EF4444" font-family="Inter,sans-serif">kN/m²</text>
+      <text x="${bldRight + arrLenE + 2}" y="${bldTop + 40}" font-size="8" fill="#EF4444" font-family="Inter,sans-serif">Zone E</text>
+
+      <text x="${bldLeft + bldW/2}" y="${bldTop - arrLenR - 8}" text-anchor="middle" font-size="9.5" fill="#D97706" font-weight="700" font-family="Inter,sans-serif">Uplift ${CalcShared.fmt(Math.abs(r.w_roof),3)} kN/m² (zone H)</text>
+
+      <!-- Total force label -->
+      <text x="${bldLeft + bldW/2}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#1E40AF" font-weight="700" font-family="Inter,sans-serif">
+        F<tspan font-style="italic">w</tspan> = ${CalcShared.fmt(r.Fw_kN,1)} kN (total horizontal)
+      </text>
+
+      <!-- Legend -->
+      <line x1="8"  y1="${H - 52}" x2="24"  y2="${H - 52}" stroke="#2563EB" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+      <text x="28"  y="${H - 48}" font-size="8.5" fill="#475569" font-family="Inter,sans-serif">Pressure</text>
+      <line x1="8"  y1="${H - 36}" x2="24"  y2="${H - 36}" stroke="#EF4444" stroke-width="2.5" marker-end="url(#arr-red)"/>
+      <text x="28"  y="${H - 32}" font-size="8.5" fill="#475569" font-family="Inter,sans-serif">Suction</text>
+      <line x1="14" y1="${H - 20}" x2="14"  y2="${H - 6}"  stroke="#F59E0B" stroke-width="2"   marker-end="url(#arr-amber)"/>
+      <text x="28"  y="${H - 10}" font-size="8.5" fill="#475569" font-family="Inter,sans-serif">Uplift</text>
+    `;
+  }
+
+  // ── Save modal ──────────────────────────────────────────────────
+  function openSave() {
+    if (!lastResults) return;
+    CalcShared.openSaveModal('save-calc-modal');
+  }
+
+  // ── Init ────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    TopNav.init();
+    Auth.guard();
+    CalcShared.renderProjectBadge('calc-project-badge');
+
+    CalcShared.initSaveModal('save-calc-modal', 'wind-loading', () => {
+      if (!lastResults) return null;
+      return {
+        config:  lastConfig,
+        results: lastResults,
+        summary: 'Wind: q_p=' + CalcShared.fmt(lastResults.qp_kPa, 3) + ' kN/m², F_w=' +
+                 CalcShared.fmt(lastResults.Fw_kN, 1) + ' kN',
+      };
+    });
+
+    CalcShared.loadFromUrl((cfg) => {
+      if (!cfg) return;
+      const map = {
+        vb0: 'inp-vb0', altitude: 'inp-altitude', cdir: 'inp-cdir',
+        cseason: 'inp-cseason', terrainCat: 'inp-terrain',
+        distanceSea: 'inp-distanceSea', h: 'inp-h', b: 'inp-b', d: 'inp-d',
+        rho: 'inp-rho', co: 'inp-co', csCd: 'inp-cscd',
+      };
+      Object.entries(map).forEach(([key, elId]) => {
+        if (cfg[key] !== undefined) {
+          const el = document.getElementById(elId);
+          if (el) el.value = cfg[key];
+        }
+      });
+      runCalc();
+    });
+  });
+</script>
+</body>
+</html>
