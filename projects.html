@@ -118,6 +118,44 @@
   </div>
 </div>
 
+<!-- ── Rename Project Modal ──────────────────────────────────── -->
+<div class="modal-overlay" id="modal-rename-project">
+  <div class="modal-box" style="width:440px">
+    <h2 class="modal-title">✏️ Rename Project</h2>
+    <p class="modal-sub">Enter a new name for this project.</p>
+    <div class="modal-field" style="margin-top:16px">
+      <label for="rename-input">Project Name</label>
+      <input type="text" id="rename-input" placeholder="Project name" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-secondary" id="rename-cancel-btn">Cancel</button>
+      <button class="btn btn-primary" id="rename-confirm-btn">Save Name</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Delete Confirmation Modal ─────────────────────────────── -->
+<div class="modal-overlay" id="modal-delete-project">
+  <div class="modal-box" style="width:420px">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+      </div>
+      <div>
+        <h2 class="modal-title" style="margin-bottom:4px">Delete Project?</h2>
+        <p class="modal-sub" style="margin:0">You are about to permanently delete <strong id="delete-project-name" style="color:var(--text-primary)"></strong> and all of its calculations. <span style="color:var(--red);font-weight:600">This cannot be undone.</span></p>
+      </div>
+    </div>
+    <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:0.82rem;color:var(--text-muted)">
+      All saved calculations inside this project will be permanently deleted.
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" id="delete-cancel-btn">Keep Project</button>
+      <button class="btn" id="delete-confirm-btn" style="background:var(--red);color:#fff;border-color:var(--red)">🗑 Yes, Delete Project</button>
+    </div>
+  </div>
+</div>
+
 <script src="/js/auth/auth.js"></script>
 <script src="/js/projects/projects.js"></script>
 <script src="/js/projects/history.js"></script>
@@ -161,6 +199,18 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.getElementById('modal-project-options').addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('open');
+  });
+  document.getElementById('modal-rename-project').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+  document.getElementById('modal-delete-project').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+  document.getElementById('rename-cancel-btn').addEventListener('click', function() {
+    document.getElementById('modal-rename-project').classList.remove('open');
+  });
+  document.getElementById('delete-cancel-btn').addEventListener('click', function() {
+    document.getElementById('modal-delete-project').classList.remove('open');
   });
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
@@ -346,21 +396,45 @@ function openProjectOptions(e, projectId, projectName) {
   _optionsProjectId = projectId;
   document.getElementById('po-title').textContent = projectName;
 
-  document.getElementById('po-rename-btn').onclick = async function() {
+  document.getElementById('po-rename-btn').onclick = function() {
     document.getElementById('modal-project-options').classList.remove('open');
-    const newName = prompt('Rename project:', projectName);
-    if (newName && newName.trim()) {
-      await Projects.update(projectId, { name: newName.trim() });
+    // Open rename modal pre-filled with current name
+    const inp = document.getElementById('rename-input');
+    inp.value = projectName;
+    document.getElementById('modal-rename-project').classList.add('open');
+    setTimeout(function() { inp.select(); }, 120);
+
+    document.getElementById('rename-confirm-btn').onclick = async function() {
+      const newName = inp.value.trim();
+      if (!newName) { inp.focus(); return; }
+      this.disabled = true;
+      this.textContent = 'Saving…';
+      await Projects.update(projectId, { name: newName });
+      document.getElementById('modal-rename-project').classList.remove('open');
+      this.disabled = false;
+      this.textContent = 'Save Name';
       renderAll();
-    }
+    };
+    inp.onkeydown = function(e) {
+      if (e.key === 'Enter') document.getElementById('rename-confirm-btn').click();
+    };
   };
 
-  document.getElementById('po-delete-btn').onclick = async function() {
+  document.getElementById('po-delete-btn').onclick = function() {
     document.getElementById('modal-project-options').classList.remove('open');
-    if (confirm('Delete "' + projectName + '" and all its calculations? This cannot be undone.')) {
+    // Open delete confirmation modal
+    document.getElementById('delete-project-name').textContent = '"' + projectName + '"';
+    document.getElementById('modal-delete-project').classList.add('open');
+
+    document.getElementById('delete-confirm-btn').onclick = async function() {
+      this.disabled = true;
+      this.textContent = 'Deleting…';
       await Projects.remove(projectId);
+      document.getElementById('modal-delete-project').classList.remove('open');
+      this.disabled = false;
+      this.textContent = '🗑 Yes, Delete Project';
       renderAll();
-    }
+    };
   };
 
   document.getElementById('modal-project-options').classList.add('open');
