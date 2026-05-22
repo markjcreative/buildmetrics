@@ -268,18 +268,7 @@
       <!-- RESULTS PANEL -->
       <div id="calc-results-panel">
 
-        <div class="calc-welcome" id="results-welcome">
-          <div class="calc-welcome-icon">&#9881;</div>
-          <h3>Beam Design Calculator</h3>
-          <p>Configure your beam, set loads, then click Calculate to run bending, shear, and deflection checks.</p>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px">
-            <span style="font-size:0.78rem;background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:99px;font-weight:600">Steel EC3 EN 1993-1-1</span>
-            <span style="font-size:0.78rem;background:#F0FDF4;color:#16A34A;padding:4px 10px;border-radius:99px;font-weight:600">Timber EC5 EN 1995-1-1</span>
-            <span style="font-size:0.78rem;background:var(--bg-subtle);color:var(--text-muted);padding:4px 10px;border-radius:99px;font-weight:600">BMD · SFD · Deflection</span>
-          </div>
-        </div>
-
-        <div id="results-content" style="display:none;flex-direction:column;gap:20px">
+        <div id="results-content" style="display:flex;flex-direction:column;gap:20px">
 
           <!-- Utilisation + key results -->
           <div style="display:flex;gap:16px;flex-wrap:wrap">
@@ -725,7 +714,6 @@ function runCalc() {
 }
 
 function showResults(r, config) {
-  document.getElementById('results-welcome').style.display = 'none';
   const rc = document.getElementById('results-content');
   rc.style.display = 'flex';
 
@@ -818,8 +806,20 @@ function toggleSec(id) {
 
 function resetCalc() {
   currentResults = null;
-  document.getElementById('results-welcome').style.display = '';
-  document.getElementById('results-content').style.display = 'none';
+  document.getElementById('results-content').style.display = 'flex';
+  // Clear displayed values
+  document.getElementById('util-pct').textContent = '—%';
+  document.getElementById('util-status').innerHTML = '';
+  document.getElementById('util-gov').textContent = '—';
+  document.getElementById('badge-MEd').textContent = '—';
+  document.getElementById('badge-VEd').textContent = '—';
+  document.getElementById('badge-defl').textContent = '—';
+  document.getElementById('badge-section').textContent = '—';
+  document.getElementById('checks-body').innerHTML = '';
+  document.getElementById('summary-body').innerHTML = '';
+  const ring = document.getElementById('util-ring');
+  ring.setAttribute('stroke-dasharray', '0 226');
+  ring.setAttribute('stroke', '#2563EB');
   initLoads();
   autoCombo();
 }
