@@ -1,0 +1,823 @@
+/**
+ * PreviewRenderer.js — Converts canvas block state to a professional A4
+ * engineering calculation report HTML string.
+ *
+ * Exposes:
+ *   PreviewRenderer.render(reportMeta, blocks) — returns full HTML string
+ */
+
+const PreviewRenderer = (() => {
+
+  // ── Helpers ─────────────────────────────────────────────────────────────
+
+  function esc(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function fmt(val, dp = 3) {
+    if (val == null || val === '') return '—';
+    if (typeof val === 'number') return val.toFixed(dp);
+    return esc(String(val));
+  }
+
+  function fmtDate(dateStr) {
+    if (!dateStr) return new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    try { return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); } catch (_) { return dateStr; }
+  }
+
+  // ── Title block ──────────────────────────────────────────────────────────
+
+  function _renderTitleBlock(titleCfg, projCfg, reportMeta) {
+    const reportTitle   = esc(titleCfg.title || reportMeta.title || 'Structural Calculation Report');
+    const reportRef     = esc(titleCfg.ref || '—');
+    const reportDate    = fmtDate(titleCfg.date);
+    const revision      = esc(titleCfg.revision || 'Rev A');
+    const projectName   = esc(projCfg.projectName || '—');
+    const clientName    = esc(projCfg.clientName || '—');
+    const location      = esc(projCfg.location || '—');
+    const engineerName  = esc(projCfg.engineerName || '—');
+    const companyName   = esc(projCfg.companyName || 'BuildMetrics');
+    const designCode    = esc(projCfg.designCode || 'Eurocode (EC2/EC3/EC5)');
+    const status        = esc((reportMeta.status || 'DRAFT').toUpperCase());
+
+    return `
+<div class="rp-title-block">
+  <div class="rp-tb-header">
+    <div class="rp-tb-logo">
+      <div style="font-weight:bold;font-size:11pt;letter-spacing:1pt;">BUILDMETRICS</div>
+      <div style="font-size:7pt;color:#666;margin-top:2pt;">Structural Analysis Platform</div>
+    </div>
+    <div class="rp-tb-company">
+      <div class="rp-tb-company-name">${companyName}</div>
+      <div style="font-size:8pt;color:#555;margin-top:3pt;">Structural Engineering Calculations</div>
+    </div>
+  </div>
+
+  <div class="rp-tb-main">
+    <div class="rp-tb-report-type">Structural Calculation Report</div>
+    <div class="rp-tb-project-title">${reportTitle}</div>
+    <div class="rp-tb-project-grid">
+      <span class="key">Project:</span>    <span>${projectName}</span>
+      <span class="key">Client:</span>     <span>${clientName}</span>
+      <span class="key">Location:</span>   <span>${location}</span>
+      <span class="key">Engineer:</span>   <span>${engineerName}</span>
+      <span class="key">Design Code:</span><span>${designCode}</span>
+    </div>
+  </div>
+
+  <div class="rp-tb-meta">
+    <div class="rp-tb-meta-cell">
+      <div class="mk">Report Reference</div>
+      <div class="mv">${reportRef}</div>
+    </div>
+    <div class="rp-tb-meta-cell">
+      <div class="mk">Date</div>
+      <div class="mv">${reportDate}</div>
+    </div>
+    <div class="rp-tb-meta-cell">
+      <div class="mk">Revision</div>
+      <div class="mv">${revision}</div>
+    </div>
+  </div>
+
+  <div class="rp-tb-meta" style="border-top:1pt solid #000;">
+    <div class="rp-tb-meta-cell">
+      <div class="mk">Prepared By</div>
+      <div class="mv">${engineerName}</div>
+    </div>
+    <div class="rp-tb-meta-cell">
+      <div class="mk">Checked By</div>
+      <div class="mv" style="border-bottom:0.5pt solid #000;min-height:16pt;">&nbsp;</div>
+    </div>
+    <div class="rp-tb-meta-cell" style="border-right:none;">
+      <div class="mk">Status</div>
+      <div class="mv" style="color:${status === 'FINAL' ? '#006600' : '#cc6600'}">${status}</div>
+    </div>
+  </div>
+</div>`;
+  }
+
+  // ── Table of Contents ────────────────────────────────────────────────────
+
+  function _buildToc(blocks) {
+    const sections = blocks.filter(b => b.type === 'section_header');
+    if (sections.length === 0) return '';
+
+    const rows = sections.map(b => {
+      const num   = esc(b.config.number || '');
+      const title = esc(b.config.title || '');
+      return `<div class="rp-toc-item">
+        <span class="rp-toc-num">${num}</span>
+        <span class="rp-toc-title-text">${title}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="rp-toc">
+  <div class="rp-toc-title">Table of Contents</div>
+  ${rows}
+</div>`;
+  }
+
+  // ── Running footer ───────────────────────────────────────────────────────
+
+  function _renderFooter(titleCfg, projCfg) {
+    const ref  = esc(titleCfg.ref || '');
+    const rev  = esc(titleCfg.revision || 'Rev A');
+    const proj = esc(projCfg.projectName || 'BuildMetrics');
+    return `
+<div class="rp-running-footer">
+  <span>${proj}</span>
+  <span>${ref}${ref ? ' · ' : ''}${rev}</span>
+  <span>BuildMetrics — buildmetrics.io</span>
+</div>`;
+  }
+
+  // ── Block renderers ──────────────────────────────────────────────────────
+
+  function _renderSectionHeader(block) {
+    const num   = esc(block.config.number || '');
+    const title = esc(block.config.title || '');
+    return `<h2 class="rp-section-header"><span class="rp-section-num">${num}</span>${title}</h2>`;
+  }
+
+  function _renderPageBreak() {
+    return `<div class="rp-page-break"></div>`;
+  }
+
+  function _renderProse(block) {
+    const text = (block.config.text || '').replace(/\n/g, '<br>');
+    const label = block.config.label ? `<div class="rp-prose-label">${esc(block.config.label)}</div>` : '';
+    return `${label}<div class="rp-prose">${text}</div>`;
+  }
+
+  function _renderDesignBasis(block) {
+    const text  = (block.config.text || '').replace(/\n/g, '<br>');
+    const items = block.config.assumptions || [];
+    const listHTML = items.length
+      ? `<ul class="rp-assumption-list">${items.map(a => `<li>${esc(a)}</li>`).join('')}</ul>`
+      : '';
+    return `<div class="rp-calc-section">
+  <div class="rp-calc-header">
+    <span class="rp-calc-title">Design Basis &amp; Assumptions</span>
+  </div>
+  <div style="padding:8pt 10pt;">
+    <div class="rp-prose">${text}</div>
+    ${listHTML}
+  </div>
+</div>`;
+  }
+
+  function _renderCodeRef(block) {
+    const codes = block.config.codes || [];
+    if (codes.length === 0) return '';
+    const rows = codes.map(c => `<tr>
+      <td style="font-weight:bold">${esc(c.name)}</td>
+      <td>${esc(c.description)}</td>
+      <td style="text-align:center">${esc(c.edition)}</td>
+    </tr>`).join('');
+    return `<div class="rp-calc-section">
+  <div class="rp-calc-header">
+    <span class="rp-calc-title">Codes &amp; Standards Referenced</span>
+  </div>
+  <table class="rp-inputs-table" style="margin:8pt 0 0;">
+    <thead><tr>
+      <th style="width:120pt">Code / Standard</th>
+      <th>Description</th>
+      <th style="width:40pt;text-align:center">Edition</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+  }
+
+  function _renderLoadTable(block) {
+    const Gk  = block.config.Gk  || 0;
+    const Qk  = block.config.Qk  || 0;
+    const uls = (1.35 * Gk + 1.5 * Qk).toFixed(2);
+    const sls = (Gk + Qk).toFixed(2);
+    return `<div class="rp-calc-section">
+  <div class="rp-calc-header">
+    <span class="rp-calc-title">Load Combinations</span>
+    <span class="rp-calc-code">EN 1990</span>
+  </div>
+  <table class="rp-inputs-table" style="margin:8pt 0 0;">
+    <thead><tr><th>Parameter</th><th>Value</th><th>Unit</th></tr></thead>
+    <tbody>
+      <tr><td class="rp-param">Permanent load G<sub>k</sub></td><td class="rp-val">${fmt(Gk,2)}</td><td class="rp-unit">kN/m</td></tr>
+      <tr><td class="rp-param">Variable load Q<sub>k</sub></td><td class="rp-val">${fmt(Qk,2)}</td><td class="rp-unit">kN/m</td></tr>
+    </tbody>
+  </table>
+  <table class="rp-checks-table" style="margin:6pt 0 0;">
+    <thead><tr><th>Combination</th><th>Formula</th><th>Value</th><th>Unit</th></tr></thead>
+    <tbody>
+      <tr style="background:#fff8f0"><td><strong>ULS — Fundamental</strong></td><td class="rp-formula">1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub></td><td class="rp-calc-val">${uls}</td><td class="rp-unit">kN/m</td></tr>
+      <tr><td>SLS — Characteristic</td><td class="rp-formula">G<sub>k</sub> + Q<sub>k</sub></td><td class="rp-calc-val">${sls}</td><td class="rp-unit">kN/m</td></tr>
+    </tbody>
+  </table>
+</div>`;
+  }
+
+  function _renderImage(block) {
+    if (!block.config.src) return '<p class="rp-prose" style="color:#999;">[Image not provided]</p>';
+    const caption = esc(block.config.caption || '');
+    return `<figure class="rp-figure">
+  <img src="${esc(block.config.src)}" alt="${caption}" style="max-width:100%;border:0.5pt solid #ddd;">
+  ${caption ? `<figcaption>Figure: ${caption}</figcaption>` : ''}
+</figure>`;
+  }
+
+  function _renderSignoff(block) {
+    const cfg = block.config;
+    const prepared = cfg.prepared || {};
+    const checked  = cfg.checked  || {};
+    const approved = cfg.approved || {};
+    const cell = (role, data) => `
+      <td>
+        <div class="rp-signoff-label">${role}</div>
+        <div style="margin-top:6pt;font-size:9pt;"><strong>${esc(data.name || '&nbsp;')}</strong></div>
+        <div class="rp-signoff-line">${esc(data.signature || '&nbsp;')}</div>
+        <div style="font-size:8pt;color:#555;margin-top:4pt;">${fmtDate(data.date)}</div>
+      </td>`;
+    return `<div class="rp-calc-section">
+  <div class="rp-calc-header"><span class="rp-calc-title">Engineer Sign-off Register</span></div>
+  <table class="rp-signoff-table">
+    <tr>${cell('Prepared By', prepared)}${cell('Checked By', checked)}${cell('Approved By', approved)}</tr>
+  </table>
+</div>`;
+  }
+
+  function _renderRevisionHistory(block) {
+    const revisions = block.config.revisions || [];
+    if (revisions.length === 0) return '';
+    const rows = revisions.map(r => `<tr>
+      <td style="text-align:center;font-weight:bold">${esc(r.rev)}</td>
+      <td>${fmtDate(r.date)}</td>
+      <td>${esc(r.description)}</td>
+      <td>${esc(r.preparedBy)}</td>
+      <td>${esc(r.checkedBy)}</td>
+    </tr>`).join('');
+    return `<div class="rp-calc-section">
+  <div class="rp-calc-header"><span class="rp-calc-title">Revision History</span></div>
+  <table class="rp-checks-table" style="margin:0;">
+    <thead><tr><th style="width:30pt">Rev</th><th style="width:60pt">Date</th><th>Description</th><th style="width:80pt">Prepared By</th><th style="width:80pt">Checked By</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+  }
+
+  function _renderChecksSummary(block, allBlocks) {
+    // Build checks from all calc blocks
+    const checks = [];
+    allBlocks.forEach(b => {
+      if (!b.type.startsWith('calc_')) return;
+      if (!b.results || !b.results._ran) return;
+      const extracted = (typeof BlockRegistry !== 'undefined' && BlockRegistry._extractChecks)
+        ? BlockRegistry._extractChecks(b)
+        : [];
+      extracted.forEach(c => checks.push({ ...c, element: b.label }));
+    });
+
+    if (checks.length === 0) {
+      return `<div class="rp-calc-section">
+  <div class="rp-calc-header"><span class="rp-calc-title">Design Checks Summary</span></div>
+  <p style="padding:8pt 10pt;font-size:9pt;color:#666;">No calculations have been run yet.</p>
+</div>`;
+    }
+
+    const rows = checks.map(c => {
+      const pass = c.pass !== false;
+      const util = typeof c.util === 'number' ? c.util.toFixed(3) : '—';
+      return `<tr>
+        <td>${esc(c.element || c.label)}</td>
+        <td>${esc(c.checkName)}</td>
+        <td style="text-align:right;font-family:'Courier New',monospace">${util}</td>
+        <td class="${pass ? 'rp-pass' : 'rp-fail'}">${pass ? '✓ PASS' : '✗ FAIL'}</td>
+      </tr>`;
+    }).join('');
+
+    const allPass = checks.every(c => c.pass !== false);
+    return `<div class="rp-calc-section">
+  <div class="rp-calc-header">
+    <span class="rp-calc-title">Design Checks Summary</span>
+    <span class="rp-calc-code" style="color:${allPass ? '#90ee90' : '#ffaaaa'}">${allPass ? '✓ ALL PASS' : '✗ FAILURES PRESENT'}</span>
+  </div>
+  <table class="rp-checks-table" style="margin:0;">
+    <thead><tr><th>Element</th><th>Check</th><th style="text-align:right">η</th><th>Status</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+  }
+
+  // ── Calc block renderer ──────────────────────────────────────────────────
+
+  function _renderCalcBlock(block) {
+    const cfg  = block.config || {};
+    const res  = block.results || {};
+    const code = (typeof BlockRegistry !== 'undefined' && BlockRegistry.CALC_CODES)
+      ? BlockRegistry.CALC_CODES[block.type] || ''
+      : '';
+    const label = esc(block.label || block.type);
+
+    // Build inputs table rows
+    const inputRows = _buildInputRows(block.type, cfg);
+
+    // Build calculation steps
+    const calcRows  = _buildCalcRows(block.type, cfg, res);
+
+    // Build checks rows
+    const checkRows = _buildCheckRows(block.type, res);
+
+    const hasResults = res._ran === true;
+    const noCalcMsg  = hasResults ? '' : `<tr><td colspan="4" style="color:#999;font-style:italic;padding:6pt 10pt;">[Calculation not yet run — click Calculate in editor]</td></tr>`;
+
+    return `<div class="rp-calc-section">
+  <div class="rp-calc-header">
+    <span class="rp-calc-title">${label}</span>
+    <span class="rp-calc-code">${esc(code)}</span>
+  </div>
+
+  <div class="rp-subsection-title">Design Inputs</div>
+  <table class="rp-inputs-table">
+    <tbody>${inputRows}</tbody>
+  </table>
+
+  ${hasResults ? `
+  <div class="rp-subsection-title">Calculations</div>
+  <table class="rp-calc-table">
+    <thead><tr>
+      <th style="width:40%">Step</th>
+      <th style="width:30%">Formula</th>
+      <th style="text-align:right;width:15%">Value</th>
+      <th style="width:15%">Unit</th>
+    </tr></thead>
+    <tbody>${calcRows || noCalcMsg}</tbody>
+  </table>
+
+  <div class="rp-subsection-title">Design Checks</div>
+  <table class="rp-checks-table">
+    <thead><tr>
+      <th>Check</th>
+      <th>E<sub>d</sub></th>
+      <th>R<sub>d</sub></th>
+      <th>η = E<sub>d</sub>/R<sub>d</sub></th>
+      <th>Status</th>
+    </tr></thead>
+    <tbody>${checkRows || noCalcMsg}</tbody>
+  </table>` : `
+  <div class="rp-calc-table"><table><tbody>${noCalcMsg}</tbody></table></div>`}
+
+</div>`;
+  }
+
+  function _inputRow(label, value, unit, ref) {
+    return `<tr>
+      <td class="rp-param">${label}</td>
+      <td class="rp-val">${fmt(value, 3)}</td>
+      <td class="rp-unit">${esc(unit || '')}</td>
+      <td class="rp-ref">${esc(ref || 'as given')}</td>
+    </tr>`;
+  }
+
+  function _calcRow(desc, formula, value, unit) {
+    return `<tr>
+      <td class="rp-step-desc">${desc}</td>
+      <td class="rp-formula">${formula}</td>
+      <td class="rp-calc-val">${fmt(value, 3)}</td>
+      <td class="rp-unit">${esc(unit || '')}</td>
+    </tr>`;
+  }
+
+  function _checkRow(check, Ed, EdUnit, Rd, RdUnit, util, pass) {
+    const passClass = pass ? 'rp-pass' : 'rp-fail';
+    const passText  = pass ? '✓ PASS' : '✗ FAIL';
+    const utilStr   = typeof util === 'number' ? util.toFixed(3) : '—';
+    return `<tr>
+      <td>${esc(check)}</td>
+      <td style="font-family:'Courier New',monospace">${fmt(Ed, 2)} ${esc(EdUnit || '')}</td>
+      <td style="font-family:'Courier New',monospace">${fmt(Rd, 2)} ${esc(RdUnit || '')}</td>
+      <td style="font-family:'Courier New',monospace;text-align:right">${utilStr}</td>
+      <td class="${passClass}">${passText}</td>
+    </tr>`;
+  }
+
+  // ── Input rows per calc type ─────────────────────────────────────────────
+
+  function _buildInputRows(type, cfg) {
+    switch (type) {
+      case 'calc_beam':
+        return [
+          _inputRow('Material', cfg.material, '', ''),
+          _inputRow('Span', cfg.span, 'm', ''),
+          _inputRow('Permanent load G<sub>k</sub>', cfg.Gk, 'kN/m', ''),
+          _inputRow('Variable load Q<sub>k</sub>', cfg.Qk, 'kN/m', ''),
+          _inputRow('Steel grade', cfg.grade, '', ''),
+          _inputRow('Elastic modulus S<sub>xx</sub>', cfg.Sxx, 'cm³', ''),
+          _inputRow('Second moment I<sub>xx</sub>', cfg.Ixx, 'cm⁴', ''),
+        ].join('');
+      case 'calc_column':
+        return [
+          _inputRow('Section', cfg.section, '', ''),
+          _inputRow('Steel grade', cfg.grade, '', ''),
+          _inputRow('Design axial force N<sub>Ed</sub>', cfg.NEd, 'kN', ''),
+          _inputRow('Member length', cfg.length, 'm', ''),
+          _inputRow('Effective length factor k', cfg.keff, '', ''),
+          _inputRow('Cross-sectional area A', cfg.A, 'cm²', ''),
+          _inputRow('Second moment I<sub>yy</sub>', cfg.Iyy, 'cm⁴', 'minor axis'),
+        ].join('');
+      case 'calc_rc_beam':
+        return [
+          _inputRow('Span', cfg.span, 'm', ''),
+          _inputRow('Section width b', cfg.b, 'mm', ''),
+          _inputRow('Overall depth h', cfg.h, 'mm', ''),
+          _inputRow('Concrete strength f<sub>ck</sub>', cfg.fck, 'MPa', ''),
+          _inputRow('Design moment M<sub>Ed</sub>', cfg.MEd, 'kNm', ''),
+          _inputRow('Design shear V<sub>Ed</sub>', cfg.VEd, 'kN', ''),
+        ].join('');
+      case 'calc_rc_column':
+        return [
+          _inputRow('Section width b', cfg.b, 'mm', ''),
+          _inputRow('Section depth h', cfg.h, 'mm', ''),
+          _inputRow('Concrete strength f<sub>ck</sub>', cfg.fck, 'MPa', ''),
+          _inputRow('Design axial N<sub>Ed</sub>', cfg.NEd, 'kN', ''),
+          _inputRow('Design moment M<sub>Ed</sub>', cfg.MEd, 'kNm', ''),
+          _inputRow('Effective length l<sub>o</sub>', cfg.lo, 'm', ''),
+        ].join('');
+      case 'calc_slab':
+        return [
+          _inputRow('Short span l<sub>x</sub>', cfg.lx, 'm', ''),
+          _inputRow('Long span l<sub>y</sub>', cfg.ly, 'm', ''),
+          _inputRow('Slab depth h', cfg.h, 'mm', ''),
+          _inputRow('Concrete strength f<sub>ck</sub>', cfg.fck, 'MPa', ''),
+          _inputRow('ULS load n', cfg.n_uls, 'kN/m²', ''),
+        ].join('');
+      case 'calc_footing':
+        return [
+          _inputRow('Permanent column load G<sub>k</sub>', cfg.Gk, 'kN', ''),
+          _inputRow('Variable column load Q<sub>k</sub>', cfg.Qk, 'kN', ''),
+          _inputRow('Allowable soil bearing', cfg.soilBearing, 'kPa', ''),
+          _inputRow('Concrete strength f<sub>ck</sub>', cfg.fck, 'MPa', ''),
+          _inputRow('Column width', cfg.columnW, 'mm', ''),
+          _inputRow('Footing depth', cfg.footThick, 'mm', ''),
+        ].join('');
+      case 'calc_retaining':
+        return [
+          _inputRow('Wall height H', cfg.H, 'm', ''),
+          _inputRow('Soil unit weight γ', cfg.gamma_soil, 'kN/m³', ''),
+          _inputRow('Friction angle φ', cfg.phi, '°', ''),
+          _inputRow('Surcharge q', cfg.surcharge, 'kPa', ''),
+          _inputRow('Concrete strength f<sub>ck</sub>', cfg.fck, 'MPa', ''),
+        ].join('');
+      case 'calc_connection':
+        return [
+          _inputRow('Connection type', cfg.connectionType, '', ''),
+          _inputRow('Design shear V<sub>Ed</sub>', cfg.VEd, 'kN', ''),
+          _inputRow('Bolt grade', cfg.boltGrade, '', ''),
+          _inputRow('Bolt diameter', cfg.boltDia, 'mm', ''),
+          _inputRow('Number of bolts', cfg.nBolts, '', ''),
+        ].join('');
+      case 'calc_timber_col':
+        return [
+          _inputRow('Height', cfg.span, 'm', ''),
+          _inputRow('Section width b', cfg.b, 'mm', ''),
+          _inputRow('Section depth h', cfg.h, 'mm', ''),
+          _inputRow('Design axial N<sub>Ed</sub>', cfg.NEd, 'kN', ''),
+          _inputRow('Timber class', cfg.timberClass, '', ''),
+        ].join('');
+      case 'calc_steel_member':
+        return [
+          _inputRow('Section', cfg.section, '', ''),
+          _inputRow('Steel grade', cfg.grade, '', ''),
+          _inputRow('Buckling length L<sub>cr</sub>', cfg.Lcr, 'm', ''),
+          _inputRow('Design axial N<sub>Ed</sub>', cfg.NEd, 'kN', ''),
+          _inputRow('Design moment M<sub>Ed</sub>', cfg.MEd, 'kNm', ''),
+          _inputRow('Design shear V<sub>Ed</sub>', cfg.VEd, 'kN', ''),
+        ].join('');
+      case 'calc_wind':
+        return [
+          _inputRow('Basic wind velocity v<sub>b0</sub>', cfg.vb0, 'm/s', 'UK wind map'),
+          _inputRow('Building height h', cfg.h, 'm', ''),
+          _inputRow('Crosswind width b', cfg.b, 'm', ''),
+          _inputRow('Terrain category', cfg.terrainCat, '', 'EN 1991-1-4'),
+          _inputRow('Site altitude', cfg.altitude, 'm', ''),
+        ].join('');
+      case 'calc_load_takedown':
+        return [
+          _inputRow('Number of floors', cfg.nFloors, '', ''),
+          _inputRow('Tributary area', cfg.floorArea, 'm²', ''),
+          _inputRow('Floor dead load DL', cfg.DL, 'kPa', ''),
+          _inputRow('Floor live load LL', cfg.LL, 'kPa', ''),
+          _inputRow('Roof dead load', cfg.roofDL, 'kPa', ''),
+        ].join('');
+      default:
+        return Object.entries(cfg).slice(0, 8).map(([k, v]) => _inputRow(k, v, '', '')).join('');
+    }
+  }
+
+  // ── Calculation step rows per type ──────────────────────────────────────
+
+  function _buildCalcRows(type, cfg, res) {
+    if (!res || !res._ran) return '';
+    switch (type) {
+      case 'calc_beam':
+        return [
+          _calcRow('ULS design load', 'w = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', (1.35*(cfg.Gk||0) + 1.5*(cfg.Qk||0)), 'kN/m'),
+          _calcRow('Design bending moment', 'M<sub>Ed</sub> = w·L²/8', res.MEd, 'kNm'),
+          _calcRow('Moment resistance', 'M<sub>Rd</sub> = f<sub>y</sub>·S<sub>xx</sub>/γ<sub>M0</sub>', res.MRd, 'kNm'),
+          _calcRow('Design shear force', 'V<sub>Ed</sub> = w·L/2', res.VEd, 'kN'),
+          _calcRow('Shear resistance', 'V<sub>Rd</sub> = A<sub>v</sub>·f<sub>y</sub>/(√3·γ<sub>M0</sub>)', res.VRd, 'kN'),
+        ].join('');
+      case 'calc_column':
+        return [
+          _calcRow('Slenderness ratio', 'λ = L<sub>cr</sub>/i', res.lambdaZ || res.lambda_z, ''),
+          _calcRow('Non-dimensional slenderness', 'λ̄ = λ/λ<sub>1</sub>', res.lambdaBarZ || res.lambdaBar_z, ''),
+          _calcRow('Buckling reduction factor', 'χ (from buckling curve)', res.chiZ || res.chi_z, ''),
+          _calcRow('Buckling resistance', 'N<sub>b,Rd</sub> = χ·A·f<sub>y</sub>/γ<sub>M1</sub>', res.NbRd, 'kN'),
+        ].join('');
+      case 'calc_rc_beam':
+        return [
+          _calcRow('Design compressive strength', 'f<sub>cd</sub> = 0.85·f<sub>ck</sub>/γ<sub>C</sub>', res.fcd, 'MPa'),
+          _calcRow('Normalised moment', 'K = M<sub>Ed</sub>/(b·d²·f<sub>cd</sub>)', res.K, ''),
+          _calcRow('Required reinforcement', 'A<sub>s,req</sub> = M<sub>Ed</sub>/(f<sub>yd</sub>·z)', res.As_req, 'mm²'),
+          _calcRow('Shear capacity (no links)', 'V<sub>Rd,c</sub>', res.VRdc, 'kN'),
+        ].join('');
+      case 'calc_footing':
+        return [
+          _calcRow('Service load', 'N<sub>SLS</sub> = G<sub>k</sub> + Q<sub>k</sub>', (cfg.Gk||0)+(cfg.Qk||0), 'kN'),
+          _calcRow('Required footing size', 'B = √(N/q<sub>a</sub>)', res.B, 'm'),
+          _calcRow('Net bearing pressure', 'q<sub>net</sub> = N/A<sub>ftg</sub>', res.q_net, 'kPa'),
+          _calcRow('ULS load', 'N<sub>ULS</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.N_ULS, 'kN'),
+        ].join('');
+      case 'calc_wind':
+        return [
+          _calcRow('Basic wind velocity', 'v<sub>b</sub> = c<sub>dir</sub>·c<sub>season</sub>·v<sub>b0</sub>', res.vb, 'm/s'),
+          _calcRow('Mean wind velocity', 'v<sub>m</sub> = c<sub>r</sub>·c<sub>o</sub>·v<sub>b</sub>', res.vm, 'm/s'),
+          _calcRow('Peak velocity pressure', 'q<sub>p</sub> = [1+7·I<sub>v</sub>]·½·ρ·v<sub>m</sub>²', res.qp, 'kN/m²'),
+          _calcRow('Wind force per unit height', 'F<sub>w</sub> = c<sub>s</sub>c<sub>d</sub>·c<sub>f</sub>·q<sub>p</sub>·A<sub>ref</sub>', res.Fw_total, 'kN'),
+        ].join('');
+      default:
+        // Generic: first 5 numeric results
+        return Object.entries(res)
+          .filter(([k, v]) => k !== '_ran' && typeof v === 'number')
+          .slice(0, 5)
+          .map(([k, v]) => _calcRow(k, '—', v, ''))
+          .join('');
+    }
+  }
+
+  // ── Check rows per type ──────────────────────────────────────────────────
+
+  function _buildCheckRows(type, res) {
+    if (!res || !res._ran) return '';
+    const rows = [];
+
+    switch (type) {
+      case 'calc_beam':
+        if (res.MEd !== undefined && res.MRd !== undefined)
+          rows.push(_checkRow('Bending (M<sub>Ed</sub>/M<sub>Rd</sub>)', res.MEd, 'kNm', res.MRd, 'kNm', res.bendingUtil || res.MEd/res.MRd, res.bendingPass !== false && (res.MEd/res.MRd) <= 1.0));
+        if (res.VEd !== undefined && res.VRd !== undefined)
+          rows.push(_checkRow('Shear (V<sub>Ed</sub>/V<sub>Rd</sub>)', res.VEd, 'kN', res.VRd, 'kN', res.shearUtil || res.VEd/res.VRd, res.shearPass !== false && (res.VEd/res.VRd) <= 1.0));
+        if (res.delta_actual !== undefined && res.delta_limit !== undefined)
+          rows.push(_checkRow('Deflection (δ/δ<sub>lim</sub>)', res.delta_actual, 'mm', res.delta_limit, 'mm', res.deflectionUtil || res.delta_actual/res.delta_limit, res.deflectionPass !== false));
+        break;
+      case 'calc_column':
+        if (res.NbRd !== undefined)
+          rows.push(_checkRow('Axial buckling (N<sub>Ed</sub>/N<sub>b,Rd</sub>)', res.NEd_check || res.NEd, 'kN', res.NbRd, 'kN', res.utilisation, res.bucklingPass !== false && res.utilisation <= 1.0));
+        break;
+      case 'calc_rc_beam':
+        if (res.As_req !== undefined && res.As_prov !== undefined)
+          rows.push(_checkRow('Flexure (A<sub>s,req</sub>/A<sub>s,prov</sub>)', res.As_req, 'mm²', res.As_prov, 'mm²', res.flexureUtil || res.As_req/res.As_prov, res.flexurePass !== false));
+        if (res.VRdc !== undefined)
+          rows.push(_checkRow('Shear capacity', res.VEd_check || 0, 'kN', res.VRdc, 'kN', res.shearUtil, res.shearPass !== false));
+        break;
+      case 'calc_footing':
+        if (res.q_net !== undefined && res.soilBearing !== undefined)
+          rows.push(_checkRow('Bearing pressure', res.q_net, 'kPa', res.soilBearing, 'kPa', res.bearingUtil || res.q_net/res.soilBearing, res.bearingPass !== false));
+        if (res.Vc !== undefined)
+          rows.push(_checkRow('Punching shear', res.vEd_punching, 'kPa', res.vRdc, 'kPa', res.punchingUtil, res.punchingPass !== false));
+        break;
+      default:
+        // Generic pass/fail from results
+        if (res.overallPass !== undefined)
+          rows.push(_checkRow('Overall', '—', '', '—', '', res.overallUtil || 0, res.overallPass));
+        else if (res.bendingPass !== undefined)
+          rows.push(_checkRow('Bending', res.MEd, 'kNm', res.MRd, 'kNm', res.bendingUtil, res.bendingPass));
+    }
+
+    if (rows.length === 0 && res.checks && Array.isArray(res.checks)) {
+      return res.checks.map(c => _checkRow(c.checkName || c.label, c.Ed || 0, c.EdUnit || '', c.Rd || 0, c.RdUnit || '', c.util, c.pass)).join('');
+    }
+
+    return rows.join('');
+  }
+
+  // ── Main block router ────────────────────────────────────────────────────
+
+  function _renderBlock(block, ctx) {
+    const { allBlocks } = ctx;
+
+    switch (block.type) {
+      case 'title':            return ''; // handled separately as page header
+      case 'section_header':   return _renderSectionHeader(block);
+      case 'page_break':       return _renderPageBreak();
+      case 'toc':              return ''; // rendered separately before body
+      case 'text':
+      case 'scope':
+      case 'engineer_notes':   return _renderProse(block);
+      case 'design_basis':     return _renderDesignBasis(block);
+      case 'code_ref':         return _renderCodeRef(block);
+      case 'load_table':       return _renderLoadTable(block);
+      case 'image':            return _renderImage(block);
+      case 'signoff':          return _renderSignoff(block);
+      case 'revision_history': return _renderRevisionHistory(block);
+      case 'checks_summary':   return _renderChecksSummary(block, allBlocks);
+      case 'utilisation_chart':
+        return _renderUtilisationChart(block, allBlocks);
+      case 'project_info':     return ''; // info folded into title block
+      default:
+        if (block.type.startsWith('calc_')) return _renderCalcBlock(block);
+        return '';
+    }
+  }
+
+  function _renderUtilisationChart(block, allBlocks) {
+    const checks = [];
+    allBlocks.forEach(b => {
+      if (!b.type.startsWith('calc_') || !b.results || !b.results._ran) return;
+      const ext = (typeof BlockRegistry !== 'undefined' && BlockRegistry._extractChecks)
+        ? BlockRegistry._extractChecks(b) : [];
+      ext.forEach(c => checks.push({ label: (b.label || b.type) + ' — ' + (c.checkName || ''), util: typeof c.util === 'number' ? c.util : 0, pass: c.pass }));
+    });
+
+    if (checks.length === 0) return `<div class="rp-calc-section"><div class="rp-calc-header"><span class="rp-calc-title">Utilisation Chart</span></div><p style="padding:8pt;font-size:9pt;color:#666;">Run calculations to populate.</p></div>`;
+
+    const bars = checks.map(c => {
+      const pct = Math.min(c.util * 100, 100).toFixed(1);
+      const color = c.pass ? '#006600' : '#cc0000';
+      return `<tr>
+        <td style="width:160pt;font-size:8pt">${esc(c.label)}</td>
+        <td style="width:160pt">
+          <div style="height:10pt;background:#e0e0e0;position:relative;">
+            <div style="height:100%;width:${pct}%;background:${color};"></div>
+          </div>
+        </td>
+        <td style="width:40pt;font-family:'Courier New',monospace;font-size:8pt;text-align:right">${(c.util).toFixed(3)}</td>
+      </tr>`;
+    }).join('');
+
+    return `<div class="rp-calc-section">
+  <div class="rp-calc-header"><span class="rp-calc-title">Utilisation Chart</span></div>
+  <table style="width:100%;border-collapse:collapse;padding:8pt;font-size:9pt;margin:4pt 0;">
+    <tbody>${bars}</tbody>
+  </table>
+</div>`;
+  }
+
+  // ── CSS ──────────────────────────────────────────────────────────────────
+
+  function _getPreviewCSS() {
+    return `
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Times New Roman',Times,serif; font-size:10pt; color:#000; background:#d0d0d0; }
+
+.rp-page {
+  width:210mm; min-height:297mm; background:white;
+  margin:16px auto; padding:18mm 18mm 24mm 22mm;
+  box-shadow:0 0 24px rgba(0,0,0,.25);
+  position:relative;
+}
+
+/* ── Title block ── */
+.rp-title-block { border:1.5pt solid #000; margin-bottom:18pt; font-family:'Times New Roman',serif; }
+.rp-tb-header { display:flex; border-bottom:1pt solid #000; background:#000; color:#fff; }
+.rp-tb-logo { width:46mm; padding:8pt 10pt; border-right:1pt solid #666; }
+.rp-tb-company { flex:1; padding:8pt 10pt; }
+.rp-tb-company-name { font-size:13pt; font-weight:bold; letter-spacing:2pt; font-family:'Times New Roman',serif; }
+.rp-tb-main { padding:12pt 14pt; border-bottom:1pt solid #000; }
+.rp-tb-report-type { font-size:8pt; font-weight:bold; text-transform:uppercase; letter-spacing:2.5pt; color:#555; margin-bottom:4pt; }
+.rp-tb-project-title { font-size:14pt; font-weight:bold; margin-bottom:10pt; }
+.rp-tb-project-grid { display:grid; grid-template-columns:80pt 1fr; gap:3pt 0; font-size:10pt; }
+.rp-tb-project-grid .key { font-weight:bold; }
+.rp-tb-meta { display:grid; grid-template-columns:1fr 1fr 1fr; }
+.rp-tb-meta-cell { padding:6pt 10pt; border-right:1pt solid #000; }
+.rp-tb-meta-cell:last-child { border-right:none; }
+.rp-tb-meta-cell .mk { font-size:7pt; text-transform:uppercase; letter-spacing:.5pt; color:#555; }
+.rp-tb-meta-cell .mv { font-size:10pt; font-weight:bold; margin-top:2pt; }
+
+/* ── TOC ── */
+.rp-toc { margin-bottom:20pt; border:1pt solid #000; page-break-after:avoid; }
+.rp-toc-title { background:#000; color:white; padding:4pt 8pt; font-weight:bold; font-size:9pt; text-transform:uppercase; letter-spacing:1pt; }
+.rp-toc-item { display:flex; border-bottom:.5pt dotted #ccc; padding:3pt 8pt; font-size:9pt; }
+.rp-toc-num { width:30pt; font-weight:bold; }
+.rp-toc-title-text { flex:1; }
+
+/* ── Section headers ── */
+.rp-section-header { font-size:11pt; font-weight:bold; text-transform:uppercase; letter-spacing:1pt; border-bottom:2pt solid #000; margin:20pt 0 10pt; padding-bottom:4pt; }
+.rp-section-num { margin-right:8pt; }
+.rp-subsection-title { font-size:8.5pt; font-weight:bold; text-transform:uppercase; letter-spacing:.5pt; background:#f0f0f0; padding:3pt 6pt; border-left:3pt solid #000; margin:10pt 0 4pt; }
+
+/* ── Calc section ── */
+.rp-calc-section { margin-bottom:18pt; border:1pt solid #bbb; }
+.rp-calc-header { display:flex; justify-content:space-between; align-items:center; background:#000; color:white; padding:5pt 10pt; }
+.rp-calc-title { font-weight:bold; font-size:10pt; font-family:'Times New Roman',serif; }
+.rp-calc-code { font-size:8pt; opacity:.8; }
+
+/* ── Tables ── */
+.rp-inputs-table, .rp-calc-table, .rp-checks-table { width:100%; border-collapse:collapse; font-size:9pt; }
+.rp-inputs-table td, .rp-calc-table td, .rp-checks-table td, .rp-checks-table th { padding:3pt 6pt; border:.5pt solid #ccc; vertical-align:middle; }
+.rp-checks-table th { background:#f0f0f0; font-weight:bold; text-align:left; font-size:8.5pt; }
+.rp-param { width:130pt; font-weight:bold; background:#fafafa; }
+.rp-val { width:60pt; font-family:'Courier New',monospace; text-align:right; }
+.rp-unit { width:35pt; color:#555; font-size:8pt; }
+.rp-ref { color:#777; font-size:8pt; font-style:italic; }
+.rp-step-desc { width:40%; }
+.rp-formula { font-style:italic; }
+.rp-calc-val { font-family:'Courier New',monospace; text-align:right; font-weight:bold; }
+.rp-pass { color:#006600; font-weight:bold; }
+.rp-fail { color:#cc0000; font-weight:bold; }
+
+/* ── Prose ── */
+.rp-prose { font-size:10pt; line-height:1.6; margin-bottom:10pt; }
+.rp-prose-label { font-weight:bold; font-size:10pt; margin-bottom:4pt; }
+.rp-assumption-list { margin:8pt 0 8pt 20pt; font-size:9pt; line-height:1.7; }
+
+/* ── Figure ── */
+.rp-figure { margin:10pt 0; text-align:center; }
+.rp-figure figcaption { font-size:8pt; font-style:italic; color:#555; margin-top:4pt; }
+
+/* ── Sign-off ── */
+.rp-signoff-table { width:100%; border-collapse:collapse; margin:8pt 0; }
+.rp-signoff-table td { border:1pt solid #000; padding:8pt 10pt; width:33.3%; vertical-align:top; height:55pt; }
+.rp-signoff-label { font-size:7pt; text-transform:uppercase; letter-spacing:.5pt; font-weight:bold; color:#555; margin-bottom:4pt; }
+.rp-signoff-line { border-top:.5pt solid #000; margin-top:24pt; padding-top:3pt; font-size:8pt; color:#555; font-style:italic; }
+
+/* ── Page break ── */
+.rp-page-break { page-break-after:always; border-top:1pt dashed #ccc; margin:20pt 0; }
+
+/* ── Running footer ── */
+.rp-running-footer {
+  border-top:.5pt solid #ccc; padding-top:4pt; margin-top:20pt;
+  display:flex; justify-content:space-between; font-size:7pt; color:#777;
+}
+
+/* ── Print ── */
+@media print {
+  body { background:white; }
+  .rp-page { box-shadow:none; margin:0; padding:15mm 15mm 20mm 20mm; width:100%; }
+  .rp-page-break { page-break-after:always; }
+  .rp-calc-section { page-break-inside:avoid; }
+  .rp-title-block { page-break-after:always; }
+}`;
+  }
+
+  // ── Public API ────────────────────────────────────────────────────────────
+
+  function render(reportMeta, blocks) {
+    const projectBlock = (blocks.find(b => b.type === 'project_info') || {}).config || {};
+    const titleBlock   = (blocks.find(b => b.type === 'title') || {}).config || {};
+
+    const ctx = { allBlocks: blocks };
+
+    const bodyParts = blocks
+      .map(block => _renderBlock(block, ctx))
+      .filter(Boolean)
+      .join('\n');
+
+    const toc = _buildToc(blocks);
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${esc(titleBlock.title || reportMeta.title || 'Calculation Report')} — BuildMetrics</title>
+  <style>${_getPreviewCSS()}</style>
+</head>
+<body>
+<div class="rp-page">
+
+  ${_renderTitleBlock(titleBlock, projectBlock, reportMeta)}
+
+  ${toc}
+
+  <div class="rp-body">
+    ${bodyParts}
+  </div>
+
+  ${_renderFooter(titleBlock, projectBlock)}
+
+</div>
+</body>
+</html>`;
+  }
+
+  return { render };
+
+})();
+
+window.PreviewRenderer = PreviewRenderer;
+if (typeof module !== 'undefined') module.exports = PreviewRenderer;

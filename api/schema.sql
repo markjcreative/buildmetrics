@@ -66,3 +66,45 @@ CREATE TABLE IF NOT EXISTS notifications (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ── Engineering Canvas Report Builder ────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `reports` (
+  `id` varchar(36) NOT NULL,
+  `project_id` varchar(36) DEFAULT NULL,
+  `user_id` varchar(36) NOT NULL,
+  `title` varchar(255) NOT NULL DEFAULT 'Untitled Report',
+  `status` varchar(20) NOT NULL DEFAULT 'draft',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_reports_user` (`user_id`),
+  KEY `idx_reports_project` (`project_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `report_blocks` (
+  `id` varchar(36) NOT NULL,
+  `report_id` varchar(36) NOT NULL,
+  `type` varchar(64) NOT NULL,
+  `order_index` int NOT NULL DEFAULT 0,
+  `label` varchar(255) DEFAULT NULL,
+  `config_json` longtext DEFAULT NULL,
+  `results_json` longtext DEFAULT NULL,
+  `validated` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_blocks_report` (`report_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `report_templates` (
+  `id` varchar(36) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `category` varchar(64) NOT NULL,
+  `description` text DEFAULT NULL,
+  `icon` varchar(10) DEFAULT NULL,
+  `blocks_json` longtext NOT NULL,
+  `sort_order` int NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -13,7 +13,7 @@
     /* ── Overview stat widgets ── */
     .overview-grid {
       display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr 1fr;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr;
       gap: 16px;
       margin-bottom: 36px;
     }
@@ -135,15 +135,86 @@
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
 
+    /* ── Start New Report CTA banner ── */
+    .report-cta-banner {
+      background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+      border-radius: 14px;
+      padding: 22px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .report-cta-left { display: flex; align-items: center; gap: 14px; }
+    .report-cta-icon { font-size: 1.8rem; line-height: 1; flex-shrink: 0; }
+    .report-cta-text h2 { color: #fff; font-size: 1rem; font-weight: 700; margin: 0 0 3px; }
+    .report-cta-text p { color: rgba(255,255,255,0.75); font-size: 0.8rem; margin: 0; }
+    .report-cta-actions { display: flex; gap: 10px; flex-shrink: 0; }
+    .report-cta-btn-primary {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 16px; background: #fff; color: #1E3A8A;
+      border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; text-decoration: none; white-space: nowrap;
+      transition: background .12s;
+    }
+    .report-cta-btn-primary:hover { background: #EFF6FF; }
+    .report-cta-btn-secondary {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 16px; background: rgba(255,255,255,0.15); color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.35); border-radius: 8px;
+      font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none;
+      white-space: nowrap; transition: background .12s;
+    }
+    .report-cta-btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── Recent Reports section ── */
+    .recent-reports-section { margin-bottom: 36px; }
+    .recent-reports-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+    .recent-reports-head h2 { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+    .recent-reports-head a { font-size: 0.8rem; color: var(--accent); text-decoration: none; }
+    .recent-reports-head a:hover { text-decoration: underline; }
+
+    .recent-reports-list { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .report-row { display: flex; align-items: center; gap: 14px; padding: 13px 18px; border-bottom: 1px solid var(--border); }
+    .report-row:last-child { border-bottom: none; }
+    .report-row:hover { background: var(--bg-subtle); }
+    .report-row-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .report-row-body { flex: 1; min-width: 0; }
+    .report-row-title { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .report-row-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .report-row-meta .report-tpl-name { color: var(--text-secondary); }
+    .report-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .report-row-actions a { font-size: 0.78rem; font-weight: 600; padding: 5px 10px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border); color: var(--text-secondary); background: var(--bg-surface); transition: border-color .12s, color .12s; }
+    .report-row-actions a:hover { border-color: var(--accent); color: var(--accent); }
+
+    .rep-status { display:inline-block; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:99px; }
+    .rep-status.draft    { background:#FEF9C3; color:#854D0E; }
+    .rep-status.review   { background:#DBEAFE; color:#1E40AF; }
+    .rep-status.approved { background:#DCFCE7; color:#166534; }
+    .rep-status.exported { background:#F3E8FF; color:#7C3AED; }
+
+    .reports-empty { text-align: center; padding: 36px 24px; }
+    .reports-empty-icon { font-size: 2rem; margin-bottom: 10px; }
+    .reports-empty p { font-size: 0.85rem; color: var(--text-muted); margin: 0 0 14px; }
+    .reports-empty a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.83rem; }
+
     /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .overview-grid { grid-template-columns: 1.2fr 1fr 1fr; }
+    }
     @media (max-width: 900px) {
       .overview-grid { grid-template-columns: 1fr 1fr; }
       .tool-widget-grid, .calc-widget-grid { grid-template-columns: repeat(2, 1fr); }
+      .report-cta-banner { flex-direction: column; align-items: flex-start; }
     }
     @media (max-width: 560px) {
       .overview-grid { grid-template-columns: 1fr 1fr; }
       .widget-cta { grid-column: 1 / -1; }
       .tool-widget-grid, .calc-widget-grid { grid-template-columns: 1fr; }
+      .report-cta-actions { flex-wrap: wrap; }
+      .report-row-actions { display: none; }
     }
   </style>
 </head>
@@ -159,6 +230,27 @@
         <div>
           <h1 id="dash-greeting">👋 Good morning</h1>
           <p id="dash-sub">Welcome back to BuildMetrics</p>
+        </div>
+      </div>
+
+      <!-- ── Start New Report CTA ───────────────────────────────── -->
+      <div class="report-cta-banner">
+        <div class="report-cta-left">
+          <div class="report-cta-icon">🚀</div>
+          <div class="report-cta-text">
+            <h2>Ready to create a calculation report?</h2>
+            <p>Start from a professional template or build your own from scratch</p>
+          </div>
+        </div>
+        <div class="report-cta-actions">
+          <a href="/templates.html" class="report-cta-btn-primary">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/></svg>
+            Choose a Template
+          </a>
+          <a href="/report-builder.html" class="report-cta-btn-secondary">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+            New Blank Report
+          </a>
         </div>
       </div>
 
@@ -210,6 +302,29 @@
           <div class="widget-stat-label">Downloads</div>
         </div>
 
+        <!-- Stat: Reports -->
+        <div class="widget-stat">
+          <div class="widget-stat-icon" style="background:#F5F3FF;">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <rect x="4" y="3" width="16" height="18" rx="2" stroke="#7C3AED" stroke-width="2"/>
+              <path stroke="#7C3AED" stroke-width="1.8" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/>
+            </svg>
+          </div>
+          <div class="widget-stat-num" id="stat-reports">0</div>
+          <div class="widget-stat-label">Reports</div>
+        </div>
+
+      </div>
+
+      <!-- ── Recent Reports ────────────────────────────────────── -->
+      <div class="recent-reports-section">
+        <div class="recent-reports-head">
+          <h2>📋 Recent Reports</h2>
+          <a href="/templates.html">New report →</a>
+        </div>
+        <div class="recent-reports-list" id="recent-reports-list">
+          <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.83rem;">Loading reports…</div>
+        </div>
       </div>
 
       <!-- ── Quick Engineering Tools ───────────────────────────── -->
@@ -520,6 +635,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Stats
   _renderStats();
 
+  // Load reports
+  _loadRecentReports();
+
   // Modal wiring
   document.getElementById('btn-create-project').addEventListener('click', createProject);
   document.getElementById('np-name').addEventListener('keydown', function(e) {
@@ -546,6 +664,7 @@ function _renderStats() {
   document.getElementById('stat-projects').textContent = projects.length;
   document.getElementById('stat-calcs').textContent = allCalcs.length;
   document.getElementById('stat-downloads').textContent = downloads;
+  // stat-reports is updated by _loadRecentReports
 
   const total = allCalcs.length;
   const now = new Date();
@@ -590,6 +709,101 @@ function createProject() {
 
 function _getHistory() {
   try { return JSON.parse(localStorage.getItem('bcp_history') || '[]'); } catch { return []; }
+}
+
+// ── Recent Reports ──────────────────────────────────────────
+function _loadRecentReports() {
+  fetch('/api/reports.php?action=list', { credentials: 'include' })
+    .then(function(r) {
+      if (r.status === 401) throw new Error('unauthenticated');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      const reports = Array.isArray(data) ? data : (data.reports || []);
+      // Update stat counter
+      const statEl = document.getElementById('stat-reports');
+      if (statEl) statEl.textContent = reports.length;
+      // Render recent list (last 5)
+      _renderRecentReports(reports.slice(0, 5));
+    })
+    .catch(function(err) {
+      console.warn('Reports load failed:', err.message);
+      document.getElementById('stat-reports').textContent = '—';
+      _renderRecentReports(null);
+    });
+}
+
+function _renderRecentReports(reports) {
+  const el = document.getElementById('recent-reports-list');
+  if (!el) return;
+
+  if (!reports) {
+    // API unavailable — show soft empty state
+    el.innerHTML =
+      '<div class="reports-empty">' +
+        '<div class="reports-empty-icon">📋</div>' +
+        '<p>Report data unavailable right now.</p>' +
+        '<a href="/templates.html">Start a new report →</a>' +
+      '</div>';
+    return;
+  }
+
+  if (!reports.length) {
+    el.innerHTML =
+      '<div class="reports-empty">' +
+        '<div class="reports-empty-icon">📋</div>' +
+        '<p>No reports yet. Create your first calculation report.</p>' +
+        '<a href="/templates.html">Choose a template →</a>' +
+      '</div>';
+    return;
+  }
+
+  el.innerHTML = reports.map(function(rep) {
+    const status = (rep.status || 'draft').toLowerCase();
+    const statusLabel = { draft:'Draft', review:'In Review', approved:'Approved', exported:'Exported' }[status] || 'Draft';
+    const tplName = _esc(rep.template_name || rep.template_id || '');
+    const timeAgo = _timeAgo(rep.updated_at || rep.created_at);
+    const reportId = encodeURIComponent(rep.id || rep.report_id || '');
+    return (
+      '<div class="report-row">' +
+        '<div class="report-row-icon">' +
+          '<svg width="18" height="18" fill="none" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="#2563EB" stroke-width="1.8"/><path stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/></svg>' +
+        '</div>' +
+        '<div class="report-row-body">' +
+          '<div class="report-row-title">' + _esc(rep.title || 'Untitled Report') + '</div>' +
+          '<div class="report-row-meta">' +
+            (tplName ? '<span class="report-tpl-name">' + tplName + ' &middot; </span>' : '') +
+            '<span class="rep-status ' + _esc(status) + '">' + _esc(statusLabel) + '</span>' +
+            ' &middot; ' + timeAgo +
+          '</div>' +
+        '</div>' +
+        '<div class="report-row-actions">' +
+          '<a href="/report-builder.html?report_id=' + reportId + '">Open</a>' +
+          '<a href="/report-preview.html?report_id=' + reportId + '">Preview</a>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+function _esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _timeAgo(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 2) return 'just now';
+    if (mins < 60) return mins + ' minutes ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + ' hour' + (hrs !== 1 ? 's' : '') + ' ago';
+    const days = Math.floor(hrs / 24);
+    if (days < 30) return days + ' day' + (days !== 1 ? 's' : '') + ' ago';
+    return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  } catch(e) { return ''; }
 }
 </script>
 </body>
