@@ -237,10 +237,10 @@ const Canvas = (() => {
   // ── API calls ─────────────────────────────────────────────────────────
 
   async function _apiPost(data) {
+    const headers = window.Auth ? Auth.authHeaders() : { 'Content-Type': 'application/json' };
     const resp = await fetch(API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      headers,
       body: JSON.stringify(data),
     });
     if (!resp.ok) throw new Error('API error: ' + resp.status);

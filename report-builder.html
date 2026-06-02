@@ -314,7 +314,9 @@ const RB = (() => {
 
   /* ── Report lifecycle ─────────────────────────────────────── */
   function _loadReport(id) {
-    fetch('/api/reports.php?action=get&id=' + encodeURIComponent(id))
+    fetch('/api/reports.php?action=get&id=' + encodeURIComponent(id), {
+      headers: Auth.authHeaders()
+    })
       .then(r => r.json())
       .then(data => {
         if (data.error) { _showError(data.error); return; }
@@ -322,20 +324,23 @@ const RB = (() => {
         reportId   = data.id;
         blocks     = Array.isArray(data.blocks) ? data.blocks : [];
         _applyReportMeta(data);
-        // Canvas.js is the primary renderer — only use built-in RB renderer as fallback
+        const canvasEl = document.getElementById('canvas-blocks-list');
         if (window.Canvas) {
-          Canvas.init(document.getElementById('canvas-blocks-list'), data);
+          Canvas.init(canvasEl, data, { onSaveStatus: _setSaveStatus });
+          // Apply template if specified in URL
+          const templateId = new URLSearchParams(window.location.search).get('template_id');
+          if (templateId && !blocks.length) _applyTemplate(templateId);
         } else {
           _renderAllBlocks();
         }
       })
-      .catch(() => _showError('Failed to load report. Please try again.'));
+      .catch(err => { console.error('Load report error:', err); _showError('Failed to load report. Please try again.'); });
   }
 
   function _createReport(projId) {
     fetch('/api/reports.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Auth.authHeaders(),
       body: JSON.stringify({ action: 'create', project_id: projId })
     })
       .then(r => r.json())
@@ -345,30 +350,51 @@ const RB = (() => {
         reportId   = data.id;
         blocks     = [];
         _applyReportMeta(data);
-        // Update URL without reload
         window.history.replaceState({}, '', '/report-builder.html?report_id=' + reportId);
-        // Canvas.js is the primary renderer — only use built-in RB renderer as fallback
+        const canvasEl = document.getElementById('canvas-blocks-list');
         if (window.Canvas) {
-          Canvas.init(document.getElementById('canvas-blocks-list'), data);
+          Canvas.init(canvasEl, data, { onSaveStatus: _setSaveStatus });
+          const templateId = new URLSearchParams(window.location.search).get('template_id');
+          if (templateId) _applyTemplate(templateId);
         } else {
           _renderAllBlocks();
         }
       })
-      .catch(() => {
-        // Offline / dev: work with empty report
-        reportId = 'local-' + Date.now();
-        reportData = { id: reportId, title: 'New Report', status: 'draft', blocks: [] };
-        blocks = [];
-        _renderAllBlocks();
+      .catch(err => { console.error('Create report error:', err); _showError('Failed to create report.'); });
+  }
+
+  /* ── Template application ─────────────────────────────────── */
+  const TEMPLATES = [
+    { id:'tpl-steel-beam',      name:'Steel Beam Design Report',  blocks:[{type:'title'},{type:'project_info'},{type:'design_basis'},{type:'section_header',default_config:{number:'1.0',title:'Design Inputs'}},{type:'code_ref',default_config:{codes:['EN 1993-1-1:2005','UK National Annex']}},{type:'calc_beam'},{type:'section_header',default_config:{number:'2.0',title:'Design Checks'}},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}] },
+    { id:'tpl-rc-frame',        name:'RC Frame Analysis',          blocks:[{type:'title'},{type:'project_info'},{type:'design_basis'},{type:'code_ref',default_config:{codes:['EN 1992-1-1:2004']}},{type:'section_header',default_config:{number:'1.0',title:'RC Beam Design'}},{type:'calc_rc_beam'},{type:'section_header',default_config:{number:'2.0',title:'RC Column Design'}},{type:'calc_rc_column'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}] },
+    { id:'tpl-foundation',      name:'Foundation Design Package',  blocks:[{type:'title'},{type:'project_info'},{type:'design_basis'},{type:'code_ref',default_config:{codes:['EN 1997-1:2004','EN 1992-1-1:2004']}},{type:'section_header',default_config:{number:'1.0',title:'Load Takedown'}},{type:'calc_load_takedown'},{type:'section_header',default_config:{number:'2.0',title:'Pad Footing'}},{type:'calc_footing'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}] },
+    { id:'tpl-retaining',       name:'Retaining Wall Report',      blocks:[{type:'title'},{type:'project_info'},{type:'design_basis'},{type:'code_ref',default_config:{codes:['EN 1997-1:2004']}},{type:'calc_retaining'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}] },
+    { id:'tpl-full-structural', name:'Full Structural Package',    blocks:[{type:'title'},{type:'project_info'},{type:'design_basis'},{type:'code_ref',default_config:{codes:['EN 1993-1-1:2005','EN 1992-1-1:2004']}},{type:'calc_load_takedown'},{type:'calc_beam'},{type:'calc_column'},{type:'calc_rc_beam'},{type:'calc_slab'},{type:'calc_footing'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}] },
+    { id:'tpl-steel-column',    name:'Steel Column Design',        blocks:[{type:'title'},{type:'project_info'},{type:'design_basis'},{type:'code_ref',default_config:{codes:['EN 1993-1-1:2005']}},{type:'calc_column'},{type:'calc_steel_member'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}] },
+    { id:'tpl-timber',          name:'Timber Structure Report',    blocks:[{type:'title'},{type:'project_info'},{type:'design_basis'},{type:'code_ref',default_config:{codes:['EN 1995-1-1:2004']}},{type:'calc_beam'},{type:'calc_timber_col'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}] },
+    { id:'tpl-wind-load',       name:'Wind & Load Assessment',     blocks:[{type:'title'},{type:'project_info'},{type:'design_basis'},{type:'code_ref',default_config:{codes:['EN 1991-1-4:2005']}},{type:'calc_wind'},{type:'calc_load_takedown'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}] },
+  ];
+
+  function _applyTemplate(templateId) {
+    const tpl = TEMPLATES.find(t => t.id === templateId);
+    if (!tpl || !window.Canvas) return;
+    // Small delay to ensure canvas is ready
+    setTimeout(() => {
+      tpl.blocks.forEach((b, i) => {
+        Canvas.addBlock(b.type, b.default_config || {}, i);
       });
+    }, 300);
   }
 
   function _applyReportMeta(data) {
     if (data.title) document.getElementById('cb-title-input').value = data.title;
     if (data.status) document.getElementById('cb-status-select').value = data.status;
-    // Back link: go to project page if we know the project
-    if (data.project_id) {
-      document.getElementById('cb-back-btn').href = '/projects.html';
+    // Back link: go to the specific project page
+    const backBtn = document.getElementById('cb-back-btn');
+    if (backBtn) {
+      backBtn.href = data.project_id
+        ? '/project.html?id=' + encodeURIComponent(data.project_id)
+        : '/projects.html';
     }
     document.title = (data.title || 'Report') + ' — BuildMetrics';
   }
@@ -431,7 +457,7 @@ const RB = (() => {
     if (!reportId) return;
     fetch('/api/reports.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Auth.authHeaders(),
       body: JSON.stringify({ action: 'update', id: reportId, status })
     }).catch(() => {});
   }
@@ -466,7 +492,7 @@ const RB = (() => {
 
     fetch('/api/reports.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Auth.authHeaders(),
       body: JSON.stringify(payload)
     })
       .then(r => r.json())

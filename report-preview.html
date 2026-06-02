@@ -356,7 +356,7 @@
     }
 
     try {
-      const resp = await fetch(`/api/reports.php?action=get&id=${encodeURIComponent(reportId)}`);
+      const resp = await fetch(`/api/reports.php?action=get&id=${encodeURIComponent(reportId)}`, { headers: Auth.authHeaders() });
       if (!resp.ok) throw new Error('Server returned ' + resp.status);
       const data = await resp.json();
       if (!data || data.error) throw new Error(data && data.error ? data.error : 'Invalid response');
