@@ -420,9 +420,11 @@ function createReport(projectId) {
     return r.json();
   })
   .then(function(data) {
-    if (!data || !data.report_id) throw new Error('No report_id returned');
+    // reports.php returns the report object with field `id` (not `report_id`)
+    const reportId = data.id || data.report_id;
+    if (!reportId) throw new Error('No report id returned');
     window.location.href =
-      '/report-builder.html?report_id=' + encodeURIComponent(data.report_id) +
+      '/report-builder.html?report_id=' + encodeURIComponent(reportId) +
       '&template_id=' + encodeURIComponent(tpl.id);
   })
   .catch(function(err) {

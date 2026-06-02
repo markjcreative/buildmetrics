@@ -467,6 +467,8 @@
   });
 
   // ── Boot ─────────────────────────────────────────────────────────────
+  // Auth guard: TopNav.init() checks session and redirects to /login if not authenticated
+  if (typeof TopNav !== 'undefined') TopNav.init();
   loadReport();
 
 })();

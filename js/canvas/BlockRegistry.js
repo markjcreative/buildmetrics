@@ -63,7 +63,7 @@ const BlockRegistry = (() => {
     'calc_connection':   { src: '/js/engine/connectionSolver.js',   global: 'ConnectionSolver' },
     'calc_timber_col':   { src: '/js/engine/timberColumnSolver.js', global: 'TimberColumnSolver' },
     'calc_steel_member': { src: '/js/engine/steelMemberSolver.js',  global: 'SteelMemberSolver' },
-    'calc_bbs':          { src: '/js/engine/bbsSolver.js',          global: 'BbsSolver' },
+    'calc_bbs':          { src: '/js/engine/bbsSolver.js',          global: 'BBSSolver' },
     'calc_section':      { src: '/js/engine/sectionSolver.js',      global: 'SectionSolver' },
     'calc_wind':         { src: '/js/engine/windSolver.js',         global: 'WindSolver' },
     'calc_load_takedown':{ src: '/js/engine/loadTakedownSolver.js', global: 'LoadTakedownSolver' },

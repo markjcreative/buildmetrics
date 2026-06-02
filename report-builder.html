@@ -322,9 +322,12 @@ const RB = (() => {
         reportId   = data.id;
         blocks     = Array.isArray(data.blocks) ? data.blocks : [];
         _applyReportMeta(data);
-        _renderAllBlocks();
-        // If Canvas.js is loaded, delegate
-        if (window.Canvas) Canvas.init(document.getElementById('canvas-blocks-list'), data);
+        // Canvas.js is the primary renderer — only use built-in RB renderer as fallback
+        if (window.Canvas) {
+          Canvas.init(document.getElementById('canvas-blocks-list'), data);
+        } else {
+          _renderAllBlocks();
+        }
       })
       .catch(() => _showError('Failed to load report. Please try again.'));
   }
@@ -342,10 +345,14 @@ const RB = (() => {
         reportId   = data.id;
         blocks     = [];
         _applyReportMeta(data);
-        _renderAllBlocks();
         // Update URL without reload
         window.history.replaceState({}, '', '/report-builder.html?report_id=' + reportId);
-        if (window.Canvas) Canvas.init(document.getElementById('canvas-blocks-list'), data);
+        // Canvas.js is the primary renderer — only use built-in RB renderer as fallback
+        if (window.Canvas) {
+          Canvas.init(document.getElementById('canvas-blocks-list'), data);
+        } else {
+          _renderAllBlocks();
+        }
       })
       .catch(() => {
         // Offline / dev: work with empty report
@@ -1357,14 +1364,12 @@ const RB = (() => {
     const nextRev = letters[tbody.children.length] || String(tbody.children.length + 1);
     const tr = document.createElement('tr');
     tr.innerHTML = (
-      '<tr>' +
-        '<td><input type="text" value="' + nextRev + '" name="rev_rev" style="width:40px;"/></td>' +
-        '<td><input type="date" value="' + new Date().toISOString().slice(0,10) + '" name="rev_date"/></td>' +
-        '<td><input type="text" name="rev_desc" placeholder="Description of change"/></td>' +
-        '<td><input type="text" name="rev_prepared" style="width:70px;"/></td>' +
-        '<td><input type="text" name="rev_checked" style="width:70px;"/></td>' +
-        '<td><button onclick="this.closest(\'tr\').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);">×</button></td>' +
-      '</tr>'
+      '<td><input type="text" value="' + nextRev + '" name="rev_rev" style="width:40px;"/></td>' +
+      '<td><input type="date" value="' + new Date().toISOString().slice(0,10) + '" name="rev_date"/></td>' +
+      '<td><input type="text" name="rev_desc" placeholder="Description of change"/></td>' +
+      '<td><input type="text" name="rev_prepared" style="width:70px;"/></td>' +
+      '<td><input type="text" name="rev_checked" style="width:70px;"/></td>' +
+      '<td><button onclick="this.closest(\'tr\').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);">×</button></td>'
     );
     tbody.appendChild(tr);
     tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', _scheduleSave));
