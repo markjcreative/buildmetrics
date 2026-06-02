@@ -1,74 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Templates — BuildMetrics</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/css/app.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report Templates — BuildMetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
   <style>
-    .page-body { padding: 0; }
+    /* ── Template gallery ── */
+    .tpl-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+    @media(max-width:900px){.tpl-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:600px){.tpl-grid{grid-template-columns:1fr;}}
 
-    /* Filter tabs */
-    .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
-    .filter-tab { padding: 6px 16px; border-radius: 99px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-secondary); transition: all 0.15s; user-select: none; }
-    .filter-tab:hover { border-color: var(--accent-mid); color: var(--accent); }
-    .filter-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .tpl-card { background:var(--bg-surface); border:1.5px solid var(--border); border-radius:14px; padding:24px; display:flex; flex-direction:column; gap:12px; transition:box-shadow .15s, border-color .15s; cursor:pointer; }
+    .tpl-card:hover { box-shadow:0 4px 20px rgba(0,0,0,.1); border-color:var(--accent); }
+    .tpl-card-icon { font-size:2.4rem; line-height:1; }
+    .tpl-card-name { font-size:1rem; font-weight:700; color:var(--text-primary); }
+    .tpl-card-cat { font-size:0.75rem; font-weight:600; color:var(--accent); background:var(--accent-light); padding:2px 8px; border-radius:99px; display:inline-block; }
+    .tpl-card-desc { font-size:0.83rem; color:var(--text-secondary); line-height:1.5; flex:1; }
+    .tpl-card-blocks { font-size:0.75rem; color:var(--text-muted); }
+    .tpl-card-blocks-bar { height:4px; background:var(--accent-light); border-radius:99px; margin-top:4px; }
+    .tpl-card-blocks-bar-fill { height:100%; background:var(--accent); border-radius:99px; }
+    .tpl-use-btn { width:100%; padding:10px; background:var(--accent); color:white; border:none; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer; margin-top:4px; }
+    .tpl-use-btn:hover { background:#1d4ed8; }
 
-    /* Template grid */
-    .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    /* ── Filter tabs ── */
+    .filter-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:28px; }
+    .filter-tab { padding:6px 14px; border-radius:99px; border:1.5px solid var(--border); background:var(--bg-surface); color:var(--text-secondary); font-size:0.8rem; font-weight:600; cursor:pointer; transition:all .12s; white-space:nowrap; }
+    .filter-tab:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+    .filter-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 
-    /* Template card */
-    .template-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; display: flex; flex-direction: column; gap: 12px; transition: box-shadow 0.15s, transform 0.15s; box-shadow: var(--shadow-sm); }
-    .template-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+    /* ── Breadcrumb ── */
+    .breadcrumb { display:flex; align-items:center; gap:6px; font-size:0.82rem; margin-bottom:20px; }
+    .breadcrumb a { color:var(--accent); text-decoration:none; }
+    .breadcrumb a:hover { text-decoration:underline; }
+    .bc-sep { color:var(--text-muted); }
 
-    .template-card-top { display: flex; align-items: flex-start; gap: 12px; }
-    .template-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; }
-    .template-card-info { flex: 1; min-width: 0; }
-    .template-name { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
-    .template-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+    /* ── Page header ── */
+    .tpl-page-header { margin-bottom:28px; }
+    .tpl-page-header h1 { font-size:1.5rem; font-weight:800; margin:0 0 6px; }
+    .tpl-page-header p { font-size:0.88rem; color:var(--text-secondary); margin:0; }
 
-    .template-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .type-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 0.68rem; font-weight: 700; }
-    .tag-chip { padding: 2px 7px; border-radius: 99px; font-size: 0.65rem; font-weight: 500; background: var(--bg-subtle); color: var(--text-muted); border: 1px solid var(--border); }
+    /* ── Project picker modal ── */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.35); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:9999; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
 
-    .template-load-btn { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--accent-light); border: 1px solid var(--accent-mid); border-radius: var(--radius); text-decoration: none; font-size: 0.82rem; font-weight: 600; color: var(--accent); transition: background 0.15s, color 0.15s; margin-top: auto; }
-    .template-load-btn:hover { background: var(--accent); color: white; }
+    .proj-picker-list { display:flex; flex-direction:column; gap:8px; max-height:260px; overflow-y:auto; margin:16px 0; }
+    .proj-picker-item { display:flex; align-items:center; gap:12px; padding:12px 14px; border:1.5px solid var(--border); border-radius:10px; cursor:pointer; transition:border-color .12s, background .12s; }
+    .proj-picker-item:hover { border-color:var(--accent); background:var(--accent-light); }
+    .proj-picker-item.selected { border-color:var(--accent); background:var(--accent-light); }
+    .proj-picker-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .proj-picker-name { font-size:0.88rem; font-weight:600; color:var(--text-primary); }
+    .proj-picker-empty { text-align:center; color:var(--text-muted); padding:24px; font-size:0.85rem; }
+    .proj-picker-empty a { color:var(--accent); text-decoration:none; font-weight:600; }
 
-    .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.88rem; }
-    .badge-count { font-weight: 400; opacity: 0.7; }
+    .tpl-empty { text-align:center; padding:56px 24px; color:var(--text-muted); grid-column:1/-1; }
+    .tpl-empty-icon { font-size:2.5rem; margin-bottom:12px; }
+    .tpl-empty h3 { margin:0 0 6px; color:var(--text-secondary); }
   </style>
 </head>
 <body>
 <div id="app-wrap">
   <header id="app-header"></header>
-  <!-- topNav.js injects #mobile-drawer -->
+
   <main id="app-main">
     <div class="app-container">
-      <div class="page-body">
 
-        <div class="page-hero">
-          <h1>📋 Calculation Templates</h1>
-          <p>Pre-configured calculations for common engineering scenarios. Select a template to pre-fill the calculator.</p>
-        </div>
-
-        <div class="filter-tabs" id="filter-tabs">
-          <div class="filter-tab active" data-cat="All">All <span id="count-all" class="badge-count"></span></div>
-          <div class="filter-tab" data-cat="Residential">Residential</div>
-          <div class="filter-tab" data-cat="Commercial">Commercial</div>
-          <div class="filter-tab" data-cat="Foundation">Foundation</div>
-          <div class="filter-tab" data-cat="Infrastructure">Infrastructure</div>
-        </div>
-
-        <div class="template-grid" id="template-grid">
-          <div class="empty-state">Loading templates…</div>
-        </div>
-
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <a href="/dashboard.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span>Report Templates</span>
       </div>
+
+      <!-- Page header -->
+      <div class="tpl-page-header">
+        <h1>📋 Report Templates</h1>
+        <p>Start with a professional template — pre-built with the right calculation blocks for your project type</p>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="filter-tabs" id="filter-tabs">
+        <button class="filter-tab active" data-cat="All">All</button>
+        <button class="filter-tab" data-cat="Structural Steel">Structural Steel</button>
+        <button class="filter-tab" data-cat="Reinforced Concrete">Reinforced Concrete</button>
+        <button class="filter-tab" data-cat="Foundation">Foundation</button>
+        <button class="filter-tab" data-cat="Geotechnical">Geotechnical</button>
+        <button class="filter-tab" data-cat="Timber">Timber</button>
+        <button class="filter-tab" data-cat="Loading">Loading</button>
+        <button class="filter-tab" data-cat="Other">Other</button>
+      </div>
+
+      <!-- Template grid -->
+      <div class="tpl-grid" id="tpl-grid"></div>
+
     </div>
   </main>
+</div>
+
+<!-- Project picker modal -->
+<div class="modal-overlay" id="modal-proj-picker">
+  <div class="modal-box" style="width:480px">
+    <h2 class="modal-title">Choose a Project</h2>
+    <p class="modal-sub">Select which project this report belongs to.</p>
+    <div class="proj-picker-list" id="proj-picker-list"></div>
+    <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:4px">
+      <a href="/projects.html" style="font-size:0.82rem;color:var(--accent);text-decoration:none;font-weight:600;">+ New project</a>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" id="btn-picker-cancel">Cancel</button>
+        <button class="btn btn-primary" id="btn-picker-confirm" disabled>Use Template</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="/js/auth/auth.js"></script>
@@ -76,74 +122,325 @@
 <script src="/js/projects/history.js"></script>
 <script src="/js/subscription/plans.js"></script>
 <script src="/js/ui/topNav.js"></script>
-<script src="/js/data/templates.js"></script>
+
 <script>
-const TYPE_COLORS = {
-  beam: '#2563EB', column: '#D97706', slab: '#16A34A',
-  footing: '#7C3AED', retaining_wall: '#DC2626', connection: '#0891B2'
-};
-const TYPE_LABELS = {
-  beam: 'Beam', column: 'Column', slab: 'Slab',
-  footing: 'Footing', retaining_wall: 'Retaining Wall', connection: 'Connection'
-};
+const TEMPLATES = [
+  {
+    id: 'tpl-steel-beam',
+    name: 'Steel Beam Design Report',
+    category: 'Structural Steel',
+    icon: '🏗',
+    description: 'Standard steel beam calculation with section properties, loading analysis, and full EC3 compliance checks.',
+    blockCount: 10,
+    blocks: [
+      {type:'title'},{type:'project_info'},{type:'design_basis'},
+      {type:'section_header',default_config:{number:'1.0',title:'Design Inputs'}},
+      {type:'code_ref',default_config:{codes:['EN 1993-1-1:2005','UK National Annex']}},
+      {type:'calc_beam'},{type:'section_header',default_config:{number:'2.0',title:'Design Checks'}},
+      {type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}
+    ]
+  },
+  {
+    id: 'tpl-rc-frame',
+    name: 'RC Frame Analysis',
+    category: 'Reinforced Concrete',
+    icon: '🧱',
+    description: 'Complete RC beam and column design package with full EC2 compliance and reinforcement detailing.',
+    blockCount: 11,
+    blocks: [
+      {type:'title'},{type:'project_info'},{type:'design_basis'},
+      {type:'code_ref',default_config:{codes:['EN 1992-1-1:2004','UK National Annex']}},
+      {type:'section_header',default_config:{number:'1.0',title:'RC Beam Design'}},
+      {type:'calc_rc_beam'},
+      {type:'section_header',default_config:{number:'2.0',title:'RC Column Design'}},
+      {type:'calc_rc_column'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}
+    ]
+  },
+  {
+    id: 'tpl-foundation',
+    name: 'Foundation Design Package',
+    category: 'Foundation',
+    icon: '🏗',
+    description: 'Full foundation design from load takedown through pad footing design and EC7 stability checks.',
+    blockCount: 10,
+    blocks: [
+      {type:'title'},{type:'project_info'},{type:'design_basis'},
+      {type:'code_ref',default_config:{codes:['EN 1997-1:2004','EN 1992-1-1:2004']}},
+      {type:'section_header',default_config:{number:'1.0',title:'Load Takedown'}},
+      {type:'calc_load_takedown'},
+      {type:'section_header',default_config:{number:'2.0',title:'Pad Footing Design'}},
+      {type:'calc_footing'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}
+    ]
+  },
+  {
+    id: 'tpl-retaining',
+    name: 'Retaining Wall Report',
+    category: 'Geotechnical',
+    icon: '🧱',
+    description: 'Retaining wall stability checks (overturning, sliding, bearing) and structural design to EC7/EC2.',
+    blockCount: 9,
+    blocks: [
+      {type:'title'},{type:'project_info'},{type:'design_basis'},
+      {type:'code_ref',default_config:{codes:['EN 1997-1:2004','EN 1992-1-1:2004']}},
+      {type:'calc_retaining'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}
+    ]
+  },
+  {
+    id: 'tpl-full-structural',
+    name: 'Full Structural Package',
+    category: 'Structural Steel',
+    icon: '📋',
+    description: 'Comprehensive structural design covering beams, columns, slabs, and foundations in a single report.',
+    blockCount: 13,
+    blocks: [
+      {type:'title'},{type:'project_info'},{type:'design_basis'},
+      {type:'code_ref',default_config:{codes:['EN 1993-1-1:2005','EN 1992-1-1:2004','EN 1991-1-1:2002']}},
+      {type:'calc_load_takedown'},{type:'calc_beam'},{type:'calc_column'},
+      {type:'calc_rc_beam'},{type:'calc_slab'},{type:'calc_footing'},
+      {type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}
+    ]
+  },
+  {
+    id: 'tpl-steel-column',
+    name: 'Steel Column Design',
+    category: 'Structural Steel',
+    icon: '⚙',
+    description: 'EC3 steel column axial compression and buckling checks with combined bending verification.',
+    blockCount: 8,
+    blocks: [
+      {type:'title'},{type:'project_info'},{type:'design_basis'},
+      {type:'code_ref',default_config:{codes:['EN 1993-1-1:2005']}},
+      {type:'calc_column'},{type:'calc_steel_member'},
+      {type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}
+    ]
+  },
+  {
+    id: 'tpl-timber',
+    name: 'Timber Structure Report',
+    category: 'Timber',
+    icon: '🌲',
+    description: 'Timber beam and column design to EC5 with service class, load duration, and instability checks.',
+    blockCount: 9,
+    blocks: [
+      {type:'title'},{type:'project_info'},{type:'design_basis'},
+      {type:'code_ref',default_config:{codes:['EN 1995-1-1:2004']}},
+      {type:'calc_beam'},{type:'calc_timber_col'},
+      {type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}
+    ]
+  },
+  {
+    id: 'tpl-wind-load',
+    name: 'Wind & Load Assessment',
+    category: 'Loading',
+    icon: '🌬',
+    description: 'EC1 wind loading analysis and load takedown for full structural loading assessment.',
+    blockCount: 10,
+    blocks: [
+      {type:'title'},{type:'project_info'},{type:'design_basis'},
+      {type:'code_ref',default_config:{codes:['EN 1991-1-4:2005','EN 1991-1-1:2002']}},
+      {type:'calc_wind'},{type:'calc_load_takedown'},
+      {type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}
+    ]
+  },
+];
 
-let activeCategory = 'All';
+const MAX_BLOCKS = Math.max.apply(null, TEMPLATES.map(function(t){ return t.blockCount; }));
 
-function renderTemplates(category) {
-  const grid = document.getElementById('template-grid');
-  const templates = (window.CalcTemplates || []).filter(t =>
-    category === 'All' || t.category === category ||
-    (category === 'Foundation' && (t.calcType === 'footing' || t.calcType === 'retaining_wall'))
-  );
+let _activeCategory = 'All';
+let _pendingTemplate = null;
+let _selectedProjectId = null;
 
-  if (!templates.length) {
-    grid.innerHTML = '<div class="empty-state">No templates in this category</div>';
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Render grid ───────────────────────────────────────────────
+function renderGrid() {
+  const grid = document.getElementById('tpl-grid');
+  const filtered = _activeCategory === 'All'
+    ? TEMPLATES
+    : TEMPLATES.filter(function(t){ return t.category === _activeCategory; });
+
+  if (!filtered.length) {
+    grid.innerHTML =
+      '<div class="tpl-empty">' +
+        '<div class="tpl-empty-icon">🔍</div>' +
+        '<h3>No templates in this category</h3>' +
+        '<p>Try selecting a different filter above.</p>' +
+      '</div>';
     return;
   }
 
-  grid.innerHTML = templates.map(tpl => {
-    const color = TYPE_COLORS[tpl.calcType] || '#2563EB';
-    const label = TYPE_LABELS[tpl.calcType] || tpl.calcType;
-    const tags = (tpl.tags || []).slice(0, 3).map(t => `<span class="tag-chip">${t}</span>`).join('');
-    const href = tpl.href + '?template=' + tpl.id;
-    return `
-      <div class="template-card" data-cat="${tpl.category}">
-        <div class="template-card-top">
-          <div class="template-icon">${tpl.icon}</div>
-          <div class="template-card-info">
-            <div class="template-name">${tpl.name}</div>
-            <div class="template-desc">${tpl.description}</div>
-          </div>
-        </div>
-        <div class="template-meta">
-          <span class="type-badge" style="background:${color}20;color:${color};border:1px solid ${color}40">${label}</span>
-          <span class="tag-chip">${tpl.category}</span>
-          ${tags}
-        </div>
-        <a href="${href}" class="template-load-btn">Load Template <span>→</span></a>
-      </div>`;
+  grid.innerHTML = filtered.map(function(tpl) {
+    var pct = Math.round((tpl.blockCount / MAX_BLOCKS) * 100);
+    return (
+      '<div class="tpl-card" data-id="' + esc(tpl.id) + '">' +
+        '<div class="tpl-card-icon">' + tpl.icon + '</div>' +
+        '<div>' +
+          '<div class="tpl-card-name">' + esc(tpl.name) + '</div>' +
+          '<div class="tpl-card-cat" style="margin-top:6px">' + esc(tpl.category) + '</div>' +
+        '</div>' +
+        '<div class="tpl-card-desc">' + esc(tpl.description) + '</div>' +
+        '<div>' +
+          '<div class="tpl-card-blocks">' + tpl.blockCount + ' blocks pre-loaded</div>' +
+          '<div class="tpl-card-blocks-bar">' +
+            '<div class="tpl-card-blocks-bar-fill" style="width:' + pct + '%"></div>' +
+          '</div>' +
+        '</div>' +
+        '<button class="tpl-use-btn" data-id="' + esc(tpl.id) + '">Use Template</button>' +
+      '</div>'
+    );
   }).join('');
+
+  grid.querySelectorAll('.tpl-use-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      onUseTemplate(btn.getAttribute('data-id'));
+    });
+  });
+  grid.querySelectorAll('.tpl-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      if (e.target.classList.contains('tpl-use-btn')) return;
+      onUseTemplate(card.getAttribute('data-id'));
+    });
+  });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  TopNav.init();
-  if (!Auth.guard()) return;
+// ── Filter tabs ───────────────────────────────────────────────
+document.getElementById('filter-tabs').addEventListener('click', function(e) {
+  var tab = e.target.closest('.filter-tab');
+  if (!tab) return;
+  document.querySelectorAll('.filter-tab').forEach(function(t){ t.classList.remove('active'); });
+  tab.classList.add('active');
+  _activeCategory = tab.getAttribute('data-cat');
+  renderGrid();
+});
 
-  // Count badge
-  const all = window.CalcTemplates || [];
-  document.getElementById('count-all').textContent = all.length ? `(${all.length})` : '';
+// ── Template selection ────────────────────────────────────────
+function onUseTemplate(tplId) {
+  _pendingTemplate = null;
+  for (var i = 0; i < TEMPLATES.length; i++) {
+    if (TEMPLATES[i].id === tplId) { _pendingTemplate = TEMPLATES[i]; break; }
+  }
+  if (!_pendingTemplate) return;
 
-  renderTemplates('All');
+  var urlParams = new URLSearchParams(window.location.search);
+  var projectId = urlParams.get('project_id');
+  if (projectId) {
+    createReport(projectId);
+    return;
+  }
 
-  // Filter tabs
-  document.getElementById('filter-tabs').addEventListener('click', e => {
-    const tab = e.target.closest('.filter-tab');
-    if (!tab) return;
-    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    activeCategory = tab.dataset.cat;
-    renderTemplates(activeCategory);
+  openProjectPicker();
+}
+
+// ── Project picker ────────────────────────────────────────────
+function openProjectPicker() {
+  _selectedProjectId = null;
+  document.getElementById('btn-picker-confirm').disabled = true;
+  renderProjectList();
+  document.getElementById('modal-proj-picker').classList.add('open');
+}
+
+function closeProjectPicker() {
+  document.getElementById('modal-proj-picker').classList.remove('open');
+  _pendingTemplate = null;
+  _selectedProjectId = null;
+}
+
+function renderProjectList() {
+  var list = document.getElementById('proj-picker-list');
+  var projects = window.Projects ? Projects.list() : [];
+
+  if (!projects.length) {
+    list.innerHTML =
+      '<div class="proj-picker-empty">' +
+        'No projects yet. <a href="/projects.html">Create one first</a>.' +
+      '</div>';
+    return;
+  }
+
+  var COLORS = ['#2563EB','#16A34A','#D97706','#7C3AED','#DC2626','#0891B2','#BE185D','#059669'];
+  list.innerHTML = projects.map(function(p, i) {
+    var color = p.color || COLORS[i % COLORS.length];
+    return (
+      '<div class="proj-picker-item" data-id="' + esc(p.id) + '">' +
+        '<div class="proj-picker-dot" style="background:' + esc(color) + '"></div>' +
+        '<div class="proj-picker-name">' + esc(p.name) + '</div>' +
+      '</div>'
+    );
+  }).join('');
+
+  list.querySelectorAll('.proj-picker-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      list.querySelectorAll('.proj-picker-item').forEach(function(el){ el.classList.remove('selected'); });
+      item.classList.add('selected');
+      _selectedProjectId = item.getAttribute('data-id');
+      document.getElementById('btn-picker-confirm').disabled = false;
+    });
   });
+}
+
+document.getElementById('btn-picker-cancel').addEventListener('click', closeProjectPicker);
+document.getElementById('modal-proj-picker').addEventListener('click', function(e) {
+  if (e.target === this) closeProjectPicker();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeProjectPicker();
+});
+document.getElementById('btn-picker-confirm').addEventListener('click', function() {
+  if (!_selectedProjectId || !_pendingTemplate) return;
+  closeProjectPicker();
+  createReport(_selectedProjectId);
+});
+
+// ── Create report via API ─────────────────────────────────────
+function createReport(projectId) {
+  var tpl = _pendingTemplate;
+  if (!tpl) return;
+
+  // Optimistically disable buttons while creating
+  document.querySelectorAll('.tpl-use-btn[data-id="' + tpl.id + '"]').forEach(function(btn) {
+    btn.textContent = 'Creating…';
+    btn.disabled = true;
+  });
+
+  fetch('/api/reports.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      action: 'create',
+      project_id: projectId,
+      title: tpl.name
+    })
+  })
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(data) {
+    if (!data || !data.report_id) throw new Error('No report_id returned');
+    window.location.href =
+      '/report-builder.html?report_id=' + encodeURIComponent(data.report_id) +
+      '&template_id=' + encodeURIComponent(tpl.id);
+  })
+  .catch(function(err) {
+    console.error('Failed to create report:', err);
+    document.querySelectorAll('.tpl-use-btn[data-id="' + tpl.id + '"]').forEach(function(btn) {
+      btn.textContent = 'Use Template';
+      btn.disabled = false;
+    });
+    alert('Could not create report. Please try again.');
+  });
+}
+
+// ── Boot ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  TopNav.init();
+  var user = Auth.currentUser();
+  if (!user) { window.location.href = '/login'; return; }
+  renderGrid();
 });
 </script>
 </body>

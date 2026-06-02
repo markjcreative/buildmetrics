@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Preview — BuildMetrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <style>
+    /* ── Preview page shell ── */
+    .preview-page-wrap {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: #c8c8c8;
+    }
+
+    /* ── Toolbar ── */
+    #preview-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .preview-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .preview-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preview-report-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      max-width: 280px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-status-chip {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--amber-tint);
+      color: var(--amber);
+      border: 1px solid var(--amber);
+    }
+
+    .preview-status-chip.final {
+      background: var(--green-tint);
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .15s;
+    }
+
+    .btn-back:hover {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+    }
+
+    .btn-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn-toolbar:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .btn-toolbar-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn-toolbar-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: #fff;
+    }
+
+    .btn-toolbar.premium {
+      border-style: dashed;
+      color: var(--text-muted);
+    }
+
+    .btn-toolbar.premium:hover {
+      border-color: var(--purple);
+      color: var(--purple);
+      background: var(--purple-tint);
+      border-style: solid;
+    }
+
+    /* ── Preview container ── */
+    #preview-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 0 48px;
+      background: #c8c8c8;
+    }
+
+    /* ── Loading / error states ── */
+    #preview-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      gap: 16px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .loading-spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--bg-muted);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #preview-error {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--red);
+    }
+
+    /* ── The actual A4 report lives inside an iframe for clean print ── */
+    #report-frame {
+      display: block;
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      border: none;
+      background: white;
+      box-shadow: 0 4px 32px rgba(0,0,0,.30);
+    }
+
+    /* ── Upgrade modal ── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      width: 420px;
+      max-width: 90vw;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .modal-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .modal-desc {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn-upgrade {
+      padding: 10px 24px;
+      border-radius: var(--radius-sm);
+      background: var(--purple);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+
+    .btn-upgrade:hover { background: #6d28d9; }
+
+    .btn-modal-cancel {
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn-modal-cancel:hover { background: var(--bg-muted); }
+
+    @media print {
+      #preview-toolbar { display: none; }
+      #preview-container { padding: 0; background: white; }
+      .modal-backdrop { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="preview-page-wrap">
+
+  <!-- Toolbar -->
+  <div id="preview-toolbar">
+    <div class="preview-toolbar-left">
+      <a id="btn-back" href="#" class="btn-back">← Back to Editor</a>
+      <div class="preview-report-name" id="preview-report-name">Loading…</div>
+      <span class="preview-status-chip" id="preview-status-chip">Draft</span>
+    </div>
+    <div class="preview-toolbar-right">
+      <button class="btn-toolbar" onclick="doPrint()" title="Print to PDF via browser print dialog">
+        🖨 Print
+      </button>
+      <button class="btn-toolbar premium" onclick="showUpgradeModal('pdf')" title="PDF Export — Pro feature">
+        ⬇ Export PDF <span style="font-size:0.7rem;opacity:.7">(Pro)</span>
+      </button>
+      <button class="btn-toolbar premium" onclick="showUpgradeModal('word')" title="Word Export — Pro feature">
+        ⬇ Export Word <span style="font-size:0.7rem;opacity:.7">(Pro)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Preview area -->
+  <div id="preview-container">
+    <div id="preview-loading">
+      <div class="loading-spinner"></div>
+      <span>Generating report preview…</span>
+    </div>
+    <div id="preview-error">
+      <p style="font-size:1.2rem;margin-bottom:8px;">⚠ Could not load report</p>
+      <p id="preview-error-msg" style="color:var(--text-secondary);font-size:0.88rem;"></p>
+    </div>
+    <!-- The rendered A4 report will be injected here -->
+    <div id="report-render-wrap" style="display:none;">
+      <iframe id="report-frame" scrolling="no" title="Report Preview"></iframe>
+    </div>
+  </div>
+
+</div>
+
+<!-- Upgrade modal -->
+<div class="modal-backdrop" id="upgrade-modal">
+  <div class="modal-box">
+    <div class="modal-icon">⭐</div>
+    <div class="modal-title" id="upgrade-modal-title">Upgrade to Pro</div>
+    <div class="modal-desc" id="upgrade-modal-desc">
+      PDF Export is a premium feature. Upgrade to Pro to export professional, print-ready PDF reports complete with your company branding, full calculations, and design checks.
+    </div>
+    <div class="modal-actions">
+      <a href="/pricing.html" class="btn-upgrade">View Pro Plans</a>
+      <button class="btn-modal-cancel" onclick="closeUpgradeModal()">Maybe later</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script src="/js/canvas/BlockRegistry.js"></script>
+<script src="/js/canvas/PreviewRenderer.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  const params     = new URLSearchParams(location.search);
+  const reportId   = params.get('report_id');
+  const backUrl    = reportId ? `/report-builder.html?report_id=${reportId}` : '/dashboard.html';
+
+  document.getElementById('btn-back').href = backUrl;
+
+  // ── Load report data ────────────────────────────────────────────────
+  async function loadReport() {
+    if (!reportId) {
+      showError('No report_id specified in URL.');
+      return;
+    }
+
+    try {
+      const resp = await fetch(`/api/reports.php?action=get&id=${encodeURIComponent(reportId)}`);
+      if (!resp.ok) throw new Error('Server returned ' + resp.status);
+      const data = await resp.json();
+      if (!data || data.error) throw new Error(data && data.error ? data.error : 'Invalid response');
+
+      const report = data.report || data;
+      const blocks = (data.blocks || report.blocks || [])
+        .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
+        .map(b => ({
+          ...b,
+          config:  typeof b.config  === 'string' ? JSON.parse(b.config  || '{}') : (b.config  || {}),
+          results: typeof b.results === 'string' ? JSON.parse(b.results || '{}') : (b.results || {}),
+          validated: Boolean(b.validated),
+        }));
+
+      renderPreview(report, blocks);
+    } catch (err) {
+      console.error('Report load error:', err);
+      showError(err.message || 'Failed to load report.');
+    }
+  }
+
+  // ── Render preview ──────────────────────────────────────────────────
+  function renderPreview(report, blocks) {
+    // Update toolbar
+    const nameEl   = document.getElementById('preview-report-name');
+    const statusEl = document.getElementById('preview-status-chip');
+    nameEl.textContent = report.title || 'Untitled Report';
+    const status = (report.status || 'draft').toLowerCase();
+    statusEl.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    statusEl.className = 'preview-status-chip' + (status === 'final' ? ' final' : '');
+
+    // Generate HTML string via PreviewRenderer
+    let html;
+    try {
+      html = PreviewRenderer.render(report, blocks);
+    } catch (err) {
+      showError('Preview render error: ' + err.message);
+      return;
+    }
+
+    // Inject into iframe for clean scoped rendering + print
+    const frame = document.getElementById('report-frame');
+    frame.onload = _autosizeFrame;
+    frame.srcdoc = html;
+
+    // Show
+    document.getElementById('preview-loading').style.display = 'none';
+    document.getElementById('report-render-wrap').style.display = 'block';
+  }
+
+  function _autosizeFrame() {
+    const frame = document.getElementById('report-frame');
+    try {
+      const h = frame.contentDocument.body.scrollHeight;
+      frame.style.height = (h + 40) + 'px';
+    } catch (_) {
+      frame.style.height = '1120px'; // A4 fallback
+    }
+  }
+
+  // ── Error state ─────────────────────────────────────────────────────
+  function showError(msg) {
+    document.getElementById('preview-loading').style.display = 'none';
+    const errEl = document.getElementById('preview-error');
+    document.getElementById('preview-error-msg').textContent = msg;
+    errEl.style.display = 'block';
+  }
+
+  // ── Print ────────────────────────────────────────────────────────────
+  window.doPrint = function () {
+    const frame = document.getElementById('report-frame');
+    if (frame && frame.contentWindow) {
+      frame.contentWindow.print();
+    } else {
+      window.print();
+    }
+  };
+
+  // ── Upgrade modal ────────────────────────────────────────────────────
+  window.showUpgradeModal = function (type) {
+    const modal    = document.getElementById('upgrade-modal');
+    const titleEl  = document.getElementById('upgrade-modal-title');
+    const descEl   = document.getElementById('upgrade-modal-desc');
+
+    if (type === 'word') {
+      titleEl.textContent = 'Word Export — Pro Feature';
+      descEl.textContent  = 'Word Export is a premium feature. Upgrade to Pro to export your calculations as a fully formatted .docx document, ready for submission and review.';
+    } else {
+      titleEl.textContent = 'PDF Export — Pro Feature';
+      descEl.textContent  = 'PDF Export is a premium feature. Upgrade to Pro to export professional, print-ready PDF reports complete with your company branding, full calculations, and design checks.';
+    }
+
+    modal.classList.add('open');
+
+    // Close on backdrop click
+    modal.addEventListener('click', function onBackdrop(e) {
+      if (e.target === modal) { closeUpgradeModal(); modal.removeEventListener('click', onBackdrop); }
+    });
+  };
+
+  window.closeUpgradeModal = function () {
+    document.getElementById('upgrade-modal').classList.remove('open');
+  };
+
+  // Close modal on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeUpgradeModal();
+  });
+
+  // ── Boot ─────────────────────────────────────────────────────────────
+  loadReport();
+
+})();
+</script>
+</body>
+</html>

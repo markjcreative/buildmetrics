@@ -6,14 +6,16 @@ const TopNav = (() => {
 
   // Maps pathname → nav highlight key
   const NAV_MAP = {
-    '/projects.html':   'projects',
-    '/tools.html':      'tools',
-    '/standards.html':  'standards',
-    '/templates.html':  'templates',
-    '/ai-assistant.html': 'ai',
-    '/tutorials.html':  'tutorials',
-    '/faq.html':        'faq',
-    '/notifications.html': 'notifications',
+    '/projects.html':        'projects',
+    '/tools.html':           'tools',
+    '/standards.html':       'standards',
+    '/templates.html':       'reports',
+    '/report-builder.html':  'reports',
+    '/report-preview.html':  'reports',
+    '/ai-assistant.html':    'ai',
+    '/tutorials.html':       'tutorials',
+    '/faq.html':             'faq',
+    '/notifications.html':   'notifications',
   };
 
   function init(opts) {
@@ -114,9 +116,9 @@ const TopNav = (() => {
       // Nav links
       '<nav class="header-nav">' +
         '<a href="/projects.html" data-nav="projects">Projects</a>' +
+        '<a href="/templates.html" data-nav="reports">Reports</a>' +
         '<a href="/tools.html" data-nav="tools">Quick Tools</a>' +
         '<a href="/standards.html" data-nav="standards">Standards</a>' +
-        '<a href="/templates.html" data-nav="templates">Templates</a>' +
         '<a href="/tutorials.html" data-nav="tutorials">Tutorials</a>' +
         '<a href="/faq.html" data-nav="faq">FAQ</a>' +
       '</nav>' +
@@ -145,6 +147,7 @@ const TopNav = (() => {
     const navItems = [
       { href: '/dashboard.html',    label: 'Dashboard',    bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/></svg>' },
       { href: '/projects.html',     label: 'Projects',     bg: '#065F46', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18"/><rect x="3" y="3" width="4" height="4" rx="1" fill="white"/></svg>' },
+      { href: '/templates.html',    label: 'Report Builder', bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/><circle cx="18" cy="18" r="4" fill="#2563EB"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M18 16v4M16 18h4"/></svg>' },
       { href: '/calcs/beam.html',   label: 'Beam Design',  bg: '#1E40AF', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="white" stroke-width="1.6" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>' },
       { href: '/calcs/column.html', label: 'Column',       bg: '#6B21A8', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="18" rx="1.5" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.6" stroke-linecap="round" d="M6 3h12M6 21h12"/></svg>' },
       { href: '/calcs/concrete-column.html', label: 'Concrete Col', bg: '#78350F', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.4" stroke-dasharray="2 2" d="M9 6v12M15 6v12M5 9h14M5 15h14"/></svg>' },

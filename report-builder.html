@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report Builder — BuildMetrics</title>
+  <meta name="description" content="Drag-and-drop engineering report builder — BuildMetrics" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/canvas.css" />
+</head>
+
+<body>
+<div id="app-wrap">
+  <!-- ── App header (injected by TopNav.init()) ─────────────── -->
+  <header id="app-header"></header>
+
+  <!-- ── Canvas editor top bar ─────────────────────────────── -->
+  <div class="cb-topbar" id="cb-topbar">
+    <a href="/projects.html" class="cb-back-btn" id="cb-back-btn">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back
+    </a>
+    <div class="cb-topbar-divider"></div>
+
+    <div class="cb-title-wrap">
+      <span class="cb-title-icon">📋</span>
+      <input
+        type="text"
+        class="cb-title-input"
+        id="cb-title-input"
+        value="Untitled Report"
+        placeholder="Report title..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </div>
+
+    <span class="cb-save-status" id="cb-save-status">All saved</span>
+
+    <select class="cb-status-select" id="cb-status-select" title="Report status">
+      <option value="draft">Draft</option>
+      <option value="review">Needs Review</option>
+      <option value="checked">Engineer Checked</option>
+      <option value="approved">Approved</option>
+    </select>
+
+    <button class="cb-btn" id="cb-preview-btn" title="Preview report">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+      <span>Preview</span>
+    </button>
+
+    <div class="cb-export-wrap" id="cb-export-wrap">
+      <button class="cb-btn" id="cb-export-btn">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+        <span>Export</span>
+        <svg width="10" height="10" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+      <div class="cb-export-menu" id="cb-export-menu">
+        <button class="cb-export-item" id="exp-pdf">
+          <span>📄</span> PDF Report
+          <span class="exp-badge">Premium</span>
+        </button>
+        <button class="cb-export-item" id="exp-word">
+          <span>📝</span> Word Document
+          <span class="exp-badge">Premium</span>
+        </button>
+        <button class="cb-export-item" id="exp-html">
+          <span>🌐</span> HTML Preview
+          <span class="exp-badge free">Free</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main 2-pane layout ─────────────────────────────────── -->
+  <div class="cb-layout" id="cb-layout">
+
+    <!-- ── Left sidebar: block palette ───────────────────────── -->
+    <aside class="cb-sidebar" id="cb-sidebar">
+      <div class="cbs-search">
+        <input type="text" id="cbs-search-input" placeholder="Search blocks…" autocomplete="off" />
+      </div>
+
+      <!-- Document -->
+      <div class="cbs-category">Document</div>
+      <div class="cbs-block" data-type="title" draggable="true"><span class="cbs-block-icon">📄</span> Report Title</div>
+      <div class="cbs-block" data-type="section_header" draggable="true"><span class="cbs-block-icon">📑</span> Section Header</div>
+      <div class="cbs-block" data-type="toc" draggable="true"><span class="cbs-block-icon">📋</span> Table of Contents</div>
+      <div class="cbs-block" data-type="page_break" draggable="true"><span class="cbs-block-icon">⬛</span> Page Break</div>
+
+      <!-- Project -->
+      <div class="cbs-category">Project</div>
+      <div class="cbs-block" data-type="project_info" draggable="true"><span class="cbs-block-icon">🏢</span> Project Info</div>
+      <div class="cbs-block" data-type="design_basis" draggable="true"><span class="cbs-block-icon">📐</span> Design Basis</div>
+      <div class="cbs-block" data-type="scope" draggable="true"><span class="cbs-block-icon">📝</span> Scope of Works</div>
+
+      <!-- Content -->
+      <div class="cbs-category">Content</div>
+      <div class="cbs-block" data-type="text" draggable="true"><span class="cbs-block-icon">✏️</span> Text / Notes</div>
+      <div class="cbs-block" data-type="image" draggable="true"><span class="cbs-block-icon">🖼️</span> Image / Drawing</div>
+      <div class="cbs-block" data-type="code_ref" draggable="true"><span class="cbs-block-icon">📚</span> Code Reference</div>
+      <div class="cbs-block" data-type="load_table" draggable="true"><span class="cbs-block-icon">⚡</span> Load Combo Table</div>
+
+      <!-- Calculations -->
+      <div class="cbs-category">Calculations</div>
+      <div class="cbs-block" data-type="calc_beam" draggable="true"><span class="cbs-block-icon">🏗️</span> Steel Beam</div>
+      <div class="cbs-block" data-type="calc_column" draggable="true"><span class="cbs-block-icon">⚙️</span> Steel Column</div>
+      <div class="cbs-block" data-type="calc_rc_beam" draggable="true"><span class="cbs-block-icon">🧱</span> RC Beam</div>
+      <div class="cbs-block" data-type="calc_rc_column" draggable="true"><span class="cbs-block-icon">🏛️</span> RC Column</div>
+      <div class="cbs-block" data-type="calc_slab" draggable="true"><span class="cbs-block-icon">📐</span> RC Slab</div>
+      <div class="cbs-block" data-type="calc_footing" draggable="true"><span class="cbs-block-icon">🏗️</span> Pad Footing</div>
+      <div class="cbs-block" data-type="calc_retaining" draggable="true"><span class="cbs-block-icon">🧱</span> Retaining Wall</div>
+      <div class="cbs-block" data-type="calc_connection" draggable="true"><span class="cbs-block-icon">🔩</span> Connection</div>
+      <div class="cbs-block" data-type="calc_timber_col" draggable="true"><span class="cbs-block-icon">🌲</span> Timber Column</div>
+      <div class="cbs-block" data-type="calc_steel_member" draggable="true"><span class="cbs-block-icon">🔧</span> Steel Member (EC3)</div>
+      <div class="cbs-block" data-type="calc_bbs" draggable="true"><span class="cbs-block-icon">📋</span> BBS</div>
+      <div class="cbs-block" data-type="calc_section" draggable="true"><span class="cbs-block-icon">📐</span> Section Props</div>
+      <div class="cbs-block" data-type="calc_wind" draggable="true"><span class="cbs-block-icon">🌬️</span> Wind Loading</div>
+      <div class="cbs-block" data-type="calc_load_takedown" draggable="true"><span class="cbs-block-icon">⬇️</span> Load Takedown</div>
+
+      <!-- Results -->
+      <div class="cbs-category">Results</div>
+      <div class="cbs-block" data-type="checks_summary" draggable="true"><span class="cbs-block-icon">✅</span> Checks Summary</div>
+      <div class="cbs-block" data-type="utilisation_chart" draggable="true"><span class="cbs-block-icon">📊</span> Utilisation Chart</div>
+
+      <!-- Workflow -->
+      <div class="cbs-category">Workflow</div>
+      <div class="cbs-block" data-type="signoff" draggable="true"><span class="cbs-block-icon">🖊️</span> Engineer Sign-off</div>
+      <div class="cbs-block" data-type="revision_history" draggable="true"><span class="cbs-block-icon">📅</span> Revision History</div>
+      <div class="cbs-block" data-type="engineer_notes" draggable="true"><span class="cbs-block-icon">💬</span> Engineer Notes</div>
+    </aside>
+
+    <!-- ── Canvas area ─────────────────────────────────────── -->
+    <main class="cb-canvas" id="cb-canvas">
+      <div class="cb-canvas-inner" id="cb-canvas-inner">
+
+        <!-- Empty state shown when no blocks present -->
+        <div class="canvas-empty-state" id="canvas-empty-state">
+          <div class="canvas-empty-icon">📋</div>
+          <div class="canvas-empty-title">Start building your report</div>
+          <p class="canvas-empty-sub">Drag blocks from the left panel onto the canvas, or click the button below to add your first block.</p>
+          <button class="cb-btn primary" onclick="RB.showBlockPicker()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+            Add First Block
+          </button>
+        </div>
+
+        <!-- Blocks render here (managed by Canvas.js / RB.renderBlock) -->
+        <div id="canvas-blocks-list"></div>
+
+        <!-- Add block button at bottom -->
+        <button class="canvas-add-btn" id="canvas-add-btn" style="display:none;" onclick="RB.showBlockPicker()">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+          Add block
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Sidebar toggle (mobile) -->
+  <button class="cb-sidebar-toggle" id="cb-sidebar-toggle" title="Toggle block palette">☰</button>
+</div>
+
+<!-- ══ Block Picker Modal ═══════════════════════════════════════ -->
+<div class="block-picker-overlay" id="block-picker-overlay">
+  <div class="block-picker">
+    <div class="block-picker-header">
+      <h3>Insert block</h3>
+      <button class="block-picker-close" onclick="RB.closeBlockPicker()">✕</button>
+    </div>
+    <input type="text" class="block-picker-search" id="bp-search" placeholder="Search block types…" oninput="RB.filterBlockPicker(this.value)" />
+    <div class="block-picker-grid" id="bp-grid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ══ Upgrade Modal ═════════════════════════════════════════════ -->
+<div class="upgrade-modal-overlay" id="upgrade-modal-overlay">
+  <div class="upgrade-modal">
+    <div class="upgrade-modal-icon">⭐</div>
+    <h3>Premium Feature</h3>
+    <p>PDF and Word export are available on the Professional plan. Upgrade to unlock high-quality exports with your company branding.</p>
+    <div class="upgrade-modal-actions">
+      <button onclick="document.getElementById('upgrade-modal-overlay').classList.remove('open')">Maybe later</button>
+      <button class="upgrade-cta" onclick="window.location.href='/subscription.html'">Upgrade to Pro</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Scripts ═══════════════════════════════════════════════════ -->
+<script src="/js/auth/auth.js"></script>
+<script src="/js/projects/projects.js"></script>
+<script src="/js/projects/history.js"></script>
+<script src="/js/subscription/plans.js"></script>
+<script src="/js/ui/topNav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script src="/js/canvas/BlockRegistry.js"></script>
+<script src="/js/canvas/Canvas.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Report Builder — page-level controller (RB)
+   Handles URL params, top-bar wiring, block rendering,
+   sidebar drag-to-canvas, auto-save, and all block HTML.
+   Assumes Canvas.init() / Canvas.addBlock() / Canvas.save()
+   are exposed by the parallel-built Canvas.js. When that file
+   is not yet present this page falls back to its own built-in
+   block renderer.
+═══════════════════════════════════════════════════════════════ */
+
+'use strict';
+
+const RB = (() => {
+
+  /* ── State ─────────────────────────────────────────────────── */
+  let reportId   = null;
+  let projectId  = null;
+  let reportData = null;        // { id, title, status, project_id, blocks:[] }
+  let blocks     = [];          // ordered array of block objects
+  let blockCounter = 0;         // for auto-labelling B1, B2 …
+  let saveTimer  = null;
+  let sortable   = null;
+
+  /* ── Block catalogue (type → meta) ───────────────────────── */
+  const BLOCK_TYPES = [
+    // Document
+    { type:'title',            icon:'📄',  label:'Report Title',       cat:'Document' },
+    { type:'section_header',   icon:'📑',  label:'Section Header',      cat:'Document' },
+    { type:'toc',              icon:'📋',  label:'Table of Contents',   cat:'Document' },
+    { type:'page_break',       icon:'⬛',  label:'Page Break',           cat:'Document' },
+    // Project
+    { type:'project_info',     icon:'🏢',  label:'Project Info',        cat:'Project' },
+    { type:'design_basis',     icon:'📐',  label:'Design Basis',        cat:'Project' },
+    { type:'scope',            icon:'📝',  label:'Scope of Works',      cat:'Project' },
+    // Content
+    { type:'text',             icon:'✏️',  label:'Text / Notes',        cat:'Content' },
+    { type:'image',            icon:'🖼️',  label:'Image / Drawing',     cat:'Content' },
+    { type:'code_ref',         icon:'📚',  label:'Code Reference',      cat:'Content' },
+    { type:'load_table',       icon:'⚡',  label:'Load Combo Table',    cat:'Content' },
+    // Calculations
+    { type:'calc_beam',        icon:'🏗️',  label:'Steel Beam',          cat:'Calculations' },
+    { type:'calc_column',      icon:'⚙️',  label:'Steel Column',        cat:'Calculations' },
+    { type:'calc_rc_beam',     icon:'🧱',  label:'RC Beam',             cat:'Calculations' },
+    { type:'calc_rc_column',   icon:'🏛️',  label:'RC Column',           cat:'Calculations' },
+    { type:'calc_slab',        icon:'📐',  label:'RC Slab',             cat:'Calculations' },
+    { type:'calc_footing',     icon:'🏗️',  label:'Pad Footing',         cat:'Calculations' },
+    { type:'calc_retaining',   icon:'🧱',  label:'Retaining Wall',      cat:'Calculations' },
+    { type:'calc_connection',  icon:'🔩',  label:'Connection',          cat:'Calculations' },
+    { type:'calc_timber_col',  icon:'🌲',  label:'Timber Column',       cat:'Calculations' },
+    { type:'calc_steel_member',icon:'🔧',  label:'Steel Member (EC3)',  cat:'Calculations' },
+    { type:'calc_bbs',         icon:'📋',  label:'BBS',                 cat:'Calculations' },
+    { type:'calc_section',     icon:'📐',  label:'Section Props',       cat:'Calculations' },
+    { type:'calc_wind',        icon:'🌬️',  label:'Wind Loading',        cat:'Calculations' },
+    { type:'calc_load_takedown',icon:'⬇️', label:'Load Takedown',       cat:'Calculations' },
+    // Results
+    { type:'checks_summary',   icon:'✅',  label:'Checks Summary',      cat:'Results' },
+    { type:'utilisation_chart',icon:'📊',  label:'Utilisation Chart',   cat:'Results' },
+    // Workflow
+    { type:'signoff',          icon:'🖊️',  label:'Engineer Sign-off',   cat:'Workflow' },
+    { type:'revision_history', icon:'📅',  label:'Revision History',    cat:'Workflow' },
+    { type:'engineer_notes',   icon:'💬',  label:'Engineer Notes',      cat:'Workflow' },
+  ];
+
+  /* ── Solver map ─────────────────────────────────────────────── */
+  const SOLVERS = {
+    calc_beam:          { file:'/js/engine/beamDesignSolver.js',       global:'BeamDesignSolver'    },
+    calc_column:        { file:'/js/engine/columnSolver.js',           global:'ColumnSolver'        },
+    calc_rc_beam:       { file:'/js/engine/rcBeamSolver.js',           global:'RcBeamSolver'        },
+    calc_rc_column:     { file:'/js/engine/concreteColumnSolver.js',   global:'ConcreteColumnSolver'},
+    calc_slab:          { file:'/js/engine/slabSolver.js',             global:'SlabSolver'          },
+    calc_footing:       { file:'/js/engine/footingSolver.js',          global:'FootingSolver'       },
+    calc_retaining:     { file:'/js/engine/retainingWallSolver.js',    global:'RetainingWallSolver' },
+    calc_connection:    { file:'/js/engine/connectionSolver.js',       global:'ConnectionSolver'    },
+    calc_timber_col:    { file:'/js/engine/timberColumnSolver.js',     global:'TimberColumnSolver'  },
+    calc_steel_member:  { file:'/js/engine/steelMemberSolver.js',      global:'SteelMemberSolver'   },
+    calc_bbs:           { file:'/js/engine/bbsSolver.js',              global:'BBSSolver'           },
+    calc_section:       { file:'/js/engine/sectionSolver.js',          global:'SectionSolver'       },
+    calc_wind:          { file:'/js/engine/windSolver.js',             global:'WindSolver'          },
+    calc_load_takedown: { file:'/js/engine/loadTakedownSolver.js',     global:'LoadTakedownSolver'  },
+  };
+
+  /* ──────────────────────────────────────────────────────────── *
+   *  INIT
+   * ──────────────────────────────────────────────────────────── */
+  function init() {
+    TopNav.init();
+
+    const params = new URLSearchParams(window.location.search);
+    reportId  = params.get('report_id') || null;
+    projectId = params.get('project_id') || null;
+
+    if (reportId) {
+      _loadReport(reportId);
+    } else if (projectId) {
+      _createReport(projectId);
+    } else {
+      // No context — redirect to projects
+      window.location.href = '/projects.html';
+      return;
+    }
+
+    _wireTopBar();
+    _wireSidebar();
+    _wireBlockPicker();
+    _wireMobile();
+  }
+
+  /* ── Report lifecycle ─────────────────────────────────────── */
+  function _loadReport(id) {
+    fetch('/api/reports.php?action=get&id=' + encodeURIComponent(id))
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) { _showError(data.error); return; }
+        reportData = data;
+        reportId   = data.id;
+        blocks     = Array.isArray(data.blocks) ? data.blocks : [];
+        _applyReportMeta(data);
+        _renderAllBlocks();
+        // If Canvas.js is loaded, delegate
+        if (window.Canvas) Canvas.init(document.getElementById('canvas-blocks-list'), data);
+      })
+      .catch(() => _showError('Failed to load report. Please try again.'));
+  }
+
+  function _createReport(projId) {
+    fetch('/api/reports.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create', project_id: projId })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) { _showError(data.error); return; }
+        reportData = data;
+        reportId   = data.id;
+        blocks     = [];
+        _applyReportMeta(data);
+        _renderAllBlocks();
+        // Update URL without reload
+        window.history.replaceState({}, '', '/report-builder.html?report_id=' + reportId);
+        if (window.Canvas) Canvas.init(document.getElementById('canvas-blocks-list'), data);
+      })
+      .catch(() => {
+        // Offline / dev: work with empty report
+        reportId = 'local-' + Date.now();
+        reportData = { id: reportId, title: 'New Report', status: 'draft', blocks: [] };
+        blocks = [];
+        _renderAllBlocks();
+      });
+  }
+
+  function _applyReportMeta(data) {
+    if (data.title) document.getElementById('cb-title-input').value = data.title;
+    if (data.status) document.getElementById('cb-status-select').value = data.status;
+    // Back link: go to project page if we know the project
+    if (data.project_id) {
+      document.getElementById('cb-back-btn').href = '/projects.html';
+    }
+    document.title = (data.title || 'Report') + ' — BuildMetrics';
+  }
+
+  /* ── Top bar wiring ───────────────────────────────────────── */
+  function _wireTopBar() {
+    const titleInput  = document.getElementById('cb-title-input');
+    const statusSel   = document.getElementById('cb-status-select');
+    const previewBtn  = document.getElementById('cb-preview-btn');
+    const exportBtn   = document.getElementById('cb-export-btn');
+    const exportMenu  = document.getElementById('cb-export-menu');
+
+    // Title edit → auto-save
+    titleInput.addEventListener('input', () => {
+      document.title = (titleInput.value || 'Report') + ' — BuildMetrics';
+      _scheduleSave();
+    });
+
+    // Status change
+    statusSel.addEventListener('change', () => {
+      _saveStatus(statusSel.value);
+    });
+
+    // Preview
+    previewBtn.addEventListener('click', () => {
+      if (!reportId) return;
+      window.open('/report-preview.html?report_id=' + encodeURIComponent(reportId), '_blank');
+    });
+
+    // Export dropdown toggle
+    exportBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      exportMenu.classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => exportMenu.classList.remove('open'));
+
+    document.getElementById('exp-pdf').addEventListener('click', () => {
+      exportMenu.classList.remove('open');
+      document.getElementById('upgrade-modal-overlay').classList.add('open');
+    });
+
+    document.getElementById('exp-word').addEventListener('click', () => {
+      exportMenu.classList.remove('open');
+      document.getElementById('upgrade-modal-overlay').classList.add('open');
+    });
+
+    document.getElementById('exp-html').addEventListener('click', () => {
+      exportMenu.classList.remove('open');
+      _exportHTML();
+    });
+
+    // Close upgrade modal on overlay click
+    document.getElementById('upgrade-modal-overlay').addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+  }
+
+  function _saveStatus(status) {
+    if (!reportId) return;
+    fetch('/api/reports.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update', id: reportId, status })
+    }).catch(() => {});
+  }
+
+  function _exportHTML() {
+    window.open('/report-preview.html?report_id=' + encodeURIComponent(reportId) + '&download=1', '_blank');
+  }
+
+  /* ── Auto-save ────────────────────────────────────────────── */
+  function _scheduleSave() {
+    clearTimeout(saveTimer);
+    _setSaveStatus('saving', 'Saving…');
+    saveTimer = setTimeout(_saveAll, 2000);
+  }
+
+  function _saveAll() {
+    if (!reportId) return;
+    const payload = {
+      action: 'save',
+      id: reportId,
+      title: document.getElementById('cb-title-input').value,
+      status: document.getElementById('cb-status-select').value,
+      blocks: _collectBlockData()
+    };
+
+    // Delegate to Canvas.js if available
+    if (window.Canvas && Canvas.save) {
+      Canvas.save();
+      _setSaveStatus('saved', 'All saved');
+      return;
+    }
+
+    fetch('/api/reports.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) _setSaveStatus('error', 'Save failed');
+        else _setSaveStatus('saved', 'All saved');
+      })
+      .catch(() => _setSaveStatus('error', 'Save failed'));
+  }
+
+  function _setSaveStatus(cls, msg) {
+    const el = document.getElementById('cb-save-status');
+    el.className = 'cb-save-status ' + cls;
+    el.textContent = msg;
+  }
+
+  function _collectBlockData() {
+    const list = document.getElementById('canvas-blocks-list');
+    const blockEls = list.querySelectorAll('.canvas-block');
+    return Array.from(blockEls).map(el => {
+      const bid = el.dataset.blockId;
+      const b   = blocks.find(x => x.id === bid) || {};
+      // Collect current form values
+      const inputs = el.querySelectorAll('[name]');
+      const fields = {};
+      inputs.forEach(inp => {
+        if (inp.type === 'checkbox') fields[inp.name] = inp.checked;
+        else fields[inp.name] = inp.value;
+      });
+      return { ...b, fields };
+    });
+  }
+
+  /* ── Sidebar search filter ─────────────────────────────────── */
+  function _wireSidebar() {
+    const searchInput = document.getElementById('cbs-search-input');
+    searchInput.addEventListener('input', function() {
+      const q = this.value.toLowerCase().trim();
+      document.querySelectorAll('.cbs-block').forEach(el => {
+        const label = el.textContent.toLowerCase();
+        el.dataset.hidden = (q && !label.includes(q)) ? 'true' : 'false';
+      });
+    });
+
+    // Sidebar drag → canvas
+    document.querySelectorAll('.cbs-block[draggable="true"]').forEach(el => {
+      el.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', el.dataset.type);
+        e.dataTransfer.effectAllowed = 'copy';
+        document.getElementById('cb-canvas').classList.add('dragging-active');
+      });
+      el.addEventListener('dragend', () => {
+        document.getElementById('cb-canvas').classList.remove('dragging-active');
+      });
+    });
+
+    // Canvas drop
+    const canvas = document.getElementById('cb-canvas');
+    canvas.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      canvas.classList.add('drag-over');
+    });
+    canvas.addEventListener('dragleave', () => canvas.classList.remove('drag-over'));
+    canvas.addEventListener('drop', e => {
+      e.preventDefault();
+      canvas.classList.remove('drag-over');
+      canvas.classList.remove('dragging-active');
+      const type = e.dataTransfer.getData('text/plain');
+      if (type) addBlock(type);
+    });
+
+    // Empty state drop
+    const empty = document.getElementById('canvas-empty-state');
+    empty.addEventListener('dragover', e => { e.preventDefault(); empty.classList.add('drag-over'); });
+    empty.addEventListener('dragleave', () => empty.classList.remove('drag-over'));
+    empty.addEventListener('drop', e => {
+      e.preventDefault();
+      empty.classList.remove('drag-over');
+      const type = e.dataTransfer.getData('text/plain');
+      if (type) addBlock(type);
+    });
+
+    // Init SortableJS on canvas blocks list (for reordering)
+    _initSortable();
+  }
+
+  function _initSortable() {
+    const list = document.getElementById('canvas-blocks-list');
+    if (!window.Sortable) return;
+    sortable = Sortable.create(list, {
+      animation: 160,
+      handle: '.canvas-block-drag',
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      dragClass: 'is-dragging',
+      onEnd() { _scheduleSave(); }
+    });
+  }
+
+  /* ── Block Picker modal ───────────────────────────────────── */
+  function _wireBlockPicker() {
+    const overlay = document.getElementById('block-picker-overlay');
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) closeBlockPicker();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeBlockPicker();
+    });
+    _populateBlockPicker();
+  }
+
+  function _populateBlockPicker(filter) {
+    const grid = document.getElementById('bp-grid');
+    const q = (filter || '').toLowerCase().trim();
+    grid.innerHTML = '';
+
+    let lastCat = null;
+    BLOCK_TYPES.forEach(bt => {
+      if (q && !bt.label.toLowerCase().includes(q) && !bt.cat.toLowerCase().includes(q)) return;
+      if (bt.cat !== lastCat) {
+        const catEl = document.createElement('div');
+        catEl.className = 'block-picker-cat-label';
+        catEl.textContent = bt.cat;
+        grid.appendChild(catEl);
+        lastCat = bt.cat;
+      }
+      const item = document.createElement('div');
+      item.className = 'block-picker-item';
+      item.innerHTML = '<span class="bpi-icon">' + bt.icon + '</span>' + bt.label;
+      item.addEventListener('click', () => {
+        addBlock(bt.type);
+        closeBlockPicker();
+      });
+      grid.appendChild(item);
+    });
+  }
+
+  function showBlockPicker() {
+    document.getElementById('block-picker-overlay').classList.add('open');
+    document.getElementById('bp-search').value = '';
+    _populateBlockPicker();
+    setTimeout(() => document.getElementById('bp-search').focus(), 80);
+  }
+
+  function closeBlockPicker() {
+    document.getElementById('block-picker-overlay').classList.remove('open');
+  }
+
+  function filterBlockPicker(val) {
+    _populateBlockPicker(val);
+  }
+
+  /* ── Block rendering ──────────────────────────────────────── */
+  function _renderAllBlocks() {
+    const list = document.getElementById('canvas-blocks-list');
+    list.innerHTML = '';
+    blocks.forEach(b => _appendBlockEl(b));
+    _updateEmptyState();
+  }
+
+  function addBlock(type, data) {
+    if (window.Canvas && Canvas.addBlock) {
+      Canvas.addBlock(type);
+      return;
+    }
+    blockCounter++;
+    const meta = BLOCK_TYPES.find(b => b.type === type) || { icon: '📦', label: type };
+    const block = {
+      id:      'b-' + Date.now() + '-' + blockCounter,
+      type,
+      label:   'B' + blockCounter,
+      icon:    meta.icon,
+      name:    meta.label,
+      fields:  data || {},
+      result:  null
+    };
+    blocks.push(block);
+    _appendBlockEl(block);
+    _updateEmptyState();
+    _scheduleSave();
+    // Scroll to new block
+    setTimeout(() => {
+      const el = document.querySelector('[data-block-id="' + block.id + '"]');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
+  }
+
+  function _appendBlockEl(block) {
+    const list = document.getElementById('canvas-blocks-list');
+    const el   = document.createElement('div');
+    el.className = 'canvas-block';
+    el.dataset.blockId = block.id;
+    el.dataset.type    = block.type;
+    el.innerHTML = _buildBlockHTML(block);
+    list.appendChild(el);
+    _wireBlockEl(el, block);
+  }
+
+  function _buildBlockHTML(block) {
+    return (
+      '<div class="canvas-block-header">' +
+        '<span class="canvas-block-drag" title="Drag to reorder">⠿</span>' +
+        '<span class="canvas-block-icon">' + block.icon + '</span>' +
+        '<span class="canvas-block-name">' + _esc(block.name) + '</span>' +
+        '<span class="canvas-block-label">' + _esc(block.label) + '</span>' +
+        '<div class="canvas-block-actions" style="position:relative;">' +
+          '<button class="canvas-block-btn collapse-btn" title="Collapse/Expand">▾</button>' +
+          '<button class="canvas-block-btn delete delete-btn" title="Remove block">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="canvas-block-body">' +
+        _buildBlockBody(block) +
+      '</div>'
+    );
+  }
+
+  function _wireBlockEl(el, block) {
+    // Collapse toggle
+    el.querySelector('.collapse-btn').addEventListener('click', () => {
+      el.classList.toggle('collapsed');
+      el.querySelector('.collapse-btn').textContent = el.classList.contains('collapsed') ? '▸' : '▾';
+    });
+
+    // Delete with inline confirm
+    el.querySelector('.delete-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      const existing = el.querySelector('.delete-confirm-popup');
+      if (existing) { existing.remove(); return; }
+      const popup = document.createElement('div');
+      popup.className = 'delete-confirm-popup';
+      popup.innerHTML = '<p>Remove this block?</p><div class="dc-btns"><button class="cancel-del">Cancel</button><button class="confirm-delete">Remove</button></div>';
+      this.parentElement.style.position = 'relative';
+      this.parentElement.appendChild(popup);
+      popup.querySelector('.cancel-del').onclick = () => popup.remove();
+      popup.querySelector('.confirm-delete').onclick = () => {
+        blocks = blocks.filter(b => b.id !== block.id);
+        el.remove();
+        _updateEmptyState();
+        _scheduleSave();
+      };
+      setTimeout(() => document.addEventListener('click', () => popup.remove(), { once: true }), 10);
+    });
+
+    // Wire calculate buttons in calc blocks
+    const calcBtn = el.querySelector('.calc-run-btn');
+    if (calcBtn) {
+      calcBtn.addEventListener('click', () => _runCalc(el, block));
+    }
+
+    // Wire AI draft buttons
+    const aiBtn = el.querySelector('.cb-ai-btn');
+    if (aiBtn) {
+      aiBtn.addEventListener('click', () => _aiDraft(el, block));
+    }
+
+    // Wire any change → auto-save
+    el.querySelectorAll('input, select, textarea').forEach(inp => {
+      inp.addEventListener('input', _scheduleSave);
+      inp.addEventListener('change', _scheduleSave);
+    });
+
+    // Wire add-row buttons
+    const addCodeRef = el.querySelector('.btn-add-code-ref');
+    if (addCodeRef) addCodeRef.addEventListener('click', () => _addCodeRefRow(el));
+
+    const addRevision = el.querySelector('.btn-add-revision');
+    if (addRevision) addRevision.addEventListener('click', () => _addRevisionRow(el));
+
+    // Image upload
+    const imgInput = el.querySelector('.image-file-input');
+    if (imgInput) imgInput.addEventListener('change', e => _handleImageUpload(e, el));
+
+    const uploadArea = el.querySelector('.image-upload-area');
+    if (uploadArea) {
+      uploadArea.addEventListener('click', () => imgInput && imgInput.click());
+      uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = 'var(--accent)'; });
+      uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
+      uploadArea.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '';
+        if (e.dataTransfer.files[0]) { imgInput.files = e.dataTransfer.files; imgInput.dispatchEvent(new Event('change')); }
+      });
+    }
+
+    // Load table auto-calc
+    el.querySelectorAll('.load-gk, .load-qk').forEach(inp => {
+      inp.addEventListener('input', () => _recalcLoadTable(el));
+    });
+  }
+
+  function _updateEmptyState() {
+    const list   = document.getElementById('canvas-blocks-list');
+    const empty  = document.getElementById('canvas-empty-state');
+    const addBtn = document.getElementById('canvas-add-btn');
+    const hasBlocks = list.children.length > 0;
+    empty.style.display  = hasBlocks ? 'none' : 'block';
+    addBtn.style.display = hasBlocks ? 'flex' : 'none';
+  }
+
+  /* ──────────────────────────────────────────────────────────── *
+   *  BLOCK BODY HTML BUILDERS
+   * ──────────────────────────────────────────────────────────── */
+
+  function _buildBlockBody(block) {
+    const f = block.fields || {};
+    switch (block.type) {
+      case 'title':           return _bodyTitle(f);
+      case 'section_header':  return _bodySectionHeader(f);
+      case 'toc':             return _bodyToc();
+      case 'page_break':      return _bodyPageBreak();
+      case 'project_info':    return _bodyProjectInfo(f);
+      case 'design_basis':    return _bodyDesignBasis(f);
+      case 'scope':           return _bodyScope(f);
+      case 'text':            return _bodyText(f);
+      case 'image':           return _bodyImage(f);
+      case 'code_ref':        return _bodyCodeRef(f);
+      case 'load_table':      return _bodyLoadTable(f);
+      case 'checks_summary':  return _bodyChecks();
+      case 'utilisation_chart': return _bodyUtilChart();
+      case 'engineer_notes':  return _bodyEngineerNotes(f);
+      case 'signoff':         return _bodySignoff(f);
+      case 'revision_history':return _bodyRevisionHistory(f);
+      case 'calc_beam':       return _bodyCalcBeam(f);
+      case 'calc_column':     return _bodyCalcColumn(f);
+      case 'calc_rc_beam':    return _bodyCalcRcBeam(f);
+      case 'calc_rc_column':  return _bodyCalcRcColumn(f);
+      case 'calc_slab':       return _bodyCalcSlab(f);
+      case 'calc_footing':    return _bodyCalcFooting(f);
+      case 'calc_retaining':  return _bodyCalcRetaining(f);
+      case 'calc_connection':  return _bodyCalcConnection(f);
+      case 'calc_timber_col': return _bodyCalcTimberCol(f);
+      case 'calc_steel_member': return _bodyCalcSteelMember(f);
+      case 'calc_bbs':        return _bodyCalcBbs(f);
+      case 'calc_section':    return _bodyCalcSection(f);
+      case 'calc_wind':       return _bodyCalcWind(f);
+      case 'calc_load_takedown': return _bodyCalcLoadTakedown(f);
+      default: return '<p style="color:var(--text-muted);font-size:0.8rem;">Unknown block type: ' + _esc(block.type) + '</p>';
+    }
+  }
+
+  /* ── Document blocks ──────────────────────────────────────── */
+  function _bodyTitle(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRow('Report Title', '<input type="text" name="report_title" value="' + _esc(f.report_title||'') + '" placeholder="e.g. Structural Design Report"/>', '') +
+        _formRow('Report Ref', '<input type="text" name="report_ref" value="' + _esc(f.report_ref||'') + '" placeholder="e.g. BMC-001"/>', '') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRow('Date', '<input type="date" name="report_date" value="' + _esc(f.report_date || new Date().toISOString().slice(0,10)) + '"/>', '') +
+        _formRow('Revision', '<input type="text" name="revision" value="' + _esc(f.revision||'Rev A') + '" placeholder="Rev A"/>', '') +
+      '</div>'
+    );
+  }
+
+  function _bodySectionHeader(f) {
+    const num   = f.section_num   || '';
+    const title = f.section_title || '';
+    return (
+      '<div class="block-section-header-preview" id="sh-preview-' + Math.random().toString(36).slice(2,8) + '">' +
+        (num ? num + '&nbsp;&nbsp;' : '') + (title || 'Section Title') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRow('Number', '<input type="text" name="section_num" value="' + _esc(num) + '" placeholder="1.0" oninput="this.closest(\'.canvas-block-body\').querySelector(\'.block-section-header-preview\').textContent=(this.value||\'\')+\'  \'+(this.closest(\'.canvas-block-body\').querySelector(\'[name=section_title]\').value||\'Section Title\')"/>', '') +
+        _formRow('Title', '<input type="text" name="section_title" value="' + _esc(title) + '" placeholder="Section Title" oninput="this.closest(\'.canvas-block-body\').querySelector(\'.block-section-header-preview\').textContent=(this.closest(\'.canvas-block-body\').querySelector(\'[name=section_num]\').value||\'\')+\'  \'+(this.value||\'Section Title\')"/>', '') +
+      '</div>'
+    );
+  }
+
+  function _bodyToc() {
+    return '<div class="toc-placeholder"><strong>Table of Contents</strong>Will be auto-generated from Section Header blocks when the report is previewed or exported.</div>';
+  }
+
+  function _bodyPageBreak() {
+    return '<div class="page-break-display"><div class="page-break-line"></div><span class="page-break-label">— Page Break —</span><div class="page-break-line"></div></div>';
+  }
+
+  /* ── Project blocks ───────────────────────────────────────── */
+  function _bodyProjectInfo(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRow('Project Name', '<input type="text" name="project_name" value="' + _esc(f.project_name||'') + '" placeholder="e.g. The Elm Street Development"/>', '') +
+        _formRow('Client Name', '<input type="text" name="client_name" value="' + _esc(f.client_name||'') + '" placeholder="e.g. ABC Developments Ltd"/>', '') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRow('Location', '<input type="text" name="location" value="' + _esc(f.location||'') + '" placeholder="e.g. London, UK"/>', '') +
+        _formRow('Project Type', '<select name="project_type"><option value="residential"' + _sel(f.project_type,'residential') + '>Residential</option><option value="commercial"' + _sel(f.project_type,'commercial') + '>Commercial</option><option value="industrial"' + _sel(f.project_type,'industrial') + '>Industrial</option><option value="infrastructure"' + _sel(f.project_type,'infrastructure') + '>Infrastructure</option><option value="mixed"' + _sel(f.project_type,'mixed') + '>Mixed Use</option></select>', '') +
+      '</div>' +
+      '<div class="cb-form-grid-3">' +
+        _formRow('Engineer Name', '<input type="text" name="engineer_name" value="' + _esc(f.engineer_name||'') + '" placeholder="Your name"/>', '') +
+        _formRow('Company', '<input type="text" name="company_name" value="' + _esc(f.company_name||'') + '" placeholder="Engineering firm"/>', '') +
+        _formRow('Design Code', '<select name="design_code"><option value="eurocode"' + _sel(f.design_code,'eurocode') + '>Eurocode</option><option value="bs"' + _sel(f.design_code,'bs') + '>BS 8110</option><option value="aci"' + _sel(f.design_code,'aci') + '>ACI 318</option><option value="as"' + _sel(f.design_code,'as') + '>AS 3600</option></select>', '') +
+      '</div>'
+    );
+  }
+
+  function _bodyDesignBasis(f) {
+    const checks = [
+      'All loads are ULS factored unless stated otherwise',
+      'Structure is in Exposure Class XC1 (dry internal)',
+      'All dimensions are in mm unless noted',
+      'Concrete density assumed 25 kN/m³',
+      'Steel density assumed 78.5 kN/m³',
+      'Load combinations per EN 1990 Table A1.2(B)',
+    ];
+    const saved = f.assumptions || {};
+    return (
+      _formRow('Primary Design Code', '<select name="primary_code"><option value="eurocode"' + _sel(f.primary_code,'eurocode') + '>EN 1992 / EN 1993 (Eurocode)</option><option value="bs"' + _sel(f.primary_code,'bs') + '>BS 8110 / BS 5950</option><option value="aci"' + _sel(f.primary_code,'aci') + '>ACI 318 / AISC</option></select>', '') +
+      _formRow('Design Basis Statement', '<textarea name="design_basis_text" rows="4" placeholder="Describe the design basis, key assumptions, and references…">' + _esc(f.design_basis_text||'') + '</textarea>', '') +
+      '<button class="cb-ai-btn" type="button">✨ AI Draft</button>' +
+      '<div style="margin-top:12px;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Standard Assumptions</div>' +
+      '<div class="basis-assumptions">' +
+        checks.map((c, i) => {
+          const key = 'assume_' + i;
+          const chk = saved[key] !== undefined ? saved[key] : true;
+          return '<label class="basis-assumption-item"><input type="checkbox" name="' + key + '"' + (chk ? ' checked' : '') + '/>' + _esc(c) + '</label>';
+        }).join('') +
+      '</div>'
+    );
+  }
+
+  function _bodyScope(f) {
+    return _formRow('Scope of Works', '<textarea name="scope_text" rows="5" placeholder="Describe the scope of the structural works covered by this calculation package…">' + _esc(f.scope_text||'') + '</textarea>', '');
+  }
+
+  /* ── Content blocks ───────────────────────────────────────── */
+  function _bodyText(f) {
+    return (
+      _formRow('Label (optional)', '<input type="text" name="text_label" value="' + _esc(f.text_label||'') + '" placeholder="e.g. Introduction, Commentary…"/>', '') +
+      _formRow('Content', '<textarea name="text_content" rows="5" placeholder="Type your notes or analysis text here…">' + _esc(f.text_content||'') + '</textarea>', '')
+    );
+  }
+
+  function _bodyImage(f) {
+    const hasImg = !!f.img_data_url;
+    return (
+      (hasImg
+        ? '<div class="image-preview-wrap"><img src="' + f.img_data_url + '" alt="' + _esc(f.alt_text||'') + '"/><button class="image-preview-remove" onclick="this.closest(\'.canvas-block-body\').querySelector(\'.image-preview-wrap\').remove();this.closest(\'.canvas-block-body\').querySelector(\'.image-upload-area\').style.display=\'\'">✕ Remove</button></div>'
+        : '<div class="image-upload-area" style="' + (hasImg ? 'display:none' : '') + '"><div class="upload-icon">🖼️</div><strong style="font-size:0.82rem;color:var(--text-secondary);">Click or drag to upload image</strong><p>PNG, JPG, SVG, PDF up to 10 MB</p></div>') +
+      '<input type="file" class="image-file-input" accept="image/*,application/pdf" style="display:none"/>' +
+      '<div style="margin-top:10px;">' +
+        _formRow('Caption', '<input type="text" name="caption" value="' + _esc(f.caption||'') + '" placeholder="Figure caption…"/>', '') +
+        _formRow('Alt Text', '<input type="text" name="alt_text" value="' + _esc(f.alt_text||'') + '" placeholder="Accessibility description…"/>', '') +
+      '</div>'
+    );
+  }
+
+  function _bodyCodeRef(f) {
+    const rows = f.code_refs || [{ code:'', desc:'' }, { code:'', desc:'' }];
+    return (
+      '<table class="code-ref-table"><tbody id="code-ref-tbody">' +
+        rows.map(r =>
+          '<tr><td><input type="text" name="code_name" value="' + _esc(r.code||'') + '" placeholder="EN 1992-1-1"/></td>' +
+          '<td><input type="text" name="code_desc" value="' + _esc(r.desc||'') + '" placeholder="Design of concrete structures"/></td>' +
+          '<td style="width:30px;text-align:center;"><button onclick="this.closest(\'tr\').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;">×</button></td></tr>'
+        ).join('') +
+      '</tbody></table>' +
+      '<button class="btn-add btn-add-code-ref" type="button">+ Add reference</button>'
+    );
+  }
+
+  function _bodyLoadTable(f) {
+    const combos = f.combos || [
+      { case:'ULS Comb 1 (Eq. 6.10)', gk:'', qk:'', gG:'1.35', gQ:'1.50' },
+      { case:'SLS Characteristic',    gk:'', qk:'', gG:'1.00', gQ:'1.00' },
+      { case:'SLS Frequent',          gk:'', qk:'', gG:'1.00', gQ:'0.70' },
+    ];
+    return (
+      '<div style="overflow-x:auto;">' +
+      '<table class="load-table">' +
+        '<thead><tr>' +
+          '<th>Load Case</th><th>G<sub>k</sub> (kN/m)</th><th>Q<sub>k</sub> (kN/m)</th>' +
+          '<th>γ<sub>G</sub></th><th>γ<sub>Q</sub></th><th>E<sub>d</sub> = γ<sub>G</sub>G<sub>k</sub> + γ<sub>Q</sub>Q<sub>k</sub></th>' +
+        '</tr></thead>' +
+        '<tbody>' +
+          combos.map((c,i) =>
+            '<tr>' +
+              '<td><input type="text" value="' + _esc(c.case) + '" style="min-width:160px;" name="combo_case_' + i + '"/></td>' +
+              '<td><input type="number" class="load-gk" value="' + _esc(c.gk) + '" step="0.1" name="combo_gk_' + i + '"/></td>' +
+              '<td><input type="number" class="load-qk" value="' + _esc(c.qk) + '" step="0.1" name="combo_qk_' + i + '"/></td>' +
+              '<td><input type="number" value="' + _esc(c.gG) + '" step="0.01" name="combo_gG_' + i + '"/></td>' +
+              '<td><input type="number" value="' + _esc(c.gQ) + '" step="0.01" name="combo_gQ_' + i + '"/></td>' +
+              '<td class="calc-cell" data-ed="' + i + '">—</td>' +
+            '</tr>'
+          ).join('') +
+        '</tbody>' +
+      '</table>' +
+      '</div>'
+    );
+  }
+
+  /* ── Results / Workflow blocks ────────────────────────────── */
+  function _bodyChecks() {
+    return (
+      '<div class="checks-placeholder">' +
+        '<strong style="display:block;margin-bottom:4px;color:var(--text-secondary);">✅ Checks Summary</strong>' +
+        'Results will auto-populate from all calculation blocks in this report once calculations are run.' +
+      '</div>'
+    );
+  }
+
+  function _bodyUtilChart() {
+    return (
+      '<div class="util-chart-placeholder">' +
+        '<div class="util-chart-bars">' +
+          '<div class="util-bar-mock"></div><div class="util-bar-mock"></div><div class="util-bar-mock"></div>' +
+          '<div class="util-bar-mock"></div><div class="util-bar-mock"></div>' +
+        '</div>' +
+        '<p class="util-chart-label">Utilisation bar chart — rendered from calc block results in preview</p>' +
+      '</div>'
+    );
+  }
+
+  function _bodyEngineerNotes(f) {
+    return (
+      _formRow('Engineer Notes', '<textarea name="engineer_notes_text" rows="6" placeholder="Technical commentary, engineering judgements, assumptions…">' + _esc(f.engineer_notes_text||'') + '</textarea>', '') +
+      '<button class="cb-ai-btn" type="button">✨ AI Draft notes</button>'
+    );
+  }
+
+  function _bodySignoff(f) {
+    return (
+      '<div class="signoff-grid">' +
+        _signoffCell('Prepared by', 'prepared_name', f.prepared_name, 'prepared_date', f.prepared_date) +
+        _signoffCell('Checked by',  'checked_name',  f.checked_name,  'checked_date',  f.checked_date) +
+        _signoffCell('Approved by', 'approved_name', f.approved_name, 'approved_date', f.approved_date) +
+      '</div>' +
+      _formRow('Company Stamp / Registration No.', '<input type="text" name="company_stamp" value="' + _esc(f.company_stamp||'') + '" placeholder="e.g. MIStructE, CEng or reg. number"/>', '')
+    );
+  }
+
+  function _signoffCell(lbl, nameKey, nameVal, dateKey, dateVal) {
+    return (
+      '<div class="signoff-cell">' +
+        '<label>' + lbl + '</label>' +
+        '<input type="text" name="' + nameKey + '" value="' + _esc(nameVal||'') + '" placeholder="Name (type to sign)"/>' +
+        '<input type="date" name="' + dateKey + '" value="' + _esc(dateVal||'') + '"/>' +
+      '</div>'
+    );
+  }
+
+  function _bodyRevisionHistory(f) {
+    const rows = f.revisions || [{ rev:'A', date: new Date().toISOString().slice(0,10), desc:'Initial issue', prepared:'', checked:'' }];
+    return (
+      '<table class="revision-table">' +
+        '<thead><tr><th>Rev</th><th>Date</th><th>Description</th><th>Prepared</th><th>Checked</th><th></th></tr></thead>' +
+        '<tbody id="revision-tbody">' +
+          rows.map(r =>
+            '<tr>' +
+              '<td><input type="text" value="' + _esc(r.rev||'A') + '" name="rev_rev" style="width:40px;"/></td>' +
+              '<td><input type="date" value="' + _esc(r.date||'') + '" name="rev_date"/></td>' +
+              '<td><input type="text" value="' + _esc(r.desc||'') + '" name="rev_desc" placeholder="Description of change"/></td>' +
+              '<td><input type="text" value="' + _esc(r.prepared||'') + '" name="rev_prepared" style="width:70px;"/></td>' +
+              '<td><input type="text" value="' + _esc(r.checked||'') + '" name="rev_checked" style="width:70px;"/></td>' +
+              '<td><button onclick="this.closest(\'tr\').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);">×</button></td>' +
+            '</tr>'
+          ).join('') +
+        '</tbody>' +
+      '</table>' +
+      '<button class="btn-add btn-add-revision" type="button" style="margin-top:8px;">+ Add revision</button>'
+    );
+  }
+
+  /* ──────────────────────────────────────────────────────────── *
+   *  CALCULATION BLOCK BODIES
+   * ──────────────────────────────────────────────────────────── */
+
+  function _calcResultBar(result) {
+    if (!result) return '<div class="calc-result-bar"><span class="pass-chip pending">Not calculated</span></div>';
+    const pass = result.pass !== false;
+    const chip = '<span class="pass-chip ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '✅ PASS' : '❌ FAIL') + '</span>';
+    const kvs  = (result.kv || []).map(kv =>
+      '<span class="calc-result-kv"><span>' + _esc(kv.k) + '</span><span>' + _esc(String(kv.v)) + '</span></span>'
+    ).join('<span class="calc-result-separator"></span>');
+    return '<div class="calc-result-bar">' + chip + kvs + '</div>';
+  }
+
+  function _calcActions(notes) {
+    return (
+      '<button class="calc-run-btn" type="button">▶ Calculate</button>' +
+      (notes ? '<span style="font-size:0.72rem;color:var(--text-muted);margin-left:8px;">' + notes + '</span>' : '') +
+      '<div class="calc-details-panel" style="display:none;"></div>'
+    );
+  }
+
+  function _bodyCalcBeam(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRow('Material', '<select name="material"><option value="steel"' + _sel(f.material,'steel') + '>Steel</option><option value="timber"' + _sel(f.material,'timber') + '>Timber</option></select>', '') +
+        _formRow('Section', '<input type="text" name="section" value="' + _esc(f.section||'356×171×51 UB') + '" placeholder="e.g. 356×171×51 UB"/>', '') +
+      '</div>' +
+      '<div class="cb-form-grid-3">' +
+        _formRowUnit('Span', 'span', f.span||'5.0', 'm') +
+        _formRowUnit('G<sub>k</sub>', 'gk', f.gk||'10', 'kN/m') +
+        _formRowUnit('Q<sub>k</sub>', 'qk', f.qk||'5', 'kN/m') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRow('Grade', '<select name="grade"><option value="S275"' + _sel(f.grade,'S275') + '>S275</option><option value="S355"' + _sel(f.grade,'S355') + '>S355</option><option value="S420"' + _sel(f.grade,'S420') + '>S420</option></select>', '') +
+        _formRow('Support Condition', '<select name="support"><option value="simply_supported"' + _sel(f.support,'simply_supported') + '>Simply Supported</option><option value="fixed_fixed"' + _sel(f.support,'fixed_fixed') + '>Fixed-Fixed</option><option value="fixed_pinned"' + _sel(f.support,'fixed_pinned') + '>Fixed-Pinned</option></select>', '') +
+      '</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcColumn(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRow('Section', '<input type="text" name="section" value="' + _esc(f.section||'203×203×52 UC') + '" placeholder="e.g. 203×203×52 UC"/>', '') +
+        _formRow('Grade', '<select name="grade"><option value="S275"' + _sel(f.grade,'S275') + '>S275</option><option value="S355"' + _sel(f.grade,'S355') + '>S355</option></select>', '') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('N<sub>Ed</sub>', 'ned', f.ned||'500', 'kN') +
+        _formRowUnit('M<sub>y,Ed</sub>', 'myed', f.myed||'20', 'kNm') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('L<sub>ey</sub>', 'ley', f.ley||'3.5', 'm') +
+        _formRowUnit('L<sub>ez</sub>', 'lez', f.lez||'3.5', 'm') +
+      '</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcRcBeam(f) {
+    return (
+      '<div class="cb-form-grid-3">' +
+        _formRowUnit('b', 'b', f.b||'300', 'mm') +
+        _formRowUnit('h', 'h', f.h||'550', 'mm') +
+        _formRowUnit('d', 'eff_depth', f.eff_depth||'500', 'mm') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('M<sub>Ed</sub>', 'med', f.med||'120', 'kNm') +
+        _formRowUnit('V<sub>Ed</sub>', 'ved', f.ved||'80', 'kN') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRow('Concrete Grade', '<select name="concrete_grade"><option value="C25/30"' + _sel(f.concrete_grade,'C25/30') + '>C25/30</option><option value="C30/37"' + _sel(f.concrete_grade,'C30/37') + '>C30/37</option><option value="C35/45"' + _sel(f.concrete_grade,'C35/45') + '>C35/45</option><option value="C40/50"' + _sel(f.concrete_grade,'C40/50') + '>C40/50</option></select>', '') +
+        _formRow('Rebar Grade', '<select name="rebar_grade"><option value="B500B"' + _sel(f.rebar_grade,'B500B') + '>B500B</option><option value="B500C"' + _sel(f.rebar_grade,'B500C') + '>B500C</option></select>', '') +
+      '</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcRcColumn(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('b', 'b', f.b||'300', 'mm') +
+        _formRowUnit('h', 'h', f.h||'400', 'mm') +
+      '</div>' +
+      '<div class="cb-form-grid-3">' +
+        _formRowUnit('N<sub>Ed</sub>', 'ned', f.ned||'800', 'kN') +
+        _formRowUnit('M<sub>y</sub>', 'my', f.my||'40', 'kNm') +
+        _formRowUnit('Height', 'height', f.height||'3.5', 'm') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRow('Concrete Grade', '<select name="concrete_grade"><option value="C25/30"' + _sel(f.concrete_grade,'C25/30') + '>C25/30</option><option value="C30/37"' + _sel(f.concrete_grade,'C30/37') + '>C30/37</option><option value="C35/45"' + _sel(f.concrete_grade,'C35/45') + '>C35/45</option><option value="C40/50"' + _sel(f.concrete_grade,'C40/50') + '>C40/50</option></select>', '') +
+        _formRow('Rebar Grade', '<select name="rebar_grade"><option value="B500B"' + _sel(f.rebar_grade,'B500B') + '>B500B</option><option value="B500C"' + _sel(f.rebar_grade,'B500C') + '>B500C</option></select>', '') +
+      '</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcSlab(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRow('Slab Type', '<select name="slab_type"><option value="one_way"' + _sel(f.slab_type,'one_way') + '>One-way</option><option value="two_way"' + _sel(f.slab_type,'two_way') + '>Two-way</option></select>', '') +
+        _formRowUnit('Span', 'span', f.span||'4.5', 'm') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('G<sub>k</sub>', 'gk', f.gk||'5', 'kN/m²') +
+        _formRowUnit('Q<sub>k</sub>', 'qk', f.qk||'3', 'kN/m²') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRow('Concrete Grade', '<select name="concrete_grade"><option value="C25/30"' + _sel(f.concrete_grade,'C25/30') + '>C25/30</option><option value="C30/37"' + _sel(f.concrete_grade,'C30/37') + '>C30/37</option><option value="C35/45"' + _sel(f.concrete_grade,'C35/45') + '>C35/45</option></select>', '') +
+        _formRowUnit('Thickness h', 'thickness', f.thickness||'200', 'mm') +
+      '</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcFooting(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('Column Load N', 'column_load', f.column_load||'600', 'kN') +
+        _formRowUnit('Bearing Pressure', 'bearing_pressure', f.bearing_pressure||'150', 'kN/m²') +
+      '</div>' +
+      '<div class="cb-form-grid-3">' +
+        _formRowUnit('Length L', 'footing_l', f.footing_l||'2.0', 'm') +
+        _formRowUnit('Width B', 'footing_b', f.footing_b||'2.0', 'm') +
+        _formRowUnit('Depth D', 'footing_d', f.footing_d||'0.4', 'm') +
+      '</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcRetaining(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('Retained Height', 'retained_height', f.retained_height||'2.5', 'm') +
+        _formRowUnit('Stem Thickness', 'stem_thickness', f.stem_thickness||'300', 'mm') +
+      '</div>' +
+      '<div class="cb-form-grid-3">' +
+        _formRowUnit('Base Width', 'base_width', f.base_width||'2.0', 'm') +
+        _formRowUnit('Friction Angle φ', 'friction_angle', f.friction_angle||'30', '°') +
+        _formRowUnit('Soil Weight', 'soil_weight', f.soil_weight||'18', 'kN/m³') +
+      '</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcConnection(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRow('Connection Type', '<select name="conn_type"><option value="shear_plate"' + _sel(f.conn_type,'shear_plate') + '>Shear Plate</option><option value="end_plate"' + _sel(f.conn_type,'end_plate') + '>End Plate</option><option value="fin_plate"' + _sel(f.conn_type,'fin_plate') + '>Fin Plate</option><option value="cleat"' + _sel(f.conn_type,'cleat') + '>Cleat Angle</option></select>', '') +
+        _formRow('Bolt Grade', '<select name="bolt_grade"><option value="8.8"' + _sel(f.bolt_grade,'8.8') + '>Grade 8.8</option><option value="10.9"' + _sel(f.bolt_grade,'10.9') + '>Grade 10.9</option></select>', '') +
+      '</div>' +
+      '<div class="cb-form-grid-3">' +
+        _formRowUnit('Bolt Dia.', 'bolt_dia', f.bolt_dia||'20', 'mm') +
+        _formRow('No. of Bolts', '<input type="number" name="bolt_count" value="' + _esc(String(f.bolt_count||4)) + '" min="1" step="1"/>', '') +
+        _formRowUnit('Plate t', 'plate_t', f.plate_t||'10', 'mm') +
+      '</div>' +
+      _formRowUnit('Applied Force', 'applied_force', f.applied_force||'100', 'kN') +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcTimberCol(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('b', 'b', f.b||'90', 'mm') +
+        _formRowUnit('d', 'd', f.d||'90', 'mm') +
+      '</div>' +
+      '<div class="cb-form-grid-3">' +
+        _formRowUnit('Height', 'height', f.height||'3.0', 'm') +
+        _formRow('Grade', '<select name="timber_grade"><option value="C16"' + _sel(f.timber_grade,'C16') + '>C16</option><option value="C24"' + _sel(f.timber_grade,'C24') + '>C24</option><option value="GL24h"' + _sel(f.timber_grade,'GL24h') + '>GL24h</option></select>', '') +
+        _formRow('Service Class', '<select name="service_class"><option value="1"' + _sel(f.service_class,'1') + '>SC 1</option><option value="2"' + _sel(f.service_class,'2') + '>SC 2</option><option value="3"' + _sel(f.service_class,'3') + '>SC 3</option></select>', '') +
+      '</div>' +
+      _formRow('Load Duration', '<select name="load_duration"><option value="permanent"' + _sel(f.load_duration,'permanent') + '>Permanent</option><option value="long"' + _sel(f.load_duration,'long') + '>Long term</option><option value="medium"' + _sel(f.load_duration,'medium') + '>Medium term</option><option value="short"' + _sel(f.load_duration,'short') + '>Short term</option></select>', '') +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcSteelMember(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRow('Section', '<select name="section"><option value="203x133x25"' + _sel(f.section,'203x133x25') + '>203×133×25 UB</option><option value="254x102x25"' + _sel(f.section,'254x102x25') + '>254×102×25 UB</option><option value="305x127x37"' + _sel(f.section,'305x127x37') + '>305×127×37 UB</option><option value="356x171x51"' + _sel(f.section,'356x171x51') + '>356×171×51 UB</option><option value="406x178x60"' + _sel(f.section,'406x178x60') + '>406×178×60 UB</option><option value="457x191x74"' + _sel(f.section,'457x191x74') + '>457×191×74 UB</option><option value="533x210x92"' + _sel(f.section,'533x210x92') + '>533×210×92 UB</option></select>', '') +
+        _formRow('Grade', '<select name="grade"><option value="S275"' + _sel(f.grade,'S275') + '>S275</option><option value="S355"' + _sel(f.grade,'S355') + '>S355</option></select>', '') +
+      '</div>' +
+      '<div class="cb-form-grid-3">' +
+        _formRowUnit('Length', 'length', f.length||'5.0', 'm') +
+        _formRowUnit('N<sub>Ed</sub>', 'ned', f.ned||'0', 'kN') +
+        _formRowUnit('M<sub>y,Ed</sub>', 'myed', f.myed||'80', 'kNm') +
+      '</div>' +
+      _formRowUnit('V<sub>z,Ed</sub>', 'vzed', f.vzed||'40', 'kN') +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcBbs(f) {
+    return (
+      '<div class="cb-form-grid-3">' +
+        _formRow('Total Bar Count', '<input type="number" name="bar_count" value="' + _esc(String(f.bar_count||0)) + '" min="0"/>', '') +
+        _formRow('Total Weight (kg)', '<input type="number" name="total_weight" value="' + _esc(String(f.total_weight||0)) + '" min="0" step="0.1"/>', '') +
+        _formRow('Primary Dia (mm)', '<input type="number" name="primary_dia" value="' + _esc(String(f.primary_dia||16)) + '" min="6"/>', '') +
+      '</div>' +
+      '<div style="margin-top:12px;background:var(--bg-subtle);border-radius:8px;padding:12px;font-size:0.78rem;color:var(--text-muted);">📋 Link to a full BBS schedule for detailed bar counts and bending schedule.</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcSection(f) {
+    return (
+      _formRow('Section Type', '<select name="section_type" onchange="this.closest(\'.canvas-block-body\').querySelector(\'.section-dims\').innerHTML=\'\'">' +
+        '<option value="rectangle"' + _sel(f.section_type,'rectangle') + '>Rectangle</option>' +
+        '<option value="i_section"' + _sel(f.section_type,'i_section') + '>I-Section</option>' +
+        '<option value="circular"' + _sel(f.section_type,'circular') + '>Circular</option>' +
+        '<option value="hollow_rect"' + _sel(f.section_type,'hollow_rect') + '>Hollow Rectangle</option>' +
+      '</select>', '') +
+      '<div class="section-dims cb-form-grid-2">' +
+        (f.section_type === 'circular'
+          ? _formRowUnit('Diameter', 'diameter', f.diameter||'200', 'mm')
+          : (f.section_type === 'i_section'
+              ? _formRowUnit('Width b<sub>f</sub>', 'bf', f.bf||'150', 'mm') + _formRowUnit('Height h', 'h', f.h||'300', 'mm')
+              : _formRowUnit('Width b', 'b', f.b||'200', 'mm') + _formRowUnit('Height h', 'h', f.h||'400', 'mm'))
+        ) +
+      '</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcWind(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('v<sub>b,0</sub>', 'vb0', f.vb0||'23', 'm/s') +
+        _formRowUnit('Building Height', 'bldg_height', f.bldg_height||'10', 'm') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('Building Width', 'bldg_width', f.bldg_width||'15', 'm') +
+        _formRow('Terrain Category', '<select name="terrain_cat"><option value="0"' + _sel(f.terrain_cat,'0') + '>Cat 0 — Sea</option><option value="I"' + _sel(f.terrain_cat,'I') + '>Cat I — Open</option><option value="II"' + _sel(f.terrain_cat,'II') + '>Cat II — Agricultural</option><option value="III"' + _sel(f.terrain_cat,'III') + '>Cat III — Suburban</option><option value="IV"' + _sel(f.terrain_cat,'IV') + '>Cat IV — Urban</option></select>', '') +
+      '</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  function _bodyCalcLoadTakedown(f) {
+    return (
+      '<div class="cb-form-grid-2">' +
+        _formRow('No. of Floors', '<input type="number" name="num_floors" value="' + _esc(String(f.num_floors||3)) + '" min="1" step="1"/>', '') +
+        _formRowUnit('Tributary Width', 'trib_width', f.trib_width||'5.0', 'm') +
+      '</div>' +
+      '<div class="cb-form-grid-2">' +
+        _formRowUnit('Floor G<sub>k</sub>', 'floor_gk', f.floor_gk||'5', 'kN/m²') +
+        _formRowUnit('Floor Q<sub>k</sub>', 'floor_qk', f.floor_qk||'3', 'kN/m²') +
+      '</div>' +
+      _calcActions() + _calcResultBar(f._result)
+    );
+  }
+
+  /* ── Form helpers ─────────────────────────────────────────── */
+  function _formRow(label, inputHTML, notes) {
+    return '<div class="cb-form-row"><label>' + label + '</label>' + inputHTML + (notes ? '<span style="font-size:0.7rem;color:var(--text-muted);">' + notes + '</span>' : '') + '</div>';
+  }
+
+  function _formRowUnit(label, name, value, unit) {
+    return (
+      '<div class="cb-form-row">' +
+        '<label>' + label + '</label>' +
+        '<div class="cb-input-unit">' +
+          '<input type="number" name="' + name + '" value="' + _esc(String(value)) + '" step="any"/>' +
+          '<span class="unit-badge">' + _esc(unit) + '</span>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function _sel(current, val) {
+    return (String(current) === String(val)) ? ' selected' : '';
+  }
+
+  /* ── Load table recalc ────────────────────────────────────── */
+  function _recalcLoadTable(blockEl) {
+    const rows = blockEl.querySelectorAll('.load-table tbody tr');
+    rows.forEach((row, i) => {
+      const gk  = parseFloat(row.querySelector('.load-gk') ? row.querySelector('.load-gk').value : 0) || 0;
+      const qk  = parseFloat(row.querySelector('.load-qk') ? row.querySelector('.load-qk').value : 0) || 0;
+      const gG  = parseFloat(row.querySelector('[name="combo_gG_' + i + '"]') ? row.querySelector('[name="combo_gG_' + i + '"]').value : 1.35) || 1.35;
+      const gQ  = parseFloat(row.querySelector('[name="combo_gQ_' + i + '"]') ? row.querySelector('[name="combo_gQ_' + i + '"]').value : 1.5) || 1.5;
+      const edCell = blockEl.querySelector('[data-ed="' + i + '"]');
+      if (edCell) edCell.textContent = (gG * gk + gQ * qk).toFixed(2) + ' kN/m';
+    });
+  }
+
+  /* ── Image upload ─────────────────────────────────────────── */
+  function _handleImageUpload(e, blockEl) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      let wrap = blockEl.querySelector('.image-preview-wrap');
+      let uploadArea = blockEl.querySelector('.image-upload-area');
+      if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.className = 'image-preview-wrap';
+        blockEl.querySelector('.canvas-block-body').insertBefore(wrap, uploadArea);
+      }
+      wrap.innerHTML = (
+        '<img src="' + ev.target.result + '" alt=""/>' +
+        '<button class="image-preview-remove">✕ Remove</button>'
+      );
+      wrap.querySelector('.image-preview-remove').onclick = () => {
+        wrap.remove();
+        if (uploadArea) uploadArea.style.display = '';
+      };
+      if (uploadArea) uploadArea.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ── Code ref / revision row adds ────────────────────────── */
+  function _addCodeRefRow(blockEl) {
+    const tbody = blockEl.querySelector('#code-ref-tbody');
+    if (!tbody) return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = (
+      '<td><input type="text" name="code_name" placeholder="EN 1992-1-1"/></td>' +
+      '<td><input type="text" name="code_desc" placeholder="Design of concrete structures"/></td>' +
+      '<td style="width:30px;text-align:center;"><button onclick="this.closest(\'tr\').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;">×</button></td>'
+    );
+    tbody.appendChild(tr);
+    tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', _scheduleSave));
+  }
+
+  function _addRevisionRow(blockEl) {
+    const tbody = blockEl.querySelector('#revision-tbody');
+    if (!tbody) return;
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const nextRev = letters[tbody.children.length] || String(tbody.children.length + 1);
+    const tr = document.createElement('tr');
+    tr.innerHTML = (
+      '<tr>' +
+        '<td><input type="text" value="' + nextRev + '" name="rev_rev" style="width:40px;"/></td>' +
+        '<td><input type="date" value="' + new Date().toISOString().slice(0,10) + '" name="rev_date"/></td>' +
+        '<td><input type="text" name="rev_desc" placeholder="Description of change"/></td>' +
+        '<td><input type="text" name="rev_prepared" style="width:70px;"/></td>' +
+        '<td><input type="text" name="rev_checked" style="width:70px;"/></td>' +
+        '<td><button onclick="this.closest(\'tr\').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);">×</button></td>' +
+      '</tr>'
+    );
+    tbody.appendChild(tr);
+    tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', _scheduleSave));
+  }
+
+  /* ── Solver execution ─────────────────────────────────────── */
+  function _runCalc(blockEl, block) {
+    const solverInfo = SOLVERS[block.type];
+    if (!solverInfo) return;
+
+    const btn = blockEl.querySelector('.calc-run-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Calculating…';
+
+    const _doCalc = () => {
+      try {
+        const solver = window[solverInfo.global];
+        if (!solver) throw new Error('Solver not loaded');
+        const config = _buildSolverConfig(block.type, blockEl);
+        const result = solver.solve(config);
+        block.result = result;
+        _displayCalcResult(blockEl, result);
+      } catch(err) {
+        _displayCalcResult(blockEl, { error: err.message });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '▶ Calculate';
+        _scheduleSave();
+      }
+    };
+
+    if (window[solverInfo.global]) {
+      _doCalc();
+    } else {
+      // Dynamically load the solver script
+      const s = document.createElement('script');
+      s.src = solverInfo.file;
+      s.onload = _doCalc;
+      s.onerror = () => {
+        btn.disabled = false;
+        btn.textContent = '▶ Calculate';
+        _displayCalcResult(blockEl, { error: 'Solver script not available.' });
+      };
+      document.head.appendChild(s);
+    }
+  }
+
+  function _buildSolverConfig(type, blockEl) {
+    const val  = n => parseFloat(blockEl.querySelector('[name="' + n + '"]') ? blockEl.querySelector('[name="' + n + '"]').value : 0) || 0;
+    const sval = n => (blockEl.querySelector('[name="' + n + '"]') ? blockEl.querySelector('[name="' + n + '"]').value : '');
+    switch (type) {
+      case 'calc_beam':
+        return { material: sval('material'), section: sval('section'), span: val('span'), gk: val('gk'), qk: val('qk'), grade: sval('grade'), support: sval('support') };
+      case 'calc_column':
+        return { section: sval('section'), grade: sval('grade'), NEd: val('ned'), MyEd: val('myed'), Ley: val('ley'), Lez: val('lez') };
+      case 'calc_rc_beam':
+        return { b: val('b'), h: val('h'), d: val('eff_depth'), MEd: val('med'), VEd: val('ved'), fck: sval('concrete_grade'), fyk: sval('rebar_grade') };
+      case 'calc_rc_column':
+        return { b: val('b'), h: val('h'), NEd: val('ned'), MEd: val('my'), height: val('height'), fck: sval('concrete_grade'), fyk: sval('rebar_grade') };
+      case 'calc_slab':
+        return { type: sval('slab_type'), span: val('span'), gk: val('gk'), qk: val('qk'), fck: sval('concrete_grade'), thickness: val('thickness') };
+      case 'calc_footing':
+        return { N: val('column_load'), q_allow: val('bearing_pressure'), L: val('footing_l'), B: val('footing_b'), D: val('footing_d') };
+      case 'calc_retaining':
+        return { H: val('retained_height'), stem_t: val('stem_thickness'), base_w: val('base_width'), phi: val('friction_angle'), gamma_s: val('soil_weight') };
+      case 'calc_connection':
+        return { type: sval('conn_type'), bolt_grade: sval('bolt_grade'), bolt_dia: val('bolt_dia'), n_bolts: val('bolt_count'), plate_t: val('plate_t'), V: val('applied_force') };
+      case 'calc_timber_col':
+        return { b: val('b'), d: val('d'), h: val('height'), grade: sval('timber_grade'), service_class: sval('service_class'), load_duration: sval('load_duration') };
+      case 'calc_steel_member':
+        return { section: sval('section'), grade: sval('grade'), L: val('length'), NEd: val('ned'), MyEd: val('myed'), VzEd: val('vzed') };
+      case 'calc_bbs':
+        return { bar_count: val('bar_count'), total_weight: val('total_weight'), primary_dia: val('primary_dia') };
+      case 'calc_section':
+        return { type: sval('section_type'), b: val('b'), h: val('h'), diameter: val('diameter'), bf: val('bf') };
+      case 'calc_wind':
+        return { vb0: val('vb0'), height: val('bldg_height'), width: val('bldg_width'), terrain: sval('terrain_cat') };
+      case 'calc_load_takedown':
+        return { floors: val('num_floors'), trib_width: val('trib_width'), gk: val('floor_gk'), qk: val('floor_qk') };
+      default: return {};
+    }
+  }
+
+  function _displayCalcResult(blockEl, result) {
+    let bar = blockEl.querySelector('.calc-result-bar');
+    if (!bar) {
+      bar = document.createElement('div');
+      blockEl.querySelector('.canvas-block-body').appendChild(bar);
+    }
+
+    if (result.error) {
+      bar.className = 'calc-result-bar';
+      bar.innerHTML = '<span class="pass-chip fail">Error</span><span style="font-size:0.78rem;color:var(--red);">' + _esc(result.error) + '</span>';
+      return;
+    }
+
+    const pass = result.pass !== false && !result.FAIL && !result.fail;
+    const chip = '<span class="pass-chip ' + (pass ? 'pass' : 'fail') + '">' + (pass ? '✅ PASS' : '❌ FAIL') + '</span>';
+
+    // Build key-value pairs from result object
+    const kvs = [];
+    const kvKeys = ['eta', 'utilisation', 'ratio', 'Mrd', 'Nrd', 'Vrd', 'deflection', 'moment', 'Ed', 'W'];
+    kvKeys.forEach(k => {
+      if (result[k] !== undefined) {
+        kvs.push('<span class="calc-result-kv"><span>' + k + ' =</span><span>' + (typeof result[k] === 'number' ? result[k].toFixed(3) : result[k]) + '</span></span>');
+      }
+    });
+    // Also handle array of kv
+    if (Array.isArray(result.kv)) {
+      result.kv.forEach(kv => {
+        kvs.push('<span class="calc-result-kv"><span>' + _esc(kv.k) + '</span><span>' + _esc(String(kv.v)) + '</span></span>');
+      });
+    }
+
+    bar.className = 'calc-result-bar';
+    bar.innerHTML = chip + kvs.join('<span class="calc-result-separator"></span>');
+
+    // Show full details panel
+    let detailPanel = blockEl.querySelector('.calc-details-panel');
+    if (!detailPanel) {
+      detailPanel = document.createElement('div');
+      detailPanel.className = 'calc-details-panel';
+      blockEl.querySelector('.canvas-block-body').appendChild(detailPanel);
+    }
+    detailPanel.style.display = 'block';
+
+    const rows = Object.entries(result)
+      .filter(([k]) => !['pass','PASS','FAIL','fail','kv','error'].includes(k))
+      .map(([k,v]) => '<tr><td>' + _esc(k) + '</td><td>' + _esc(typeof v === 'number' ? v.toFixed(4) : String(v)) + '</td></tr>');
+
+    detailPanel.innerHTML = (
+      '<button class="calc-details-toggle" onclick="var p=this.nextElementSibling;p.style.display=p.style.display===\'none\'?\'block\':\'none\';this.textContent=p.style.display===\'none\'?\'📋 View Full Details\':\'📋 Hide Details\'">📋 View Full Details</button>' +
+      '<div style="display:none;">' +
+        '<table><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>' + rows.join('') + '</tbody></table>' +
+      '</div>'
+    );
+  }
+
+  /* ── AI Draft ─────────────────────────────────────────────── */
+  function _aiDraft(blockEl, block) {
+    const textarea = blockEl.querySelector('textarea');
+    if (!textarea) return;
+    const btn = blockEl.querySelector('.cb-ai-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
+
+    fetch('/api/ai-chat.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: 'Generate a professional structural engineering ' + block.type.replace('_',' ') + ' for a report. Be concise, 3-5 sentences, technical, formal.',
+        context: 'report_builder'
+      })
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d.reply || d.message || d.text) {
+          textarea.value = d.reply || d.message || d.text;
+          _scheduleSave();
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (btn) { btn.disabled = false; btn.textContent = '✨ AI Draft'; }
+      });
+  }
+
+  /* ── Mobile sidebar toggle ────────────────────────────────── */
+  function _wireMobile() {
+    const toggle  = document.getElementById('cb-sidebar-toggle');
+    const sidebar = document.getElementById('cb-sidebar');
+    toggle.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    // Close sidebar on canvas tap (mobile)
+    document.getElementById('cb-canvas').addEventListener('click', () => {
+      if (window.innerWidth <= 768) sidebar.classList.remove('mobile-open');
+    });
+  }
+
+  /* ── Utilities ────────────────────────────────────────────── */
+  function _esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function _showError(msg) {
+    const canvas = document.getElementById('cb-canvas-inner');
+    canvas.innerHTML = (
+      '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:32px;text-align:center;color:#991B1B;">' +
+        '<div style="font-size:1.8rem;margin-bottom:12px;">⚠️</div>' +
+        '<strong style="font-size:0.95rem;">' + _esc(msg) + '</strong>' +
+        '<p style="font-size:0.8rem;margin-top:8px;opacity:0.8;">Please go back and try again.</p>' +
+        '<a href="/projects.html" style="display:inline-block;margin-top:16px;background:#DC2626;color:white;padding:8px 20px;border-radius:8px;text-decoration:none;font-size:0.82rem;font-weight:600;">Back to Projects</a>' +
+      '</div>'
+    );
+  }
+
+  /* ── Public API ───────────────────────────────────────────── */
+  return {
+    init,
+    addBlock,
+    showBlockPicker,
+    closeBlockPicker,
+    filterBlockPicker,
+    save: _saveAll
+  };
+
+})();
+
+/* ── Bootstrap ─────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+  // Auth guard is handled inside RB.init() via TopNav.init()
+  RB.init();
+});
+</script>
+</body>
+</html>
