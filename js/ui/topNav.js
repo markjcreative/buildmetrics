@@ -6,16 +6,17 @@ const TopNav = (() => {
 
   // Maps pathname → nav highlight key
   const NAV_MAP = {
-    '/projects.html':        'projects',
-    '/tools.html':           'tools',
-    '/standards.html':       'standards',
-    '/templates.html':       'reports',
-    '/report-builder.html':  'reports',
-    '/report-preview.html':  'reports',
-    '/ai-assistant.html':    'ai',
-    '/tutorials.html':       'tutorials',
-    '/faq.html':             'faq',
-    '/notifications.html':   'notifications',
+    '/projects.html':               'projects',
+    '/dashboard.html':              'projects',
+    '/project.html':                'projects',
+    '/calcs/design-register.html':  'register',
+    '/templates.html':              'reports',
+    '/report-builder.html':         'reports',
+    '/report-preview.html':         'reports',
+    '/tools.html':                  'tools',
+    '/tutorials.html':              'tutorials',
+    '/faq.html':                    'faq',
+    '/notifications.html':          'notifications',
   };
 
   function init(opts) {
@@ -44,7 +45,7 @@ const TopNav = (() => {
 
     // Active nav link
     const path = window.location.pathname;
-    const activeKey = NAV_MAP[path] || (path === '/dashboard.html' || path === '/' ? 'dashboard' : '');
+    const activeKey = NAV_MAP[path] || (path === '/' ? 'projects' : '');
     if (activeKey) {
       document.querySelectorAll('[data-nav="' + activeKey + '"]').forEach(function(el) {
         el.classList.add('hn-active');
@@ -116,11 +117,7 @@ const TopNav = (() => {
       // Nav links
       '<nav class="header-nav">' +
         '<a href="/projects.html" data-nav="projects">Projects</a>' +
-        '<a href="/templates.html" data-nav="reports">Reports</a>' +
-        '<a href="/tools.html" data-nav="tools">Quick Tools</a>' +
-        '<a href="/standards.html" data-nav="standards">Standards</a>' +
-        '<a href="/tutorials.html" data-nav="tutorials">Tutorials</a>' +
-        '<a href="/faq.html" data-nav="faq">FAQ</a>' +
+        '<a href="/calcs/design-register.html" data-nav="register">Design Register</a>' +
       '</nav>' +
       // Right
       '<div class="header-right">' +
@@ -145,26 +142,10 @@ const TopNav = (() => {
     const email = _esc(user ? (user.email || '') : '');
 
     const navItems = [
-      { href: '/dashboard.html',    label: 'Dashboard',    bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="white" stroke-width="1.8"/></svg>' },
-      { href: '/projects.html',     label: 'Projects',     bg: '#065F46', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18"/><rect x="3" y="3" width="4" height="4" rx="1" fill="white"/></svg>' },
+      { href: '/projects.html',     label: 'Projects',     bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>' },
       { href: '/templates.html',    label: 'Report Builder', bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/><circle cx="18" cy="18" r="4" fill="#2563EB"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M18 16v4M16 18h4"/></svg>' },
-      { href: '/calcs/beam.html',   label: 'Beam Design',  bg: '#1E40AF', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="white" stroke-width="1.6" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>' },
-      { href: '/calcs/column.html', label: 'Column',       bg: '#6B21A8', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="18" rx="1.5" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.6" stroke-linecap="round" d="M6 3h12M6 21h12"/></svg>' },
-      { href: '/calcs/concrete-column.html', label: 'Concrete Col', bg: '#78350F', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.4" stroke-dasharray="2 2" d="M9 6v12M15 6v12M5 9h14M5 15h14"/></svg>' },
-      { href: '/calcs/rc-beam.html',label: 'RC Beam',      bg: '#7C2D12', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="1.5" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.4" stroke-dasharray="2 2" d="M3 12h18"/></svg>' },
-      { href: '/calcs/timber-column.html', label: 'Timber Col', bg: '#3F6212', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" d="M12 3v18M8 5l4-2 4 2M8 19l4 2 4-2"/></svg>' },
-      { href: '/calcs/slab.html',   label: 'RC Slab',      bg: '#1E3A5F', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="1" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.4" stroke-linecap="round" d="M7 9v6M12 9v6M17 9v6"/></svg>' },
-      { href: '/calcs/footing.html',label: 'Footing',      bg: '#1C4532', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="8" rx="1" stroke="white" stroke-width="1.8"/><rect x="3" y="14" width="18" height="6" rx="1" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M12 12v2"/></svg>' },
-      { href: '/calcs/retaining-wall.html', label: 'Ret. Wall', bg: '#4A1D96', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="16" rx="1" stroke="white" stroke-width="1.8"/><rect x="10" y="10" width="10" height="10" rx="1" stroke="white" stroke-width="1.8"/></svg>' },
-      { href: '/calcs/connection.html', label: 'Connection', bg: '#0C4A6E', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" stroke="white" stroke-width="1.8"/><circle cx="5" cy="5" r="1.8" stroke="white" stroke-width="1.5"/><circle cx="19" cy="5" r="1.8" stroke="white" stroke-width="1.5"/><circle cx="5" cy="19" r="1.8" stroke="white" stroke-width="1.5"/><circle cx="19" cy="19" r="1.8" stroke="white" stroke-width="1.5"/><path stroke="white" stroke-width="1.4" d="M6.5 6.5l4 4M13.5 13.5l4 4M17.5 6.5l-4 4M10.5 13.5l-4 4"/></svg>' },
-      { href: '/calcs/bbs.html',       label: 'BBS',          bg: '#92400E', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1.5" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.4" stroke-linecap="round" d="M7 9h10M7 12h10M7 15h6"/></svg>' },
-      { href: '/calcs/section-properties.html', label: 'Section Props', bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v3H4zM4 17h16v3H4zM4 7h3v10H4zM17 7h3v10h-3z"/></svg>' },
-      { href: '/calcs/steel-member.html', label: 'Steel Member', bg: '#374151', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" d="M3 8h18M3 16h18"/><path stroke="white" stroke-width="1.6" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>' },
-      { href: '/calcs/wind-loading.html', label: 'Wind Load',   bg: '#0C4A6E', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2"/></svg>' },
-      { href: '/calcs/load-takedown.html', label: 'Load Takedown', bg: '#4C1D95', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 12l9 9 9-9M3 6l9 9 9-9"/></svg>' },
+      { href: '/calcs/design-register.html', label: 'Design Register', bg: '#065F46', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/></svg>' },
       { href: '/tools.html',        label: 'Quick Tools',  bg: '#134E4A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3-3a8 8 0 01-11 11l-6 6a2 2 0 01-3-3l6-6a8 8 0 0111-11l-3 3z"/></svg>' },
-      { href: '/calcs/design-register.html', label: 'Register', bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="white" stroke-width="1.8"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/></svg>' },
-      { href: '/cost-report.html',  label: 'Cost Report',  bg: '#166534', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>' },
       { href: '/tutorials.html',   label: 'Tutorials',    bg: '#0369A1', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>' },
       { href: '/faq.html',         label: 'FAQ',          bg: '#065F46', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>' },
       { href: '/notifications.html', label: 'Notifications', bg: '#1E3A8A', icon: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>' },
