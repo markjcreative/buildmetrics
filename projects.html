@@ -10,9 +10,81 @@
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <style>
-    /* ── Modals (local override — use .open class, not display) ── */
-    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.35); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:9999; opacity:0; pointer-events:none; transition:opacity 0.2s; }
-    .modal-overlay.open { opacity:1; pointer-events:all; }
+    /* ── Projects page layout ── */
+    .proj-page { max-width:1100px; margin:0 auto; padding:28px 24px 60px; }
+    .proj-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .proj-topbar h1 { font-size:1.4rem; font-weight:800; margin:0; }
+    .proj-topbar-sub { font-size:0.82rem; color:var(--text-muted); margin-top:3px; }
+
+    /* Stats */
+    .proj-stats { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+    .proj-stat { background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:10px 18px; min-width:110px; }
+    .proj-stat-val { font-size:1.4rem; font-weight:800; color:var(--accent); font-family:'JetBrains Mono',monospace; line-height:1.2; }
+    .proj-stat-lbl { font-size:0.72rem; color:var(--text-muted); margin-top:2px; }
+
+    /* Filters */
+    .proj-filters { display:flex; gap:10px; align-items:center; margin-bottom:20px; flex-wrap:wrap; }
+    .proj-search { border:1px solid var(--border); border-radius:8px; padding:8px 14px; font-size:0.85rem; min-width:240px; outline:none; background:var(--bg-surface); color:var(--text-primary); font-family:inherit; }
+    .proj-search:focus { border-color:var(--accent); }
+    .proj-sort { border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:0.83rem; outline:none; background:var(--bg-surface); color:var(--text-primary); cursor:pointer; font-family:inherit; }
+    .proj-sort:focus { border-color:var(--accent); }
+
+    /* Grid */
+    .proj-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+    @media(max-width:720px){ .proj-grid{ grid-template-columns:1fr; } }
+
+    /* Project card */
+    .proj-card { background:var(--bg-surface); border:1.5px solid var(--border); border-radius:14px; padding:22px; display:flex; flex-direction:column; transition:box-shadow .15s,border-color .15s; }
+    .proj-card:hover { box-shadow:0 4px 20px rgba(0,0,0,.08); border-color:var(--accent); }
+    .proj-card-name { font-size:1.05rem; font-weight:800; margin-bottom:8px; display:flex; align-items:center; gap:8px; color:var(--text-primary); }
+    .proj-card-meta { font-size:0.8rem; color:var(--text-secondary); display:grid; grid-template-columns:90px 1fr; gap:3px 8px; margin-bottom:14px; }
+    .proj-card-meta .mk { color:var(--text-muted); font-size:0.75rem; }
+    .proj-card-divider { border:none; border-top:1px solid var(--border); margin:0 0 14px; }
+    .proj-card-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:auto; }
+    .proj-card-counts { font-size:0.78rem; color:var(--text-muted); }
+    .proj-card-actions { display:flex; gap:6px; }
+    .proj-open-btn { background:var(--accent); color:white; border:none; border-radius:8px; padding:8px 18px; font-size:0.83rem; font-weight:600; cursor:pointer; text-decoration:none; display:inline-block; }
+    .proj-open-btn:hover { background:#1d4ed8; }
+    .proj-action-btn { background:none; border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:0.8rem; cursor:pointer; color:var(--text-secondary); font-family:inherit; }
+    .proj-action-btn:hover { background:var(--bg-subtle); }
+    .proj-action-btn.danger:hover { background:#FEE2E2; border-color:#EF4444; color:#DC2626; }
+
+    /* Empty state */
+    .proj-empty { text-align:center; padding:60px 24px; background:var(--bg-surface); border:1.5px dashed var(--border); border-radius:14px; }
+    .proj-empty-icon { font-size:3rem; margin-bottom:16px; }
+    .proj-empty h3 { font-size:1.1rem; font-weight:700; margin-bottom:8px; }
+    .proj-empty p { font-size:0.85rem; color:var(--text-muted); max-width:340px; margin:0 auto 20px; line-height:1.6; }
+
+    /* New Project modal */
+    .np-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .2s; }
+    .np-modal-overlay.open { opacity:1; pointer-events:all; }
+    .np-modal { background:white; border-radius:16px; padding:32px; width:100%; max-width:620px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+    .np-modal h2 { margin:0 0 24px; font-size:1.3rem; font-weight:800; }
+    .np-section-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin:20px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+    .np-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media(max-width:480px){ .np-grid-2{ grid-template-columns:1fr; } }
+    .np-form-row { display:flex; flex-direction:column; gap:4px; margin-bottom:14px; }
+    .np-form-row label { font-size:0.78rem; font-weight:600; color:var(--text-secondary); }
+    .np-form-row input, .np-form-row select, .np-form-row textarea { border:1px solid var(--border); border-radius:8px; padding:9px 12px; font-size:0.85rem; outline:none; font-family:inherit; background:var(--bg-surface); color:var(--text-primary); }
+    .np-form-row input:focus, .np-form-row select:focus, .np-form-row textarea:focus { border-color:var(--accent); }
+    .np-form-row textarea { resize:vertical; min-height:70px; }
+    .np-modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; padding-top:16px; border-top:1px solid var(--border); }
+
+    /* Rename & Delete modals (small) */
+    .sm-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1100; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .2s; }
+    .sm-modal-overlay.open { opacity:1; pointer-events:all; }
+    .sm-modal { background:white; border-radius:14px; padding:28px; width:100%; max-width:440px; box-shadow:0 16px 48px rgba(0,0,0,.2); }
+    .sm-modal h3 { font-size:1rem; font-weight:700; margin:0 0 8px; }
+    .sm-modal p { font-size:0.83rem; color:var(--text-muted); margin:0 0 16px; line-height:1.6; }
+    .sm-modal-input { border:1px solid var(--border); border-radius:8px; padding:9px 12px; font-size:0.85rem; outline:none; font-family:inherit; width:100%; margin-bottom:16px; }
+    .sm-modal-input:focus { border-color:var(--accent); }
+    .sm-modal-footer { display:flex; justify-content:flex-end; gap:8px; }
+    .sm-modal-footer .btn-cancel { background:none; border:1px solid var(--border); border-radius:8px; padding:8px 16px; font-size:0.83rem; cursor:pointer; font-family:inherit; color:var(--text-secondary); }
+    .sm-modal-footer .btn-confirm { background:var(--accent); color:white; border:none; border-radius:8px; padding:8px 18px; font-size:0.83rem; font-weight:600; cursor:pointer; font-family:inherit; }
+    .sm-modal-footer .btn-confirm:hover { background:#1d4ed8; }
+    .sm-modal-footer .btn-confirm.danger { background:#DC2626; }
+    .sm-modal-footer .btn-confirm.danger:hover { background:#b91c1c; }
+    .sm-modal-warn { background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:10px 14px; font-size:0.8rem; color:#991B1B; margin-bottom:16px; }
   </style>
 </head>
 <body>
@@ -20,13 +92,13 @@
   <header id="app-header"></header>
 
   <main id="app-main">
-    <div class="app-container">
+    <div class="proj-page">
 
-      <!-- ── Page header ───────────────────────────────────────── -->
-      <div class="page-hero" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <!-- Top bar -->
+      <div class="proj-topbar">
         <div>
-          <h1>📁 Your Projects</h1>
-          <p id="proj-sub">Loading…</p>
+          <h1>&#128193; My Projects</h1>
+          <div class="proj-topbar-sub">All your engineering projects in one place</div>
         </div>
         <button class="btn btn-primary" id="btn-new-project" style="font-size:0.85rem;padding:9px 18px;gap:6px;white-space:nowrap">
           <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
@@ -34,433 +106,520 @@
         </button>
       </div>
 
-      <!-- ── Start a Calculation strip ────────────────────────── -->
-      <div class="calc-strip-wrap">
-        <div class="calc-strip-label">Start a calculation</div>
-        <div class="calc-strip">
-          <a href="/index.html" class="calc-chip chip-beam">
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>
-            Beam Analysis
-          </a>
-          <a href="/calcs/column.html" class="calc-chip chip-column">
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="10" y="2" width="4" height="20" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
-            Column
-          </a>
-          <a href="/calcs/slab.html" class="calc-chip chip-slab">
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
-            RC Slab
-          </a>
-          <a href="/calcs/footing.html" class="calc-chip chip-footing">
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="4" y="14" width="16" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="9" y="5" width="6" height="9" rx="0.5" stroke="currentColor" stroke-width="1.8"/></svg>
-            Footing
-          </a>
-          <a href="/calcs/retaining-wall.html" class="calc-chip chip-wall">
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M6 4v16M6 20h12M6 8h5M6 12h3"/></svg>
-            Ret. Wall
-          </a>
-          <a href="/calcs/connection.html" class="calc-chip chip-conn">
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="5" cy="5" r="1.8" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="5" r="1.8" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="19" r="1.8" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="19" r="1.8" stroke="currentColor" stroke-width="1.5"/></svg>
-            Connection
-          </a>
+      <!-- Stats bar -->
+      <div class="proj-stats" id="proj-stats">
+        <div class="proj-stat">
+          <div class="proj-stat-val" id="stat-total-projects">—</div>
+          <div class="proj-stat-lbl">Total Projects</div>
+        </div>
+        <div class="proj-stat">
+          <div class="proj-stat-val" id="stat-total-reports">—</div>
+          <div class="proj-stat-lbl">Total Reports</div>
+        </div>
+        <div class="proj-stat">
+          <div class="proj-stat-val" id="stat-approved-reports">—</div>
+          <div class="proj-stat-lbl">Reports Approved</div>
         </div>
       </div>
 
-      <!-- ── Projects list ─────────────────────────────────────── -->
-      <div id="projects-list"></div>
+      <!-- Search + sort -->
+      <div class="proj-filters">
+        <input type="search" class="proj-search" id="proj-search" placeholder="Search projects by name or client…" />
+        <select class="proj-sort" id="proj-sort">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="az">A–Z</option>
+        </select>
+      </div>
 
-      <!-- ── Empty state ────────────────────────────────────────── -->
-      <div id="proj-empty" style="display:none" class="dash-empty">
-        <div class="dash-empty-icon">
-          <svg width="52" height="52" fill="none" viewBox="0 0 24 24"><path stroke="#CBD5E1" stroke-width="1.2" stroke-linecap="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
-        </div>
+      <!-- Grid -->
+      <div class="proj-grid" id="proj-grid"></div>
+
+      <!-- Empty state -->
+      <div class="proj-empty" id="proj-empty" style="display:none">
+        <div class="proj-empty-icon">&#128193;</div>
         <h3>No projects yet</h3>
-        <p>Create your first project to start organising your calculations.</p>
-        <button class="btn btn-primary" onclick="openNewProjectModal()" style="font-size:0.85rem;padding:9px 20px;margin-top:8px">
-          + Create Project
+        <p>Create your first project to start building engineering calculation reports.</p>
+        <button class="btn btn-primary" onclick="openNewProjectModal()" style="font-size:0.85rem;padding:9px 20px">
+          + Create Your First Project
         </button>
       </div>
 
-    </div><!-- /app-container -->
+    </div>
   </main>
 </div>
 
-<!-- ── New Project Modal ─────────────────────────────────────── -->
-<div class="modal-overlay" id="modal-new-project">
-  <div class="modal-box" style="width:440px">
-    <h2 class="modal-title">New Project</h2>
-    <p class="modal-sub">Create a project to organise your calculations.</p>
-    <div class="modal-field">
-      <label for="np-name">Project Name</label>
-      <input type="text" id="np-name" placeholder="e.g. Office Block Phase 2" />
+<!-- ── New Project Modal ─────────────────────────────────────────── -->
+<div class="np-modal-overlay" id="modal-new-project">
+  <div class="np-modal">
+    <h2>&#128193; New Project</h2>
+
+    <div class="np-section-label">Project Details</div>
+    <div class="np-grid-2">
+      <div class="np-form-row">
+        <label for="np-name">Project Name <span style="color:#DC2626">*</span></label>
+        <input type="text" id="np-name" placeholder="e.g. Office Block Phase 2" />
+      </div>
+      <div class="np-form-row">
+        <label for="np-client">Client Name</label>
+        <input type="text" id="np-client" placeholder="e.g. ABC Architects" />
+      </div>
     </div>
-    <div class="modal-field">
+    <div class="np-grid-2">
+      <div class="np-form-row">
+        <label for="np-location">Location</label>
+        <input type="text" id="np-location" placeholder="e.g. London, UK" />
+      </div>
+      <div class="np-form-row">
+        <label for="np-ref">Project Reference</label>
+        <input type="text" id="np-ref" placeholder="e.g. BM-2026-001" />
+      </div>
+    </div>
+    <div class="np-form-row">
+      <label for="np-type">Project Type</label>
+      <select id="np-type">
+        <option value="">Select type…</option>
+        <option>Residential</option>
+        <option>Commercial</option>
+        <option>Industrial</option>
+        <option>Warehouse</option>
+        <option>Bridge</option>
+        <option>Drainage</option>
+        <option>Road</option>
+        <option>Foundation</option>
+        <option>Steel Structure</option>
+        <option>RC Structure</option>
+        <option>Timber Structure</option>
+        <option>Temporary Works</option>
+        <option>Solar</option>
+        <option>Telecom</option>
+        <option>Marine</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="np-form-row">
       <label for="np-desc">Description <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
-      <input type="text" id="np-desc" placeholder="Brief description" />
+      <textarea id="np-desc" placeholder="Brief project description…"></textarea>
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+
+    <div class="np-section-label">Engineering Details</div>
+    <div class="np-grid-2">
+      <div class="np-form-row">
+        <label for="np-engineer">Engineer Name <span style="color:#DC2626">*</span></label>
+        <input type="text" id="np-engineer" placeholder="e.g. Mark James" />
+      </div>
+      <div class="np-form-row">
+        <label for="np-checker">Checker Name</label>
+        <input type="text" id="np-checker" placeholder="e.g. Jane Smith" />
+      </div>
+    </div>
+    <div class="np-grid-2">
+      <div class="np-form-row">
+        <label for="np-company">Company Name</label>
+        <input type="text" id="np-company" placeholder="e.g. BuildMetrics Ltd" />
+      </div>
+      <div class="np-form-row">
+        <label for="np-date">Project Date</label>
+        <input type="date" id="np-date" />
+      </div>
+    </div>
+    <div class="np-form-row">
+      <label for="np-code">Design Code</label>
+      <select id="np-code">
+        <option value="">Select code…</option>
+        <option>Eurocode</option>
+        <option>BS 5950 + BS 8110</option>
+        <option>ACI 318</option>
+        <option>AISC</option>
+        <option>AS 3600</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div class="np-section-label">Report Settings</div>
+    <div class="np-grid-2">
+      <div class="np-form-row">
+        <label for="np-title-fmt">Report Title Format</label>
+        <select id="np-title-fmt">
+          <option value="project_calcs">[Project Name] — Structural Calculations</option>
+          <option value="client_project">[Client] — [Project Name]</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="np-form-row">
+        <label for="np-rev-start">Revision Start</label>
+        <select id="np-rev-start">
+          <option>Rev A</option>
+          <option>Rev 0</option>
+          <option>Rev 1</option>
+        </select>
+      </div>
+    </div>
+    <div class="np-form-row">
+      <label for="np-units">Units</label>
+      <select id="np-units">
+        <option value="si">SI (kN, m, mm)</option>
+        <option value="imperial">Imperial (kip, ft, in)</option>
+      </select>
+    </div>
+
+    <div class="np-modal-footer">
       <button class="btn btn-secondary" onclick="closeNewProjectModal()">Cancel</button>
-      <button class="btn btn-primary" id="btn-create-project">Create Project</button>
+      <button class="btn btn-primary" id="btn-create-project">Create Project →</button>
     </div>
   </div>
 </div>
 
-<!-- ── Project Options Modal ────────────────────────────────── -->
-<div class="modal-overlay" id="modal-project-options">
-  <div class="modal-box" style="width:360px">
-    <h2 class="modal-title" id="po-title">Project Options</h2>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
-      <button class="btn btn-secondary" id="po-rename-btn" style="justify-content:flex-start">✏️ Rename project</button>
-      <button class="btn btn-secondary" id="po-delete-btn" style="justify-content:flex-start;color:var(--red);border-color:var(--red)">🗑 Delete project and all calculations</button>
-    </div>
-    <div style="margin-top:12px;text-align:right">
-      <button class="btn btn-ghost" onclick="document.getElementById('modal-project-options').classList.remove('open')">Cancel</button>
+<!-- ── Rename Modal ─────────────────────────────────────────────── -->
+<div class="sm-modal-overlay" id="modal-rename">
+  <div class="sm-modal">
+    <h3>Rename Project</h3>
+    <input type="text" class="sm-modal-input" id="rename-input" placeholder="Project name" />
+    <div class="sm-modal-footer">
+      <button class="btn-cancel" id="rename-cancel">Cancel</button>
+      <button class="btn-confirm" id="rename-confirm">Save</button>
     </div>
   </div>
 </div>
 
-<!-- ── Rename Project Modal ──────────────────────────────────── -->
-<div class="modal-overlay" id="modal-rename-project">
-  <div class="modal-box" style="width:440px">
-    <h2 class="modal-title">✏️ Rename Project</h2>
-    <p class="modal-sub">Enter a new name for this project.</p>
-    <div class="modal-field" style="margin-top:16px">
-      <label for="rename-input">Project Name</label>
-      <input type="text" id="rename-input" placeholder="Project name" />
+<!-- ── Delete Modal ─────────────────────────────────────────────── -->
+<div class="sm-modal-overlay" id="modal-delete">
+  <div class="sm-modal">
+    <h3>Delete <span id="delete-proj-name" style="color:var(--text-primary)"></span>?</h3>
+    <div class="sm-modal-warn">
+      This will also delete all reports in this project. This cannot be undone.
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-secondary" id="rename-cancel-btn">Cancel</button>
-      <button class="btn btn-primary" id="rename-confirm-btn">Save Name</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Delete Confirmation Modal ─────────────────────────────── -->
-<div class="modal-overlay" id="modal-delete-project">
-  <div class="modal-box" style="width:420px">
-    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px">
-      <div style="width:44px;height:44px;border-radius:12px;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-      </div>
-      <div>
-        <h2 class="modal-title" style="margin-bottom:4px">Delete Project?</h2>
-        <p class="modal-sub" style="margin:0">You are about to permanently delete <strong id="delete-project-name" style="color:var(--text-primary)"></strong> and all of its calculations. <span style="color:var(--red);font-weight:600">This cannot be undone.</span></p>
-      </div>
-    </div>
-    <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:0.82rem;color:var(--text-muted)">
-      All saved calculations inside this project will be permanently deleted.
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn btn-secondary" id="delete-cancel-btn">Keep Project</button>
-      <button class="btn" id="delete-confirm-btn" style="background:var(--red);color:#fff;border-color:var(--red)">🗑 Yes, Delete Project</button>
+    <div class="sm-modal-footer">
+      <button class="btn-cancel" id="delete-cancel">Keep Project</button>
+      <button class="btn-confirm danger" id="delete-confirm">Delete</button>
     </div>
   </div>
 </div>
 
 <script src="/js/auth/auth.js"></script>
 <script src="/js/projects/projects.js"></script>
-<script src="/js/projects/history.js"></script>
 <script src="/js/subscription/plans.js"></script>
 <script src="/js/ui/topNav.js"></script>
 
 <script>
-// ── Constants ─────────────────────────────────────────────────
-const TYPE_COLORS = {
-  beam: '#2563EB', column: '#D97706', slab: '#16A34A',
-  footing: '#7C3AED', retaining_wall: '#DC2626', connection: '#0891B2'
-};
-const TYPE_LABELS = {
-  beam: 'BEAM', column: 'COL', slab: 'SLAB',
-  footing: 'FTNG', retaining_wall: 'WALL', connection: 'CONN'
-};
-const TYPE_PAGES = {
-  beam: '/index.html', column: '/calcs/column.html', slab: '/calcs/slab.html',
-  footing: '/calcs/footing.html', retaining_wall: '/calcs/retaining-wall.html',
-  connection: '/calcs/connection.html'
-};
+// ── State ────────────────────────────────────────────────────────
+let _allProjects = [];
+let _allReports  = [];
+let _activeRenameId = null;
+let _activeDeleteId = null;
+
 const PROJECT_COLORS = ['#2563EB','#16A34A','#D97706','#7C3AED','#DC2626','#0891B2','#BE185D','#059669'];
 
-let _optionsProjectId = null;
-
-// ── Init ──────────────────────────────────────────────────────
+// ── Bootstrap ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
   TopNav.init();
   const user = Auth.currentUser();
   if (!user) return;
 
+  // Pre-fill engineer name from user profile
+  const engInput = document.getElementById('np-engineer');
+  if (engInput && user.name) engInput.value = user.name;
+
+  // Default today's date
+  const dateInput = document.getElementById('np-date');
+  if (dateInput) dateInput.value = new Date().toISOString().slice(0,10);
+
   renderAll();
 
+  // New project btn
   document.getElementById('btn-new-project').addEventListener('click', openNewProjectModal);
   document.getElementById('btn-create-project').addEventListener('click', createProject);
-  document.getElementById('np-name').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') createProject();
-  });
-  document.getElementById('modal-new-project').addEventListener('click', function(e) {
-    if (e.target === this) closeNewProjectModal();
-  });
-  document.getElementById('modal-project-options').addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('open');
-  });
-  document.getElementById('modal-rename-project').addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('open');
-  });
-  document.getElementById('modal-delete-project').addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('open');
-  });
-  document.getElementById('rename-cancel-btn').addEventListener('click', function() {
-    document.getElementById('modal-rename-project').classList.remove('open');
-  });
-  document.getElementById('delete-cancel-btn').addEventListener('click', function() {
-    document.getElementById('modal-delete-project').classList.remove('open');
-  });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-overlay.open').forEach(function(m) { m.classList.remove('open'); });
+  document.getElementById('np-name').addEventListener('keydown', function(e){ if(e.key==='Enter') createProject(); });
+  document.getElementById('modal-new-project').addEventListener('click', function(e){ if(e.target===this) closeNewProjectModal(); });
+
+  // Rename modal
+  document.getElementById('rename-cancel').addEventListener('click', function(){ closeModal('modal-rename'); });
+  document.getElementById('rename-confirm').addEventListener('click', confirmRename);
+  document.getElementById('rename-input').addEventListener('keydown', function(e){ if(e.key==='Enter') confirmRename(); });
+  document.getElementById('modal-rename').addEventListener('click', function(e){ if(e.target===this) closeModal('modal-rename'); });
+
+  // Delete modal
+  document.getElementById('delete-cancel').addEventListener('click', function(){ closeModal('modal-delete'); });
+  document.getElementById('delete-confirm').addEventListener('click', confirmDelete);
+  document.getElementById('modal-delete').addEventListener('click', function(e){ if(e.target===this) closeModal('modal-delete'); });
+
+  // Search + sort
+  document.getElementById('proj-search').addEventListener('input', applyFilter);
+  document.getElementById('proj-sort').addEventListener('change', applyFilter);
+
+  // Escape key
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){
+      closeNewProjectModal();
+      closeModal('modal-rename');
+      closeModal('modal-delete');
     }
-  });
-  document.addEventListener('click', function() {
-    document.querySelectorAll('.add-calc-menu.open').forEach(function(m) { m.classList.remove('open'); });
   });
 });
 
-// ── Render (async — fetches from MySQL API) ───────────────────
+// ── Data loading ─────────────────────────────────────────────────
 async function renderAll() {
-  const subEl   = document.getElementById('proj-sub');
-  const listEl  = document.getElementById('projects-list');
-  const emptyEl = document.getElementById('proj-empty');
-  subEl.textContent = 'Loading…';
-
   try {
-    const [projects, allCalcs] = await Promise.all([
+    const [projects, reportsData] = await Promise.all([
       Projects.getAll(),
-      CalcHistory.getAll()
+      _fetchReports()
     ]);
+    _allProjects = projects;
+    _allReports  = reportsData;
 
-    const now = new Date();
-    const monthCalcs = allCalcs.filter(function(h) {
-      const d = new Date(h.created_at);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    });
+    // Stats
+    document.getElementById('stat-total-projects').textContent = projects.length;
+    document.getElementById('stat-total-reports').textContent  = reportsData.length;
+    document.getElementById('stat-approved-reports').textContent =
+      reportsData.filter(function(r){ return (r.status||'').toLowerCase() === 'approved'; }).length;
 
-    subEl.textContent = projects.length + ' project' + (projects.length !== 1 ? 's' : '') +
-      ' · ' + allCalcs.length + ' calculation' + (allCalcs.length !== 1 ? 's' : '') +
-      (monthCalcs.length > 0 ? ' · ' + monthCalcs.length + ' this month' : '');
-
-    if (projects.length === 0) {
-      listEl.innerHTML = '';
-      emptyEl.style.display = 'block';
-      return;
-    }
-    emptyEl.style.display = 'none';
-
-    const sorted = projects.slice().sort(function(a, b) {
-      const aLast = _lastCalcTime(a.id, allCalcs);
-      const bLast = _lastCalcTime(b.id, allCalcs);
-      return (bLast || b.created_at || 0) > (aLast || a.created_at || 0) ? 1 : -1;
-    });
-
-    listEl.innerHTML = sorted.map(function(proj, idx) {
-      return renderProjectCard(proj, idx, allCalcs);
-    }).join('');
-
+    applyFilter();
   } catch(e) {
-    subEl.textContent = 'Failed to load — please refresh.';
     console.error('renderAll error:', e);
   }
 }
 
-function renderProjectCard(proj, idx, allCalcs) {
-  // API returns `colour` (British spelling) and `project_id` / `created_at`
-  const calcs = allCalcs.filter(function(h) { return h.project_id === proj.id; })
-    .sort(function(a, b) { return new Date(b.created_at) - new Date(a.created_at); });
-
-  const color = proj.colour || PROJECT_COLORS[idx % PROJECT_COLORS.length];
-  const calcCount = calcs.length;
-  const lastCalc = calcs[0];
-  const metaText = calcCount === 0
-    ? 'No calculations yet'
-    : calcCount + ' calculation' + (calcCount !== 1 ? 's' : '') +
-      (lastCalc ? ' · Updated ' + _timeAgo(lastCalc.created_at) : '');
-
-  const visible = calcs.slice(0, 5);
-
-  const calcRowsHtml = visible.length === 0
-    ? '<div class="calc-empty">No calculations yet — <a class="calc-empty-link" href="#" onclick="openAddCalc(event,\'' + proj.id + '\')">add one →</a></div>'
-    : visible.map(function(h) {
-        const ct = h.calc_type || 'beam';
-        const pageUrl = (TYPE_PAGES[ct] || '/index.html') + '?load=' + h.id;
-        const color2 = TYPE_COLORS[ct] || '#2563EB';
-        const label = TYPE_LABELS[ct] || 'CALC';
-        // results may be object or null; check for summary/status field
-        const res = h.results || {};
-        const summary = typeof res === 'object' ? (res.summary || res.status || '') : String(res || '');
-        const passMatch = typeof summary === 'string' ? summary.match(/\b(PASS|FAIL)\b/i) : null;
-        const passText = passMatch ? passMatch[0].toUpperCase() : '';
-        const passClass = passText === 'PASS' ? 'status-pass' : passText === 'FAIL' ? 'status-fail' : '';
-        const passIcon = passText === 'PASS' ? '✓ ' : passText === 'FAIL' ? '✗ ' : '';
-
-        return '<a class="calc-row" href="' + pageUrl + '">' +
-          '<span class="calc-type-pill" style="background:' + color2 + '1A;color:' + color2 + '">' + label + '</span>' +
-          '<span class="calc-row-name">' + _esc(h.name || 'Untitled') + '</span>' +
-          (passText ? '<span class="calc-row-status ' + passClass + '">' + passIcon + passText + '</span>' : '') +
-          '<span class="calc-row-time">' + _timeAgo(h.created_at) + '</span>' +
-          '</a>';
-      }).join('') +
-      (calcCount > 5
-        ? '<a href="/history.html" class="calc-view-all">View all ' + calcCount + ' calculations →</a>'
-        : '');
-
-  return '<div class="project-card" id="pc-' + proj.id + '">' +
-    '<div class="project-card-head">' +
-      '<div class="project-head-left">' +
-        '<div class="project-color-bar" style="background:' + color + '"></div>' +
-        '<div>' +
-          '<h3 class="project-name">' + _esc(proj.name) + '</h3>' +
-          '<div class="project-meta-line">' + metaText + '</div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="project-head-right">' +
-        '<div class="add-calc-wrap" id="acw-' + proj.id + '">' +
-          '<button class="btn btn-secondary" style="font-size:0.78rem;padding:6px 12px;gap:5px" onclick="toggleAddCalc(event,\'' + proj.id + '\')">' +
-            '<svg width="11" height="11" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>' +
-            'Add Calculation' +
-          '</button>' +
-          '<div class="add-calc-menu" id="acm-' + proj.id + '">' +
-            _addCalcMenuItems(proj.id) +
-          '</div>' +
-        '</div>' +
-        '<button class="btn-icon" style="width:30px;height:30px;font-size:16px;line-height:1;border-radius:8px" ' +
-          'onclick="openProjectOptions(event,\'' + proj.id + '\',\'' + _esc(proj.name) + '\')" title="Project options">⋯</button>' +
-      '</div>' +
-    '</div>' +
-    '<div class="calc-rows">' + calcRowsHtml + '</div>' +
-  '</div>';
+function _fetchReports() {
+  return fetch('/api/reports.php?action=list', { credentials: 'include' })
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .then(function(d){ return Array.isArray(d) ? d : (d.reports || []); })
+    .catch(function(){ return []; });
 }
 
-function _addCalcMenuItems(projectId) {
-  return [
-    { ct: 'beam',           label: 'Beam Analysis',  color: '#2563EB', page: '/index.html' },
-    { ct: 'column',         label: 'Column Design',  color: '#D97706', page: '/calcs/column.html' },
-    { ct: 'slab',           label: 'RC Slab',        color: '#16A34A', page: '/calcs/slab.html' },
-    { ct: 'footing',        label: 'Pad Footing',    color: '#7C3AED', page: '/calcs/footing.html' },
-    { ct: 'retaining_wall', label: 'Retaining Wall', color: '#DC2626', page: '/calcs/retaining-wall.html' },
-    { ct: 'connection',     label: 'Connection',     color: '#0891B2', page: '/calcs/connection.html' },
-  ].map(function(item) {
-    return '<a href="' + item.page + '?project=' + projectId + '" class="add-calc-item">' +
-      '<span class="add-calc-dot" style="background:' + item.color + '"></span>' +
-      item.label + '</a>';
+// ── Filter + sort ─────────────────────────────────────────────────
+function applyFilter() {
+  const query  = (document.getElementById('proj-search').value || '').toLowerCase();
+  const sortBy = document.getElementById('proj-sort').value;
+
+  let list = _allProjects.slice();
+
+  // Filter
+  if (query) {
+    list = list.filter(function(p) {
+      const meta = _parseMeta(p.description);
+      const client = (meta.client || '').toLowerCase();
+      return p.name.toLowerCase().includes(query) || client.includes(query);
+    });
+  }
+
+  // Sort
+  if (sortBy === 'newest') {
+    list.sort(function(a,b){ return new Date(b.created_at||0) - new Date(a.created_at||0); });
+  } else if (sortBy === 'oldest') {
+    list.sort(function(a,b){ return new Date(a.created_at||0) - new Date(b.created_at||0); });
+  } else if (sortBy === 'az') {
+    list.sort(function(a,b){ return a.name.localeCompare(b.name); });
+  }
+
+  renderGrid(list);
+}
+
+function renderGrid(projects) {
+  const grid  = document.getElementById('proj-grid');
+  const empty = document.getElementById('proj-empty');
+
+  if (!projects.length) {
+    grid.innerHTML = '';
+    empty.style.display = _allProjects.length === 0 ? 'block' : 'none';
+    if (_allProjects.length > 0) {
+      // Has projects but search returned nothing
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--text-muted);font-size:0.85rem;">No projects match your search.</div>';
+    }
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.innerHTML = projects.map(function(proj, idx) {
+    return _renderCard(proj, idx);
   }).join('');
 }
 
-// ── Add Calc Dropdown ──────────────────────────────────────────
-function toggleAddCalc(e, projectId) {
-  e.stopPropagation();
-  document.querySelectorAll('.add-calc-menu.open').forEach(function(m) {
-    if (m.id !== 'acm-' + projectId) m.classList.remove('open');
-  });
-  document.getElementById('acm-' + projectId).classList.toggle('open');
-}
-function openAddCalc(e, projectId) { e.preventDefault(); toggleAddCalc(e, projectId); }
+function _renderCard(proj, idx) {
+  const meta      = _parseMeta(proj.description);
+  const color     = proj.colour || PROJECT_COLORS[idx % PROJECT_COLORS.length];
+  const reports   = _allReports.filter(function(r){ return r.project_id === proj.id; });
+  const approved  = reports.filter(function(r){ return (r.status||'').toLowerCase()==='approved'; }).length;
+  const lastDate  = reports.reduce(function(mx, r){ return new Date(r.updated_at||r.created_at||0) > new Date(mx) ? (r.updated_at||r.created_at) : mx; }, proj.created_at || '');
+  const updatedStr = lastDate ? 'Updated ' + _timeAgo(lastDate) : '';
 
-// ── New Project Modal ──────────────────────────────────────────
-function openNewProjectModal() {
-  document.getElementById('np-name').value = '';
-  document.getElementById('np-desc').value = '';
-  document.getElementById('modal-new-project').classList.add('open');
-  setTimeout(function() { document.getElementById('np-name').focus(); }, 50);
+  const metaRows = [
+    meta.client   ? ['Client',      _esc(meta.client)]   : null,
+    meta.location ? ['Location',    _esc(meta.location)] : null,
+    meta.engineer ? ['Engineer',    _esc(meta.engineer)] : null,
+    meta.design_code ? ['Code',     _esc(meta.design_code)] : null,
+  ].filter(Boolean);
+
+  const metaHtml = metaRows.map(function(r){
+    return '<span class="mk">' + r[0] + '</span><span>' + r[1] + '</span>';
+  }).join('');
+
+  const countsText = reports.length + ' report' + (reports.length !== 1 ? 's' : '') +
+    (approved > 0 ? '&nbsp;&nbsp;&bull;&nbsp;&nbsp;' + approved + ' approved' : '') +
+    (updatedStr ? '&nbsp;&nbsp;&bull;&nbsp;&nbsp;' + updatedStr : '');
+
+  return (
+    '<div class="proj-card" id="pc-' + proj.id + '">' +
+      '<div class="proj-card-name">' +
+        '<svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>' +
+        _esc(proj.name) +
+      '</div>' +
+      (metaHtml ? '<div class="proj-card-meta">' + metaHtml + '</div>' : '') +
+      '<hr class="proj-card-divider" />' +
+      '<div class="proj-card-footer">' +
+        '<div class="proj-card-counts">' + countsText + '</div>' +
+        '<div class="proj-card-actions">' +
+          '<a href="/project.html?id=' + encodeURIComponent(proj.id) + '" class="proj-open-btn">Open Project</a>' +
+          '<button class="proj-action-btn" onclick="openRenameModal(\'' + proj.id + '\',\'' + _esc(proj.name).replace(/'/g,'\\\'') + '\')">Rename</button>' +
+          '<button class="proj-action-btn danger" onclick="openDeleteModal(\'' + proj.id + '\',\'' + _esc(proj.name).replace(/'/g,'\\\'') + '\')">Delete</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
 }
-function closeNewProjectModal() {
-  document.getElementById('modal-new-project').classList.remove('open');
-}
-async function createProject() {
-  const name = document.getElementById('np-name').value.trim();
-  if (!name) { document.getElementById('np-name').focus(); return; }
-  const desc = document.getElementById('np-desc').value.trim();
-  const btn = document.getElementById('btn-create-project');
-  btn.disabled = true;
+
+// ── Parse meta from description field ────────────────────────────
+function _parseMeta(desc) {
+  if (!desc) return {};
   try {
-    const existing = await Projects.getAll();
-    const colour = PROJECT_COLORS[existing.length % PROJECT_COLORS.length];
-    await Projects.create(name, desc, colour);
-    closeNewProjectModal();
-    renderAll();
+    const parsed = JSON.parse(desc);
+    return typeof parsed === 'object' ? parsed : {};
   } catch(e) {
-    alert(e.message || 'Could not create project.');
-  } finally {
-    btn.disabled = false;
+    return { description: desc };
   }
 }
 
-// ── Project Options ────────────────────────────────────────────
-function openProjectOptions(e, projectId, projectName) {
-  e.stopPropagation();
-  _optionsProjectId = projectId;
-  document.getElementById('po-title').textContent = projectName;
-
-  document.getElementById('po-rename-btn').onclick = function() {
-    document.getElementById('modal-project-options').classList.remove('open');
-    // Open rename modal pre-filled with current name
-    const inp = document.getElementById('rename-input');
-    inp.value = projectName;
-    document.getElementById('modal-rename-project').classList.add('open');
-    setTimeout(function() { inp.select(); }, 120);
-
-    document.getElementById('rename-confirm-btn').onclick = async function() {
-      const newName = inp.value.trim();
-      if (!newName) { inp.focus(); return; }
-      this.disabled = true;
-      this.textContent = 'Saving…';
-      await Projects.update(projectId, { name: newName });
-      document.getElementById('modal-rename-project').classList.remove('open');
-      this.disabled = false;
-      this.textContent = 'Save Name';
-      renderAll();
-    };
-    inp.onkeydown = function(e) {
-      if (e.key === 'Enter') document.getElementById('rename-confirm-btn').click();
-    };
-  };
-
-  document.getElementById('po-delete-btn').onclick = function() {
-    document.getElementById('modal-project-options').classList.remove('open');
-    // Open delete confirmation modal
-    document.getElementById('delete-project-name').textContent = '"' + projectName + '"';
-    document.getElementById('modal-delete-project').classList.add('open');
-
-    document.getElementById('delete-confirm-btn').onclick = async function() {
-      this.disabled = true;
-      this.textContent = 'Deleting…';
-      await Projects.remove(projectId);
-      document.getElementById('modal-delete-project').classList.remove('open');
-      this.disabled = false;
-      this.textContent = '🗑 Yes, Delete Project';
-      renderAll();
-    };
-  };
-
-  document.getElementById('modal-project-options').classList.add('open');
+// ── New Project Modal ─────────────────────────────────────────────
+function openNewProjectModal() {
+  document.getElementById('np-name').value    = '';
+  document.getElementById('np-client').value  = '';
+  document.getElementById('np-location').value= '';
+  document.getElementById('np-ref').value     = '';
+  document.getElementById('np-type').value    = '';
+  document.getElementById('np-desc').value    = '';
+  document.getElementById('np-checker').value = '';
+  document.getElementById('np-company').value = '';
+  document.getElementById('np-date').value    = new Date().toISOString().slice(0,10);
+  document.getElementById('np-code').value    = '';
+  document.getElementById('np-title-fmt').value  = 'project_calcs';
+  document.getElementById('np-rev-start').value  = 'Rev A';
+  document.getElementById('np-units').value   = 'si';
+  document.getElementById('modal-new-project').classList.add('open');
+  setTimeout(function(){ document.getElementById('np-name').focus(); }, 60);
 }
 
-// ── Helpers ───────────────────────────────────────────────────
-function _lastCalcTime(projectId, calcs) {
-  const pc = calcs.filter(function(h) { return h.project_id === projectId; });
-  if (!pc.length) return null;
-  return pc.reduce(function(max, h) {
-    const ts = h.created_at;
-    return new Date(ts) > new Date(max) ? ts : max;
-  }, pc[0].created_at);
+function closeNewProjectModal() {
+  document.getElementById('modal-new-project').classList.remove('open');
 }
+
+async function createProject() {
+  const name     = document.getElementById('np-name').value.trim();
+  const engineer = document.getElementById('np-engineer').value.trim();
+  if (!name) { document.getElementById('np-name').focus(); return; }
+  if (!engineer) { document.getElementById('np-engineer').focus(); return; }
+
+  const meta = {
+    client:      document.getElementById('np-client').value.trim(),
+    location:    document.getElementById('np-location').value.trim(),
+    ref:         document.getElementById('np-ref').value.trim(),
+    project_type:document.getElementById('np-type').value,
+    description: document.getElementById('np-desc').value.trim(),
+    engineer:    engineer,
+    checker:     document.getElementById('np-checker').value.trim(),
+    company:     document.getElementById('np-company').value.trim(),
+    project_date:document.getElementById('np-date').value,
+    design_code: document.getElementById('np-code').value,
+    title_format:document.getElementById('np-title-fmt').value,
+    rev_start:   document.getElementById('np-rev-start').value,
+    units:       document.getElementById('np-units').value,
+  };
+
+  // Store meta as JSON in description field
+  const descJson = JSON.stringify(meta);
+
+  const btn = document.getElementById('btn-create-project');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+  try {
+    const colour = PROJECT_COLORS[_allProjects.length % PROJECT_COLORS.length];
+    const proj = await Projects.create(name, descJson, colour);
+    closeNewProjectModal();
+    // Navigate to the new project
+    window.location.href = '/project.html?id=' + encodeURIComponent(proj.id || proj.project_id || '');
+  } catch(e) {
+    alert(e.message || 'Could not create project.');
+    btn.disabled = false;
+    btn.textContent = 'Create Project →';
+  }
+}
+
+// ── Rename Modal ──────────────────────────────────────────────────
+function openRenameModal(id, name) {
+  _activeRenameId = id;
+  const inp = document.getElementById('rename-input');
+  inp.value = name;
+  document.getElementById('modal-rename').classList.add('open');
+  setTimeout(function(){ inp.select(); }, 80);
+}
+
+async function confirmRename() {
+  const newName = document.getElementById('rename-input').value.trim();
+  if (!newName) { document.getElementById('rename-input').focus(); return; }
+  const btn = document.getElementById('rename-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    await Projects.update(_activeRenameId, { name: newName });
+    closeModal('modal-rename');
+    renderAll();
+  } catch(e) {
+    alert(e.message || 'Could not rename project.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save';
+  }
+}
+
+// ── Delete Modal ──────────────────────────────────────────────────
+function openDeleteModal(id, name) {
+  _activeDeleteId = id;
+  document.getElementById('delete-proj-name').textContent = '"' + name + '"';
+  document.getElementById('modal-delete').classList.add('open');
+}
+
+async function confirmDelete() {
+  const btn = document.getElementById('delete-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+  try {
+    await Projects.remove(_activeDeleteId);
+    closeModal('modal-delete');
+    renderAll();
+  } catch(e) {
+    alert(e.message || 'Could not delete project.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Delete';
+  }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
 function _timeAgo(ts) {
   if (!ts) return '';
   const diff = Date.now() - new Date(ts).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
+  if (m < 1)  return 'just now';
   if (m < 60) return m + 'm ago';
   const h = Math.floor(m / 60);
   if (h < 24) return h + 'h ago';
   const d = Math.floor(h / 24);
-  if (d < 7) return d + 'd ago';
-  return new Date(ts).toLocaleDateString();
+  if (d < 7)  return d + 'd ago';
+  return new Date(ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 }
+
 function _esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
