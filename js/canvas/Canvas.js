@@ -240,6 +240,7 @@ const Canvas = (() => {
     const resp = await fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(data),
     });
     if (!resp.ok) throw new Error('API error: ' + resp.status);

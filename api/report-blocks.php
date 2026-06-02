@@ -65,7 +65,13 @@ if ($action === 'create') {
     $type        = $b['type']        ?? null;
     $order_index = $b['order_index'] ?? 0;
     $label       = $b['label']       ?? null;
-    $config_json = isset($b['config_json']) ? json_encode($b['config_json']) : null;
+    // config_json may arrive as a JSON string (already encoded by JS) or as an object.
+    // If it's already a string, store it directly. If it's an object/array, encode it.
+    if (isset($b['config_json'])) {
+        $config_json = is_string($b['config_json']) ? $b['config_json'] : json_encode($b['config_json']);
+    } else {
+        $config_json = null;
+    }
 
     if (!$report_id) json_err('report_id required');
     if (!$type)      json_err('type required');
@@ -98,11 +104,13 @@ if ($action === 'update') {
     }
     if (array_key_exists('config_json', $b)) {
         $sets[] = 'config_json = ?';
-        $vals[] = json_encode($b['config_json']);
+        // config_json may arrive as a string (already encoded by JS) or as an object
+        $vals[] = is_string($b['config_json']) ? $b['config_json'] : json_encode($b['config_json']);
     }
     if (array_key_exists('results_json', $b)) {
         $sets[] = 'results_json = ?';
-        $vals[] = json_encode($b['results_json']);
+        // results_json may arrive as a string (already encoded by JS) or as an object
+        $vals[] = is_string($b['results_json']) ? $b['results_json'] : json_encode($b['results_json']);
     }
     if (array_key_exists('validated', $b)) {
         $sets[] = 'validated = ?';
