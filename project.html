@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadPage() {
   try {
     // Load all projects and filter client-side (GET endpoint only supports listing)
-    const pr = await fetch('/api/projects.php', { credentials: 'include' });
+    const pr = await fetch('/api/projects.php', { headers: Auth.authHeaders() });
     if (!pr.ok) { location.replace('/projects.html'); return; }
     const allProjects = await pr.json();
     _project = (Array.isArray(allProjects) ? allProjects : []).find(p => p.id === projectId);
@@ -242,7 +242,7 @@ async function loadPage() {
     document.getElementById('pj-breadcrumb-name').textContent = _project.name || 'Project';
 
     // Load reports
-    const rr = await fetch('/api/reports.php?action=list', { credentials: 'include' });
+    const rr = await fetch('/api/reports.php?action=list', { headers: Auth.authHeaders() });
     const allReports = rr.ok ? await rr.json() : [];
     _reports = (Array.isArray(allReports) ? allReports : []).filter(r => r.project_id === projectId);
 
@@ -379,8 +379,7 @@ async function _createReport(title, templateId) {
   try {
     const resp = await fetch('/api/reports.php', {
       method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Auth.authHeaders(),
       body: JSON.stringify({ action: 'create', project_id: projectId, title: title || 'Untitled Report' })
     });
     const data = await resp.json();
@@ -474,11 +473,10 @@ async function saveEditProject() {
   };
 
   try {
-    await fetch('/api/projects.php', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: projectId, name, description: JSON.stringify(meta) })
+    await fetch('/api/projects.php?id=' + encodeURIComponent(projectId), {
+      method: 'PUT',
+      headers: Auth.authHeaders(),
+      body: JSON.stringify({ name, description: JSON.stringify(meta) })
     });
     _project.name = name;
     _project._meta = meta;

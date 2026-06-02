@@ -380,7 +380,7 @@ async function renderAll() {
 }
 
 function _fetchReports() {
-  return fetch('/api/reports.php?action=list', { credentials: 'include' })
+  return fetch('/api/reports.php?action=list', { headers: Auth.authHeaders() })
     .then(function(r){ return r.ok ? r.json() : []; })
     .then(function(d){ return Array.isArray(d) ? d : (d.reports || []); })
     .catch(function(){ return []; });
