@@ -235,27 +235,37 @@ const BlockRegistry = (() => {
     el.dispatchEvent(new CustomEvent('block-change', { bubbles: true, detail: { id: blockId } }));
   }
 
-  function _inputRow(label, inputEl) {
-    const row = _el('div', { className: 'block-form-row' });
-    row.appendChild(_el('label', { className: 'block-form-label' }, label));
-    row.appendChild(inputEl);
-    return row;
+  // ── Premium form helpers ─────────────────────────────────────────────────
+
+  /**
+   * Create a cb-field container: label on top, input below.
+   * @param {string} label
+   * @param {HTMLElement} inputEl
+   * @returns {HTMLElement}
+   */
+  function _cbField(label, inputEl) {
+    const wrap = _el('div', { className: 'cb-field' });
+    wrap.appendChild(_el('label', { className: 'cb-label' }, label));
+    wrap.appendChild(inputEl);
+    return wrap;
   }
 
-  function _textInput(value, placeholder, onChange) {
-    const inp = _el('input', { type: 'text', className: 'block-input', value: value || '', placeholder: placeholder || '' });
-    inp.addEventListener('input', () => onChange(inp.value));
+  function _cbInput(type, value, placeholder, onChange) {
+    const inp = _el('input', { type, className: 'cb-input', value: value != null ? String(value) : '', placeholder: placeholder || '' });
+    if (type === 'number') inp.setAttribute('step', 'any');
+    inp.addEventListener('input', () => {
+      const v = type === 'number' ? (parseFloat(inp.value) || 0) : inp.value;
+      onChange(v);
+    });
+    inp.addEventListener('change', () => {
+      const v = type === 'number' ? (parseFloat(inp.value) || 0) : inp.value;
+      onChange(v);
+    });
     return inp;
   }
 
-  function _numberInput(value, onChange) {
-    const inp = _el('input', { type: 'number', className: 'block-input', value: value != null ? value : '', step: 'any' });
-    inp.addEventListener('input', () => onChange(parseFloat(inp.value) || 0));
-    return inp;
-  }
-
-  function _selectInput(value, options, onChange) {
-    const sel = _el('select', { className: 'block-select' });
+  function _cbSelect(value, options, onChange) {
+    const sel = _el('select', { className: 'cb-input' });
     options.forEach(opt => {
       const o = _el('option', { value: opt }, opt);
       if (String(opt) === String(value)) o.selected = true;
@@ -265,15 +275,36 @@ const BlockRegistry = (() => {
     return sel;
   }
 
-  function _textarea(value, placeholder, onChange) {
-    const ta = _el('textarea', { className: 'block-textarea', placeholder: placeholder || '', rows: 4 });
+  function _cbTextarea(value, placeholder, onChange) {
+    const ta = _el('textarea', { className: 'cb-input', placeholder: placeholder || '' });
     ta.value = value || '';
+    ta.style.minHeight = '80px';
+    ta.style.resize = 'vertical';
     ta.addEventListener('input', () => {
-      ta.style.height = 'auto';
-      ta.style.height = ta.scrollHeight + 'px';
       onChange(ta.value);
     });
     return ta;
+  }
+
+  // Legacy helpers (kept for any external callers) —
+  function _inputRow(label, inputEl) {
+    return _cbField(label, inputEl);
+  }
+
+  function _textInput(value, placeholder, onChange) {
+    return _cbInput('text', value, placeholder, onChange);
+  }
+
+  function _numberInput(value, onChange) {
+    return _cbInput('number', value, '', onChange);
+  }
+
+  function _selectInput(value, options, onChange) {
+    return _cbSelect(value, options, onChange);
+  }
+
+  function _textarea(value, placeholder, onChange) {
+    return _cbTextarea(value, placeholder, onChange);
   }
 
   // ── Solver loading & running ─────────────────────────────────────────────
@@ -496,55 +527,57 @@ const BlockRegistry = (() => {
   function _renderCalcBlock(block, def) {
     const wrap = _el('div', { className: 'calc-block-wrap' });
     const fields = CALC_FIELDS[block.type] || [];
+    const cfg = block.config;
 
-    // Inputs form
-    const formGrid = _el('div', { className: 'calc-block-fields' });
+    // ── Input grid (2-col, label-above-input) ─────────────────────────────
+    const formGrid = _el('div', { className: 'cb-form-grid' });
+
     fields.forEach(f => {
-      const cfg = block.config;
       let inputEl;
+      const curVal = cfg[f.key] != null ? cfg[f.key] : f.default;
+      if (cfg[f.key] == null) block.config[f.key] = f.default;
+
       if (f.type === 'select') {
-        inputEl = _selectInput(cfg[f.key] != null ? cfg[f.key] : f.default, f.options, val => {
+        inputEl = _cbSelect(curVal, f.options, val => {
           block.config[f.key] = val;
           _dispatch(formGrid, block.id);
         });
       } else if (f.type === 'number') {
-        inputEl = _numberInput(cfg[f.key] != null ? cfg[f.key] : f.default, val => {
+        inputEl = _cbInput('number', curVal, '', val => {
           block.config[f.key] = val;
           _dispatch(formGrid, block.id);
         });
       } else {
-        inputEl = _textInput(cfg[f.key] != null ? cfg[f.key] : f.default, '', val => {
+        inputEl = _cbInput('text', curVal, '', val => {
           block.config[f.key] = val;
           _dispatch(formGrid, block.id);
         });
       }
-      // Ensure default is set in config
-      if (cfg[f.key] == null) block.config[f.key] = f.default;
-      formGrid.appendChild(_inputRow(f.label, inputEl));
+
+      formGrid.appendChild(_cbField(f.label, inputEl));
     });
+
     wrap.appendChild(formGrid);
 
-    // Action row
-    const actionRow = _el('div', { className: 'calc-block-actions' });
-    const calcBtn = _el('button', { className: 'btn-calc-run' }, '▶ Calculate');
+    // ── Calculate button ─────────────────────────────────────────────────
+    const calcBtn = _el('button', { className: 'cb-calc-btn' });
+    calcBtn.innerHTML = '<span style="font-size:11px;opacity:0.85">▶</span> Calculate';
     const statusSpan = _el('span', { className: 'calc-status-msg' });
-    actionRow.appendChild(calcBtn);
-    actionRow.appendChild(statusSpan);
-    wrap.appendChild(actionRow);
+    wrap.appendChild(calcBtn);
+    wrap.appendChild(statusSpan);
 
-    // Results area
+    // ── Results area ─────────────────────────────────────────────────────
     const resultsDiv = _el('div', { className: 'calc-block-results' });
     wrap.appendChild(resultsDiv);
 
-    // Render existing results if present
     if (block.results && block.results._ran) {
       _renderCalcResults(block, resultsDiv);
     }
 
-    // Calculate button handler
+    // ── Click handler ─────────────────────────────────────────────────────
     calcBtn.addEventListener('click', async () => {
       calcBtn.disabled = true;
-      calcBtn.textContent = '⏳ Calculating…';
+      calcBtn.innerHTML = '<span style="font-size:13px">⏳</span> Calculating…';
       statusSpan.textContent = '';
       try {
         const res = await _runCalc(block);
@@ -552,13 +585,12 @@ const BlockRegistry = (() => {
         block.validated = true;
         _renderCalcResults(block, resultsDiv);
         _dispatch(wrap, block.id);
-        statusSpan.textContent = '';
       } catch (err) {
         statusSpan.textContent = '⚠ Error: ' + err.message;
         console.error('Calc error', block.type, err);
       } finally {
         calcBtn.disabled = false;
-        calcBtn.textContent = '▶ Calculate';
+        calcBtn.innerHTML = '<span style="font-size:11px;opacity:0.85">▶</span> Calculate';
       }
     });
 
@@ -570,49 +602,58 @@ const BlockRegistry = (() => {
     const r = block.results;
     if (!r || !r._ran) return;
 
-    // Determine overall pass/fail
     const checks = _extractChecks(block);
     const allPass = checks.length === 0 || checks.every(c => c.pass);
-
-    // Status chip
-    const chip = _el('div', {
-      className: 'calc-result-chip ' + (allPass ? 'chip-pass' : 'chip-fail'),
-      innerHTML: allPass ? '✓ PASS' : '✗ FAIL',
-    });
-    container.appendChild(chip);
-
-    // Key results row
     const keyVals = _getKeyResults(block);
+
+    // ── Result card ───────────────────────────────────────────────────────
+    const card = _el('div', { className: 'cb-result-card ' + (allPass ? 'pass' : 'fail') });
+
+    // Status bar
+    const statusBar = _el('div', { className: 'cb-result-status-bar' });
+    statusBar.innerHTML = allPass
+      ? '<span style="font-size:15px">✓</span> PASS — All design checks satisfied'
+      : '<span style="font-size:15px">✗</span> FAIL — One or more checks not satisfied';
+    card.appendChild(statusBar);
+
+    // Metric tiles
     if (keyVals.length) {
-      const kRow = _el('div', { className: 'calc-key-results' });
+      const metrics = _el('div', { className: 'cb-result-metrics' });
       keyVals.forEach(kv => {
-        const item = _el('div', { className: 'calc-kv-item' });
-        item.appendChild(_el('span', { className: 'calc-kv-label' }, kv.label));
-        item.appendChild(_el('span', { className: 'calc-kv-value' }, String(kv.value) + (kv.unit ? ' ' + kv.unit : '')));
-        kRow.appendChild(item);
+        const m = _el('div');
+        m.appendChild(_el('div', { className: 'cb-metric-val' }, String(kv.value) + (kv.unit ? ' ' + kv.unit : '')));
+        m.appendChild(_el('div', { className: 'cb-metric-lbl' }, kv.label));
+        metrics.appendChild(m);
       });
-      container.appendChild(kRow);
+      card.appendChild(metrics);
     }
 
-    // Collapsible details
-    const detailsWrap = _el('details', { className: 'calc-details-wrap' });
-    const detailsSummary = _el('summary', {}, 'View all results');
-    detailsWrap.appendChild(detailsSummary);
-    const detailsBody = _el('div', { className: 'calc-details-body' });
+    // Collapsible full detail table
+    const toggleBtn = _el('button', { className: 'cb-result-detail-toggle' }, '▶ View all results');
+    const detailContent = _el('div', { className: 'cb-result-detail-content' });
+    detailContent.style.display = 'none';
 
-    // Render all result keys as a table
-    const table = _el('table', { className: 'calc-detail-table' });
+    toggleBtn.addEventListener('click', () => {
+      const open = detailContent.style.display !== 'none';
+      detailContent.style.display = open ? 'none' : 'block';
+      toggleBtn.textContent = (open ? '▶' : '▼') + ' View all results';
+    });
+
+    const tbl = _el('table', { className: 'cb-result-table' });
     Object.entries(r).forEach(([k, v]) => {
       if (k === '_ran') return;
-      if (typeof v === 'object') return; // skip nested objects in detail table
-      const row = _el('tr');
-      row.appendChild(_el('td', { className: 'calc-dt-key' }, k));
-      row.appendChild(_el('td', { className: 'calc-dt-val' }, String(typeof v === 'number' ? v.toFixed(3) : v)));
-      table.appendChild(row);
+      if (typeof v === 'object' && v !== null) return;
+      const displayVal = typeof v === 'number' ? v.toFixed(4) : typeof v === 'boolean' ? (v ? 'Yes' : 'No') : String(v);
+      const tr = _el('tr');
+      tr.appendChild(_el('td', {}, k));
+      tr.appendChild(_el('td', {}, displayVal));
+      tbl.appendChild(tr);
     });
-    detailsBody.appendChild(table);
-    detailsWrap.appendChild(detailsBody);
-    container.appendChild(detailsWrap);
+
+    detailContent.appendChild(tbl);
+    card.appendChild(toggleBtn);
+    card.appendChild(detailContent);
+    container.appendChild(card);
   }
 
   function _extractChecks(block) {
@@ -663,69 +704,89 @@ const BlockRegistry = (() => {
   // ── Individual block renderers ──────────────────────────────────────────
 
   function _renderTitle(block) {
-    const wrap = _el('div', { className: 'block-form-wrap' });
+    const wrap = _el('div', {});
     const cfg = block.config;
 
-    wrap.appendChild(_inputRow('Report Title',
-      _textInput(cfg.title, 'e.g. Structural Calculations — New Residential Block', v => { cfg.title = v; _dispatch(wrap, block.id); })
-    ));
-    wrap.appendChild(_inputRow('Report Reference',
-      _textInput(cfg.ref, 'e.g. MJC-2024-001', v => { cfg.ref = v; _dispatch(wrap, block.id); })
-    ));
-    wrap.appendChild(_inputRow('Date',
-      (() => {
-        const inp = _el('input', { type: 'date', className: 'block-input', value: cfg.date || new Date().toISOString().split('T')[0] });
-        inp.addEventListener('input', () => { cfg.date = inp.value; _dispatch(wrap, block.id); });
-        return inp;
-      })()
-    ));
-    wrap.appendChild(_inputRow('Revision',
-      _textInput(cfg.revision || 'Rev A', 'e.g. Rev A', v => { cfg.revision = v; _dispatch(wrap, block.id); })
-    ));
+    // Large title input
+    const titleField = _el('div', { className: 'cb-field' });
+    titleField.appendChild(_el('label', { className: 'cb-label' }, 'Report Title'));
+    const titleInp = _cbInput('text', cfg.title, 'e.g. Structural Calculation Report', v => { cfg.title = v; _dispatch(wrap, block.id); });
+    titleInp.classList.add('cb-input-lg');
+    titleField.appendChild(titleInp);
+    wrap.appendChild(titleField);
+
+    // 3-col row: ref, revision, date
+    const grid = _el('div', { className: 'cb-form-grid-3' });
+    grid.style.marginTop = '10px';
+
+    const refInp = _cbInput('text', cfg.ref, 'e.g. MJC-2026-001', v => { cfg.ref = v; _dispatch(wrap, block.id); });
+    grid.appendChild(_cbField('Report Reference', refInp));
+
+    const revInp = _cbInput('text', cfg.revision || 'Rev A', 'e.g. Rev A', v => { cfg.revision = v; _dispatch(wrap, block.id); });
+    grid.appendChild(_cbField('Revision', revInp));
+
+    const dateInp = _el('input', { type: 'date', className: 'cb-input', value: cfg.date || new Date().toISOString().split('T')[0] });
+    dateInp.addEventListener('input', () => { cfg.date = dateInp.value; _dispatch(wrap, block.id); });
+    grid.appendChild(_cbField('Date', dateInp));
+
+    wrap.appendChild(grid);
     return wrap;
   }
 
   function _renderProjectInfo(block) {
-    const wrap = _el('div', { className: 'block-form-wrap block-form-two-col' });
+    const wrap = _el('div', {});
     const cfg = block.config;
 
     const projectTypes = ['Residential','Commercial','Industrial','Infrastructure','Retrofit / Refurbishment','Healthcare','Education','Mixed-Use','Leisure','Hospitality','Data Centre','Utilities','Transport','Cultural','Public Realm','Agricultural','Marine','Energy / Power','Defence','Other'];
     const designCodes = ['Eurocode (EC2/EC3/EC5)','BS 5950 (Steel)','BS 8110 (Concrete)','ACI 318 (Concrete)','AISC 360 (Steel)','AS 4100 (Steel)','AS 3600 (Concrete)','NZS 3404 (Steel)','IS 800 (Steel)','Other'];
 
-    const fields = [
-      { key: 'projectName',   label: 'Project Name',    type: 'text',   ph: 'e.g. 32 High Street' },
-      { key: 'clientName',    label: 'Client Name',     type: 'text',   ph: 'e.g. Smith Developments' },
-      { key: 'location',      label: 'Location',        type: 'text',   ph: 'e.g. London, UK' },
-      { key: 'projectType',   label: 'Project Type',    type: 'select', options: projectTypes },
-      { key: 'engineerName',  label: 'Engineer Name',   type: 'text',   ph: 'Full name' },
-      { key: 'designCode',    label: 'Design Code',     type: 'select', options: designCodes },
-      { key: 'companyName',   label: 'Company Name',    type: 'text',   ph: 'Engineering firm' },
-      { key: 'date',          label: 'Date',            type: 'date' },
+    // Main 2-col grid
+    const grid1 = _el('div', { className: 'cb-form-grid' });
+
+    const textFields = [
+      { key: 'projectName',  label: 'Project Name',  ph: 'e.g. Office Building Structural' },
+      { key: 'clientName',   label: 'Client Name',   ph: 'e.g. ABC Architects' },
+      { key: 'location',     label: 'Location',      ph: 'e.g. London, UK' },
+      { key: 'projectRef',   label: 'Project Reference', ph: 'e.g. BM-2026-001' },
+      { key: 'engineerName', label: 'Engineer Name', ph: 'Full name' },
+      { key: 'companyName',  label: 'Company',       ph: 'Engineering firm' },
     ];
 
-    fields.forEach(f => {
-      let inputEl;
-      if (f.type === 'select') {
-        inputEl = _selectInput(cfg[f.key], f.options, v => { cfg[f.key] = v; _dispatch(wrap, block.id); });
-        if (!cfg[f.key]) cfg[f.key] = f.options[0];
-      } else if (f.type === 'date') {
-        inputEl = _el('input', { type: 'date', className: 'block-input', value: cfg[f.key] || new Date().toISOString().split('T')[0] });
-        inputEl.addEventListener('input', () => { cfg[f.key] = inputEl.value; _dispatch(wrap, block.id); });
-      } else {
-        inputEl = _textInput(cfg[f.key], f.ph, v => { cfg[f.key] = v; _dispatch(wrap, block.id); });
-      }
-      wrap.appendChild(_inputRow(f.label, inputEl));
+    textFields.forEach(f => {
+      const inp = _cbInput('text', cfg[f.key], f.ph, v => { cfg[f.key] = v; _dispatch(wrap, block.id); });
+      grid1.appendChild(_cbField(f.label, inp));
     });
+    wrap.appendChild(grid1);
+
+    // 2-col for code + date
+    const grid2 = _el('div', { className: 'cb-form-grid' });
+    grid2.style.marginTop = '10px';
+
+    if (!cfg.designCode) cfg.designCode = designCodes[0];
+    const codeInp = _cbSelect(cfg.designCode, designCodes, v => { cfg.designCode = v; _dispatch(wrap, block.id); });
+    grid2.appendChild(_cbField('Design Code', codeInp));
+
+    const dateInp = _el('input', { type: 'date', className: 'cb-input', value: cfg.date || new Date().toISOString().split('T')[0] });
+    dateInp.addEventListener('input', () => { cfg.date = dateInp.value; _dispatch(wrap, block.id); });
+    grid2.appendChild(_cbField('Date', dateInp));
+
+    wrap.appendChild(grid2);
     return wrap;
   }
 
   function _renderDesignBasis(block) {
-    const wrap = _el('div', { className: 'block-form-wrap' });
+    const wrap = _el('div', {});
     const cfg = block.config;
 
     if (!cfg.text) cfg.text = 'This calculation has been prepared in accordance with the relevant design code. All loads are in accordance with EN 1991. Material properties are in accordance with the relevant material standard. All dimensions are in mm and forces in kN unless stated otherwise.';
 
-    wrap.appendChild(_inputRow('Design Basis Text', _textarea(cfg.text, 'Enter design basis...', v => { cfg.text = v; _dispatch(wrap, block.id); })));
+    const ta = _cbTextarea(cfg.text, 'Enter design basis statement…', v => { cfg.text = v; _dispatch(wrap, block.id); });
+    wrap.appendChild(_cbField('Design Basis Statement', ta));
+
+    const assumLabel = _el('label', { className: 'cb-label' }, 'Standard Assumptions');
+    assumLabel.style.marginTop = '14px';
+    assumLabel.style.display = 'block';
+    wrap.appendChild(assumLabel);
 
     const assumptions = [
       'All dimensions are in mm and forces in kN unless stated',
@@ -738,12 +799,11 @@ const BlockRegistry = (() => {
       'Wind loading to EN 1991-1-4 with UK NA',
     ];
 
-    const assumLabel = _el('div', { className: 'block-form-label', style: { marginTop: '12px' } }, 'Standard Assumptions (tick to include):');
-    wrap.appendChild(assumLabel);
-
     if (!cfg.assumptions) cfg.assumptions = [];
+
+    const checkGroup = _el('div', { className: 'cb-checkbox-group' });
     assumptions.forEach(a => {
-      const row = _el('div', { className: 'block-check-row' });
+      const item = _el('div', { className: 'cb-checkbox-item' });
       const cb = _el('input', { type: 'checkbox' });
       cb.checked = cfg.assumptions.includes(a);
       cb.addEventListener('change', () => {
@@ -751,38 +811,48 @@ const BlockRegistry = (() => {
         else cfg.assumptions = cfg.assumptions.filter(x => x !== a);
         _dispatch(wrap, block.id);
       });
-      row.appendChild(cb);
-      row.appendChild(document.createTextNode(' ' + a));
-      wrap.appendChild(row);
+      item.appendChild(cb);
+      item.appendChild(document.createTextNode(a));
+      checkGroup.appendChild(item);
     });
+    wrap.appendChild(checkGroup);
     return wrap;
   }
 
   function _renderSectionHeader(block) {
-    const wrap = _el('div', { className: 'block-form-wrap' });
+    const wrap = _el('div', {});
     const cfg = block.config;
-    const preview = _el('div', { className: 'section-header-preview' });
 
-    const updatePreview = () => {
-      preview.textContent = (cfg.number || '1.0') + '  ' + (cfg.title || 'Section Title');
-    };
+    // num + title grid
+    const grid = _el('div', { className: 'cb-form-grid' });
+    grid.style.gridTemplateColumns = '80px 1fr';
 
-    const numInp = _el('input', { type: 'text', className: 'block-input block-input-sm', value: cfg.number || '1.0', placeholder: '1.0' });
-    const titleInp = _el('input', { type: 'text', className: 'block-input', value: cfg.title || '', placeholder: 'Section title' });
-    numInp.addEventListener('input', () => { cfg.number = numInp.value; updatePreview(); _dispatch(wrap, block.id); });
-    titleInp.addEventListener('input', () => { cfg.title = titleInp.value; updatePreview(); _dispatch(wrap, block.id); });
+    const numInp = _cbInput('text', cfg.number || '1.0', '1.0', v => { cfg.number = v; updatePreview(); _dispatch(wrap, block.id); });
+    grid.appendChild(_cbField('Number', numInp));
 
-    const row = _el('div', { className: 'section-header-row' });
-    row.appendChild(numInp);
-    row.appendChild(titleInp);
-    wrap.appendChild(row);
-    updatePreview();
+    const titleInp = _cbInput('text', cfg.title || '', 'e.g. Design Inputs', v => { cfg.title = v; updatePreview(); _dispatch(wrap, block.id); });
+    grid.appendChild(_cbField('Section Title', titleInp));
+
+    wrap.appendChild(grid);
+
+    // Live preview
+    const preview = _el('div', { className: 'cb-section-preview' });
+    const numSpan = _el('span', { className: 'cb-section-num' }, cfg.number || '1.0');
+    const titleSpan = _el('span', { className: 'cb-section-title' }, cfg.title || 'Section Title');
+    preview.appendChild(numSpan);
+    preview.appendChild(titleSpan);
     wrap.appendChild(preview);
+
+    function updatePreview() {
+      numSpan.textContent = cfg.number || '1.0';
+      titleSpan.textContent = cfg.title || 'Section Title';
+    }
+
     return wrap;
   }
 
   function _renderCodeRef(block) {
-    const wrap = _el('div', { className: 'block-form-wrap' });
+    const wrap = _el('div', {});
     const cfg = block.config;
     if (!cfg.codes) cfg.codes = [{ name: 'EN 1993-1-1', description: 'Design of steel structures — General rules', edition: '2005' }];
 
@@ -791,9 +861,11 @@ const BlockRegistry = (() => {
     const rebuild = () => {
       tableWrap.innerHTML = '';
       const tbl = _el('table', { className: 'code-ref-table' });
-      const thead = _el('tr');
-      ['Code / Standard', 'Description', 'Edition', ''].forEach(h => thead.appendChild(_el('th', {}, h)));
-      tbl.appendChild(_el('thead', {}, thead));
+      const thead = _el('thead');
+      const headRow = _el('tr');
+      ['Code / Standard', 'Description', 'Year', ''].forEach(h => headRow.appendChild(_el('th', {}, h)));
+      thead.appendChild(headRow);
+      tbl.appendChild(thead);
       const tbody = _el('tbody');
       cfg.codes.forEach((code, i) => {
         const tr = _el('tr');
@@ -801,7 +873,7 @@ const BlockRegistry = (() => {
         nameInp.addEventListener('input', () => { cfg.codes[i].name = nameInp.value; _dispatch(wrap, block.id); });
         const descInp = _el('input', { type: 'text', value: code.description || '', placeholder: 'Description' });
         descInp.addEventListener('input', () => { cfg.codes[i].description = descInp.value; _dispatch(wrap, block.id); });
-        const edInp = _el('input', { type: 'text', value: code.edition || '', placeholder: 'Year' });
+        const edInp = _el('input', { type: 'text', value: code.edition || '', placeholder: '2005' });
         edInp.style.width = '60px';
         edInp.addEventListener('input', () => { cfg.codes[i].edition = edInp.value; _dispatch(wrap, block.id); });
         const delBtn = _el('button', { className: 'btn-icon-del' }, '✕');
@@ -819,6 +891,7 @@ const BlockRegistry = (() => {
     wrap.appendChild(tableWrap);
 
     const addBtn = _el('button', { className: 'btn-add-row' }, '+ Add Reference');
+    addBtn.style.marginTop = '8px';
     addBtn.addEventListener('click', () => {
       cfg.codes.push({ name: '', description: '', edition: '' });
       rebuild();
@@ -829,39 +902,34 @@ const BlockRegistry = (() => {
   }
 
   function _renderLoadTable(block) {
-    const wrap = _el('div', { className: 'block-form-wrap' });
+    const wrap = _el('div', {});
     const cfg = block.config;
     if (cfg.Gk == null) cfg.Gk = 5;
     if (cfg.Qk == null) cfg.Qk = 3;
 
-    const updateTable = () => {
-      const Gk = cfg.Gk || 0;
-      const Qk = cfg.Qk || 0;
-      ulsVal.textContent = (1.35 * Gk + 1.5 * Qk).toFixed(2);
-      slsVal.textContent = (Gk + Qk).toFixed(2);
-    };
+    // Inputs
+    const inputGrid = _el('div', { className: 'cb-form-grid' });
 
-    const gkInp = _numberInput(cfg.Gk, v => { cfg.Gk = v; updateTable(); _dispatch(wrap, block.id); });
-    const qkInp = _numberInput(cfg.Qk, v => { cfg.Qk = v; updateTable(); _dispatch(wrap, block.id); });
+    const gkInp = _cbInput('number', cfg.Gk, '', v => { cfg.Gk = v; updateTable(); _dispatch(wrap, block.id); });
+    inputGrid.appendChild(_cbField('Gk — Permanent (kN or kN/m)', gkInp));
 
-    const inputRow1 = _el('div', { className: 'load-input-row' });
-    inputRow1.appendChild(_el('label', {}, 'Gk — Permanent (kN or kN/m)'));
-    inputRow1.appendChild(gkInp);
-    const inputRow2 = _el('div', { className: 'load-input-row' });
-    inputRow2.appendChild(_el('label', {}, 'Qk — Variable (kN or kN/m)'));
-    inputRow2.appendChild(qkInp);
-    wrap.appendChild(inputRow1);
-    wrap.appendChild(inputRow2);
+    const qkInp = _cbInput('number', cfg.Qk, '', v => { cfg.Qk = v; updateTable(); _dispatch(wrap, block.id); });
+    inputGrid.appendChild(_cbField('Qk — Variable (kN or kN/m)', qkInp));
 
+    wrap.appendChild(inputGrid);
+
+    // Results table
     const tbl = _el('table', { className: 'load-combo-table' });
-    const thead = _el('tr');
-    ['Combination', 'Formula', 'Value'].forEach(h => thead.appendChild(_el('th', {}, h)));
-    tbl.appendChild(_el('thead', {}, thead));
+    const thead = _el('thead');
+    const headRow = _el('tr');
+    ['Combination', 'Formula', 'Value (kN/m)'].forEach(h => headRow.appendChild(_el('th', {}, h)));
+    thead.appendChild(headRow);
+    tbl.appendChild(thead);
+
+    const ulsVal = _el('td', { className: 'load-val' }, '—');
+    const slsVal = _el('td', { className: 'load-val' }, '—');
+
     const tbody = _el('tbody');
-
-    const ulsVal = _el('td', { className: 'load-val' }, '0.00');
-    const slsVal = _el('td', { className: 'load-val' }, '0.00');
-
     const ulsRow = _el('tr', { className: 'load-uls-row' });
     ulsRow.appendChild(_el('td', {}, 'ULS — Fundamental'));
     ulsRow.appendChild(_el('td', { className: 'load-formula' }, '1.35·Gk + 1.5·Qk'));
@@ -876,25 +944,42 @@ const BlockRegistry = (() => {
     tbody.appendChild(slsRow);
     tbl.appendChild(tbody);
     wrap.appendChild(tbl);
+
+    function updateTable() {
+      const Gk = cfg.Gk || 0;
+      const Qk = cfg.Qk || 0;
+      ulsVal.textContent = (1.35 * Gk + 1.5 * Qk).toFixed(2);
+      slsVal.textContent = (Gk + Qk).toFixed(2);
+    }
     updateTable();
     return wrap;
   }
 
   function _renderText(block) {
-    const wrap = _el('div', { className: 'block-form-wrap' });
+    const wrap = _el('div', {});
     const cfg = block.config;
-    wrap.appendChild(_textarea(cfg.text, 'Enter text, notes or commentary…', v => { cfg.text = v; _dispatch(wrap, block.id); }));
+    const ta = _cbTextarea(cfg.text, 'Enter text, notes or commentary…', v => { cfg.text = v; _dispatch(wrap, block.id); });
+    wrap.appendChild(_cbField('Content', ta));
     return wrap;
   }
 
   function _renderImage(block) {
-    const wrap = _el('div', { className: 'block-form-wrap' });
+    const wrap = _el('div', {});
     const cfg = block.config;
 
     const preview = _el('div', { className: 'image-preview-wrap' });
-    if (cfg.src) { const img = _el('img', { src: cfg.src, className: 'block-image-preview' }); preview.appendChild(img); }
+    if (cfg.src) {
+      const img = _el('img', { src: cfg.src, className: 'block-image-preview' });
+      preview.appendChild(img);
+    }
 
-    const fileInp = _el('input', { type: 'file', accept: 'image/*', className: 'block-file-input' });
+    const uploadArea = _el('div', { className: 'image-upload-area' });
+    uploadArea.innerHTML = '<div class="upload-icon">🖼</div>';
+    uploadArea.appendChild(_el('p', {}, 'Click to upload or drag and drop an image'));
+    uploadArea.appendChild(_el('p', { style: 'font-size:11px' }, 'PNG, JPG, SVG — max 10 MB'));
+
+    const fileInp = _el('input', { type: 'file', accept: 'image/*' });
+    fileInp.style.display = 'none';
     fileInp.addEventListener('change', () => {
       const file = fileInp.files[0];
       if (!file) return;
@@ -903,48 +988,69 @@ const BlockRegistry = (() => {
         cfg.src = e.target.result;
         cfg.filename = file.name;
         preview.innerHTML = '';
-        const img = _el('img', { src: cfg.src, className: 'block-image-preview' });
-        preview.appendChild(img);
+        preview.appendChild(_el('img', { src: cfg.src, className: 'block-image-preview' }));
+        uploadArea.style.display = 'none';
         _dispatch(wrap, block.id);
       };
       reader.readAsDataURL(file);
     });
 
+    uploadArea.addEventListener('click', () => fileInp.click());
+
+    if (cfg.src) {
+      uploadArea.style.display = 'none';
+    }
+
     wrap.appendChild(preview);
-    wrap.appendChild(_inputRow('Select Image', fileInp));
-    wrap.appendChild(_inputRow('Caption', _textInput(cfg.caption, 'Figure caption', v => { cfg.caption = v; _dispatch(wrap, block.id); })));
+    wrap.appendChild(uploadArea);
+    wrap.appendChild(fileInp);
+
+    const captionField = _cbField('Caption', _cbInput('text', cfg.caption, 'Figure caption…', v => { cfg.caption = v; _dispatch(wrap, block.id); }));
+    captionField.style.marginTop = '10px';
+    wrap.appendChild(captionField);
+
     return wrap;
   }
 
   function _renderToc(block) {
-    const wrap = _el('div', { className: 'block-display-only' });
-    wrap.appendChild(_el('p', { className: 'block-display-note' }, '📋 Table of Contents will be generated automatically in preview based on section headers.'));
+    const wrap = _el('div', { className: 'toc-placeholder' });
+    wrap.innerHTML = '<strong>Table of Contents</strong>Generated automatically from Section Header blocks in preview mode.';
     return wrap;
   }
 
   function _renderPageBreak(block) {
-    const wrap = _el('div', { className: 'block-page-break-indicator' });
-    wrap.appendChild(_el('div', { className: 'page-break-line' }));
-    wrap.appendChild(_el('span', { className: 'page-break-label' }, '— Page Break —'));
+    const wrap = _el('div', { className: 'page-break-display' });
+    const line = _el('hr', { className: 'page-break-line' });
+    const label = _el('span', { className: 'page-break-label' }, 'Page Break');
+    const line2 = _el('hr', { className: 'page-break-line' });
+    wrap.appendChild(line);
+    wrap.appendChild(label);
+    wrap.appendChild(line2);
     return wrap;
   }
 
   function _renderEngineerNotes(block) {
-    const wrap = _el('div', { className: 'block-form-wrap' });
+    const wrap = _el('div', {});
     const cfg = block.config;
-    wrap.appendChild(_inputRow('Label / Heading', _textInput(cfg.label, 'e.g. Engineer Notes', v => { cfg.label = v; _dispatch(wrap, block.id); })));
-    wrap.appendChild(_textarea(cfg.text, 'Enter engineering notes, assumptions, or commentary…', v => { cfg.text = v; _dispatch(wrap, block.id); }));
+    const labelInp = _cbInput('text', cfg.label, 'e.g. Engineer Notes', v => { cfg.label = v; _dispatch(wrap, block.id); });
+    wrap.appendChild(_cbField('Heading', labelInp));
 
-    const aiBtn = _el('button', { className: 'btn-ai-draft', disabled: true }, '✨ AI Draft — Coming soon');
+    const ta = _cbTextarea(cfg.text, 'Enter engineering notes, assumptions, or commentary…', v => { cfg.text = v; _dispatch(wrap, block.id); });
+    const textField = _cbField('Notes', ta);
+    textField.style.marginTop = '10px';
+    wrap.appendChild(textField);
+
+    const aiBtn = _el('button', { className: 'btn-ai-draft' }, '✨ AI Draft — Coming soon');
+    aiBtn.disabled = true;
     wrap.appendChild(aiBtn);
     return wrap;
   }
 
   function _renderSignoff(block) {
-    const wrap = _el('div', { className: 'block-form-wrap' });
+    const wrap = _el('div', {});
     const cfg = block.config;
     if (!cfg.prepared) cfg.prepared = {};
-    if (!cfg.checked) cfg.checked = {};
+    if (!cfg.checked)  cfg.checked  = {};
     if (!cfg.approved) cfg.approved = {};
 
     const roles = [
@@ -953,38 +1059,47 @@ const BlockRegistry = (() => {
       { key: 'approved', label: 'Approved By' },
     ];
 
-    const grid = _el('div', { className: 'signoff-grid' });
+    const grid = _el('div', { className: 'cb-signoff-grid' });
     roles.forEach(role => {
-      const cell = _el('div', { className: 'signoff-cell' });
-      cell.appendChild(_el('div', { className: 'signoff-cell-label' }, role.label));
-      const nameInp = _el('input', { type: 'text', className: 'block-input', value: cfg[role.key].name || '', placeholder: 'Full name' });
-      const dateInp = _el('input', { type: 'date', className: 'block-input', value: cfg[role.key].date || '' });
-      const sigInp  = _el('input', { type: 'text', className: 'block-input', value: cfg[role.key].signature || '', placeholder: 'Type name to sign' });
-      nameInp.addEventListener('input', () => { cfg[role.key].name = nameInp.value; _dispatch(wrap, block.id); });
+      const card = _el('div', { className: 'cb-signoff-card' });
+      card.appendChild(_el('div', { className: 'cb-signoff-role' }, role.label));
+
+      const nameInp = _cbInput('text', cfg[role.key].name, 'Full name', v => { cfg[role.key].name = v; _dispatch(wrap, block.id); });
+      card.appendChild(_cbField('Name', nameInp));
+
+      const dateInp = _el('input', { type: 'date', className: 'cb-input', value: cfg[role.key].date || '' });
+      dateInp.style.marginTop = '8px';
       dateInp.addEventListener('input', () => { cfg[role.key].date = dateInp.value; _dispatch(wrap, block.id); });
-      sigInp.addEventListener('input',  () => { cfg[role.key].signature = sigInp.value; _dispatch(wrap, block.id); });
-      cell.appendChild(_inputRow('Name', nameInp));
-      cell.appendChild(_inputRow('Date', dateInp));
-      cell.appendChild(_inputRow('Signature', sigInp));
-      grid.appendChild(cell);
+      card.appendChild(_cbField('Date', dateInp));
+
+      const sigInp = _cbInput('text', cfg[role.key].signature, 'Type name to sign', v => { cfg[role.key].signature = v; _dispatch(wrap, block.id); });
+      sigInp.style.marginTop = '8px';
+      card.appendChild(_cbField('Signature', sigInp));
+
+      grid.appendChild(card);
     });
     wrap.appendChild(grid);
     return wrap;
   }
 
   function _renderRevisionHistory(block) {
-    const wrap = _el('div', { className: 'block-form-wrap' });
+    const wrap = _el('div', {});
     const cfg = block.config;
-    if (!cfg.revisions) cfg.revisions = [{ rev: 'A', date: new Date().toISOString().split('T')[0], description: 'First issue', preparedBy: '', checkedBy: '' }];
+    if (!cfg.revisions) cfg.revisions = [{
+      rev: 'A', date: new Date().toISOString().split('T')[0],
+      description: 'First issue', preparedBy: '', checkedBy: '',
+    }];
 
     const tableWrap = _el('div', { className: 'rev-table-wrap' });
 
     const rebuild = () => {
       tableWrap.innerHTML = '';
       const tbl = _el('table', { className: 'rev-history-table' });
-      const thead = _el('tr');
-      ['Rev', 'Date', 'Description', 'Prepared By', 'Checked By', ''].forEach(h => thead.appendChild(_el('th', {}, h)));
-      tbl.appendChild(_el('thead', {}, thead));
+      const thead = _el('thead');
+      const headRow = _el('tr');
+      ['Rev', 'Date', 'Description', 'Prepared By', 'Checked By', ''].forEach(h => headRow.appendChild(_el('th', {}, h)));
+      thead.appendChild(headRow);
+      tbl.appendChild(thead);
       const tbody = _el('tbody');
       cfg.revisions.forEach((rev, i) => {
         const tr = _el('tr');
@@ -1015,6 +1130,7 @@ const BlockRegistry = (() => {
     wrap.appendChild(tableWrap);
 
     const addBtn = _el('button', { className: 'btn-add-row' }, '+ Add Revision');
+    addBtn.style.marginTop = '8px';
     addBtn.addEventListener('click', () => {
       const lastRev = cfg.revisions[cfg.revisions.length - 1];
       const nextRev = lastRev ? String.fromCharCode(lastRev.rev.charCodeAt(0) + 1) : 'A';
@@ -1027,34 +1143,41 @@ const BlockRegistry = (() => {
   }
 
   function _renderChecksSummary(block) {
-    const wrap = _el('div', { className: 'block-display-only' });
     const checks = block.results && block.results.checks;
     if (!checks || checks.length === 0) {
-      wrap.appendChild(_el('p', { className: 'block-display-note' }, '✅ Design Checks Summary will aggregate results from all calculated blocks. Run calculations to populate.'));
+      const wrap = _el('div', { className: 'toc-placeholder' });
+      wrap.innerHTML = '<strong>Design Checks Summary</strong>Aggregates PASS/FAIL results from all calculated blocks. Run calculations to populate.';
       return wrap;
     }
+    const wrap = _el('div', {});
+    const tableWrap = _el('div', { style: 'border:1.5px solid var(--border);border-radius:8px;overflow:hidden' });
     const tbl = _el('table', { className: 'checks-summary-table' });
-    const thead = _el('tr');
-    ['Element', 'Check', 'η (utilisation)', 'Status'].forEach(h => thead.appendChild(_el('th', {}, h)));
-    tbl.appendChild(_el('thead', {}, thead));
+    const thead = _el('thead');
+    const headRow = _el('tr');
+    ['Element', 'Check', 'η', 'Status'].forEach(h => headRow.appendChild(_el('th', {}, h)));
+    thead.appendChild(headRow);
+    tbl.appendChild(thead);
     const tbody = _el('tbody');
     checks.forEach(c => {
       const tr = _el('tr');
       tr.appendChild(_el('td', {}, c.label || ''));
       tr.appendChild(_el('td', {}, c.checkName || ''));
       tr.appendChild(_el('td', { className: 'util-val' }, typeof c.util === 'number' ? c.util.toFixed(3) : '—'));
-      const statusTd = _el('td', { className: c.pass ? 'check-pass' : 'check-fail' }, c.pass ? '✓ PASS' : '✗ FAIL');
-      tr.appendChild(statusTd);
+      tr.appendChild(_el('td', { className: c.pass ? 'check-pass' : 'check-fail' }, c.pass ? '✓ PASS' : '✗ FAIL'));
       tbody.appendChild(tr);
     });
     tbl.appendChild(tbody);
-    wrap.appendChild(tbl);
+    tableWrap.appendChild(tbl);
+    wrap.appendChild(tableWrap);
     return wrap;
   }
 
   function _renderUtilisationChart(block) {
-    const wrap = _el('div', { className: 'block-display-only' });
-    wrap.appendChild(_el('p', { className: 'block-display-note' }, '📊 Utilisation chart will render in preview mode after calculations are run.'));
+    const wrap = _el('div', { className: 'util-chart-placeholder' });
+    const bars = _el('div', { className: 'util-chart-bars' });
+    for (let i = 0; i < 5; i++) bars.appendChild(_el('div', { className: 'util-bar-mock' }));
+    wrap.appendChild(bars);
+    wrap.appendChild(_el('div', { className: 'util-chart-label' }, 'Utilisation chart renders in preview mode after calculations are run'));
     return wrap;
   }
 
