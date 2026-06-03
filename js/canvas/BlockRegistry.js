@@ -663,9 +663,11 @@ const BlockRegistry = (() => {
 
   /**
    * Draw inline SVG engineering diagram after calculation results.
-   * Dispatches to per-type renderers. For calc_beam and calc_rc_beam,
-   * renders tabbed BMD/SFD/deflection using the existing BeamDiagrams engine
-   * (lazy-loaded). All others use lightweight static SVG drawings.
+   * Dispatches to per-type renderers.
+   *
+   * calc_beam     → beam elevation (with UDL, supports, reactions, dim) + BMD panel
+   * calc_rc_beam  → tabbed BeamDiagrams engine + RC cross-section panel
+   * all others    → professional static SVG drawing
    */
   function _drawBlockDiagram(block, container) {
     const type = block.type;
@@ -673,28 +675,49 @@ const BlockRegistry = (() => {
     const cfg  = block.config;
     if (!r || !r._ran) return;
 
-    // Types that get the full tabbed BeamDiagrams engine
-    const BEAM_TYPES = ['calc_beam', 'calc_rc_beam'];
+    const section = _el('div', { className: 'cb-diagram-section' });
+    section.appendChild(_el('div', { className: 'cb-diagram-label' }, _diagramLabelFor(type)));
 
-    if (BEAM_TYPES.includes(type)) {
+    if (type === 'calc_beam') {
+      // Two-panel: elevation + BMD
+      const grid = _el('div');
+      grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;';
+      const elevDiv = _el('div');
+      elevDiv.innerHTML = _svgBeamElevation(cfg, r);
+      const bmdDiv = _el('div');
+      bmdDiv.innerHTML = _svgBeamBMD(cfg, r);
+      grid.appendChild(elevDiv);
+      grid.appendChild(bmdDiv);
+      section.appendChild(grid);
+      container.appendChild(section);
+      // Also render full tabbed diagrams below
       _renderBeamDiagramTabs(block, container);
       return;
     }
 
-    // All other calc types get a clean static SVG
-    const section = _el('div', { className: 'cb-diagram-section' });
-    section.appendChild(_el('div', { className: 'cb-diagram-label' }, _diagramLabelFor(type)));
-    const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svgEl.setAttribute('viewBox', '0 0 400 130');
-    svgEl.setAttribute('class', 'cb-static-diagram');
-    svgEl.innerHTML = _staticDiagramSVG(type, cfg, r);
-    section.appendChild(svgEl);
+    if (type === 'calc_rc_beam') {
+      // Cross-section panel
+      const xsDiv = _el('div');
+      xsDiv.innerHTML = _svgRCBeamSection(cfg, r);
+      section.appendChild(xsDiv);
+      container.appendChild(section);
+      // Also render full tabbed diagrams below
+      _renderBeamDiagramTabs(block, container);
+      return;
+    }
+
+    // All other calc types → professional static SVG
+    const wrap = _el('div');
+    wrap.innerHTML = _staticDiagramHTML(type, cfg, r);
+    section.appendChild(wrap);
     container.appendChild(section);
   }
 
   function _diagramLabelFor(type) {
     const labels = {
-      calc_column:      'Column Diagram',
+      calc_beam:        'Structural Diagram',
+      calc_rc_beam:     'Cross-Section',
+      calc_column:      'Column Elevation',
       calc_rc_column:   'RC Column Cross-Section',
       calc_slab:        'Slab Plan Diagram',
       calc_footing:     'Pad Footing Diagram',
@@ -912,9 +935,50 @@ const BlockRegistry = (() => {
     ];
   }
 
-  // ── Static SVG diagrams for non-beam block types ─────────────────────────
+  // ── Professional Engineering Diagram HTML generators ─────────────────────
 
-  function _staticDiagramSVG(type, cfg, r) {
+  // Common SVG defs block (arrowheads, patterns) — embed in each SVG
+  function _svgDefs(id) {
+    // id suffix prevents marker ID collisions when multiple blocks on canvas
+    return `<defs>
+      <marker id="aRed${id}" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+        <path d="M0,0 L7,3.5 L0,7 Z" fill="#DC2626"/>
+      </marker>
+      <marker id="aRedUp${id}" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto-start-reverse">
+        <path d="M0,0 L7,3.5 L0,7 Z" fill="#DC2626"/>
+      </marker>
+      <marker id="aBlue${id}" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+        <path d="M0,0 L7,3.5 L0,7 Z" fill="#2563EB"/>
+      </marker>
+      <marker id="aBlueUp${id}" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto-start-reverse">
+        <path d="M0,0 L7,3.5 L0,7 Z" fill="#2563EB"/>
+      </marker>
+      <marker id="aGray${id}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#6B7280"/>
+      </marker>
+      <marker id="aGrayL${id}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto-start-reverse">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#6B7280"/>
+      </marker>
+      <pattern id="concreteHatch${id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="6" stroke="#D1D5DB" stroke-width="0.8"/>
+      </pattern>
+      <pattern id="soilHatch${id}" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="8" stroke="#92400E" stroke-width="0.9" opacity="0.45"/>
+      </pattern>
+      <pattern id="rebarGrid${id}" width="16" height="16" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="8" x2="16" y2="8" stroke="#059669" stroke-width="1.2" opacity="0.7"/>
+        <line x1="8" y1="0" x2="8" y2="16" stroke="#059669" stroke-width="1.2" opacity="0.5"/>
+      </pattern>
+    </defs>`;
+  }
+
+  // Generate a unique short ID for marker namespacing
+  let _diagIdCounter = 0;
+  function _nextDiagId() { return 'd' + (++_diagIdCounter); }
+
+  // ── dispatch to per-type HTML (returns an HTML string containing <svg>) ───
+
+  function _staticDiagramHTML(type, cfg, r) {
     switch (type) {
       case 'calc_column':
       case 'calc_timber_col':
@@ -940,372 +1004,625 @@ const BlockRegistry = (() => {
     }
   }
 
-  // Arrow marker def (reused by all static SVGs)
-  const _SVG_DEFS = `
-    <defs>
-      <marker id="arr-down" markerWidth="6" markerHeight="6" refX="3" refY="0" orient="auto">
-        <path d="M0,0 L3,5 L6,0 Z" fill="#EF4444"/>
-      </marker>
-      <marker id="arr-up" markerWidth="6" markerHeight="6" refX="3" refY="5" orient="auto">
-        <path d="M0,5 L3,0 L6,5 Z" fill="#2563EB"/>
-      </marker>
-      <marker id="arr-right" markerWidth="6" markerHeight="6" refX="0" refY="3" orient="auto">
-        <path d="M0,0 L5,3 L0,6 Z" fill="#EF4444"/>
-      </marker>
-    </defs>`;
+  // Keep legacy alias (used by older code paths)
+  const _SVG_DEFS = '';
 
-  function _svgColumn(cfg, r) {
-    const NEd    = r.NEd || cfg.NEd || 500;
-    const length = cfg.length || cfg.span || 3.5;
-    const util   = r.utilisation || r.bucklingUtil || 0;
-    const pass   = r.bucklingPass !== false && util <= 1;
-    const utilPct = (util * 100).toFixed(0);
-    const utilColor = pass ? '#10B981' : '#EF4444';
-    return `${_SVG_DEFS}
-      <!-- Ground -->
-      <rect x="170" y="115" width="60" height="8" fill="#374151" rx="2" opacity="0.6"/>
-      <line x1="155" y1="123" x2="245" y2="123" stroke="#374151" stroke-width="1.5" opacity="0.4"/>
-      <!-- Column -->
-      <rect x="188" y="18" width="24" height="97" fill="#4F46E5" rx="3"/>
-      <!-- Fixed base hatch -->
-      ${[0,1,2,3,4].map(i=>`<line x1="${155+i*16}" y1="123" x2="${147+i*16}" y2="132" stroke="#374151" stroke-width="1.5" opacity="0.4"/>`).join('')}
-      <!-- Axial load arrow + label -->
-      <line x1="200" y1="5" x2="200" y2="18" stroke="#EF4444" stroke-width="2.5" marker-end="url(#arr-down)"/>
-      <text x="210" y="14" font-size="11" fill="#EF4444" font-family="Inter,sans-serif" font-weight="600">${+NEd.toFixed(0)} kN</text>
-      <!-- Height label -->
-      <line x1="160" y1="18" x2="160" y2="115" stroke="#6B7280" stroke-width="1" stroke-dasharray="3,3"/>
-      <text x="155" y="70" font-size="10" fill="#6B7280" font-family="Inter,sans-serif" text-anchor="middle" transform="rotate(-90,155,70)">L = ${+length.toFixed(1)}m</text>
-      <!-- Utilisation -->
-      <rect x="320" y="45" width="70" height="42" rx="6" fill="${pass?'#ECFDF5':'#FEF2F2'}" stroke="${pass?'#BBF7D0':'#FECACA'}" stroke-width="1.5"/>
-      <text x="355" y="63" font-size="16" font-weight="800" fill="${utilColor}" text-anchor="middle" font-family="'JetBrains Mono',monospace">${utilPct}%</text>
-      <text x="355" y="79" font-size="10" fill="#6B7280" text-anchor="middle" font-family="Inter,sans-serif">${pass?'PASS':'FAIL'}</text>`;
+  // ── 1. calc_beam: Beam elevation (left panel) ─────────────────────────────
+
+  function _svgBeamElevation(cfg, r) {
+    const id   = _nextDiagId();
+    const span = cfg.span || 5;
+    const wEd  = cfg.wEd || +(1.35 * (cfg.Gk || 5) + 1.5 * (cfg.Qk || 3)).toFixed(2);
+    const MEd  = r && r.MEd  != null ? (+r.MEd).toFixed(1)  : '—';
+    const RA   = r && r.RA   != null ? (+r.RA).toFixed(1)
+               : r && r.reactions && r.reactions[0] != null ? (+r.reactions[0]).toFixed(1)
+               : (wEd * span / 2).toFixed(1);
+    const RB   = r && r.RB   != null ? (+r.RB).toFixed(1)
+               : r && r.reactions && r.reactions[1] != null ? (+r.reactions[1]).toFixed(1)
+               : (wEd * span / 2).toFixed(1);
+
+    const numArrows = 9;
+    const udlArrows = Array.from({ length: numArrows }, (_, i) => {
+      const x = 40 + i * (180 / (numArrows - 1));
+      return `<line x1="${x.toFixed(1)}" y1="24" x2="${x.toFixed(1)}" y2="50" stroke="#DC2626" stroke-width="1.3" marker-end="url(#aRed${id})"/>`;
+    }).join('');
+
+    return `<svg viewBox="0 0 260 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <!-- UDL top line -->
+  <line x1="40" y1="24" x2="220" y2="24" stroke="#DC2626" stroke-width="1.5"/>
+  <!-- UDL arrows -->
+  ${udlArrows}
+  <!-- UDL label -->
+  <text x="130" y="15" text-anchor="middle" font-size="8.5" fill="#DC2626" font-weight="700">w = ${(+wEd).toFixed(2)} kN/m</text>
+  <!-- Beam body -->
+  <rect x="40" y="50" width="180" height="10" fill="#374151" rx="1"/>
+  <!-- Pin support left: triangle + hatch -->
+  <polygon points="40,60 30,77 50,77" fill="none" stroke="#1F2937" stroke-width="1.5"/>
+  <line x1="25" y1="79" x2="55" y2="79" stroke="#1F2937" stroke-width="1.5"/>
+  <line x1="23" y1="82" x2="29" y2="79" stroke="#6B7280" stroke-width="1"/>
+  <line x1="29" y1="82" x2="35" y2="79" stroke="#6B7280" stroke-width="1"/>
+  <line x1="35" y1="82" x2="41" y2="79" stroke="#6B7280" stroke-width="1"/>
+  <line x1="41" y1="82" x2="47" y2="79" stroke="#6B7280" stroke-width="1"/>
+  <line x1="47" y1="82" x2="53" y2="79" stroke="#6B7280" stroke-width="1"/>
+  <!-- Roller support right: triangle + circles -->
+  <polygon points="220,60 210,76 230,76" fill="none" stroke="#1F2937" stroke-width="1.5"/>
+  <circle cx="215" cy="79" r="2.5" fill="none" stroke="#1F2937" stroke-width="1.2"/>
+  <circle cx="225" cy="79" r="2.5" fill="none" stroke="#1F2937" stroke-width="1.2"/>
+  <line x1="205" y1="83" x2="235" y2="83" stroke="#1F2937" stroke-width="1.5"/>
+  <!-- Reaction arrows (upward, blue) -->
+  <line x1="40" y1="105" x2="40" y2="63" stroke="#2563EB" stroke-width="1.8" marker-end="url(#aBlueUp${id})"/>
+  <text x="40" y="115" text-anchor="middle" font-size="7.5" fill="#2563EB" font-weight="700">R&#8336;=${RA}kN</text>
+  <line x1="220" y1="105" x2="220" y2="63" stroke="#2563EB" stroke-width="1.8" marker-end="url(#aBlueUp${id})"/>
+  <text x="220" y="115" text-anchor="middle" font-size="7.5" fill="#2563EB" font-weight="700">R&#8347;=${RB}kN</text>
+  <!-- Dimension line -->
+  <line x1="40" y1="130" x2="220" y2="130" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="130" y="142" text-anchor="middle" font-size="8.5" fill="#6B7280">L = ${span}m</text>
+  <!-- MEd label at midspan -->
+  <text x="130" y="46" text-anchor="middle" font-size="7.5" fill="#4B5563">M&#8336;&#8337; = ${MEd} kNm</text>
+</svg>`;
   }
 
-  function _svgRCColumn(cfg, r) {
-    const b    = cfg.b || 300;
-    const h    = cfg.h || 300;
-    const aspect = Math.min(h / b, 2);
-    const bw = 70, bh = Math.round(70 * aspect);
-    const bx = 200 - bw / 2, by = 65 - bh / 2;
-    const cover = 8;
-    const util  = r.utilisation || r.overallUtil || 0;
-    const pass  = r.overallPass !== false && util <= 1;
-    const utilColor = pass ? '#10B981' : '#EF4444';
+  // ── calc_beam: BMD panel (right panel) ────────────────────────────────────
 
-    // Corner rebar dots
-    const rebarR = 4;
-    const corners = [
-      [bx + cover, by + cover], [bx + bw - cover, by + cover],
-      [bx + cover, by + bh - cover], [bx + bw - cover, by + bh - cover],
-    ];
-    if (bw > 50) {
-      corners.push([bx + bw / 2, by + cover], [bx + bw / 2, by + bh - cover]);
-    }
-    const dots = corners.map(([cx, cy]) =>
-      `<circle cx="${cx}" cy="${cy}" r="${rebarR}" fill="#DC2626" opacity="0.9"/>`
+  function _svgBeamBMD(cfg, r) {
+    const id  = _nextDiagId();
+    const MEd = r && r.MEd != null ? (+r.MEd).toFixed(1) : '?';
+    const span = cfg.span || 5;
+    return `<svg viewBox="0 0 240 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="8" y="14" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">BENDING MOMENT DIAGRAM</text>
+  <!-- Baseline -->
+  <line x1="20" y1="95" x2="220" y2="95" stroke="#1F2937" stroke-width="1.5"/>
+  <!-- BMD parabolic curve -->
+  <path d="M 20 95 Q 120 30 220 95" fill="rgba(37,99,235,0.10)" stroke="#2563EB" stroke-width="2"/>
+  <!-- Peak dashed line -->
+  <line x1="120" y1="30" x2="120" y2="95" stroke="#2563EB" stroke-width="1" stroke-dasharray="3,3"/>
+  <!-- Peak label -->
+  <text x="126" y="56" font-size="8.5" fill="#2563EB" font-weight="700">M&#8336;&#8337; = ${MEd} kNm</text>
+  <!-- Zero dot markers -->
+  <circle cx="20" cy="95" r="3" fill="#2563EB"/>
+  <circle cx="220" cy="95" r="3" fill="#2563EB"/>
+  <!-- Span label -->
+  <text x="120" y="115" text-anchor="middle" font-size="8" fill="#6B7280">Simply Supported — L = ${span}m</text>
+  <!-- Tension zone label -->
+  <text x="120" y="80" text-anchor="middle" font-size="7" fill="#93C5FD">+ (sagging)</text>
+</svg>`;
+  }
+
+  // ── 2. calc_rc_beam: RC cross-section ─────────────────────────────────────
+
+  function _svgRCBeamSection(cfg, r) {
+    const id    = _nextDiagId();
+    const b     = +(cfg.b || 300);
+    const h     = +(cfg.h || 500);
+    const cnom  = 35;
+    const barD  = 16;
+    const nBars = (r && r.n_bars) ? +r.n_bars : 3;
+    const AsProv = (r && r.As_prov) ? Math.round(+r.As_prov) : '?';
+
+    // Scale section to fit 200×130 drawing area within 280×165 viewBox
+    const maxW = 180, maxH = 120;
+    const scale = Math.min(maxW / b, maxH / h);
+    const W = +(b * scale).toFixed(1);
+    const H = +(h * scale).toFixed(1);
+    const ox = +((280 - W) / 2).toFixed(1);
+    const oy = +((165 - H) / 2).toFixed(1);
+
+    const stirrupInset = +(cnom * scale).toFixed(1);
+    const barR = +(barD * scale / 2).toFixed(1);
+    const barsX1 = ox + stirrupInset + barR;
+    const barsX2 = ox + W - stirrupInset - barR;
+    const barSpacing = nBars > 1 ? (barsX2 - barsX1) / (nBars - 1) : 0;
+    const barY = +(oy + H - stirrupInset - barR).toFixed(1);
+
+    const bars = Array.from({ length: nBars }, (_, i) => {
+      const bx = +(barsX1 + i * barSpacing).toFixed(1);
+      return `<circle cx="${bx}" cy="${barY}" r="${barR}" fill="#059669" stroke="#065F46" stroke-width="0.8"/>`;
+    }).join('');
+
+    // Top compression bars (2)
+    const topBarY = +(oy + stirrupInset + barR).toFixed(1);
+    const topBars = [barsX1, barsX2].map(bx =>
+      `<circle cx="${bx.toFixed(1)}" cy="${topBarY}" r="${barR}" fill="#059669" stroke="#065F46" stroke-width="0.8"/>`
     ).join('');
 
-    return `${_SVG_DEFS}
-      <!-- Section box -->
-      <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#E0E7FF" stroke="#4F46E5" stroke-width="2" rx="2"/>
-      <!-- Cover line -->
-      <rect x="${bx+cover/2}" y="${by+cover/2}" width="${bw-cover}" height="${bh-cover}" fill="none" stroke="#818CF8" stroke-width="1" stroke-dasharray="3,3"/>
-      <!-- Rebar -->
-      ${dots}
-      <!-- Dimension labels -->
-      <text x="${bx + bw/2}" y="${by + bh + 18}" text-anchor="middle" font-size="10" fill="#374151" font-family="Inter,sans-serif">b = ${b}mm</text>
-      <text x="${bx - 14}" y="${by + bh/2 + 4}" text-anchor="middle" font-size="10" fill="#374151" font-family="Inter,sans-serif" transform="rotate(-90,${bx-14},${by+bh/2+4})">h = ${h}mm</text>
-      <!-- Utilisation badge -->
-      <rect x="318" y="45" width="72" height="42" rx="6" fill="${pass?'#ECFDF5':'#FEF2F2'}" stroke="${pass?'#BBF7D0':'#FECACA'}" stroke-width="1.5"/>
-      <text x="354" y="63" font-size="16" font-weight="800" fill="${utilColor}" text-anchor="middle" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
-      <text x="354" y="79" font-size="10" fill="#6B7280" text-anchor="middle" font-family="Inter,sans-serif">${pass?'PASS':'FAIL'}</text>`;
+    return `<svg viewBox="0 0 280 165" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="140" y="12" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">CROSS-SECTION — b=${b}×h=${h} mm</text>
+  <!-- Concrete body with hatch -->
+  <rect x="${ox}" y="${oy}" width="${W}" height="${H}" fill="url(#concreteHatch${id})" stroke="#374151" stroke-width="2"/>
+  <!-- Cover line (stirrup outline, dashed gray) -->
+  <rect x="${ox + stirrupInset}" y="${oy + stirrupInset}" width="${W - 2*stirrupInset}" height="${H - 2*stirrupInset}" fill="none" stroke="#6B7280" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <!-- Stirrup (green rectangle) -->
+  <rect x="${ox + stirrupInset}" y="${oy + stirrupInset}" width="${W - 2*stirrupInset}" height="${H - 2*stirrupInset}" fill="none" stroke="#059669" stroke-width="1.4"/>
+  <!-- Main bottom bars -->
+  ${bars}
+  <!-- Top compression bars -->
+  ${topBars}
+  <!-- Dimension: b -->
+  <line x1="${ox}" y1="${oy + H + 14}" x2="${ox + W}" y2="${oy + H + 14}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="${ox + W/2}" y="${oy + H + 25}" text-anchor="middle" font-size="8" fill="#6B7280">b = ${b}mm</text>
+  <!-- Dimension: h -->
+  <line x1="${ox - 14}" y1="${oy}" x2="${ox - 14}" y2="${oy + H}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="${ox - 22}" y="${oy + H/2 + 3}" text-anchor="middle" font-size="8" fill="#6B7280" transform="rotate(-90,${ox - 22},${oy + H/2 + 3})">h = ${h}mm</text>
+  <!-- Cover annotation -->
+  <text x="${ox + W + 5}" y="${oy + H - stirrupInset + 4}" font-size="7" fill="#6B7280">c=${cnom}mm</text>
+  <!-- Rebar label -->
+  <text x="${ox + W/2}" y="${oy + H - 4}" text-anchor="middle" font-size="7" fill="#065F46" font-weight="600">${nBars}T${barD} — A&#8346; = ${AsProv} mm²</text>
+</svg>`;
   }
+
+  // ── 3. calc_column (steel/timber): professional column elevation ───────────
+
+  function _svgColumn(cfg, r) {
+    const id      = _nextDiagId();
+    const NEd     = r.NEd || cfg.NEd || r.N_Ed || cfg.N_Ed || 500;
+    const length  = cfg.length || cfg.Ley || cfg.span || 3.5;
+    const util    = r.utilisation || r.bucklingUtil || r.overallUtil || 0;
+    const pass    = r.bucklingPass !== false && util <= 1;
+    const utilPct = (util * 100).toFixed(0);
+    const pCol    = pass ? '#16A34A' : '#DC2626';
+    const pBg     = pass ? '#F0FDF4' : '#FEF2F2';
+    const pBdr    = pass ? '#86EFAC' : '#FCA5A5';
+
+    // Hatch lines for fixed base
+    const hatchLines = Array.from({ length: 10 }, (_, i) => {
+      const x1 = 83 + i * 8;
+      const x2 = x1 - 8;
+      return `<line x1="${x1}" y1="165" x2="${x2}" y2="158" stroke="#6B7280" stroke-width="1"/>`;
+    }).join('');
+
+    return `<svg viewBox="0 0 280 185" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">COLUMN ELEVATION — L = ${(+length).toFixed(1)}m</text>
+  <!-- Fixed base double line -->
+  <line x1="90" y1="158" x2="170" y2="158" stroke="#1F2937" stroke-width="2"/>
+  <line x1="83" y1="163" x2="177" y2="163" stroke="#1F2937" stroke-width="2"/>
+  <!-- Base hatch -->
+  ${hatchLines}
+  <!-- Column web (I-section simplified) -->
+  <rect x="126" y="30" width="8" height="128" fill="#9CA3AF" stroke="#374151" stroke-width="1"/>
+  <!-- Top flange -->
+  <rect x="112" y="30" width="36" height="8" fill="#6B7280" stroke="#374151" stroke-width="1.5"/>
+  <!-- Bottom flange -->
+  <rect x="112" y="150" width="36" height="8" fill="#6B7280" stroke="#374151" stroke-width="1.5"/>
+  <!-- Axial load arrow (red, downward) -->
+  <line x1="130" y1="8" x2="130" y2="30" stroke="#DC2626" stroke-width="2" marker-end="url(#aRed${id})"/>
+  <text x="145" y="20" font-size="8.5" fill="#DC2626" font-weight="700">N&#8336;&#8337; = ${(+NEd).toFixed(0)} kN</text>
+  <!-- Length dimension -->
+  <line x1="172" y1="30" x2="172" y2="158" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="178" y="97" font-size="8" fill="#6B7280" transform="rotate(90,178,97)">L = ${(+length).toFixed(1)}m</text>
+  <!-- Utilisation badge -->
+  <rect x="8" y="70" width="72" height="44" rx="7" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
+  <text x="44" y="90" text-anchor="middle" font-size="17" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${utilPct}%</text>
+  <text x="44" y="105" text-anchor="middle" font-size="9" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
+</svg>`;
+  }
+
+  // ── 4. RC Column cross-section ────────────────────────────────────────────
+
+  function _svgRCColumn(cfg, r) {
+    const id    = _nextDiagId();
+    const b     = +(cfg.b || 300);
+    const h     = +(cfg.h || 300);
+    const util  = r.utilisation || r.overallUtil || 0;
+    const pass  = r.overallPass !== false && util <= 1;
+    const pCol  = pass ? '#16A34A' : '#DC2626';
+    const pBg   = pass ? '#F0FDF4' : '#FEF2F2';
+    const pBdr  = pass ? '#86EFAC' : '#FCA5A5';
+
+    // Scale to fit 160×120 area in 280×165 viewBox
+    const maxW = 160, maxH = 120;
+    const scale = Math.min(maxW / b, maxH / h);
+    const W = +(b * scale).toFixed(1);
+    const H = +(h * scale).toFixed(1);
+    const ox = +((280 - W) / 2 - 20).toFixed(1); // shift left to leave room for badge
+    const oy = +((165 - H) / 2).toFixed(1);
+    const cover = +(35 * scale).toFixed(1);
+
+    // Corner + mid bars (green)
+    const barR = Math.max(3, +(8 * scale).toFixed(1));
+    const corners = [
+      [ox + cover, oy + cover],
+      [ox + W - cover, oy + cover],
+      [ox + cover, oy + H - cover],
+      [ox + W - cover, oy + H - cover],
+    ];
+    if (W > 60) {
+      corners.push([ox + W/2, oy + cover], [ox + W/2, oy + H - cover]);
+    }
+    const bars = corners.map(([cx, cy]) =>
+      `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${barR}" fill="#059669" stroke="#065F46" stroke-width="0.8"/>`
+    ).join('');
+
+    return `<svg viewBox="0 0 280 165" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="110" y="12" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">COLUMN CROSS-SECTION — ${b}×${h} mm</text>
+  <!-- Concrete with hatch -->
+  <rect x="${ox}" y="${oy}" width="${W}" height="${H}" fill="url(#concreteHatch${id})" stroke="#374151" stroke-width="2"/>
+  <!-- Cover dashed line -->
+  <rect x="${ox+cover}" y="${oy+cover}" width="${W-2*cover}" height="${H-2*cover}" fill="none" stroke="#6B7280" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <!-- Stirrup green -->
+  <rect x="${ox+cover}" y="${oy+cover}" width="${W-2*cover}" height="${H-2*cover}" fill="none" stroke="#059669" stroke-width="1.4"/>
+  <!-- Bars -->
+  ${bars}
+  <!-- b dimension -->
+  <line x1="${ox}" y1="${oy+H+14}" x2="${ox+W}" y2="${oy+H+14}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="${ox+W/2}" y="${oy+H+25}" text-anchor="middle" font-size="8" fill="#6B7280">b = ${b}mm</text>
+  <!-- h dimension -->
+  <line x1="${ox-14}" y1="${oy}" x2="${ox-14}" y2="${oy+H}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="${ox-22}" y="${oy+H/2+3}" text-anchor="middle" font-size="8" fill="#6B7280" transform="rotate(-90,${ox-22},${oy+H/2+3})">h = ${h}mm</text>
+  <!-- Utilisation badge -->
+  <rect x="206" y="62" width="66" height="44" rx="7" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
+  <text x="239" y="82" text-anchor="middle" font-size="16" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="239" y="97" text-anchor="middle" font-size="9" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
+</svg>`;
+  }
+
+  // ── 5. RC Slab plan view ───────────────────────────────────────────────────
 
   function _svgSlab(cfg, r) {
-    const lx   = cfg.lx || 4;
-    const ly   = cfg.ly || 5;
-    const util = r.utilisation || r.bendingUtil || 0;
-    const pass = r.overallPass !== false && util <= 1;
-    const utilColor = pass ? '#10B981' : '#EF4444';
-    const ratio = Math.min(lx / ly, ly / lx);
-    const slabW = 160, slabH = Math.round(160 * ratio);
-    const sx = 110, sy = 65 - slabH / 2;
+    const id    = _nextDiagId();
+    const lx    = +(cfg.lx || cfg.span || 4);
+    const ly    = +(cfg.ly || cfg.span || 5);
+    const thick = +(cfg.thickness || cfg.h || 200);
+    const Gk    = +(cfg.Gk || 5);
+    const Qk    = +(cfg.Qk || 3);
+    const AsReq = r.As_req != null ? Math.round(+r.As_req) : '?';
+    const util  = r.utilisation || r.bendingUtil || 0;
+    const pass  = r.overallPass !== false && util <= 1;
+    const pCol  = pass ? '#16A34A' : '#DC2626';
+    const pBg   = pass ? '#F0FDF4' : '#FEF2F2';
+    const pBdr  = pass ? '#86EFAC' : '#FCA5A5';
 
-    // Rebar grid lines
-    const nBarsX = 5, nBarsY = 4;
-    let bars = '';
-    for (let i = 1; i < nBarsX; i++) {
-      const x = sx + (i / nBarsX) * slabW;
-      bars += `<line x1="${x}" y1="${sy}" x2="${x}" y2="${sy + slabH}" stroke="#EF4444" stroke-width="1" opacity="0.6"/>`;
-    }
-    for (let i = 1; i < nBarsY; i++) {
-      const y = sy + (i / nBarsY) * slabH;
-      bars += `<line x1="${sx}" y1="${y}" x2="${sx + slabW}" y2="${y}" stroke="#DC2626" stroke-width="1" opacity="0.45"/>`;
-    }
+    // Scale to fit ~180×110 area in 280×175 viewBox
+    const ratio = lx / ly;
+    const diagW = Math.min(180, 180 * ratio + 20);
+    const diagH = Math.min(110, 110 / ratio + 20);
+    const sx = +((280 - diagW) / 2).toFixed(0);
+    const sy = +((175 - diagH) / 2).toFixed(0);
 
-    return `${_SVG_DEFS}
-      <!-- Slab rectangle (plan view) -->
-      <rect x="${sx}" y="${sy}" width="${slabW}" height="${slabH}" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" rx="2"/>
-      ${bars}
-      <!-- Dimension arrows -->
-      <line x1="${sx}" y1="${sy + slabH + 14}" x2="${sx + slabW}" y2="${sy + slabH + 14}" stroke="#374151" stroke-width="1.5" marker-start="url(#arr-right)" marker-end="url(#arr-right)"/>
-      <text x="${sx + slabW/2}" y="${sy + slabH + 28}" text-anchor="middle" font-size="10" fill="#374151" font-family="Inter,sans-serif">lx = ${lx}m</text>
-      <text x="${sx - 18}" y="${sy + slabH/2 + 4}" text-anchor="middle" font-size="10" fill="#374151" font-family="Inter,sans-serif" transform="rotate(-90,${sx-18},${sy+slabH/2+4})">ly = ${ly}m</text>
-      <!-- Utilisation -->
-      <rect x="7" y="44" width="72" height="42" rx="6" fill="${pass?'#ECFDF5':'#FEF2F2'}" stroke="${pass?'#BBF7D0':'#FECACA'}" stroke-width="1.5"/>
-      <text x="43" y="62" font-size="16" font-weight="800" fill="${utilColor}" text-anchor="middle" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
-      <text x="43" y="78" font-size="10" fill="#6B7280" text-anchor="middle" font-family="Inter,sans-serif">${pass?'PASS':'FAIL'}</text>`;
+    return `<svg viewBox="0 0 280 175" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">RC SLAB PLAN — ${lx}×${ly}m, h=${thick}mm</text>
+  <!-- Slab outline -->
+  <rect x="${sx}" y="${sy}" width="${diagW}" height="${diagH}" fill="#F3F4F6" stroke="#374151" stroke-width="2.5"/>
+  <!-- Rebar grid overlay -->
+  <rect x="${sx}" y="${sy}" width="${diagW}" height="${diagH}" fill="url(#rebarGrid${id})" opacity="0.9"/>
+  <!-- Support walls (thick edges) -->
+  <line x1="${sx}" y1="${sy}" x2="${sx}" y2="${sy+diagH}" stroke="#1F2937" stroke-width="4"/>
+  <line x1="${sx+diagW}" y1="${sy}" x2="${sx+diagW}" y2="${sy+diagH}" stroke="#1F2937" stroke-width="4"/>
+  <line x1="${sx}" y1="${sy}" x2="${sx+diagW}" y2="${sy}" stroke="#1F2937" stroke-width="4"/>
+  <line x1="${sx}" y1="${sy+diagH}" x2="${sx+diagW}" y2="${sy+diagH}" stroke="#1F2937" stroke-width="4"/>
+  <!-- Load arrow at centre -->
+  <line x1="${sx+diagW/2}" y1="${sy+diagH/2-20}" x2="${sx+diagW/2}" y2="${sy+diagH/2}" stroke="#DC2626" stroke-width="1.8" marker-end="url(#aRed${id})"/>
+  <text x="${sx+diagW/2+6}" y="${sy+diagH/2-8}" font-size="8" fill="#DC2626" font-weight="600">q = ${(Gk+Qk).toFixed(1)} kN/m²</text>
+  <!-- As label -->
+  <text x="${sx+diagW/2}" y="${sy+diagH/2+16}" text-anchor="middle" font-size="8" fill="#059669" font-weight="700">A&#8346; = ${AsReq} mm²/m</text>
+  <!-- Lx dimension -->
+  <line x1="${sx}" y1="${sy+diagH+14}" x2="${sx+diagW}" y2="${sy+diagH+14}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="${sx+diagW/2}" y="${sy+diagH+26}" text-anchor="middle" font-size="8" fill="#6B7280">L&#8339; = ${lx}m (short)</text>
+  <!-- Ly dimension -->
+  <line x1="${sx-14}" y1="${sy}" x2="${sx-14}" y2="${sy+diagH}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="${sx-22}" y="${sy+diagH/2+3}" text-anchor="middle" font-size="8" fill="#6B7280" transform="rotate(-90,${sx-22},${sy+diagH/2+3})">L&#432; = ${ly}m</text>
+  <!-- Utilisation badge -->
+  <rect x="214" y="14" width="58" height="38" rx="6" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
+  <text x="243" y="29" text-anchor="middle" font-size="13" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="243" y="43" text-anchor="middle" font-size="8.5" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
+</svg>`;
   }
+
+  // ── 6. Pad Footing: elevation with bearing pressure arrows ─────────────────
 
   function _svgFooting(cfg, r) {
-    const B      = r.B || 1.5;
-    const col    = cfg.columnW || 300;
-    const fThick = cfg.footThick || 500;
+    const id     = _nextDiagId();
+    const B      = +(r.B || cfg.L || cfg.footing_l || 1.5);
+    const D      = +(cfg.D || cfg.footing_d || 0.5);
+    const qa     = +(cfg.qa || cfg.q_allowable || 150);
+    const N      = +(cfg.N_uls || cfg.N || 500);
+    const sigma  = r.sigma_ed != null ? (+r.sigma_ed).toFixed(1) : (r.q_net != null ? (+r.q_net).toFixed(1) : '?');
     const pass   = r.bearingPass !== false && (r.overallPass !== false);
-    const utilColor = pass ? '#10B981' : '#EF4444';
     const util   = r.bearingUtil || r.utilisation || 0;
+    const pCol   = pass ? '#16A34A' : '#DC2626';
+    const pBg    = pass ? '#F0FDF4' : '#FEF2F2';
+    const pBdr   = pass ? '#86EFAC' : '#FCA5A5';
 
-    // Scale: footing width → ~160px
-    const scale = 160 / (B * 1000);   // pixels per mm
-    const footW = 160;
-    const footH = Math.max(20, Math.round(fThick * scale * 0.7));
-    const colW  = Math.max(12, Math.round(col * scale));
-    const fx = 120, fy = 85;
-    const cx = fx + footW / 2 - colW / 2;
+    // Layout: footing elevation 140px wide, centred
+    const fx = 60, fy = 80;
+    const footW = 160, footH = 26;
+    const colW  = 32, colH = 30;
+    const cx    = fx + footW/2 - colW/2;
 
-    // Soil pressure arrows below footing
-    const nArr = 7;
-    let soilArrows = '';
-    for (let i = 0; i <= nArr; i++) {
-      const ax = fx + (i / nArr) * footW;
-      soilArrows += `<line x1="${ax}" y1="${fy + footH}" x2="${ax}" y2="${fy + footH + 20}" stroke="#D97706" stroke-width="1.5" marker-end="url(#arr-down)"/>`;
-    }
+    // Bearing pressure upward arrows (blue)
+    const pressArrows = Array.from({ length: 8 }, (_, i) => {
+      const ax = fx + (i / 7) * footW;
+      return `<line x1="${ax.toFixed(1)}" y1="${fy+footH+22}" x2="${ax.toFixed(1)}" y2="${fy+footH+4}" stroke="#2563EB" stroke-width="1.3" marker-end="url(#aBlueUp${id})"/>`;
+    }).join('');
 
-    return `${_SVG_DEFS}
-      <!-- Column -->
-      <rect x="${cx}" y="${fy - 40}" width="${colW}" height="40" fill="#4F46E5" rx="2"/>
-      <!-- Footing -->
-      <rect x="${fx}" y="${fy}" width="${footW}" height="${footH}" fill="#93C5FD" stroke="#2563EB" stroke-width="2" rx="2"/>
-      <!-- Soil pressure arrows -->
-      ${soilArrows}
-      <!-- Ground line -->
-      <line x1="${fx - 10}" y1="${fy + footH + 22}" x2="${fx + footW + 10}" y2="${fy + footH + 22}" stroke="#92400E" stroke-width="1.5" opacity="0.5"/>
-      <!-- Load arrow at top -->
-      <line x1="${fx + footW/2}" y1="8" x2="${fx + footW/2}" y2="${fy - 40}" stroke="#EF4444" stroke-width="2.5" marker-end="url(#arr-down)"/>
-      <!-- Dimension label -->
-      <text x="${fx + footW/2}" y="${fy + footH + 38}" text-anchor="middle" font-size="10" fill="#374151" font-family="Inter,sans-serif">B = ${B.toFixed(2)}m × ${B.toFixed(2)}m</text>
-      <!-- Utilisation -->
-      <rect x="7" y="44" width="78" height="42" rx="6" fill="${pass?'#ECFDF5':'#FEF2F2'}" stroke="${pass?'#BBF7D0':'#FECACA'}" stroke-width="1.5"/>
-      <text x="46" y="62" font-size="16" font-weight="800" fill="${utilColor}" text-anchor="middle" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
-      <text x="46" y="78" font-size="10" fill="#6B7280" text-anchor="middle" font-family="Inter,sans-serif">${pass?'PASS':'FAIL'}</text>`;
+    return `<svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">PAD FOOTING — ${B.toFixed(2)}×${B.toFixed(2)}×${D}m</text>
+  <!-- Column load arrow (red, down) -->
+  <line x1="${cx+colW/2}" y1="18" x2="${cx+colW/2}" y2="${fy-colH}" stroke="#DC2626" stroke-width="2" marker-end="url(#aRed${id})"/>
+  <text x="${cx+colW/2+6}" y="30" font-size="8" fill="#DC2626" font-weight="600">N = ${N}kN</text>
+  <!-- Column stub -->
+  <rect x="${cx}" y="${fy-colH}" width="${colW}" height="${colH}" fill="#D1D5DB" stroke="#374151" stroke-width="1.5"/>
+  <!-- Footing body with concrete hatch -->
+  <rect x="${fx}" y="${fy}" width="${footW}" height="${footH}" fill="url(#concreteHatch${id})" stroke="#374151" stroke-width="2"/>
+  <!-- Soil below footing -->
+  <rect x="${fx}" y="${fy+footH}" width="${footW}" height="26" fill="url(#soilHatch${id})"/>
+  <line x1="${fx-8}" y1="${fy+footH}" x2="${fx+footW+8}" y2="${fy+footH}" stroke="#92400E" stroke-width="1.2"/>
+  <!-- Bearing pressure arrows (upward, blue) -->
+  ${pressArrows}
+  <!-- Ground baseline -->
+  <line x1="${fx}" y1="${fy+footH+26}" x2="${fx+footW}" y2="${fy+footH+26}" stroke="#2563EB" stroke-width="1"/>
+  <!-- Pressure label -->
+  <text x="${fx+footW/2}" y="${fy+footH+46}" text-anchor="middle" font-size="8" fill="#2563EB" font-weight="600">&#963; = ${sigma} kN/m² (allow. ${qa} kN/m²)</text>
+  <!-- B dimension -->
+  <line x1="${fx}" y1="${fy+footH+56}" x2="${fx+footW}" y2="${fy+footH+56}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="${fx+footW/2}" y="${fy+footH+68}" text-anchor="middle" font-size="8" fill="#6B7280">B = ${B.toFixed(2)}m</text>
+  <!-- Utilisation badge -->
+  <rect x="8" y="70" width="48" height="38" rx="6" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
+  <text x="32" y="85" text-anchor="middle" font-size="12" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="32" y="99" text-anchor="middle" font-size="8.5" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
+</svg>`;
   }
+
+  // ── 7. Retaining wall: L-shape + triangular earth pressure ────────────────
 
   function _svgRetaining(cfg, r) {
-    const H     = cfg.H || 3;
-    const pass  = r.overallPass !== false && (r.overturningPass !== false) && (r.slidingPass !== false);
-    const utilColor = pass ? '#10B981' : '#EF4444';
-    const util  = r.overallUtil || r.slidingUtil || 0;
+    const id     = _nextDiagId();
+    const H      = +(cfg.H || cfg.retained_height || 3);
+    const Ka     = r.Ka != null ? (+r.Ka).toFixed(3) : '0.333';
+    const pass   = r.overallPass !== false && (r.overturningPass !== false) && (r.slidingPass !== false);
+    const util   = r.overallUtil || r.slidingUtil || 0;
+    const pCol   = pass ? '#16A34A' : '#DC2626';
+    const pBg    = pass ? '#F0FDF4' : '#FEF2F2';
+    const pBdr   = pass ? '#86EFAC' : '#FCA5A5';
 
-    // Geometry in SVG coords
-    const baseX = 100, baseY = 110;
-    const wallH = 80, wallThick = 16;
-    const baseW = 110, baseH = 14;
-    const toeSlab = Math.round(baseW * 0.25);
+    // Wall geometry in SVG coords
+    const stemX = 100, stemW = 22, stemY = 22, stemH = 130;
+    const baseY = stemY + stemH, baseX = 60, baseW = 120, baseH = 20;
 
-    // Earth pressure arrows (horizontal, on retained side = right of wall)
-    const nEarth = 5;
-    let earthArrows = '';
-    for (let i = 0; i < nEarth; i++) {
-      const ay = baseY - wallH + (i / (nEarth - 1)) * wallH;
-      const len = 18 + i * 4; // larger at bottom
-      earthArrows += `<line x1="${baseX + baseW - toeSlab + len}" y1="${ay}" x2="${baseX + baseW - toeSlab}" y2="${ay}" stroke="#D97706" stroke-width="1.5" marker-end="url(#arr-right)"/>`;
-    }
+    // Retained earth zone (right of stem)
+    const earthX = stemX + stemW, earthW = 130, earthY = stemY;
 
-    return `${_SVG_DEFS}
-      <!-- Base slab -->
-      <rect x="${baseX - toeSlab}" y="${baseY}" width="${baseW}" height="${baseH}" fill="#93C5FD" stroke="#2563EB" stroke-width="1.5" rx="1"/>
-      <!-- Wall stem -->
-      <rect x="${baseX - toeSlab}" y="${baseY - wallH}" width="${wallThick}" height="${wallH}" fill="#60A5FA" stroke="#2563EB" stroke-width="1.5" rx="1"/>
-      <!-- Ground line (retained side) -->
-      <line x1="${baseX - toeSlab + wallThick}" y1="${baseY}" x2="${baseX + baseW - toeSlab + 30}" y2="${baseY}" stroke="#92400E" stroke-width="1.5" opacity="0.55"/>
-      <!-- Fill hatch (retained side) -->
-      ${[0,1,2,3,4,5].map(i => {
-        const hx = baseX - toeSlab + wallThick + i * 14;
-        return `<line x1="${hx}" y1="${baseY - 2}" x2="${hx - 10}" y2="${baseY - wallH + 2}" stroke="#D97706" stroke-width="1" opacity="0.25"/>`;
-      }).join('')}
-      <!-- Earth pressure arrows -->
-      ${earthArrows}
-      <!-- Ground line (toe side) -->
-      <line x1="${baseX - toeSlab - 20}" y1="${baseY + baseH}" x2="${baseX - toeSlab + wallThick + 5}" y2="${baseY + baseH}" stroke="#374151" stroke-width="1.5" opacity="0.4"/>
-      <!-- Height label -->
-      <text x="${baseX - toeSlab - 14}" y="${baseY - wallH/2 + 4}" text-anchor="middle" font-size="10" fill="#374151" font-family="Inter,sans-serif" transform="rotate(-90,${baseX - toeSlab - 14},${baseY - wallH/2 + 4})">H = ${H}m</text>
-      <!-- Utilisation badge -->
-      <rect x="305" y="44" width="80" height="42" rx="6" fill="${pass?'#ECFDF5':'#FEF2F2'}" stroke="${pass?'#BBF7D0':'#FECACA'}" stroke-width="1.5"/>
-      <text x="345" y="62" font-size="16" font-weight="800" fill="${utilColor}" text-anchor="middle" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
-      <text x="345" y="78" font-size="10" fill="#6B7280" text-anchor="middle" font-family="Inter,sans-serif">${pass?'PASS':'FAIL'}</text>`;
+    // Earth pressure arrows: triangular (larger at bottom)
+    const nEP = 6;
+    const epArrows = Array.from({ length: nEP }, (_, i) => {
+      const ay = stemY + (i / (nEP-1)) * stemH;
+      const arrowLen = 8 + i * 12; // triangular distribution
+      const x1 = earthX + arrowLen;
+      return `<line x1="${x1}" y1="${ay.toFixed(1)}" x2="${earthX+2}" y2="${ay.toFixed(1)}" stroke="#DC2626" stroke-width="1.3" marker-end="url(#aRed${id})"/>`;
+    }).join('');
+
+    // Triangle fill outline
+    const triPts = `${earthX},${stemY} ${earthX+8+5*(nEP-1)*2},${baseY} ${earthX},${baseY}`;
+
+    return `<svg viewBox="0 0 280 185" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">RETAINING WALL — H = ${H}m</text>
+  <!-- Retained earth fill -->
+  <rect x="${earthX}" y="${earthY}" width="${earthW}" height="${stemH}" fill="url(#soilHatch${id})"/>
+  <line x1="${earthX}" y1="${earthY}" x2="${earthX+earthW}" y2="${earthY}" stroke="#92400E" stroke-width="1"/>
+  <!-- Earth pressure triangle (red, semi-transparent) -->
+  <polygon points="${triPts}" fill="rgba(220,38,38,0.07)" stroke="none"/>
+  <!-- Earth pressure arrows (horizontal, left-pointing) -->
+  ${epArrows}
+  <!-- Ka label -->
+  <text x="${earthX+50}" y="${baseY-8}" font-size="8" fill="#DC2626" font-weight="600">K&#8336; = ${Ka}</text>
+  <!-- Wall stem (concrete hatch) -->
+  <rect x="${stemX}" y="${stemY}" width="${stemW}" height="${stemH}" fill="url(#concreteHatch${id})" stroke="#374151" stroke-width="2"/>
+  <!-- Base slab (concrete hatch) -->
+  <rect x="${baseX}" y="${baseY}" width="${baseW}" height="${baseH}" fill="url(#concreteHatch${id})" stroke="#374151" stroke-width="2"/>
+  <!-- Ground line -->
+  <line x1="${baseX-15}" y1="${baseY}" x2="${earthX+earthW+10}" y2="${baseY}" stroke="#92400E" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <!-- Height dimension -->
+  <line x1="${stemX-14}" y1="${stemY}" x2="${stemX-14}" y2="${baseY}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="${stemX-22}" y="${stemY+stemH/2+3}" text-anchor="middle" font-size="8" fill="#6B7280" transform="rotate(-90,${stemX-22},${stemY+stemH/2+3})">H = ${H}m</text>
+  <!-- Utilisation badge -->
+  <rect x="8" y="68" width="48" height="38" rx="6" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
+  <text x="32" y="83" text-anchor="middle" font-size="12" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="32" y="97" text-anchor="middle" font-size="8.5" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
+</svg>`;
   }
 
+  // ── 8. Bolted connection ───────────────────────────────────────────────────
+
   function _svgConnection(cfg, r) {
-    const VEd   = cfg.VEd || 150;
-    const nBolts = cfg.nBolts || 4;
-    const pass  = r.shearPass !== false && r.overallPass !== false;
-    const utilColor = pass ? '#10B981' : '#EF4444';
-    const util  = r.shearUtil || r.utilisation || 0;
+    const id     = _nextDiagId();
+    const VEd    = +(cfg.VEd || 150);
+    const nBolts = +(cfg.nBolts || 4);
+    const pass   = r.shearPass !== false && r.overallPass !== false;
+    const util   = r.shearUtil || r.utilisation || 0;
+    const pCol   = pass ? '#16A34A' : '#DC2626';
+    const pBg    = pass ? '#F0FDF4' : '#FEF2F2';
+    const pBdr   = pass ? '#86EFAC' : '#FCA5A5';
 
-    // Two plates with bolt holes
-    const px = 120, py = 25;
-    const plateW = 50, plateH = 80;
-
-    // Bolt positions in a column
+    const px = 70, py = 18, plateW = 52, plateH = Math.min(100, 16 * (nBolts+1));
+    const gap = 38;
     const boltSpacing = plateH / (nBolts + 1);
+
     let bolts = '';
     for (let i = 0; i < Math.min(nBolts, 6); i++) {
       const by = py + boltSpacing * (i + 1);
-      bolts += `<circle cx="${px + plateW/2}" cy="${by}" r="5" fill="none" stroke="#374151" stroke-width="1.5"/>`;
-      bolts += `<circle cx="${px + plateW/2}" cy="${by}" r="2" fill="#374151"/>`;
-      bolts += `<circle cx="${px + plateW + 40 + plateW/2}" cy="${by}" r="5" fill="none" stroke="#374151" stroke-width="1.5"/>`;
-      bolts += `<circle cx="${px + plateW + 40 + plateW/2}" cy="${by}" r="2" fill="#374151"/>`;
+      bolts += `<circle cx="${px+plateW/2}" cy="${by.toFixed(1)}" r="5.5" fill="none" stroke="#374151" stroke-width="1.5"/>`;
+      bolts += `<circle cx="${px+plateW/2}" cy="${by.toFixed(1)}" r="2" fill="#374151"/>`;
+      bolts += `<circle cx="${px+plateW+gap+plateW/2}" cy="${by.toFixed(1)}" r="5.5" fill="none" stroke="#374151" stroke-width="1.5"/>`;
+      bolts += `<circle cx="${px+plateW+gap+plateW/2}" cy="${by.toFixed(1)}" r="2" fill="#374151"/>`;
     }
 
-    return `${_SVG_DEFS}
-      <!-- Left plate (web/flange) -->
-      <rect x="${px}" y="${py}" width="${plateW}" height="${plateH}" fill="#C7D2FE" stroke="#4F46E5" stroke-width="2" rx="2"/>
-      <!-- Right plate (end plate) -->
-      <rect x="${px + plateW + 40}" y="${py}" width="${plateW}" height="${plateH}" fill="#C7D2FE" stroke="#4F46E5" stroke-width="2" rx="2"/>
-      <!-- Gap -->
-      <line x1="${px + plateW + 2}" y1="${py + plateH/2}" x2="${px + plateW + 38}" y2="${py + plateH/2}" stroke="#374151" stroke-width="1" stroke-dasharray="4,3"/>
-      <!-- Bolts -->
-      ${bolts}
-      <!-- Shear arrow -->
-      <line x1="${px - 5}" y1="${py + plateH/2}" x2="${px + plateW + 45 + plateW + 5}" y2="${py + plateH/2}" stroke="#EF4444" stroke-width="2" stroke-dasharray="6,3" opacity="0.6"/>
-      <text x="${px + plateW + 20}" y="${py + plateH + 20}" text-anchor="middle" font-size="10" fill="#374151" font-family="Inter,sans-serif">VEd = ${VEd} kN  /  ${nBolts} bolts</text>
-      <!-- Utilisation -->
-      <rect x="318" y="44" width="72" height="42" rx="6" fill="${pass?'#ECFDF5':'#FEF2F2'}" stroke="${pass?'#BBF7D0':'#FECACA'}" stroke-width="1.5"/>
-      <text x="354" y="62" font-size="16" font-weight="800" fill="${utilColor}" text-anchor="middle" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
-      <text x="354" y="78" font-size="10" fill="#6B7280" text-anchor="middle" font-family="Inter,sans-serif">${pass?'PASS':'FAIL'}</text>`;
+    const midY = py + plateH/2;
+    return `<svg viewBox="0 0 280 ${py+plateH+50}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">BOLTED CONNECTION — ${nBolts} BOLTS</text>
+  <!-- Left plate -->
+  <rect x="${px}" y="${py}" width="${plateW}" height="${plateH}" fill="#E5E7EB" stroke="#374151" stroke-width="2" rx="1"/>
+  <!-- Right plate -->
+  <rect x="${px+plateW+gap}" y="${py}" width="${plateW}" height="${plateH}" fill="#E5E7EB" stroke="#374151" stroke-width="2" rx="1"/>
+  <!-- Gap dashed line -->
+  <line x1="${px+plateW+2}" y1="${midY.toFixed(1)}" x2="${px+plateW+gap-2}" y2="${midY.toFixed(1)}" stroke="#374151" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Bolts -->
+  ${bolts}
+  <!-- Shear arrow (red) -->
+  <line x1="${px-18}" y1="${midY.toFixed(1)}" x2="${px-2}" y2="${midY.toFixed(1)}" stroke="#DC2626" stroke-width="2" marker-end="url(#aRed${id})"/>
+  <text x="${px+plateW+gap/2}" y="${py+plateH+18}" text-anchor="middle" font-size="8.5" fill="#374151">V&#8336;&#8337; = ${VEd} kN / ${nBolts} bolts</text>
+  <!-- Utilisation badge -->
+  <rect x="${px+2*plateW+gap+18}" y="${py+plateH/2-20}" width="52" height="38" rx="6" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
+  <text x="${px+2*plateW+gap+44}" y="${py+plateH/2-4}" text-anchor="middle" font-size="12" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="${px+2*plateW+gap+44}" y="${py+plateH/2+10}" text-anchor="middle" font-size="8.5" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
+</svg>`;
   }
 
+  // ── 9. Steel member: elevation + BMD ──────────────────────────────────────
+
   function _svgSteelMember(cfg, r) {
-    const span  = cfg.Lcr || 4;
+    const id    = _nextDiagId();
+    const span  = +(cfg.Lcr || cfg.span || 4);
     const MEd   = r.MEd || cfg.MEd || 80;
     const util  = r.utilisation || r.combinedUtil || 0;
     const pass  = r.overallPass !== false && util <= 1;
-    const utilColor = pass ? '#10B981' : '#EF4444';
+    const pCol  = pass ? '#16A34A' : '#DC2626';
+    const pBg   = pass ? '#F0FDF4' : '#FEF2F2';
+    const pBdr  = pass ? '#86EFAC' : '#FCA5A5';
 
-    // I-section cross-section (small) + member with parabolic BMD
-    const mx = 30, my = 30, mw = 200, mh = 14;
+    const mx = 30, my = 28, mw = 200, mh = 12;
     const baseY = my + mh;
+    const bmdH = 42;
 
-    // Parabolic BMD below
-    const n = 20;
-    const bmdH = 40;
-    const bmdPts = Array.from({ length: n + 1 }, (_, i) => {
+    // Parabolic BMD points
+    const n = 24;
+    const bmdPts = Array.from({ length: n+1 }, (_, i) => {
       const xr = i / n;
-      const bx = mx + xr * mw;
-      const by = baseY + bmdH * 4 * xr * (1 - xr);
-      return `${bx},${by}`;
+      return `${(mx + xr*mw).toFixed(1)},${(baseY + bmdH*4*xr*(1-xr)).toFixed(1)}`;
     });
     const bmdPath = `M${mx},${baseY} L${bmdPts.join(' L')} L${mx+mw},${baseY} Z`;
 
-    return `${_SVG_DEFS}
-      <!-- Member -->
-      <rect x="${mx}" y="${my}" width="${mw}" height="${mh}" fill="#4F46E5" rx="3"/>
-      <!-- Pin support left -->
-      <polygon points="${mx},${baseY} ${mx-10},${baseY+16} ${mx+10},${baseY+16}" fill="none" stroke="#D97706" stroke-width="1.5"/>
-      <line x1="${mx-12}" y1="${baseY+17}" x2="${mx+12}" y2="${baseY+17}" stroke="#D97706" stroke-width="1.5"/>
-      <!-- Roller support right -->
-      <polygon points="${mx+mw},${baseY} ${mx+mw-10},${baseY+16} ${mx+mw+10},${baseY+16}" fill="none" stroke="#D97706" stroke-width="1.5"/>
-      <circle cx="${mx+mw-8}" cy="${baseY+20}" r="3" fill="none" stroke="#D97706" stroke-width="1.5"/>
-      <circle cx="${mx+mw+8}" cy="${baseY+20}" r="3" fill="none" stroke="#D97706" stroke-width="1.5"/>
-      <!-- BMD -->
-      <path d="${bmdPath}" fill="rgba(79,70,229,0.25)" stroke="#4F46E5" stroke-width="1.5"/>
-      <!-- Labels -->
-      <text x="${mx + mw/2}" y="${baseY + bmdH/2 + 15}" text-anchor="middle" font-size="10" fill="#4338CA" font-family="'JetBrains Mono',monospace">MEd = ${MEd.toFixed?MEd.toFixed(1):MEd} kNm</text>
-      <text x="${mx + mw/2}" y="${baseY + bmdH + 28}" text-anchor="middle" font-size="10" fill="#6B7280" font-family="Inter,sans-serif">L = ${span}m</text>
-      <!-- Utilisation -->
-      <rect x="316" y="44" width="74" height="42" rx="6" fill="${pass?'#ECFDF5':'#FEF2F2'}" stroke="${pass?'#BBF7D0':'#FECACA'}" stroke-width="1.5"/>
-      <text x="353" y="62" font-size="16" font-weight="800" fill="${utilColor}" text-anchor="middle" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
-      <text x="353" y="78" font-size="10" fill="#6B7280" text-anchor="middle" font-family="Inter,sans-serif">${pass?'PASS':'FAIL'}</text>`;
+    return `<svg viewBox="0 0 280 145" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">STEEL MEMBER — L = ${span}m</text>
+  <!-- Member (dark gray I-section representation) -->
+  <rect x="${mx}" y="${my}" width="${mw}" height="${mh}" fill="#374151" rx="2"/>
+  <rect x="${mx}" y="${my}" width="${mw}" height="3" fill="#6B7280"/>
+  <rect x="${mx}" y="${my+mh-3}" width="${mw}" height="3" fill="#6B7280"/>
+  <!-- Pin support left -->
+  <polygon points="${mx},${baseY} ${mx-10},${baseY+16} ${mx+10},${baseY+16}" fill="none" stroke="#1F2937" stroke-width="1.5"/>
+  <line x1="${mx-13}" y1="${baseY+17}" x2="${mx+13}" y2="${baseY+17}" stroke="#1F2937" stroke-width="1.5"/>
+  <!-- Roller support right -->
+  <polygon points="${mx+mw},${baseY} ${mx+mw-10},${baseY+16} ${mx+mw+10},${baseY+16}" fill="none" stroke="#1F2937" stroke-width="1.5"/>
+  <circle cx="${mx+mw-7}" cy="${baseY+20}" r="3" fill="none" stroke="#1F2937" stroke-width="1.2"/>
+  <circle cx="${mx+mw+7}" cy="${baseY+20}" r="3" fill="none" stroke="#1F2937" stroke-width="1.2"/>
+  <!-- BMD (blue fill) -->
+  <path d="${bmdPath}" fill="rgba(37,99,235,0.10)" stroke="#2563EB" stroke-width="1.8"/>
+  <!-- Peak annotation -->
+  <line x1="${mx+mw/2}" y1="${baseY+bmdH}" x2="${mx+mw/2}" y2="${baseY}" stroke="#2563EB" stroke-width="0.9" stroke-dasharray="3,3"/>
+  <text x="${mx+mw/2+6}" y="${baseY+bmdH/2+14}" font-size="8.5" fill="#2563EB" font-weight="700">M&#8336;&#8337; = ${(+MEd).toFixed(1)} kNm</text>
+  <!-- Span label -->
+  <line x1="${mx}" y1="${baseY+bmdH+22}" x2="${mx+mw}" y2="${baseY+bmdH+22}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
+  <text x="${mx+mw/2}" y="${baseY+bmdH+34}" text-anchor="middle" font-size="8" fill="#6B7280">L = ${span}m</text>
+  <!-- Utilisation badge -->
+  <rect x="8" y="24" width="56" height="38" rx="6" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
+  <text x="36" y="39" text-anchor="middle" font-size="13" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="36" y="53" text-anchor="middle" font-size="8.5" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
+</svg>`;
   }
+
+  // ── 10. Wind pressure: building elevation ─────────────────────────────────
 
   function _svgWind(cfg, r) {
-    const h    = cfg.h || 10;
-    const qp   = r.qp || r.q_peak || 0;
-    const we   = r.we || r.windPressure || qp * 0.8;
+    const id  = _nextDiagId();
+    const h   = +(cfg.h || cfg.H || 10);
+    const qp  = r.qp || r.q_peak || 0;
+    const we  = r.we || r.windPressure || +(qp * 0.8).toFixed(2);
     const pass = r.overallPass !== false;
+    const pCol = pass ? '#16A34A' : '#DC2626';
 
-    // Building elevation rectangle with pressure arrows on windward face
-    const bx = 120, by = 20, bw = 80, bh = 90;
+    const bx = 110, by = 18, bw = 80, bh = 100;
     const nArrows = 6;
-    let arrows = '';
-    for (let i = 0; i < nArrows; i++) {
-      const ay = by + (i / (nArrows - 1)) * bh;
-      const len = 28;
-      arrows += `<line x1="${bx - len}" y1="${ay}" x2="${bx - 2}" y2="${ay}" stroke="#EF4444" stroke-width="1.5" marker-end="url(#arr-right)"/>`;
-    }
+    const arrows = Array.from({ length: nArrows }, (_, i) => {
+      const ay = by + (i / (nArrows-1)) * bh;
+      // Intensity proportional to height (lower = higher according to profile)
+      return `<line x1="${bx-30}" y1="${ay.toFixed(1)}" x2="${bx-2}" y2="${ay.toFixed(1)}" stroke="#DC2626" stroke-width="1.5" marker-end="url(#aRed${id})"/>`;
+    }).join('');
 
-    return `${_SVG_DEFS}
-      <!-- Building -->
-      <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" rx="2"/>
-      <!-- Roof -->
-      <polygon points="${bx-4},${by} ${bx+bw/2},${by-20} ${bx+bw+4},${by}" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.5"/>
-      <!-- Ground line -->
-      <line x1="${bx-50}" y1="${by+bh+2}" x2="${bx+bw+30}" y2="${by+bh+2}" stroke="#374151" stroke-width="2" opacity="0.5"/>
-      ${[0,1,2,3,4].map(i=>`<line x1="${bx-50+i*25}" y1="${by+bh+2}" x2="${bx-60+i*25}" y2="${by+bh+12}" stroke="#374151" stroke-width="1.5" opacity="0.3"/>`).join('')}
-      <!-- Wind arrows -->
-      ${arrows}
-      <!-- Wind label -->
-      <text x="${bx - 40}" y="${by + bh/2 + 16}" text-anchor="middle" font-size="10" fill="#EF4444" font-family="Inter,sans-serif" transform="rotate(-90,${bx-40},${by+bh/2+16})">Wind →</text>
-      <!-- Height label -->
-      <text x="${bx + bw + 18}" y="${by + bh/2 + 4}" font-size="10" fill="#374151" font-family="Inter,sans-serif">h=${h}m</text>
-      <!-- Peak pressure badge -->
-      <rect x="285" y="38" width="105" height="54" rx="6" fill="#FFF7ED" stroke="#FED7AA" stroke-width="1.5"/>
-      <text x="337" y="56" font-size="10" fill="#92400E" text-anchor="middle" font-family="Inter,sans-serif">qp(z)</text>
-      <text x="337" y="74" font-size="15" font-weight="800" fill="#B45309" text-anchor="middle" font-family="'JetBrains Mono',monospace">${(qp).toFixed?qp.toFixed(2):qp}</text>
-      <text x="337" y="87" font-size="10" fill="#92400E" text-anchor="middle" font-family="Inter,sans-serif">kN/m²</text>`;
+    return `<svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">WIND LOADING — h = ${h}m</text>
+  <!-- Building body -->
+  <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" rx="1"/>
+  <!-- Roof triangle -->
+  <polygon points="${bx-3},${by} ${bx+bw/2},${by-18} ${bx+bw+3},${by}" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.5"/>
+  <!-- Ground line + hatch -->
+  <line x1="${bx-55}" y1="${by+bh+1}" x2="${bx+bw+25}" y2="${by+bh+1}" stroke="#374151" stroke-width="2" opacity="0.5"/>
+  ${Array.from({length:6},(_,i)=>`<line x1="${bx-55+i*22}" y1="${by+bh+1}" x2="${bx-65+i*22}" y2="${by+bh+12}" stroke="#374151" stroke-width="1.2" opacity="0.3"/>`).join('')}
+  <!-- Wind pressure arrows (horizontal, left→right) -->
+  ${arrows}
+  <!-- Wind direction label -->
+  <text x="${bx-42}" y="${by+bh/2+20}" text-anchor="middle" font-size="9" fill="#DC2626" font-weight="600" transform="rotate(-90,${bx-42},${by+bh/2+20})">Wind &#8594;</text>
+  <!-- Height label -->
+  <text x="${bx+bw+16}" y="${by+bh/2+4}" font-size="8.5" fill="#374151">h=${h}m</text>
+  <!-- Peak pressure badge -->
+  <rect x="${bx+bw+26}" y="${by+18}" width="72" height="54" rx="6" fill="#FFF7ED" stroke="#FED7AA" stroke-width="1.5"/>
+  <text x="${bx+bw+62}" y="${by+36}" font-size="8" fill="#92400E" text-anchor="middle">qp(z)</text>
+  <text x="${bx+bw+62}" y="${by+54}" font-size="15" font-weight="800" fill="#B45309" text-anchor="middle" font-family="'JetBrains Mono',monospace">${(+qp).toFixed?((+qp).toFixed(2)):qp}</text>
+  <text x="${bx+bw+62}" y="${by+67}" font-size="8" fill="#92400E" text-anchor="middle">kN/m²</text>
+</svg>`;
   }
 
+  // ── 11. Load takedown: floor stack ────────────────────────────────────────
+
   function _svgLoadTakedown(cfg, r) {
-    const nFloors = Math.min(cfg.nFloors || 3, 6);
+    const id      = _nextDiagId();
+    const nFloors = Math.min(+(cfg.nFloors || 3), 6);
     const totalN  = r.totalN || r.N_foundation || 0;
     const pass    = r.overallPass !== false;
-    const utilColor = pass ? '#10B981' : '#EF4444';
+    const pCol    = pass ? '#16A34A' : '#DC2626';
 
-    // Stack of floor slabs
-    const slabH = 12, gap = 22;
-    const startY = 20, cx = 200;
-    const slabW = 120;
+    const slabH = 12, gap = 20;
+    const startY = 18, cvx = 140, slabW = 120;
 
     let floors = '';
     for (let i = 0; i < nFloors; i++) {
       const sy = startY + i * (slabH + gap);
       const isRoof = i === 0;
-      floors += `<rect x="${cx - slabW/2}" y="${sy}" width="${slabW}" height="${slabH}" fill="${isRoof?'#A7F3D0':'#BFDBFE'}" stroke="${isRoof?'#10B981':'#2563EB'}" stroke-width="1.5" rx="2"/>`;
-      floors += `<text x="${cx}" y="${sy + slabH/2 + 4}" text-anchor="middle" font-size="9" fill="#374151" font-family="Inter,sans-serif">${isRoof?'Roof':'Floor ' + i}</text>`;
-      // Column stub below
+      floors += `<rect x="${cvx-slabW/2}" y="${sy}" width="${slabW}" height="${slabH}" fill="${isRoof?'#A7F3D0':'#BFDBFE'}" stroke="${isRoof?'#059669':'#2563EB'}" stroke-width="1.5" rx="2"/>`;
+      floors += `<text x="${cvx}" y="${sy+slabH/2+4}" text-anchor="middle" font-size="8" fill="#374151">${isRoof?'Roof':'Floor '+(nFloors-i)}</text>`;
       if (i < nFloors - 1) {
-        floors += `<line x1="${cx}" y1="${sy+slabH}" x2="${cx}" y2="${sy+slabH+gap}" stroke="#4F46E5" stroke-width="3"/>`;
+        floors += `<line x1="${cvx}" y1="${sy+slabH}" x2="${cvx}" y2="${sy+slabH+gap}" stroke="#374151" stroke-width="3"/>`;
       }
     }
 
-    // Foundation
     const foundY = startY + nFloors * (slabH + gap) - gap + slabH + 4;
-    floors += `<rect x="${cx - 70}" y="${foundY}" width="140" height="16" fill="#93C5FD" stroke="#2563EB" stroke-width="2" rx="2"/>`;
-    // Accumulating load arrow
-    floors += `<line x1="${cx}" y1="${foundY+16}" x2="${cx}" y2="${foundY+34}" stroke="#EF4444" stroke-width="2.5" marker-end="url(#arr-down)"/>`;
-    floors += `<text x="${cx+8}" y="${foundY+30}" font-size="10" fill="#EF4444" font-family="'JetBrains Mono',monospace">N=${totalN.toFixed?totalN.toFixed(0):totalN} kN</text>`;
+    const totalLabel = totalN && totalN.toFixed ? totalN.toFixed(0) : String(totalN);
 
-    return `${_SVG_DEFS}${floors}`;
+    return `<svg viewBox="0 0 280 ${foundY+60}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">LOAD TAKEDOWN — ${nFloors} FLOORS</text>
+  ${floors}
+  <!-- Foundation slab -->
+  <rect x="${cvx-72}" y="${foundY}" width="144" height="18" fill="url(#concreteHatch${id})" stroke="#374151" stroke-width="2" rx="2"/>
+  <!-- Resultant load arrow -->
+  <line x1="${cvx}" y1="${foundY+18}" x2="${cvx}" y2="${foundY+38}" stroke="#DC2626" stroke-width="2.5" marker-end="url(#aRed${id})"/>
+  <text x="${cvx+8}" y="${foundY+32}" font-size="9" fill="#DC2626" font-weight="700" font-family="'JetBrains Mono',monospace">N = ${totalLabel} kN</text>
+</svg>`;
   }
 
+  // ── 12. Generic fallback ──────────────────────────────────────────────────
+
   function _svgGeneric(cfg, r) {
-    const util  = r.utilisation || r.overallUtil || 0;
-    const pass  = r.overallPass !== false && util <= 1;
-    const utilColor = pass ? '#10B981' : '#EF4444';
-    return `${_SVG_DEFS}
-      <rect x="140" y="35" width="120" height="60" rx="8" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5"/>
-      <text x="200" y="62" text-anchor="middle" font-size="13" font-weight="700" fill="${utilColor}" font-family="'JetBrains Mono',monospace">${pass?'✓ PASS':'✗ FAIL'}</text>
-      <text x="200" y="82" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Inter,sans-serif">η = ${(util*100).toFixed(1)}%</text>`;
+    const id   = _nextDiagId();
+    const util = r.utilisation || r.overallUtil || 0;
+    const pass = r.overallPass !== false && util <= 1;
+    const pCol = pass ? '#16A34A' : '#DC2626';
+    const pBg  = pass ? '#F0FDF4' : '#FEF2F2';
+    const pBdr = pass ? '#86EFAC' : '#FCA5A5';
+    return `<svg viewBox="0 0 280 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  <rect x="90" y="25" width="100" height="52" rx="8" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
+  <text x="140" y="47" text-anchor="middle" font-size="15" font-weight="900" fill="${pCol}" font-family="'JetBrains Mono',monospace">${pass?'✓ PASS':'✗ FAIL'}</text>
+  <text x="140" y="65" text-anchor="middle" font-size="11" fill="#6B7280">&#951; = ${(util*100).toFixed(1)}%</text>
+</svg>`;
   }
 
   function _extractChecks(block) {
