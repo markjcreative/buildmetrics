@@ -1,638 +1,3769 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BuildMetrics — Professional Structural Calculator</title>
-  <meta name="description"
-    content="Professional structural analysis tools by BuildMetrics. Compute shear forces, bending moments, reactions and deflections. Download PDF and CSV reports." />
+
+  <!-- Primary SEO -->
+  <title>BuildMetrics | Structural Engineering Software for UK Engineers</title>
+  <meta name="description" content="Eurocode-compliant structural calculations in your browser. Beam, column, slab, footing & retaining wall design — with professional PDF reports. Free for UK engineers in 2026." />
+  <meta name="keywords" content="structural engineering software, eurocode calculator, beam design software, structural calculations UK, RC slab calculator, column design eurocode, footing calculator, retaining wall design, engineering software UK, structural analysis online" />
+  <meta name="author" content="BuildMetrics" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <link rel="canonical" href="https://buildmetrics.uk/" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="alternate icon" type="image/x-icon" href="/favicon.svg" />
+  <meta name="theme-color" content="#0F172A" />
+  <meta name="msapplication-TileColor" content="#0F172A" />
+
+  <!-- Open Graph (LinkedIn, Facebook, WhatsApp previews) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="BuildMetrics" />
+  <meta property="og:title" content="BuildMetrics | Structural Engineering Software for UK Engineers" />
+  <meta property="og:description" content="Eurocode-compliant beam, column, slab, footing & retaining wall calculations — straight from your browser. Professional PDF reports in one click. Free in 2026." />
+  <meta property="og:url" content="https://buildmetrics.uk/" />
+  <meta property="og:image" content="https://buildmetrics.uk/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="BuildMetrics structural engineering software dashboard" />
+  <meta property="og:locale" content="en_GB" />
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="BuildMetrics | Structural Engineering Software for UK Engineers" />
+  <meta name="twitter:description" content="Eurocode-compliant structural calculations in your browser. Beam, column, slab, footing & retaining wall design. Professional PDF reports. Free in 2026." />
+  <meta name="twitter:image" content="https://buildmetrics.uk/og-image.jpg" />
+
+  <!-- Structured Data — SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "BuildMetrics",
+    "url": "https://buildmetrics.uk",
+    "applicationCategory": "EngineeringApplication",
+    "operatingSystem": "Web",
+    "browserRequirements": "Any modern browser",
+    "description": "Eurocode-compliant structural engineering software for UK engineers. Calculate beam, column, slab, footing and retaining wall designs with professional PDF report output.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "GBP",
+      "description": "Free for all engineers in 2026"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "120"
+    },
+    "provider": {
+      "@type": "Organization",
+      "name": "BuildMetrics",
+      "url": "https://buildmetrics.uk"
+    },
+    "featureList": [
+      "Eurocode-compliant beam design",
+      "RC column design",
+      "RC slab design",
+      "Pad footing design",
+      "Retaining wall design",
+      "Professional PDF reports",
+      "Imperial and metric units"
+    ],
+    "audience": {
+      "@type": "Audience",
+      "audienceType": "Structural Engineers, Civil Engineers, Chartered Engineers"
+    },
+    "inLanguage": "en-GB",
+    "countryOfOrigin": "GB"
+  }
+  </script>
+
+  <!-- Lenis smooth scroll -->
+  <script src="https://unpkg.com/lenis@1.1.16/dist/lenis.min.js"></script>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="/css/main.css" />
-  <link rel="stylesheet" href="/css/app.css" />
-  <link rel="stylesheet" href="/css/calcs.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <!-- CDN Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-</head>
-
-<body>
-  <div id="app-wrap">
-    <header id="app-header"></header>
-    <!-- topNav.js injects #mobile-drawer into body -->
-    <main id="app-main" class="calc-layout">
-
-      <!-- Breadcrumb bar -->
-      <div class="calc-breadcrumb-bar">
-        <div class="calc-breadcrumb">
-          <a href="/dashboard.html">Dashboard</a>
-          <span class="bc-sep">›</span>
-          <span class="bc-current">Beam Analysis</span>
-        </div>
-        <div id="calc-project-badge" style="display:none;font-size:0.78rem;color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;background:var(--bg-surface);white-space:nowrap">
-          📁 <span id="calc-project-name">—</span>
-        </div>
-      </div>
-
-      <!-- Calc panels fill remaining height -->
-      <div class="calc-panels">
-
-        <!-- ── INPUT PANEL (Left) ──────────────────────────────────────── -->
-        <aside id="input-panel" aria-label="Beam input configuration">
-
-          <!-- Section 1: Beam Properties -->
-          <div class="input-section" id="section-properties">
-            <div class="section-header" onclick="toggleSection('section-properties')">
-              <div class="section-icon">📐</div>
-              <span class="section-title">Beam Properties</span>
-              <span class="section-chevron">▾</span>
-            </div>
-            <div class="section-body">
-              <!-- Design Standard -->
-              <div class="form-row" style="margin-bottom: 16px;">
-                <label for="inp-standard">Design Standard</label>
-                <select id="inp-standard"
-                  style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-family: 'Inter', sans-serif;">
-                  <option value="eurocode_bs">British Eurocodes (BS EN)</option>
-                  <option value="eurocode_ms">Malaysian Eurocodes (MS EN)</option>
-                  <option value="us_codes">US Codes (AISC / ACI)</option>
-                  <option value="indian_codes">Indian Codes (IS 800 / IS 456)</option>
-                </select>
-              </div>
-
-              <!-- Material Selector -->
-              <div style="margin-bottom:12px;">
-                <div class="preview-label">Material</div>
-                <div class="material-grid">
-                  <button class="material-btn active" data-material="steel">
-                    <span class="mat-icon">🔩</span>Steel
-                  </button>
-                  <button class="material-btn" data-material="timber">
-                    <span class="mat-icon">🪵</span>Timber
-                  </button>
-                  <button class="material-btn" data-material="concrete">
-                    <span class="mat-icon">🏗</span>Concrete
-                  </button>
-                  <button class="material-btn" data-material="custom">
-                    <span class="mat-icon">⚙</span>Custom
-                  </button>
-                </div>
-              </div>
-
-              <!-- Span -->
-              <div class="form-row">
-                <label for="inp-span">Beam Span</label>
-                <input type="number" id="inp-span" class="inp-num" value="5" min="0.1" step="0.1" />
-                <span class="unit-tag length-unit">m</span>
-              </div>
-
-              <!-- Custom Dimensions (Timber/Concrete) -->
-              <div id="custom-dims-group"
-                style="display:none; margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.02); border-radius: 6px;">
-                <div style="font-size: 0.75rem; font-weight: 600; margin-bottom: 8px;">Section Dimensions</div>
-                <div class="form-row">
-                  <label for="inp-b">Width (b)</label>
-                  <input type="number" id="inp-b" class="inp-num" value="200" step="10" />
-                  <span class="unit-tag">mm</span>
-                </div>
-                <div class="form-row">
-                  <label for="inp-d">Depth (d)</label>
-                  <input type="number" id="inp-d" class="inp-num" value="400" step="10" />
-                  <span class="unit-tag">mm</span>
-                </div>
-              </div>
-
-              <!-- Steel Section Selector (Steel) -->
-              <div id="steel-section-group"
-                style="margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.02); border-radius: 6px;">
-                <div style="font-size: 0.75rem; font-weight: 600; margin-bottom: 8px;">Standard UB / UC</div>
-                <div class="form-row">
-                  <label for="inp-steel-sec">Section</label>
-                  <select id="inp-steel-sec"
-                    style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-family: 'Inter', sans-serif;">
-                    <option value="custom">Custom Values</option>
-                    <optgroup label="Universal Beams (UB)">
-                      <option value="203x133x25">203 × 133 × 25</option>
-                      <option value="203x133x30">203 × 133 × 30</option>
-                      <option value="254x102x22">254 × 102 × 22</option>
-                      <option value="254x102x28">254 × 102 × 28</option>
-                      <option value="254x146x31">254 × 146 × 31</option>
-                      <option value="254x146x37">254 × 146 × 37</option>
-                      <option value="305x102x25">305 × 102 × 25</option>
-                      <option value="305x102x33">305 × 102 × 33</option>
-                      <option value="305x165x40">305 × 165 × 40</option>
-                      <option value="305x165x46">305 × 165 × 46</option>
-                      <option value="356x127x33">356 × 127 × 33</option>
-                      <option value="356x127x39">356 × 127 × 39</option>
-                      <option value="356x171x45">356 × 171 × 45</option>
-                      <option value="356x171x51">356 × 171 × 51</option>
-                    </optgroup>
-                  </select>
-                </div>
-                <div class="form-row" style="margin-top: 6px;">
-                  <label for="inp-ltb">Lateral Restraint</label>
-                  <select id="inp-ltb"
-                    style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-family: 'Inter', sans-serif;">
-                    <option value="restrained">Fully Restrained</option>
-                    <option value="unrestrained">Unrestrained (LTB occurs)</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Young's Modulus -->
-              <div class="form-row">
-                <label for="inp-E">E-Modulus</label>
-                <input type="number" id="inp-E" class="inp-num" value="210000000" step="1000000" readonly />
-                <span class="unit-tag">kN/m²</span>
-              </div>
-
-              <!-- Moment of Inertia -->
-              <div class="form-row">
-                <label for="inp-I">Inertia (I)</label>
-                <input type="number" id="inp-I" class="inp-num" value="0.0001" step="0.00001" />
-                <span class="unit-tag">m⁴</span>
-              </div>
-
-              <!-- Area -->
-              <div class="form-row">
-                <label for="inp-A">Area (A)</label>
-                <input type="number" id="inp-A" class="inp-num" value="0.01" step="0.001" />
-                <span class="unit-tag">m²</span>
-              </div>
-
-              <!-- Unit Toggle -->
-              <div style="margin-top: 12px; padding: 8px 10px; background: rgba(0,0,0,0.02); border-radius: 6px;">
-                <div class="unit-switch">
-                  <label for="unit-toggle">
-                    <span>SI</span>
-                    <input type="checkbox" id="unit-toggle" role="switch" aria-label="Toggle unit system" />
-                    <span class="toggle-track"></span>
-                    <span>Imperial</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- EI Info -->
-              <div style="font-size:0.75rem;color:var(--text-500);margin-top:8px;">
-                💡 Typical steel I-beam: I ≈ 0.0001 to 0.001 m⁴ &nbsp;|&nbsp; E = 210,000,000 kN/m²
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 2: Structural System -->
-          <div class="input-section" id="section-supports">
-            <div class="section-header" onclick="toggleSection('section-supports')">
-              <div class="section-icon" style="background:linear-gradient(135deg,#D97706,#F59E0B);">🔗</div>
-              <span class="section-title">Structural System</span>
-              <span class="section-chevron">▾</span>
-            </div>
-            <div class="section-body">
-              <div style="font-size:0.75rem;color:var(--text-500);margin-bottom:10px;">
-                Select a predefined structural arrangement. Position = distance from left end (m).
-              </div>
-
-              <!-- System Type Dropdown -->
-              <div class="form-row" style="margin-bottom: 12px;">
-                <label for="inp-system" style="min-width: 80px;">System</label>
-                <select id="inp-system"
-                  style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-family: 'Inter', sans-serif;"
-                  onchange="applyStructuralSystem()">
-                  <option value="single_pin">Single Span – Simply Supported</option>
-                  <option value="single_fix">Single Span – Fixed Ends</option>
-                  <option value="cantilever">Single Span – Cantilever (Left Fixed)</option>
-                  <option value="two_span">Two-Span Continuous Beam</option>
-                  <option value="three_span">Three-Span Continuous Beam</option>
-                  <option value="multi_span">Multi-Span Continuous Beam...</option>
-                  <option value="overhang_one">Overhanging Beam (One End)</option>
-                  <option value="overhang_two">Overhanging Beam (Both Ends)</option>
-                  <option value="custom">Custom (Manual Placement)</option>
-                </select>
-              </div>
-
-              <div id="support-list"></div>
-              <button class="btn-add" onclick="addSupportRow()" id="btn-add-support" style="display:none;">+ Add Custom
-                Support</button>
-
-              <!-- Legend -->
-              <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;">
-                <div class="legend-item"><span style="font-size:1rem;">△</span> Pin</div>
-                <div class="legend-item"><span style="font-size:1rem;">○</span> Roller</div>
-                <div class="legend-item"><span style="font-size:1rem;">▬</span> Fixed</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 3: Loads -->
-          <div class="input-section" id="section-loads">
-            <div class="section-header" onclick="toggleSection('section-loads')">
-              <div class="section-icon" style="background:linear-gradient(135deg,#EA580C,#F97316);">⬇</div>
-              <span class="section-title">Applied Loads</span>
-              <span class="section-chevron">▾</span>
-            </div>
-            <div class="section-body">
-              <div style="font-size:0.75rem;color:var(--text-500);margin-bottom:10px;">
-                Downward forces are positive. Position measured from left (m).
-              </div>
-
-              <!-- Wind Environment (Optional) -->
-              <div id="wind-env-group"
-                style="margin-bottom: 16px; padding: 10px; background: rgba(0,0,0,0.02); border-radius: 6px; display: none;">
-                <div style="font-size: 0.75rem; font-weight: 600; margin-bottom: 8px;">Wind Parameters</div>
-                <div class="form-row">
-                  <label for="inp-wind-location">Geolocation</label>
-                  <input type="text" id="inp-wind-location" class="inp-text" placeholder="e.g. London, UK"
-                    style="width:120px; border:1px solid var(--border); border-radius:4px; padding:4px;" />
-                </div>
-                <div class="form-row">
-                  <label for="inp-wind-elev">Elevation</label>
-                  <input type="number" id="inp-wind-elev" class="inp-num" value="10" step="1" />
-                  <span class="unit-tag">m</span>
-                </div>
-                <div class="form-row">
-                  <label for="inp-wind-dist">Dist to Sea</label>
-                  <input type="number" id="inp-wind-dist" class="inp-num" value="50" step="5" />
-                  <span class="unit-tag">km</span>
-                </div>
-              </div>
-
-              <div id="load-list"></div>
-              <button class="btn-add" id="btn-add-load">+ Add Load</button>
-            </div>
-          </div>
-
-          <!-- Calculate bar -->
-          <div id="calculate-bar">
-            <div id="calc-error" role="alert"></div>
-            <button class="btn btn-primary" id="btn-calculate">⚡ Calculate</button>
-            <div class="calc-actions">
-              <button class="btn btn-secondary btn-ghost" id="btn-reset">↺ Reset</button>
-            </div>
-          </div>
-        </aside>
-
-        <!-- ── RESULTS PANEL (Right) ───────────────────────────────────── -->
-        <main id="results-panel" aria-label="Calculation results">
-
-          <!-- Results navigation tabs (shown after calculation) -->
-          <nav id="results-tabs" aria-label="Results sections">
-            <a href="#results-summary" class="results-tab active">Summary</a>
-            <a href="#results-diagrams" class="results-tab">Diagrams</a>
-            <a href="#results-table-section" class="results-tab">Table</a>
-            <a href="#results-export" class="results-tab">Export</a>
-          </nav>
-
-          <!-- Welcome Banner -->
-          <div id="welcome-banner">
-            <div class="welcome-icon">🏗️</div>
-            <h1 class="welcome-title">Welcome to BuildMetrics</h1>
-            <p class="welcome-subtitle">
-              Configure your beam properties, supports, and loads in the left panel, then click <strong>Calculate</strong>
-              to instantly generate shear force, bending moment, and deflection diagrams.
-            </p>
-            <div class="feature-chips">
-              <span class="chip">📊 SFD & BMD Diagrams</span>
-              <span class="chip">📉 Deflection Analysis</span>
-              <span class="chip">📄 PDF Reports</span>
-              <span class="chip">⬇ CSV Export</span>
-              <span class="chip">🔩 Steel / Timber / Concrete</span>
-              <span class="chip">🌍 SI & Imperial Units</span>
-            </div>
-          </div>
-
-          <!-- Live Beam Preview -->
-          <div id="preview-container">
-            <div class="preview-label">Live Beam Preview</div>
-            <svg id="svg-preview" xmlns="http://www.w3.org/2000/svg" aria-label="Beam configuration preview"></svg>
-          </div>
-
-          <!-- ── RESULTS (shown after calculation) ── -->
-          <div id="results-section" role="region" aria-label="Calculation results">
-
-            <!-- Summary Badges -->
-            <div class="badges-grid" id="results-summary">
-              <div class="badge-card badge-moment">
-                <div class="badge-label">Max Moment</div>
-                <div class="badge-value" id="badge-moment">—</div>
-              </div>
-              <div class="badge-card badge-shear">
-                <div class="badge-label">Max Shear</div>
-                <div class="badge-value" id="badge-shear">—</div>
-              </div>
-              <div class="badge-card badge-deflection">
-                <div class="badge-label">Max Deflection</div>
-                <div class="badge-value" id="badge-deflection">—</div>
-              </div>
-              <div class="badge-card badge-ratio">
-                <div class="badge-label">Span Ratio</div>
-                <div class="badge-value" id="badge-ratio">—</div>
-              </div>
-            </div>
-
-            <!-- Diagrams anchor -->
-            <div id="results-diagrams"></div>
-
-            <!-- Reactions Diagram -->
-            <div class="diagram-card">
-              <div class="diagram-header">
-                <span class="diagram-dot dot-reactions"></span>
-                <span class="diagram-title">Beam Configuration &amp; Reactions</span>
-                <span class="diagram-subtitle">Support reactions (upward = positive)</span>
-              </div>
-              <div class="diagram-body">
-                <svg id="svg-reactions" class="diagram-svg diagram-svg-tall" xmlns="http://www.w3.org/2000/svg"
-                  aria-label="Beam reactions diagram"></svg>
-              </div>
-            </div>
-
-            <!-- SFD -->
-            <div class="diagram-card">
-              <div class="diagram-header">
-                <span class="diagram-dot dot-sfd"></span>
-                <span class="diagram-title">Shear Force Diagram (SFD)</span>
-                <span class="diagram-subtitle">V (kN) — hover for values</span>
-              </div>
-              <div class="diagram-body">
-                <svg id="svg-sfd" class="diagram-svg" xmlns="http://www.w3.org/2000/svg"
-                  aria-label="Shear force diagram"></svg>
-              </div>
-              <div class="diagram-legend">
-                <div class="legend-item">
-                  <div class="legend-swatch" style="background:rgba(34,197,94,0.7)"></div>
-                  Positive shear
-                </div>
-                <div class="legend-item">
-                  <div class="legend-swatch" style="background:rgba(239,68,68,0.7)"></div>
-                  Negative shear
-                </div>
-              </div>
-            </div>
-
-            <!-- BMD -->
-            <div class="diagram-card">
-              <div class="diagram-header">
-                <span class="diagram-dot dot-bmd"></span>
-                <span class="diagram-title">Bending Moment Diagram (BMD)</span>
-                <span class="diagram-subtitle">M (kNm) — hover for values</span>
-              </div>
-              <div class="diagram-body">
-                <svg id="svg-bmd" class="diagram-svg" xmlns="http://www.w3.org/2000/svg"
-                  aria-label="Bending moment diagram"></svg>
-              </div>
-              <div class="diagram-legend">
-                <div class="legend-item">
-                  <div class="legend-swatch" style="background:rgba(34,197,94,0.7)"></div>
-                  Sagging (+)
-                </div>
-                <div class="legend-item">
-                  <div class="legend-swatch" style="background:rgba(239,68,68,0.7)"></div>
-                  Hogging (−)
-                </div>
-              </div>
-            </div>
-
-            <!-- Freehand Sketching -->
-            <div class="diagram-card" id="sketch-card">
-              <div class="diagram-header" style="justify-content: space-between;">
-                <div>
-                  <span class="diagram-dot" style="background:var(--purple)"></span>
-                  <span class="diagram-title">Conceptual Sketchpad</span>
-                  <span class="diagram-subtitle">Freehand markups and frame concepts (saves with project)</span>
-                </div>
-                <div style="display:flex; gap:8px;">
-                  <button class="btn btn-secondary btn-sm" id="btn-sketch-pen">✏️ Pen</button>
-                  <button class="btn btn-secondary btn-sm" id="btn-sketch-erase">🩹 Eraser</button>
-                  <button class="btn btn-secondary btn-sm" id="btn-sketch-clear" style="color:var(--red);">🗑 Clear
-                    All</button>
-                </div>
-              </div>
-              <div class="diagram-body"
-                style="padding: 1px; background: #fafafa; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; display: flex; justify-content: center;">
-                <canvas id="sketch-canvas" width="800" height="400" style="border:none; cursor: crosshair;"></canvas>
-              </div>
-            </div>
-
-            <!-- Deflection -->
-            <div class="diagram-card">
-              <div class="diagram-header">
-                <span class="diagram-dot dot-deflection"></span>
-                <span class="diagram-title">Deflection Diagram</span>
-                <span class="diagram-subtitle">δ (m) — hover for values</span>
-              </div>
-              <div class="diagram-body">
-                <svg id="svg-deflection" class="diagram-svg" xmlns="http://www.w3.org/2000/svg"
-                  aria-label="Deflection diagram"></svg>
-              </div>
-              <div class="diagram-legend">
-                <div class="legend-item">
-                  <div class="legend-swatch" style="background:rgba(168,85,247,0.7)"></div>
-                  Deflected shape (exaggerated)
-                </div>
-              </div>
-            </div>
-
-            <!-- Results Summary Table -->
-            <div class="results-card" id="results-table-section">
-              <div class="results-card-header">
-                <h2 style="font-size:0.9rem;color:var(--text-100);">📋 Detailed Results Summary</h2>
-              </div>
-              <table class="results-table" aria-label="Calculation results table">
-                <thead>
-                  <tr>
-                    <th>Result</th>
-                    <th>Value</th>
-                    <th>Location / Notes</th>
-                  </tr>
-                </thead>
-                <tbody id="results-table-body"></tbody>
-              </table>
-            </div>
-
-            <!-- RC Design / BBS -->
-            <div class="diagram-card" id="rc-design-card" style="margin-top: 24px;">
-              <div class="diagram-header" style="justify-content: space-between;">
-                <div>
-                  <span class="diagram-dot" style="background:#52525B;"></span>
-                  <span class="diagram-title">RC Design / Bar Bending Schedule</span>
-                  <span class="diagram-subtitle">Configure reinforcement and auto-generate steel weights</span>
-                </div>
-                <button class="btn btn-secondary btn-sm"
-                  onclick="alert('RC/BBS Module is under development. Coming soon!')">⚙️ Configure BBS</button>
-              </div>
-              <div class="diagram-body"
-                style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.9rem; background: #FAFAFA; border: 1px dashed var(--border); border-radius: 6px;">
-                <div style="font-size: 2rem; margin-bottom: 8px;">🏗️</div>
-                <div><b>Reinforced Concrete Module</b></div>
-                <div style="margin-top: 4px; max-width: 400px; margin-left: auto; margin-right: auto;">
-                  Calculate rebar requirements based on BMD/SFD envelopes, and automatically tally bent lengths and
-                  tonnages.
-                </div>
-              </div>
-            </div>
-
-            <!-- Export Section -->
-            <div id="export-section" data-section="results-export">
-              <div class="export-info">
-                <div class="export-title">📄 Download Report</div>
-                <div class="export-desc">Export a professional engineering report with all inputs, diagrams, and
-                  calculations.</div>
-              </div>
-              <div class="export-buttons">
-                <button id="btn-export-pdf" disabled>📄 Download PDF</button>
-                <button id="btn-export-csv" disabled>📊 Download CSV</button>
-                <button id="btn-save-calc" disabled>💾 Save Calculation</button>
-              </div>
-            </div>
-
-            <!-- Disclaimer note -->
-            <div
-              style="font-size:0.75rem;color:var(--text-500);text-align:center;padding:8px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);">
-              ⚠️ <strong>Disclaimer:</strong> Results are for preliminary analysis only. All calculations must be
-              independently verified by a licensed structural engineer before use in design or construction.
-            </div>
-
-          </div><!-- end results-section -->
-        </main>
-      </div><!-- end calc-panels -->
-    </main>
-  </div><!-- end app-wrap -->
-
-  <!-- ════ PDF PROJECT INFO MODAL ═════════════════════════════════════ -->
-  <div class="modal-overlay" id="pdf-modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
-    <div class="modal-box">
-      <h2 class="modal-title" id="modal-heading">📄 PDF Report Details</h2>
-      <p class="modal-subtitle">These details will appear on the cover page of your engineering report.</p>
-      <div class="modal-field">
-        <label for="modal-project">Project Name</label>
-        <input type="text" id="modal-project" placeholder="e.g. Office Building — Floor Beam B1" />
-      </div>
-      <div class="modal-field">
-        <label for="modal-engineer">Engineer's Name</label>
-        <input type="text" id="modal-engineer" placeholder="e.g. J. Smith, B.Eng (Struct)" />
-      </div>
-      <div class="modal-field">
-        <label for="modal-firm">Firm / Organization</label>
-        <input type="text" id="modal-firm" placeholder="e.g. Smith &amp; Associates Structural Engineers" />
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" id="btn-modal-cancel">Cancel</button>
-        <button class="btn btn-primary" id="btn-modal-confirm">Generate PDF →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ════ SAVE CALCULATION MODAL ══════════════════════════════════════ -->
-  <div class="modal-overlay" id="save-modal" role="dialog" aria-modal="true">
-    <div class="modal-box">
-      <h2 class="modal-title">💾 Save Calculation</h2>
-      <p class="modal-subtitle">Give this calculation a name so you can find it later.</p>
-      <div id="save-modal-project-name"
-        style="font-size:0.8rem;color:var(--text-muted);margin-bottom:14px;padding:8px 12px;background:var(--bg-subtle);border-radius:6px;">
-      </div>
-      <div class="modal-field">
-        <label for="save-calc-name">Calculation Name</label>
-        <input type="text" id="save-calc-name" placeholder="e.g. Beam B1 — Dead + Live Load Combo" maxlength="80" />
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" id="btn-save-cancel"
-          onclick="document.getElementById('save-modal').classList.remove('open')">Cancel</button>
-        <button class="btn btn-primary" id="btn-save-confirm">Save →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ════ PROJECT PICKER MODAL ════════════════════════════════════════ -->
-  <div class="modal-overlay" id="proj-picker-modal" role="dialog" aria-modal="true">
-    <div class="modal-box">
-      <h2 class="modal-title">📁 Select a Project</h2>
-      <p class="modal-subtitle">Your calculation will be saved to this project.</p>
-      <div id="proj-picker-list" style="max-height:240px;overflow-y:auto;margin-bottom:14px;"></div>
-      <div class="modal-field">
-        <label for="new-proj-name">Or create a new project</label>
-        <input type="text" id="new-proj-name" placeholder="New project name" />
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary"
-          onclick="document.getElementById('proj-picker-modal').classList.remove('open')">Cancel</button>
-        <button class="btn btn-primary" id="btn-create-proj-pick">Create &amp; Select →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ════ SAVE CONFIRMATION MODAL ════════════════════════════════════ -->
-  <div class="modal-overlay" id="save-confirm-modal" role="dialog" aria-modal="true">
-    <div class="modal-box" style="max-width:480px;text-align:center;">
-      <!-- Success icon -->
-      <div style="width:56px;height:56px;background:#DCFCE7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;">✓</div>
-      <h2 class="modal-title" style="text-align:center;margin-bottom:4px;">Calculation Saved!</h2>
-      <p style="font-size:0.85rem;color:var(--text-muted);margin:0 0 6px;">
-        <strong id="sc-calc-name" style="color:var(--text-primary)"></strong>
-      </p>
-      <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 24px;">
-        Saved to project: <strong id="sc-proj-name" style="color:var(--accent)"></strong>
-      </p>
-
-      <!-- Download section -->
-      <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:20px;text-align:left;">
-        <div style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">📄 Download Engineering Report</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <button id="sc-btn-pdf" onclick="_downloadReportPDF()"
-            style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;background:#fff;border:1px solid var(--border);border-radius:8px;font-size:0.83rem;font-weight:600;color:var(--text-primary);cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;"
-            onmouseover="this.style.borderColor='#DC2626';this.style.color='#DC2626';this.style.background='#FEF2F2'"
-            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-primary)';this.style.background='#fff'">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M14 2v6h6M12 18v-6M9 15l3 3 3-3"/></svg>
-            Download PDF
-          </button>
-          <button id="sc-btn-word" onclick="_downloadReportWord()"
-            style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;background:#fff;border:1px solid var(--border);border-radius:8px;font-size:0.83rem;font-weight:600;color:var(--text-primary);cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;"
-            onmouseover="this.style.borderColor='#2563EB';this.style.color='#2563EB';this.style.background='#EFF6FF'"
-            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-primary)';this.style.background='#fff'">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M14 2v6h6M9 12h6M9 16h4"/></svg>
-            Download Word
-          </button>
-        </div>
-        <p style="font-size:0.73rem;color:var(--text-muted);margin:10px 0 0;text-align:center;">Professional engineering format with all inputs, results &amp; diagrams</p>
-      </div>
-
-      <button class="btn btn-primary" onclick="document.getElementById('save-confirm-modal').classList.remove('open')"
-        style="width:100%;justify-content:center;">Done</button>
-    </div>
-  </div>
-
-  <!-- ════ SCRIPTS ════════════════════════════════════════════════════ -->
-  <script src="/js/auth/auth.js"></script>
-  <script src="/js/projects/projects.js"></script>
-  <script src="/js/projects/history.js"></script>
-  <script src="/js/subscription/plans.js"></script>
-  <script src="/js/ui/topNav.js"></script>
-  <script src="/js/engine/utils.js"></script>
-  <script src="/js/engine/solver.js"></script>
-  <script src="/js/ui/diagrams.js"></script>
-  <script src="/js/ui/results.js"></script>
-  <script src="/js/ui/inputPanel.js"></script>
-  <script src="/js/report/csvExport.js"></script>
-  <script src="/js/report/pdfReport.js"></script>
-  <script src="/js/report/wordExport.js"></script>
-  <script src="/js/app.js"></script>
-
-  <script>
-    // Global UI helpers
-    function toggleSection(id) {
-      const section = document.getElementById(id);
-      section.classList.toggle('collapsed');
+    :root {
+      --blue:      #2563EB;
+      --blue-mid:  #1D4ED8;
+      --blue-light:#3B82F6;
+      --navy:      #0F172A;
+      --navy-mid:  #1E293B;
+      --navy-light:#334155;
+      --slate:     #64748B;
+      --slate-light:#94A3B8;
+      --white:     #FFFFFF;
+      --off-white: #F8FAFC;
+      --border:    rgba(255,255,255,0.12);
+      --glass-bg:  rgba(255,255,255,0.08);
+      --glass-bg-strong: rgba(255,255,255,0.13);
+      --radius:    14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
     }
-    document.addEventListener('DOMContentLoaded', () => {
-      TopNav.init();
-    });
-  </script>
-</body>
 
+    html { scroll-behavior: auto; }
+    html { scroll-padding-top: 72px; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ══════════════════════════════════════
+       NAVBAR
+    ══════════════════════════════════════ */
+    #navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 0 24px;
+      transition: var(--transition);
+    }
+
+    #navbar.scrolled {
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 4px 32px rgba(0,0,0,0.3);
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .nav-logo-icon {
+      width: 36px; height: 36px;
+      background: var(--blue);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .nav-logo-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.08); }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.85);
+    }
+    .btn-outline:hover { border-color: rgba(255,255,255,0.5); color: var(--white); background: rgba(255,255,255,0.06); }
+
+    .btn-primary {
+      background: var(--blue);
+      color: var(--white);
+      box-shadow: 0 4px 16px rgba(37,99,235,0.4);
+    }
+    .btn-primary:hover {
+      background: var(--blue-mid);
+      box-shadow: 0 6px 24px rgba(37,99,235,0.55);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary-lg {
+      padding: 15px 32px;
+      font-size: 1rem;
+      border-radius: 12px;
+      background: var(--blue);
+      color: var(--white);
+      box-shadow: 0 8px 32px rgba(37,99,235,0.45);
+    }
+    .btn-primary-lg:hover {
+      background: var(--blue-mid);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(37,99,235,0.6);
+    }
+
+    .btn-ghost-lg {
+      padding: 15px 32px;
+      font-size: 1rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+      border: 1.5px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .btn-ghost-lg:hover {
+      background: rgba(255,255,255,0.18);
+      border-color: rgba(255,255,255,0.35);
+      transform: translateY(-2px);
+    }
+
+    .nav-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--white);
+      padding: 6px;
+    }
+
+    /* Mobile nav — slide-in panel */
+    #mobile-nav {
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      background: #0F172A;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+    }
+    #mobile-nav.open { transform: translateX(0); }
+    #mobile-nav.open ~ * { pointer-events: none; }
+
+    .mn-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .mn-header-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .mn-header-logo-icon {
+      width: 34px; height: 34px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mn-header-logo-name {
+      font-size: 1rem; font-weight: 700; color: var(--white);
+    }
+    .mn-close {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .mn-close:hover { background: rgba(255,255,255,0.15); }
+
+    .mn-links {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 16px;
+    }
+    .mn-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: rgba(255,255,255,0.8);
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.15s, color 0.15s;
+    }
+    .mn-link:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+    .mn-link-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.25);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: #60A5FA;
+    }
+    .mn-link-text { display: flex; flex-direction: column; gap: 1px; }
+    .mn-link-label { font-size: 0.95rem; font-weight: 600; color: var(--white); line-height: 1.2; }
+    .mn-link-sub { font-size: 0.75rem; color: rgba(255,255,255,0.4); font-weight: 400; }
+    .mn-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin: 8px 16px;
+    }
+    .mn-footer {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .mn-footer .btn { text-align: center; justify-content: center; }
+
+    /* ══════════════════════════════════════
+       HERO
+    ══════════════════════════════════════ */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Fade hero image into the next section background */
+    #hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 40%;
+      background: linear-gradient(to bottom,
+        transparent 0%,
+        var(--navy-mid) 100%
+      );
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://plus.unsplash.com/premium_photo-1715868845840-a828feda7809?auto=format&fit=crop&w=1920&q=85');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(15,23,42,0.85) 0%,
+        rgba(15,23,42,0.6) 50%,
+        rgba(37,99,235,0.25) 100%
+      );
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 120px 24px 80px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .hero-left {}
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(37,99,235,0.2);
+      border: 1px solid rgba(37,99,235,0.4);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #93C5FD;
+      margin-bottom: 24px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero-badge-dot {
+      width: 6px; height: 6px;
+      background: #60A5FA;
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    .hero-title {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+
+    .hero-title .accent {
+      background: linear-gradient(135deg, #60A5FA, #2563EB);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.7;
+      margin-bottom: 36px;
+      max-width: 480px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+    }
+
+    .hero-social-proof {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .hero-avatars {
+      display: flex;
+    }
+    .hero-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--navy);
+      background: linear-gradient(135deg, #2563EB, #7C3AED);
+      margin-left: -8px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white);
+    }
+    .hero-avatar:first-child { margin-left: 0; }
+
+    .hero-social-text {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.55);
+    }
+    .hero-social-text strong { color: rgba(255,255,255,0.85); }
+
+    /* Hero right — glass card */
+    .hero-glass-card {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+    }
+
+    .hgc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .hgc-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hgc-badge {
+      background: rgba(34,197,94,0.2);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86EFAC;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .hgc-calc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .hgc-calc-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .hgc-calc-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hgc-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .hgc-calc-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .hgc-calc-std {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .hgc-pass {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 100px;
+    }
+    .hgc-pass.pass { background: rgba(34,197,94,0.15); color: #86EFAC; }
+    .hgc-pass.fail { background: rgba(239,68,68,0.15); color: #FCA5A5; }
+
+    .hgc-util {
+      margin-bottom: 16px;
+    }
+    .hgc-util-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+    }
+    .hgc-util-label span:last-child { color: #60A5FA; font-weight: 600; }
+    .hgc-util-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .hgc-util-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2563EB, #60A5FA);
+      border-radius: 100px;
+      width: 0;
+      transition: width 1.5s ease 0.5s;
+    }
+
+    .hgc-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .hgc-action-btn {
+      flex: 1;
+      padding: 9px;
+      border-radius: 9px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      transition: var(--transition);
+    }
+    .hgc-action-btn.primary { background: var(--blue); color: var(--white); }
+    .hgc-action-btn.primary:hover { background: var(--blue-mid); }
+    .hgc-action-btn.secondary { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1); }
+    .hgc-action-btn.secondary:hover { background: rgba(255,255,255,0.14); }
+
+    /* Hero scroll indicator */
+    .hero-scroll {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.35);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      animation: bounce 2.5s ease infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ══════════════════════════════════════
+       STATS BAR
+    ══════════════════════════════════════ */
+    #stats {
+      background: rgba(255,255,255,0.04);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 32px 24px;
+    }
+
+    .stats-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff, #93C5FD);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.03em;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.45);
+      font-weight: 500;
+    }
+
+    .stat-divider {
+      width: 1px;
+      background: rgba(255,255,255,0.1);
+      margin: auto;
+      height: 40px;
+      display: none;
+    }
+
+    /* ══════════════════════════════════════
+       SECTION SHARED
+    ══════════════════════════════════════ */
+    section { padding: 96px 24px; }
+
+    .section-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #60A5FA;
+      margin-bottom: 16px;
+    }
+
+    .section-eyebrow::before {
+      content: '';
+      width: 20px;
+      height: 2px;
+      background: #2563EB;
+      border-radius: 2px;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.7;
+      max-width: 540px;
+    }
+
+    .section-head {
+      margin-bottom: 56px;
+    }
+
+    /* ══════════════════════════════════════
+       FEATURES
+    ══════════════════════════════════════ */
+    #features {
+      background: var(--navy);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--blue), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(37,99,235,0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.3);
+    }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+      flex-shrink: 0;
+    }
+
+    .feature-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.65;
+    }
+
+    /* ══════════════════════════════════════
+       CALCULATORS SHOWCASE
+    ══════════════════════════════════════ */
+    #calculators {
+      position: relative;
+      overflow: hidden;
+    }
+
+    #calculators::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1920&q=80');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.07;
+    }
+
+    #calculators .section-inner { position: relative; z-index: 1; }
+
+    .calc-showcase-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+
+    .calc-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 32px;
+    }
+
+    .calc-tag,
+    .calc-tag:visited,
+    .calc-tag:focus,
+    .calc-tag:active {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      transition: var(--transition);
+      text-decoration: none;
+      outline: none;
+    }
+    .calc-tag:hover {
+      background: rgba(37,99,235,0.15);
+      border-color: rgba(37,99,235,0.3);
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .calc-tag-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Right: stacked glass cards */
+    .calc-cards-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .calc-showcase-card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: var(--transition);
+      text-decoration: none;
+      color: inherit;
+    }
+    .calc-showcase-card:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(37,99,235,0.3);
+      transform: translateX(4px);
+    }
+
+    .csc-icon {
+      width: 42px; height: 42px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .csc-body { flex: 1; min-width: 0; }
+    .csc-name { font-size: 0.88rem; font-weight: 700; color: var(--white); }
+    .csc-std { font-size: 0.72rem; color: rgba(255,255,255,0.4); }
+
+    .csc-arrow {
+      color: rgba(255,255,255,0.25);
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .calc-showcase-card:hover .csc-arrow { color: #60A5FA; transform: translateX(2px); }
+
+    /* ══════════════════════════════════════
+       FULLSCREEN IMAGE SECTION
+    ══════════════════════════════════════ */
+    #engineer-section {
+      background: var(--navy);
+      padding: 100px 0;
+      overflow: hidden;
+    }
+
+    .engineer-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .engineer-content {
+      position: relative;
+    }
+
+    .engineer-quote {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.4;
+      margin: 24px 0 28px;
+    }
+
+    .engineer-quote span { color: #60A5FA; }
+
+    .engineer-checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .engineer-check {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .check-tick {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.2);
+      border: 1px solid rgba(34,197,94,0.3);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: #86EFAC;
+      font-size: 0.7rem;
+    }
+
+    /* Animated calculator demo */
+    .engineer-right {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .anim-calc-wrap {
+      width: 100%;
+      max-width: 400px;
+      background: #0D1929;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(37,99,235,0.15);
+    }
+
+    .anim-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 11px 16px;
+      background: #1A2744;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .anim-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .anim-dot.r { background: #FF5F57; }
+    .anim-dot.a { background: #FEBC2E; }
+    .anim-dot.g { background: #28C840; }
+
+    .anim-title-text {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.35);
+      margin-left: 8px;
+      flex: 1;
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+
+    .anim-body { padding: 18px; }
+
+    .anim-page-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+
+    .anim-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .anim-input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 8px;
+      padding: 8px 11px;
+    }
+
+    .anim-input-lbl { font-size: 0.58rem; color: rgba(255,255,255,0.35); margin-bottom: 3px; }
+    .anim-input-val { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.9); }
+
+    .anim-btn {
+      width: 100%;
+      height: 36px;
+      background: #2563EB;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+      animation: anim-btn-glow 8s ease infinite;
+    }
+
+    .anim-btn-label  { position: absolute; animation: anim-label-hide 8s infinite; }
+    .anim-btn-loading{ position: absolute; animation: anim-loading-show 8s infinite; opacity: 0; display: flex; align-items: center; gap: 6px; }
+
+    .anim-spinner {
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes anim-btn-glow {
+      0%, 28%  { box-shadow: none; transform: scale(1); background: #2563EB; }
+      35%, 48% { box-shadow: 0 0 28px rgba(37,99,235,0.7); transform: scale(1.02); background: #1D4ED8; }
+      55%, 100%{ box-shadow: none; transform: scale(1); background: #2563EB; }
+    }
+
+    @keyframes anim-label-hide {
+      0%, 28%  { opacity: 1; }
+      35%, 55% { opacity: 0; }
+      62%, 100%{ opacity: 1; }
+    }
+
+    @keyframes anim-loading-show {
+      0%, 28%  { opacity: 0; }
+      35%, 55% { opacity: 1; }
+      62%, 100%{ opacity: 0; }
+    }
+
+    .anim-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin-bottom: 12px;
+    }
+
+    .anim-result {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .anim-result-info { flex: 1; }
+    .anim-result-name { font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 2px; }
+    .anim-result-val  { font-size: 0.6rem; color: rgba(255,255,255,0.35); }
+
+    .anim-pass {
+      font-size: 0.6rem;
+      font-weight: 700;
+      background: rgba(34,197,94,0.15);
+      color: #4ADE80;
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 100px;
+      padding: 2px 8px;
+    }
+
+    .anim-bar-wrap { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+    .anim-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg,#2563EB,#60A5FA); }
+
+    .anim-result-1 { animation: anim-res1 8s ease infinite; }
+    .anim-result-2 { animation: anim-res2 8s ease infinite; }
+    .anim-result-3 { animation: anim-res3 8s ease infinite; }
+
+    .anim-overall {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 9px;
+      animation: anim-overall 8s ease infinite;
+    }
+
+    .anim-overall-label { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.7); }
+    .anim-overall-val   { font-size: 0.78rem; font-weight: 800; color: #4ADE80; }
+
+    @keyframes anim-res1 {
+      0%, 48%  { opacity: 0; transform: translateY(6px); }
+      56%, 86% { opacity: 1; transform: translateY(0); }
+      94%, 100%{ opacity: 0; transform: translateY(0); }
+    }
+    @keyframes anim-res2 {
+      0%, 54%  { opacity: 0; transform: translateY(6px); }
+      62%, 86% { opacity: 1; transform: translateY(0); }
+      94%, 100%{ opacity: 0; transform: translateY(0); }
+    }
+    @keyframes anim-res3 {
+      0%, 60%  { opacity: 0; transform: translateY(6px); }
+      68%, 86% { opacity: 1; transform: translateY(0); }
+      94%, 100%{ opacity: 0; transform: translateY(0); }
+    }
+    @keyframes anim-overall {
+      0%, 66%  { opacity: 0; transform: scale(0.9); }
+      74%, 86% { opacity: 1; transform: scale(1); }
+      94%, 100%{ opacity: 0; }
+    }
+
+    @media (max-width: 900px) {
+      .engineer-layout { grid-template-columns: 1fr; gap: 48px; }
+      .engineer-right { display: none; }
+    }
+
+    /* ══════════════════════════════════════
+       HOW IT WORKS
+    ══════════════════════════════════════ */
+    #how {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .how-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1920&q=80');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .how-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(15,23,42,0.88) 0%, rgba(15,23,42,0.82) 50%, rgba(15,23,42,0.92) 100%);
+    }
+
+    #how .section-inner {
+      position: relative;
+      z-index: 2;
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      position: relative;
+    }
+
+    .how-grid::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: calc(16.6% + 24px);
+      height: 1px;
+      background: linear-gradient(90deg, rgba(37,99,235,0.6), rgba(99,102,241,0.6));
+      width: 0;
+      transition: width 1.4s cubic-bezier(0.4,0,0.2,1) 0.4s;
+    }
+
+    .how-grid.line-drawn::before {
+      width: calc(66.4% - 48px);
+    }
+
+    .how-card {
+      text-align: center;
+      padding: 36px 24px;
+      position: relative;
+      background: rgba(15,23,42,0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-lg);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .how-card:hover {
+      border-color: rgba(37,99,235,0.35);
+      box-shadow: 0 8px 32px rgba(37,99,235,0.15);
+    }
+
+    .how-num {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1E3A8A, #2563EB);
+      border: 1px solid rgba(37,99,235,0.5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--white);
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 24px rgba(37,99,235,0.35);
+    }
+
+    .how-card.visible .how-num {
+      animation: step-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .how-card[data-step="2"].visible .how-num { animation-delay: 0.18s; }
+    .how-card[data-step="3"].visible .how-num { animation-delay: 0.36s; }
+
+    @keyframes step-pop {
+      0%   { transform: scale(0.15); }
+      65%  { transform: scale(1.22); }
+      100% { transform: scale(1); }
+    }
+
+    .how-icon {
+      font-size: 1.8rem;
+      margin-bottom: 4px;
+    }
+
+    .how-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+
+    .how-desc {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.65;
+    }
+
+    /* ══════════════════════════════════════
+       REPORTS & EXPORT
+    ══════════════════════════════════════ */
+    #reports {
+      background: var(--navy);
+    }
+
+    .reports-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .report-features {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 32px;
+    }
+
+    .report-feature {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .rf-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .rf-title { font-size: 0.9rem; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+    .rf-desc { font-size: 0.82rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+    /* PDF mockup */
+    .pdf-mockup {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    }
+
+    .pdf-header {
+      background: #1E3A8A;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pdf-title-block {}
+    .pdf-brand { font-size: 0.7rem; font-weight: 700; color: #93C5FD; letter-spacing: 0.05em; }
+    .pdf-doc-title { font-size: 0.9rem; font-weight: 700; color: var(--white); }
+    .pdf-status-pass {
+      background: rgba(34,197,94,0.2);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86EFAC;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 100px;
+    }
+
+    .pdf-meta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .pdf-meta-cell {
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .pdf-meta-label { font-size: 0.65rem; color: rgba(255,255,255,0.35); margin-bottom: 2px; }
+    .pdf-meta-value { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.85); }
+
+    .pdf-table-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 6px 10px;
+      background: rgba(37,99,235,0.15);
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #60A5FA;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    .pdf-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      align-items: center;
+    }
+    .pdf-row:nth-child(even) { background: rgba(255,255,255,0.03); }
+    .pdf-row-label { color: rgba(255,255,255,0.55); }
+    .pdf-row-value { color: rgba(255,255,255,0.9); font-weight: 600; text-align: right; }
+    .pdf-row-pass { color: #86EFAC; font-size: 0.68rem; font-weight: 700; }
+    .pdf-row-fail { color: #FCA5A5; font-size: 0.68rem; font-weight: 700; }
+
+    /* ══════════════════════════════════════
+       FREE 2026 SECTION
+    ══════════════════════════════════════ */
+    #pricing {
+      position: relative;
+      overflow: hidden;
+    }
+
+    #pricing::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(37,99,235,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .pricing-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 48px;
+      text-align: left;
+    }
+
+    .pricing-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-xl);
+      padding: 32px 28px;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .pricing-card.featured {
+      background: rgba(37,99,235,0.12);
+      border-color: rgba(37,99,235,0.4);
+      box-shadow: 0 0 0 1px rgba(37,99,235,0.2), 0 24px 64px rgba(37,99,235,0.2);
+    }
+
+    .pricing-featured-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #2563EB, #3B82F6);
+      color: var(--white);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 100px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+    }
+
+    .pricing-plan { font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .pricing-price {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .pricing-price sup { font-size: 1.3rem; font-weight: 700; line-height: 1; margin-top: 6px; }
+    .pricing-price .period { font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.4); letter-spacing: 0; }
+    .pricing-tagline { font-size: 0.84rem; color: rgba(255,255,255,0.5); margin-top: 4px; margin-bottom: 24px; line-height: 1.5; }
+
+    .pricing-divider { height: 1px; background: rgba(255,255,255,0.08); margin-bottom: 24px; }
+
+    .pricing-features { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .pf-item { display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: rgba(255,255,255,0.75); }
+    .pf-item svg { flex-shrink: 0; color: #60A5FA; }
+    .pf-item.dim { color: rgba(255,255,255,0.3); }
+    .pf-item.dim svg { color: rgba(255,255,255,0.2); }
+
+    .pricing-btn {
+      display: block;
+      text-align: center;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .pricing-btn.primary { background: var(--blue); color: var(--white); box-shadow: 0 4px 16px rgba(37,99,235,0.35); }
+    .pricing-btn.primary:hover { background: var(--blue-mid); transform: translateY(-1px); }
+    .pricing-btn.outline { background: transparent; border: 1.5px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+    .pricing-btn.outline:hover { border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+    /* ══════════════════════════════════════
+       FINAL CTA
+    ══════════════════════════════════════ */
+    #cta {
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .cta-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://plus.unsplash.com/premium_photo-1680806491608-af096f1fc916?auto=format&fit=crop&w=1920&q=85');
+      background-size: cover;
+      background-position: center;
+    }
+    .cta-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(37,99,235,0.4) 100%);
+    }
+
+    .cta-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 120px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .cta-glass {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 32px;
+      padding: 64px 56px;
+      max-width: 680px;
+      width: 100%;
+      box-shadow: 0 48px 96px rgba(0,0,0,0.4);
+    }
+
+    .cta-glass .section-title { font-size: clamp(1.6rem, 4vw, 2.4rem); text-align: center; }
+    .cta-glass .section-sub { text-align: center; margin: 0 auto 36px; }
+
+    .cta-free-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86EFAC;
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      letter-spacing: 0.02em;
+    }
+
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
+    #footer {
+      background: rgba(0,0,0,0.3);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 48px 24px 32px;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+
+    .footer-brand {}
+    .footer-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 14px; }
+    .footer-logo-name { font-size: 1rem; font-weight: 700; color: var(--white); }
+    .footer-tagline { font-size: 0.82rem; color: rgba(255,255,255,0.4); line-height: 1.6; max-width: 240px; margin-bottom: 20px; }
+
+    .footer-col-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); margin-bottom: 14px; }
+    .footer-links { display: flex; flex-direction: column; gap: 9px; }
+    .footer-links a { font-size: 0.84rem; color: rgba(255,255,255,0.55); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--white); }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .footer-copy { font-size: 0.78rem; color: rgba(255,255,255,0.3); }
+
+    .footer-standards {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .std-chip {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.35);
+      white-space: nowrap;
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      /* ── Tablet: standardise section padding ── */
+      section             { padding: 72px 24px; }
+      .hero-content       { grid-template-columns: 1fr; gap: 40px; padding: 80px 24px 60px; }
+      #engineer-section   { padding: 72px 0; }
+      #screenshots        { padding: 64px 0; }
+      .screenshots-head   { padding: 0 24px; }
+      #who                { padding: 72px 24px; }
+      #stats              { padding: 32px 24px; }
+      .cta-content        { padding: 72px 24px; }
+      .hero-glass-card { max-width: 480px; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .calc-showcase-layout { grid-template-columns: 1fr; gap: 40px; }
+      .reports-layout { grid-template-columns: 1fr; gap: 40px; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 48px auto 0; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+    }
+
+    @media (max-width: 768px) {
+      /* ── Mobile: standardise all section padding to 56px 20px ── */
+      section             { padding: 56px 20px; }
+      .hero-content       { padding: 64px 20px 48px; }   /* was 120px top — the main fix */
+      #engineer-section   { padding: 56px 0; }
+      .engineer-layout    { padding: 0 20px; }
+      .engineer-content   { margin-left: 0; padding: 0; } /* reset tablet hack, layout handles spacing */
+      #screenshots        { padding: 56px 0; }
+      .screenshots-head   { padding: 0 20px; }
+      #who                { padding: 56px 20px; }         /* was 100px 0 — no side padding on mobile */
+      #stats              { padding: 28px 20px; }
+      .cta-content        { padding: 56px 20px; }         /* was 120px top */
+      .cta-glass          { padding: 32px 20px; }         /* was 40px 24px */
+
+      .nav-links { display: none; }
+      .nav-cta { display: none; }
+      .nav-hamburger { display: flex; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .features-grid { grid-template-columns: 1fr; }
+      .how-grid { grid-template-columns: 1fr; }
+      .how-grid::before { display: none; }
+      .footer-top { grid-template-columns: 1fr; gap: 24px; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .footer-standards { justify-content: center; }
+      .hero-actions { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 480px) {
+      /* ── Small mobile: tighter padding, consistent 16px sides ── */
+      section             { padding: 44px 16px; }
+      .hero-content       { padding: 56px 16px 40px; }
+      #engineer-section   { padding: 44px 0; }
+      .engineer-layout    { padding: 0 16px; }
+      #screenshots        { padding: 44px 0; }
+      .screenshots-head   { padding: 0 16px; }
+      #who                { padding: 44px 16px; }
+      #stats              { padding: 24px 16px; }
+      .cta-content        { padding: 44px 16px; }
+      .cta-glass          { padding: 24px 16px; }
+      .hero-title { font-size: 2rem; }
+      .stats-inner { grid-template-columns: 1fr 1fr; gap: 16px; }
+      .pricing-grid { max-width: 100%; }
+    }
+
+    /* ══════════════════════════════════════
+       APP SCREENSHOTS CAROUSEL
+    ══════════════════════════════════════ */
+    #screenshots {
+      position: relative;
+      padding: 80px 0;
+      background: var(--navy-mid);
+      overflow: hidden;
+    }
+
+    .screenshots-head {
+      text-align: center;
+      padding: 0 24px;
+      margin-bottom: 48px;
+    }
+
+    .screenshots-head .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue-light);
+      margin-bottom: 12px;
+    }
+
+    .screenshots-head h2 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+    }
+
+    .screenshots-head p {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      color: var(--slate-light);
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .carousel-track-wrap {
+      position: relative;
+    }
+
+    /* fade edges */
+    .carousel-track-wrap::before,
+    .carousel-track-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 120px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .carousel-track-wrap::before { left: 0; background: linear-gradient(to right, var(--navy-mid), transparent); }
+    .carousel-track-wrap::after  { right: 0; background: linear-gradient(to left,  var(--navy-mid), transparent); }
+
+    .carousel-track {
+      display: flex;
+      gap: 20px;
+      width: max-content;
+      animation: carousel-scroll 40s linear infinite;
+      padding: 8px 0 16px;
+    }
+
+    .carousel-track:hover { animation-play-state: paused; }
+
+    @keyframes carousel-scroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* App window frame */
+    .app-frame {
+      width: 420px;
+      flex-shrink: 0;
+      background: #0F172A;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: default;
+    }
+
+    .app-frame:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(37,99,235,0.3);
+    }
+
+    /* Title bar */
+    .app-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #1E293B;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .app-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .app-dot.red   { background: #FF5F57; }
+    .app-dot.amber { background: #FEBC2E; }
+    .app-dot.green { background: #28C840; }
+
+    .app-titlebar-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.35);
+      margin-left: 8px;
+      flex: 1;
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+
+    .app-body { padding: 16px; }
+
+    /* ── Shared mock UI pieces ── */
+    .mock-topbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .mock-logo {
+      width: 26px; height: 26px;
+      background: #2563EB;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .mock-logo-text {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .mock-nav-pills {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .mock-pill {
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    .mock-section-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 10px;
+    }
+
+    .mock-page-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 14px;
+      letter-spacing: -0.02em;
+    }
+
+    .mock-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+
+    .mock-card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .mock-card-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .mock-badge {
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 100px;
+    }
+    .mock-badge.pass { background: rgba(34,197,94,0.2); color: #4ADE80; }
+    .mock-badge.fail { background: rgba(239,68,68,0.2);  color: #F87171; }
+    .mock-badge.blue { background: rgba(37,99,235,0.25); color: #93C5FD; }
+
+    .mock-sub {
+      font-size: 0.62rem;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .mock-bar-wrap {
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .mock-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #2563EB, #3B82F6);
+    }
+
+    .mock-input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .mock-input {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 7px;
+      padding: 8px 10px;
+    }
+
+    .mock-input-label {
+      font-size: 0.58rem;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 3px;
+    }
+
+    .mock-input-val {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .mock-result-box {
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .mock-result-label { font-size: 0.65rem; color: rgba(255,255,255,0.5); }
+    .mock-result-val   { font-size: 0.9rem; font-weight: 800; color: #4ADE80; }
+
+    .mock-project-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .mock-proj-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .mock-proj-icon {
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      margin-bottom: 8px;
+    }
+
+    .mock-proj-name {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 3px;
+    }
+
+    .mock-proj-meta {
+      font-size: 0.58rem;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .mock-report-header {
+      background: #1E293B;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mock-report-icon {
+      width: 30px; height: 36px;
+      background: linear-gradient(135deg, #1F2937, #374151);
+      border-radius: 5px;
+      border: 1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+
+    .mock-line {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.08);
+      margin-bottom: 6px;
+    }
+
+    .mock-stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .mock-stat {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .mock-stat-val {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--white);
+    }
+
+    .mock-stat-lbl {
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 2px;
+    }
+
+    .mock-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mock-btn {
+      flex: 1;
+      height: 30px;
+      border-radius: 8px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mock-btn.primary { background: #2563EB; color: white; }
+    .mock-btn.ghost   { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.1); }
+
+    .mock-util-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+
+    .mock-util-label { font-size: 0.6rem; color: rgba(255,255,255,0.4); }
+    .mock-util-pct   { font-size: 0.65rem; font-weight: 700; color: #60A5FA; }
+
+    /* ══════════════════════════════════════
+       WHO IT'S FOR
+    ══════════════════════════════════════ */
+    #who {
+      background: var(--navy-mid);
+      padding: 100px 0;
+    }
+
+    .who-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 56px;
+    }
+
+    .who-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .who-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      background: var(--who-accent, #2563EB);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .who-card:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+    }
+
+    .who-card:hover::before { opacity: 1; }
+
+    .who-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+      background: var(--who-icon-bg, rgba(37,99,235,0.15));
+      font-size: 1.4rem;
+    }
+
+    .who-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    .who-desc {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    .who-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .who-tag {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 3px 9px;
+    }
+
+    .who-disclaimer {
+      margin-top: 48px;
+      padding: 20px 28px;
+      background: rgba(251,191,36,0.07);
+      border: 1px solid rgba(251,191,36,0.2);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      max-width: 820px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .who-disclaimer-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .who-disclaimer p {
+      font-size: 0.83rem;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.6;
+    }
+
+    .who-disclaimer a {
+      color: #FCD34D;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    @media (max-width: 900px) {
+      .who-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 580px) {
+      .who-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Waitlist Modal ── */
+    #waitlist-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #waitlist-overlay.open { display: flex; }
+
+    .wl-modal {
+      background: #1E293B;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+      animation: wl-in 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes wl-in {
+      from { opacity: 0; transform: scale(0.92) translateY(16px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .wl-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+    }
+    .wl-close:hover { background: rgba(255,255,255,0.13); color: #fff; }
+    .wl-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.3);
+      border-radius: 100px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #60A5FA;
+      margin-bottom: 16px;
+    }
+    .wl-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 8px;
+      letter-spacing: -0.03em;
+    }
+    .wl-sub {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .wl-form { display: flex; flex-direction: column; gap: 14px; }
+    .wl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .wl-field { display: flex; flex-direction: column; gap: 5px; }
+    .wl-field label { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+    .wl-field input, .wl-field select {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 0.92rem;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+      box-sizing: border-box;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .wl-field input::placeholder { color: rgba(255,255,255,0.25); }
+    .wl-field input:focus, .wl-field select:focus { border-color: rgba(59,130,246,0.6); }
+    .wl-field select option { background: #1E293B; color: #fff; }
+    .wl-submit {
+      margin-top: 6px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .wl-submit:hover { background: #2563EB; transform: translateY(-1px); }
+    .wl-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .wl-success {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px 0 8px;
+      gap: 12px;
+    }
+    .wl-success-icon {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: rgba(16,185,129,0.15);
+      border: 2px solid rgba(16,185,129,0.4);
+      display: flex; align-items: center; justify-content: center;
+      color: #34D399;
+    }
+    .wl-success h3 { font-size: 1.3rem; font-weight: 800; color: #fff; }
+    .wl-success p { font-size: 0.88rem; color: rgba(255,255,255,0.5); line-height: 1.6; max-width: 300px; }
+    .wl-error { font-size: 0.82rem; color: #F87171; margin-top: -6px; display: none; }
+    @media (max-width: 500px) {
+      .wl-modal { padding: 28px 20px; }
+      .wl-row { grid-template-columns: 1fr; }
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE PADDING — FINAL OVERRIDES
+       Must live at the end of the stylesheet
+       so they beat section-specific rules
+       (#who, #screenshots) defined above.
+    ══════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      #screenshots      { padding: 64px 0; }
+      .screenshots-head { padding: 0 24px; }
+      #who              { padding: 72px 24px; }
+    }
+    @media (max-width: 768px) {
+      #screenshots      { padding: 56px 0; }
+      .screenshots-head { padding: 0 20px; }
+      #who              { padding: 56px 20px; }
+    }
+    @media (max-width: 480px) {
+      #screenshots      { padding: 44px 0; }
+      .screenshots-head { padding: 0 16px; }
+      #who              { padding: 44px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════ -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 30 30" fill="none">
+          <rect x="6" y="8" width="3" height="15" rx="1" fill="white"/>
+          <rect x="21" y="8" width="3" height="15" rx="1" fill="white"/>
+          <rect x="6" y="8" width="18" height="3" rx="1" fill="white"/>
+          <rect x="12" y="15" width="6" height="2.5" rx="1" fill="rgba(255,255,255,0.55)"/>
+        </svg>
+      </div>
+      <span class="nav-logo-name">BuildMetrics</span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#calculators">Calculators</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#who">Who It's For</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+    </ul>
+
+    <div class="nav-cta">
+      <a href="https://app.buildmetrics.uk/login" class="btn btn-outline">Sign In</a>
+      <a href="https://app.buildmetrics.uk/signup" class="btn btn-primary">Get Started Free</a>
+    </div>
+
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile nav panel -->
+<div id="mobile-nav" role="dialog" aria-modal="true" aria-label="Navigation menu">
+  <div class="mn-header">
+    <a href="#hero" class="mn-header-logo" onclick="closeMobileNav()">
+      <div class="mn-header-logo-icon">
+        <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
+          <rect x="6" y="8" width="3" height="15" rx="1" fill="white"/>
+          <rect x="21" y="8" width="3" height="15" rx="1" fill="white"/>
+          <rect x="6" y="8" width="18" height="3" rx="1" fill="white"/>
+          <rect x="12" y="15" width="6" height="2.5" rx="1" fill="rgba(255,255,255,0.55)"/>
+        </svg>
+      </div>
+      <span class="mn-header-logo-name">BuildMetrics</span>
+    </a>
+    <button class="mn-close" id="mn-close" onclick="closeMobileNav()" aria-label="Close menu">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <nav class="mn-links">
+    <a href="#features" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">Features</span>
+        <span class="mn-link-sub">What BuildMetrics can do</span>
+      </div>
+    </a>
+    <a href="#calculators" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1-4H9m0 0a1 1 0 000 2h6a1 1 0 000-2M9 3h6"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">Calculators</span>
+        <span class="mn-link-sub">Beam, slab, column & more</span>
+      </div>
+    </a>
+    <a href="#how" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">How It Works</span>
+        <span class="mn-link-sub">From sign-up to PDF in minutes</span>
+      </div>
+    </a>
+    <a href="#who" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">Who It's For</span>
+        <span class="mn-link-sub">Structural, civil & consulting engineers</span>
+      </div>
+    </a>
+    <a href="#reports" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">PDF Reports</span>
+        <span class="mn-link-sub">Professional calculation reports</span>
+      </div>
+    </a>
+    <div class="mn-divider"></div>
+    <a href="#pricing" class="mn-link" onclick="closeMobileNav()">
+      <div class="mn-link-icon" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);color:#34D399;">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <div class="mn-link-text">
+        <span class="mn-link-label">Pricing</span>
+        <span class="mn-link-sub">Free for all engineers in 2026</span>
+      </div>
+    </a>
+  </nav>
+
+  <div class="mn-footer">
+    <a href="https://app.buildmetrics.uk/signup" class="btn btn-primary">Get Started Free</a>
+    <a href="https://app.buildmetrics.uk/login" class="btn btn-outline">Sign In</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     HERO
+════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-bg" id="hero-bg"></div>
+
+  <div class="hero-content">
+    <div class="hero-left">
+      <div class="hero-badge reveal">
+        <span class="hero-badge-dot"></span>
+        Free for all engineers in 2026
+      </div>
+
+      <h1 class="hero-title reveal reveal-delay-1">
+        Structural<br>Engineering<br>
+        <span class="accent">Made Simple.</span>
+      </h1>
+
+      <p class="hero-sub reveal reveal-delay-2">
+        Eurocode-compliant calculations for beams, columns, slabs, footings and more — all in your browser. No software to install. Professional PDF reports in one click.
+      </p>
+
+      <div class="hero-actions reveal reveal-delay-3">
+        <a href="https://app.buildmetrics.uk/signup" class="btn btn-primary-lg">
+          <svg width="17" height="17" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Start For Free
+        </a>
+        <a href="#calculators" class="btn btn-ghost-lg">See all calculators</a>
+      </div>
+
+      <div class="hero-social-proof reveal reveal-delay-4">
+        <div class="hero-avatars">
+          <div class="hero-avatar">CE</div>
+          <div class="hero-avatar">SE</div>
+          <div class="hero-avatar">MJ</div>
+          <div class="hero-avatar">AR</div>
+          <div class="hero-avatar" style="background:linear-gradient(135deg,#059669,#10B981)">+</div>
+        </div>
+        <p class="hero-social-text"><strong>Built for engineers</strong> — by engineers</p>
+      </div>
+    </div>
+
+    <div class="hero-right reveal reveal-delay-2">
+      <div class="hero-glass-card">
+        <div class="hgc-header">
+          <span class="hgc-title">Beam Design — B1</span>
+          <span class="hgc-badge">✓ PASS</span>
+        </div>
+
+        <div class="hgc-calc-list">
+          <div class="hgc-calc-item">
+            <div class="hgc-calc-left">
+              <div class="hgc-icon" style="background:rgba(37,99,235,0.2);">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="#60A5FA" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="#60A5FA" stroke-width="1.5" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>
+              </div>
+              <div>
+                <div class="hgc-calc-name">356×171 UB 51</div>
+                <div class="hgc-calc-std">EN 1993-1-1 (EC3)</div>
+              </div>
+            </div>
+            <span class="hgc-pass pass">✓ PASS</span>
+          </div>
+
+          <div class="hgc-calc-item">
+            <div class="hgc-calc-left">
+              <div class="hgc-icon" style="background:rgba(124,58,237,0.2);">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="18" rx="1.5" stroke="#A78BFA" stroke-width="1.8"/></svg>
+              </div>
+              <div>
+                <div class="hgc-calc-name">203×203 UC 60</div>
+                <div class="hgc-calc-std">EN 1993-1-1 (EC3)</div>
+              </div>
+            </div>
+            <span class="hgc-pass pass">✓ PASS</span>
+          </div>
+
+          <div class="hgc-calc-item">
+            <div class="hgc-calc-left">
+              <div class="hgc-icon" style="background:rgba(239,68,68,0.15);">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="1" stroke="#FCA5A5" stroke-width="1.8"/></svg>
+              </div>
+              <div>
+                <div class="hgc-calc-name">RC Slab — S3</div>
+                <div class="hgc-calc-std">EN 1992-1-1 (EC2)</div>
+              </div>
+            </div>
+            <span class="hgc-pass fail">✗ FAIL</span>
+          </div>
+        </div>
+
+        <div class="hgc-util">
+          <div class="hgc-util-label">
+            <span>Utilisation — Beam B1</span>
+            <span>76.4%</span>
+          </div>
+          <div class="hgc-util-bar">
+            <div class="hgc-util-fill" id="util-fill"></div>
+          </div>
+        </div>
+
+        <div class="hgc-actions">
+          <button class="hgc-action-btn primary">⬇ PDF Report</button>
+          <button class="hgc-action-btn secondary">📊 Excel</button>
+          <button class="hgc-action-btn secondary">💾 Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-scroll" onclick="fluidScrollTo('#screenshots')">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+    Scroll
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     APP SCREENSHOTS CAROUSEL
+════════════════════════════════════════ -->
+<section id="screenshots">
+  <div class="screenshots-head reveal">
+    <div class="section-label">— The Platform</div>
+    <h2>Everything you need, beautifully designed.</h2>
+    <p>A professional tool built for engineers — clean, fast, and compliant.</p>
+  </div>
+
+  <div class="carousel-track-wrap">
+    <div class="carousel-track" id="carousel-track">
+
+      <!-- Card 1: Beam Calculator -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">Beam Design — EC3</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+            <div class="mock-nav-pills">
+              <div class="mock-pill" style="width:44px"></div>
+              <div class="mock-pill" style="width:56px"></div>
+            </div>
+          </div>
+          <div class="mock-page-title">Beam Design</div>
+          <div class="mock-input-row">
+            <div class="mock-input"><div class="mock-input-label">Span</div><div class="mock-input-val">6.0 m</div></div>
+            <div class="mock-input"><div class="mock-input-label">UDL</div><div class="mock-input-val">12 kN/m</div></div>
+            <div class="mock-input"><div class="mock-input-label">Section</div><div class="mock-input-val">356×171 UB</div></div>
+            <div class="mock-input"><div class="mock-input-label">Grade</div><div class="mock-input-val">S275</div></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Bending Moment</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">Myd = 54.0 kNm / McRd = 211.4 kNm</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:26%"></div></div>
+            <div class="mock-util-row"><span class="mock-util-label">Utilisation</span><span class="mock-util-pct">25.6%</span></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Shear Check</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">VEd = 36.0 kN / VplRd = 284.6 kN</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:13%"></div></div>
+          </div>
+          <div class="mock-btn-row">
+            <div class="mock-btn primary">↓ PDF Report</div>
+            <div class="mock-btn ghost">Excel</div>
+            <div class="mock-btn ghost">Save</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Dashboard -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">Dashboard</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+            <div class="mock-nav-pills">
+              <div class="mock-pill" style="width:60px"></div>
+              <div class="mock-pill" style="width:44px"></div>
+            </div>
+          </div>
+          <div class="mock-page-title">Good morning, Mark 👋</div>
+          <div class="mock-stat-row">
+            <div class="mock-stat"><div class="mock-stat-val">12</div><div class="mock-stat-lbl">Projects</div></div>
+            <div class="mock-stat"><div class="mock-stat-val">47</div><div class="mock-stat-lbl">Calcs</div></div>
+            <div class="mock-stat"><div class="mock-stat-val">9</div><div class="mock-stat-lbl">Passed</div></div>
+            <div class="mock-stat"><div class="mock-stat-val">2</div><div class="mock-stat-lbl">Review</div></div>
+          </div>
+          <div class="mock-section-label">Recent Projects</div>
+          <div class="mock-project-grid">
+            <div class="mock-proj-card">
+              <div class="mock-proj-icon" style="background:linear-gradient(135deg,#1E40AF,#3B82F6)"></div>
+              <div class="mock-proj-name">Riverside Flats</div>
+              <div class="mock-proj-meta">8 calculations</div>
+            </div>
+            <div class="mock-proj-card">
+              <div class="mock-proj-icon" style="background:linear-gradient(135deg,#065F46,#10B981)"></div>
+              <div class="mock-proj-name">Office Block B</div>
+              <div class="mock-proj-meta">5 calculations</div>
+            </div>
+            <div class="mock-proj-card">
+              <div class="mock-proj-icon" style="background:linear-gradient(135deg,#6B21A8,#A855F7)"></div>
+              <div class="mock-proj-name">Parkway Bridge</div>
+              <div class="mock-proj-meta">3 calculations</div>
+            </div>
+            <div class="mock-proj-card">
+              <div class="mock-proj-icon" style="background:linear-gradient(135deg,#7C2D12,#F97316)"></div>
+              <div class="mock-proj-name">Sports Hall</div>
+              <div class="mock-proj-meta">6 calculations</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: RC Slab -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">RC Slab — EC2</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+            <div class="mock-nav-pills">
+              <div class="mock-pill" style="width:44px"></div>
+              <div class="mock-pill" style="width:56px"></div>
+            </div>
+          </div>
+          <div class="mock-page-title">RC Slab Design</div>
+          <div class="mock-input-row">
+            <div class="mock-input"><div class="mock-input-label">Thickness</div><div class="mock-input-val">200 mm</div></div>
+            <div class="mock-input"><div class="mock-input-label">Concrete</div><div class="mock-input-val">C30/37</div></div>
+            <div class="mock-input"><div class="mock-input-label">Rebar</div><div class="mock-input-val">T16@200</div></div>
+            <div class="mock-input"><div class="mock-input-label">Cover</div><div class="mock-input-val">25 mm</div></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Flexural Capacity</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">MRd = 38.4 kNm/m &gt; MEd = 24.1 kNm/m</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:63%"></div></div>
+            <div class="mock-util-row"><span class="mock-util-label">Utilisation</span><span class="mock-util-pct">62.8%</span></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Deflection Check</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">L/d = 28.4 &lt; Allowable 35.0</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:81%;background:linear-gradient(90deg,#F59E0B,#FBBF24)"></div></div>
+          </div>
+          <div class="mock-result-box">
+            <span class="mock-result-label">Overall Result</span>
+            <span class="mock-result-val">✓ PASS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: PDF Report -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">PDF Report Preview</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+          </div>
+          <div class="mock-page-title">Calculation Report</div>
+          <div class="mock-report-header">
+            <div class="mock-report-icon"></div>
+            <div style="flex:1">
+              <div class="mock-line" style="width:70%"></div>
+              <div class="mock-line" style="width:45%;margin-top:6px"></div>
+            </div>
+            <div class="mock-badge blue">PDF</div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-section-label" style="margin-bottom:8px">Project Information</div>
+            <div class="mock-line" style="width:80%"></div>
+            <div class="mock-line" style="width:60%"></div>
+            <div class="mock-line" style="width:50%"></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-section-label" style="margin-bottom:8px">Results Summary</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div class="mock-line" style="width:55%;margin:0"></div>
+              <span class="mock-badge pass">PASS</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div class="mock-line" style="width:50%;margin:0"></div>
+              <span class="mock-badge pass">PASS</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="mock-line" style="width:45%;margin:0"></div>
+              <span class="mock-badge pass">PASS</span>
+            </div>
+          </div>
+          <div class="mock-btn-row">
+            <div class="mock-btn primary">↓ Download PDF</div>
+            <div class="mock-btn ghost">↓ Excel</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Steel Column -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">Steel Column — EC3</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+            <div class="mock-nav-pills">
+              <div class="mock-pill" style="width:44px"></div>
+              <div class="mock-pill" style="width:56px"></div>
+            </div>
+          </div>
+          <div class="mock-page-title">Steel Column</div>
+          <div class="mock-input-row">
+            <div class="mock-input"><div class="mock-input-label">Height</div><div class="mock-input-val">4.5 m</div></div>
+            <div class="mock-input"><div class="mock-input-label">Axial Load</div><div class="mock-input-val">850 kN</div></div>
+            <div class="mock-input"><div class="mock-input-label">Section</div><div class="mock-input-val">203×203 UC</div></div>
+            <div class="mock-input"><div class="mock-input-label">Grade</div><div class="mock-input-val">S355</div></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Buckling Resistance</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">NEd = 850 kN / NbRd = 1,142 kN</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:74%"></div></div>
+            <div class="mock-util-row"><span class="mock-util-label">Utilisation</span><span class="mock-util-pct">74.4%</span></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Cross-Section Check</span>
+              <span class="mock-badge pass">✓ PASS</span>
+            </div>
+            <div class="mock-sub">Class 1 — Full plastic capacity available</div>
+            <div class="mock-bar-wrap"><div class="mock-bar-fill" style="width:68%"></div></div>
+          </div>
+          <div class="mock-result-box">
+            <span class="mock-result-label">Overall Result</span>
+            <span class="mock-result-val">✓ PASS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6: Projects Page -->
+      <div class="app-frame">
+        <div class="app-titlebar">
+          <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
+          <span class="app-titlebar-label">Projects</span>
+        </div>
+        <div class="app-body">
+          <div class="mock-topbar">
+            <div class="mock-logo"></div>
+            <span class="mock-logo-text">BuildMetrics</span>
+          </div>
+          <div class="mock-page-title">My Projects</div>
+          <div style="display:flex;gap:6px;margin-bottom:14px">
+            <div class="mock-btn primary" style="flex:0;padding:0 14px;height:28px;font-size:0.62rem">+ New Project</div>
+            <div class="mock-btn ghost"   style="flex:0;padding:0 12px;height:28px;font-size:0.62rem">All</div>
+            <div class="mock-btn ghost"   style="flex:0;padding:0 12px;height:28px;font-size:0.62rem">Active</div>
+          </div>
+          <div class="mock-card" style="margin-bottom:8px">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Riverside Flats — Block A</span>
+              <span class="mock-badge blue">Active</span>
+            </div>
+            <div class="mock-sub" style="margin-top:4px">8 calcs · Last updated 2 days ago</div>
+            <div class="mock-bar-wrap" style="margin-top:8px"><div class="mock-bar-fill" style="width:75%"></div></div>
+          </div>
+          <div class="mock-card" style="margin-bottom:8px">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Office Block B — Frame</span>
+              <span class="mock-badge blue">Active</span>
+            </div>
+            <div class="mock-sub" style="margin-top:4px">5 calcs · Last updated 1 week ago</div>
+            <div class="mock-bar-wrap" style="margin-top:8px"><div class="mock-bar-fill" style="width:40%"></div></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-title">Sports Hall Roof</span>
+              <span class="mock-badge" style="background:rgba(251,191,36,0.15);color:#FCD34D">Review</span>
+            </div>
+            <div class="mock-sub" style="margin-top:4px">3 calcs · 1 check failed</div>
+            <div class="mock-bar-wrap" style="margin-top:8px"><div class="mock-bar-fill" style="width:55%;background:linear-gradient(90deg,#F59E0B,#FCD34D)"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /carousel-track (original set) -->
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     FEATURES
+════════════════════════════════════════ -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-eyebrow reveal">Why BuildMetrics</div>
+      <h2 class="section-title reveal reveal-delay-1">Everything you need to<br>design with confidence</h2>
+      <p class="section-sub reveal reveal-delay-2">From quick checks to full project registers — built to the standards you work to every day.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon" style="background:rgba(37,99,235,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#60A5FA" stroke-width="1.8" stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="feature-title">Eurocode Compliant</h3>
+        <p class="feature-desc">All calculations follow EC2, EC3, EC5, EC7, and EN 1991 — with UK National Annex parameters built in.</p>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#34D399" stroke-width="1.8" stroke-linecap="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke="#34D399" stroke-width="1.6" stroke-linecap="round" d="M9 13h6M9 17h4"/></svg>
+        </div>
+        <h3 class="feature-title">Professional PDF Reports</h3>
+        <p class="feature-desc">One-click A4 PDF reports with all inputs, design checks, pass/fail status, and sign-off blocks — ready to submit.</p>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#FCD34D" stroke-width="1.8" stroke-linecap="round" d="M4 7h16M4 12h10M4 17h6"/><rect x="14" y="14" width="6" height="6" rx="1" stroke="#FCD34D" stroke-width="1.5"/></svg>
+        </div>
+        <h3 class="feature-title">Design Register</h3>
+        <p class="feature-desc">Save every calculation to a project, browse them all in the design register, and reload past results instantly.</p>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon" style="background:rgba(139,92,246,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#A78BFA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+        </div>
+        <h3 class="feature-title">Multi-Span Beams</h3>
+        <p class="feature-desc">Full 2-span, 3-span, and overhanging beam analysis using the three-moment theorem — BMD, SFD, and deflection.</p>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon" style="background:rgba(236,72,153,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#F472B6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        </div>
+        <h3 class="feature-title">Cost Estimation</h3>
+        <p class="feature-desc">Estimate material costs for your structural elements — steel, concrete, rebar, timber — and export a full cost report.</p>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon" style="background:rgba(6,182,212,0.15);">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="#22D3EE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+        </div>
+        <h3 class="feature-title">AI Assistant</h3>
+        <p class="feature-desc">Ask engineering questions, get code references, or check your design logic — your AI co-engineer is always on hand.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     CALCULATORS
+════════════════════════════════════════ -->
+<section id="calculators">
+  <div class="section-inner">
+    <div class="calc-showcase-layout">
+      <div>
+        <div class="section-eyebrow reveal">Structural Calculators</div>
+        <h2 class="section-title reveal reveal-delay-1">9 calculators.<br>One platform.</h2>
+        <p class="section-sub reveal reveal-delay-2">Every calc you reach for on a typical project — covered, compliant, and instantly accessible.</p>
+
+        <div class="calc-tags reveal reveal-delay-3">
+          <a href="../calcs/beam.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#3B82F6"></span> Beam Design
+          </a>
+          <a href="../calcs/column.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#8B5CF6"></span> Steel Column
+          </a>
+          <a href="../calcs/concrete-column.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#F59E0B"></span> Concrete Column
+          </a>
+          <a href="../calcs/rc-beam.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#EF4444"></span> RC Beam
+          </a>
+          <a href="../calcs/timber-column.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#10B981"></span> Timber Column
+          </a>
+          <a href="../calcs/slab.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#06B6D4"></span> RC Slab
+          </a>
+          <a href="../calcs/footing.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#EC4899"></span> Pad Footing
+          </a>
+          <a href="../calcs/retaining-wall.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#6366F1"></span> Retaining Wall
+          </a>
+          <a href="../calcs/connection.html" class="calc-tag">
+            <span class="calc-tag-dot" style="background:#0EA5E9"></span> Connection Design
+          </a>
+        </div>
+      </div>
+
+      <div class="calc-cards-stack reveal reveal-delay-2">
+        <a href="../calcs/beam.html" class="calc-showcase-card">
+          <div class="csc-icon" style="background:rgba(37,99,235,0.2);">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="#60A5FA" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="#60A5FA" stroke-width="1.5" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>
+          </div>
+          <div class="csc-body">
+            <div class="csc-name">Beam Design</div>
+            <div class="csc-std">Steel & Timber — EC3 / EC5 · Multi-span support</div>
+          </div>
+          <svg class="csc-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        </a>
+
+        <a href="../calcs/rc-beam.html" class="calc-showcase-card">
+          <div class="csc-icon" style="background:rgba(239,68,68,0.15);">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="1.5" stroke="#FCA5A5" stroke-width="1.8"/><path stroke="#FCA5A5" stroke-width="1.3" stroke-dasharray="2 2" d="M3 12h18"/></svg>
+          </div>
+          <div class="csc-body">
+            <div class="csc-name">RC Beam</div>
+            <div class="csc-std">EC2 · Flexure, shear, deflection & crack control</div>
+          </div>
+          <svg class="csc-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        </a>
+
+        <a href="../calcs/concrete-column.html" class="calc-showcase-card">
+          <div class="csc-icon" style="background:rgba(245,158,11,0.15);">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5" stroke="#FCD34D" stroke-width="1.8"/><path stroke="#FCD34D" stroke-width="1.3" stroke-dasharray="2 2" d="M9 6v12M15 6v12M5 9h14M5 15h14"/></svg>
+          </div>
+          <div class="csc-body">
+            <div class="csc-name">Concrete Column</div>
+            <div class="csc-std">EC2 · Axial capacity + N-M interaction diagram</div>
+          </div>
+          <svg class="csc-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        </a>
+
+        <a href="../calcs/footing.html" class="calc-showcase-card">
+          <div class="csc-icon" style="background:rgba(16,185,129,0.15);">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="8" rx="1" stroke="#34D399" stroke-width="1.8"/><rect x="3" y="14" width="18" height="6" rx="1" stroke="#34D399" stroke-width="1.8"/><path stroke="#34D399" stroke-width="1.5" stroke-linecap="round" d="M12 12v2"/></svg>
+          </div>
+          <div class="csc-body">
+            <div class="csc-name">Pad Footing</div>
+            <div class="csc-std">EC2 / EC7 · Bearing, punching shear · Auto-size</div>
+          </div>
+          <svg class="csc-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        </a>
+
+        <a href="../calcs/connection.html" class="calc-showcase-card">
+          <div class="csc-icon" style="background:rgba(14,165,233,0.15);">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" stroke="#38BDF8" stroke-width="1.8"/><circle cx="5" cy="5" r="1.8" stroke="#38BDF8" stroke-width="1.5"/><circle cx="19" cy="5" r="1.8" stroke="#38BDF8" stroke-width="1.5"/><circle cx="5" cy="19" r="1.8" stroke="#38BDF8" stroke-width="1.5"/><circle cx="19" cy="19" r="1.8" stroke="#38BDF8" stroke-width="1.5"/><path stroke="#38BDF8" stroke-width="1.4" d="M6.5 6.5l4 4M13.5 13.5l4 4M17.5 6.5l-4 4M10.5 13.5l-4 4"/></svg>
+          </div>
+          <div class="csc-body">
+            <div class="csc-name">Connection Design</div>
+            <div class="csc-std">EC3 · Bolt groups & weld capacity checks</div>
+          </div>
+          <svg class="csc-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     ENGINEER FULLSCREEN IMAGE SECTION
+════════════════════════════════════════ -->
+<section id="engineer-section">
+  <div class="engineer-layout">
+
+    <!-- Left: text -->
+    <div class="engineer-content">
+      <div class="section-eyebrow reveal" style="color:#93C5FD">Built for the real world</div>
+      <h2 class="engineer-quote reveal reveal-delay-1">
+        Calculations that <span>check themselves</span> — so you can focus on the design.
+      </h2>
+      <div class="engineer-checklist reveal reveal-delay-2">
+        <div class="engineer-check">
+          <div class="check-tick">✓</div>
+          Every result references the relevant Eurocode clause
+        </div>
+        <div class="engineer-check">
+          <div class="check-tick">✓</div>
+          Pass / fail status on every check — at a glance
+        </div>
+        <div class="engineer-check">
+          <div class="check-tick">✓</div>
+          Printable reports with engineer sign-off blocks
+        </div>
+        <div class="engineer-check">
+          <div class="check-tick">✓</div>
+          Save, reload and share calcs across your project team
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: animated calculator -->
+    <div class="engineer-right reveal reveal-delay-2">
+      <div class="anim-calc-wrap">
+        <div class="anim-titlebar">
+          <div class="anim-dot r"></div>
+          <div class="anim-dot a"></div>
+          <div class="anim-dot g"></div>
+          <span class="anim-title-text">Beam Design — EN 1993-1-1 (EC3)</span>
+        </div>
+        <div class="anim-body">
+          <div class="anim-page-title">Beam Design</div>
+          <div class="anim-inputs">
+            <div class="anim-input"><div class="anim-input-lbl">Span</div><div class="anim-input-val">6.0 m</div></div>
+            <div class="anim-input"><div class="anim-input-lbl">UDL</div><div class="anim-input-val">12.0 kN/m</div></div>
+            <div class="anim-input"><div class="anim-input-lbl">Section</div><div class="anim-input-val">356×171 UB</div></div>
+            <div class="anim-input"><div class="anim-input-lbl">Grade</div><div class="anim-input-val">S275</div></div>
+          </div>
+          <div class="anim-btn">
+            <span class="anim-btn-label">Calculate →</span>
+            <span class="anim-btn-loading"><span class="anim-spinner"></span> Running…</span>
+          </div>
+          <div class="anim-divider"></div>
+          <div class="anim-result anim-result-1">
+            <div class="anim-result-info">
+              <div class="anim-result-name">Bending Moment</div>
+              <div class="anim-result-val">MEd = 54.0 kNm &nbsp;/&nbsp; McRd = 211.4 kNm</div>
+              <div class="anim-bar-wrap"><div class="anim-bar-fill" style="width:26%"></div></div>
+            </div>
+            <div class="anim-pass" style="margin-left:12px">✓ PASS</div>
+          </div>
+          <div class="anim-result anim-result-2">
+            <div class="anim-result-info">
+              <div class="anim-result-name">Shear Force</div>
+              <div class="anim-result-val">VEd = 36.0 kN &nbsp;/&nbsp; VplRd = 284.6 kN</div>
+              <div class="anim-bar-wrap"><div class="anim-bar-fill" style="width:13%"></div></div>
+            </div>
+            <div class="anim-pass" style="margin-left:12px">✓ PASS</div>
+          </div>
+          <div class="anim-result anim-result-3">
+            <div class="anim-result-info">
+              <div class="anim-result-name">Deflection</div>
+              <div class="anim-result-val">δ = 9.6 mm &nbsp;/&nbsp; Limit = 24.0 mm</div>
+              <div class="anim-bar-wrap"><div class="anim-bar-fill" style="width:40%"></div></div>
+            </div>
+            <div class="anim-pass" style="margin-left:12px">✓ PASS</div>
+          </div>
+          <div class="anim-overall">
+            <span class="anim-overall-label">Overall Result</span>
+            <span class="anim-overall-val">✓ ALL CHECKS PASS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════ -->
+<section id="how">
+  <div class="how-bg"></div>
+  <div class="section-inner">
+    <div class="section-head" style="text-align:center">
+      <div class="section-eyebrow reveal" style="justify-content:center">How It Works</div>
+      <h2 class="section-title reveal reveal-delay-1" style="text-align:center">From sign-up to sign-off<br>in minutes</h2>
+    </div>
+
+    <div class="how-grid" id="how-grid">
+      <div class="how-card reveal" data-step="1">
+        <div class="how-num">1</div>
+        <h3 class="how-title">Create a free account</h3>
+        <p class="how-desc">Sign up in under 30 seconds. No credit card, no software download — just your email and a password.</p>
+      </div>
+      <div class="how-card reveal reveal-delay-1" data-step="2">
+        <div class="how-num">2</div>
+        <h3 class="how-title">Run your calculations</h3>
+        <p class="how-desc">Select a calculator, enter your inputs, and hit Calculate. Results appear instantly with full workings shown.</p>
+      </div>
+      <div class="how-card reveal reveal-delay-2" data-step="3">
+        <div class="how-num">3</div>
+        <h3 class="how-title">Export &amp; submit</h3>
+        <p class="how-desc">Download a professional PDF or Excel report. Save to your project register. Share with clients or checking engineers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     WHO IT'S FOR
+════════════════════════════════════════ -->
+<section id="who">
+  <div class="section-inner">
+    <div class="section-head" style="text-align:center">
+      <div class="section-eyebrow reveal" style="justify-content:center">Who It's For</div>
+      <h2 class="section-title reveal reveal-delay-1" style="text-align:center">Built for every engineer on the team</h2>
+      <p class="section-sub reveal reveal-delay-2" style="text-align:center;margin:0 auto;max-width:560px">Whether you're a senior engineer delivering a complex project or a graduate learning Eurocodes, BuildMetrics fits your workflow.</p>
+    </div>
+
+    <div class="who-grid">
+
+      <div class="who-card reveal" style="--who-accent:#3B82F6;--who-icon-bg:rgba(59,130,246,0.12)">
+        <div class="who-icon">🏗️</div>
+        <div class="who-title">Structural Engineers</div>
+        <p class="who-desc">Design beams, columns, slabs, footings, and connections with full Eurocode compliance — all in one place.</p>
+        <div class="who-tags">
+          <span class="who-tag">EC2</span><span class="who-tag">EC3</span><span class="who-tag">EC5</span><span class="who-tag">EC7</span>
+        </div>
+      </div>
+
+      <div class="who-card reveal reveal-delay-1" style="--who-accent:#10B981;--who-icon-bg:rgba(16,185,129,0.12)">
+        <div class="who-icon">🌍</div>
+        <div class="who-title">Civil Engineers</div>
+        <p class="who-desc">From retaining walls and pad footings to connection design — cover your full ground and infrastructure scope.</p>
+        <div class="who-tags">
+          <span class="who-tag">Retaining Walls</span><span class="who-tag">Footings</span><span class="who-tag">EC7</span>
+        </div>
+      </div>
+
+      <div class="who-card reveal reveal-delay-2" style="--who-accent:#8B5CF6;--who-icon-bg:rgba(139,92,246,0.12)">
+        <div class="who-icon">📐</div>
+        <div class="who-title">Architectural Engineers</div>
+        <p class="who-desc">Integrate structural calculations directly into your design process without switching between separate software packages.</p>
+        <div class="who-tags">
+          <span class="who-tag">Beam Design</span><span class="who-tag">Slab</span><span class="who-tag">Column</span>
+        </div>
+      </div>
+
+      <div class="who-card reveal" style="--who-accent:#F59E0B;--who-icon-bg:rgba(245,158,11,0.12)">
+        <div class="who-icon">💼</div>
+        <div class="who-title">Consulting Engineers</div>
+        <p class="who-desc">Manage multiple projects and deliver client-ready PDF reports in minutes — no post-processing or manual formatting.</p>
+        <div class="who-tags">
+          <span class="who-tag">Multi-project</span><span class="who-tag">PDF Reports</span><span class="who-tag">Design Register</span>
+        </div>
+      </div>
+
+      <div class="who-card reveal reveal-delay-1" style="--who-accent:#06B6D4;--who-icon-bg:rgba(6,182,212,0.12)">
+        <div class="who-icon">🎓</div>
+        <div class="who-title">Engineering Graduates</div>
+        <p class="who-desc">Learn Eurocode design principles with instant, step-by-step feedback on every calculation — accelerate your CPD.</p>
+        <div class="who-tags">
+          <span class="who-tag">Learning</span><span class="who-tag">CPD</span><span class="who-tag">All Calculators</span>
+        </div>
+      </div>
+
+      <div class="who-card reveal reveal-delay-2" style="--who-accent:#EC4899;--who-icon-bg:rgba(236,72,153,0.12)">
+        <div class="who-icon">🔍</div>
+        <div class="who-title">Building Surveyors</div>
+        <p class="who-desc">Carry out structural assessments backed by professional calculation records. Demonstrate due diligence on every project.</p>
+        <div class="who-tags">
+          <span class="who-tag">Assessment</span><span class="who-tag">Reports</span><span class="who-tag">Compliance</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="who-disclaimer reveal">
+      <div class="who-disclaimer-icon">⚠️</div>
+      <p>BuildMetrics is a calculation assistance tool. All results must be independently verified by a suitably qualified and experienced engineer before use in any professional or construction context. See our <a href="/terms">Terms of Service</a> for full details.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     REPORTS
+════════════════════════════════════════ -->
+<section id="reports">
+  <div class="section-inner">
+    <div class="reports-layout">
+      <div>
+        <div class="section-eyebrow reveal">Reports & Exports</div>
+        <h2 class="section-title reveal reveal-delay-1">Reports your clients<br>will actually trust</h2>
+        <p class="section-sub reveal reveal-delay-2">Every calculation generates a clean, professional report. No post-processing. No formatting. Just download and submit.</p>
+
+        <div class="report-features">
+          <div class="report-feature reveal reveal-delay-1">
+            <div class="rf-icon" style="background:rgba(239,68,68,0.12);">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="#FCA5A5" stroke-width="1.8" stroke-linecap="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <div class="rf-title">A4 PDF Report</div>
+              <div class="rf-desc">Professional layout with your project name, calculation reference, all inputs, results, and engineer sign-off blocks.</div>
+            </div>
+          </div>
+
+          <div class="report-feature reveal reveal-delay-2">
+            <div class="rf-icon" style="background:rgba(16,185,129,0.12);">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="#34D399" stroke-width="1.8" stroke-linecap="round" d="M3 10h18M3 14h18M10 3v18M6 3h12a1 1 0 011 1v16a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/></svg>
+            </div>
+            <div>
+              <div class="rf-title">Excel / CSV Export</div>
+              <div class="rf-desc">Full structured data export — inputs, results, pass/fail status — ready to drop into your own spreadsheets.</div>
+            </div>
+          </div>
+
+          <div class="report-feature reveal reveal-delay-3">
+            <div class="rf-icon" style="background:rgba(37,99,235,0.12);">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" stroke="#60A5FA" stroke-width="1.8"/><path stroke="#60A5FA" stroke-width="1.5" stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5"/></svg>
+            </div>
+            <div>
+              <div class="rf-title">Design Register</div>
+              <div class="rf-desc">Every saved calculation lives in your project register — searchable, filterable, and re-openable at any time.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-2">
+        <div class="pdf-mockup">
+          <div class="pdf-header">
+            <div class="pdf-title-block">
+              <div class="pdf-brand">BUILDMETRICS</div>
+              <div class="pdf-doc-title">Steel Column — Ground Floor</div>
+            </div>
+            <div class="pdf-status-pass">✓ PASS</div>
+          </div>
+
+          <div class="pdf-meta-row">
+            <div class="pdf-meta-cell">
+              <div class="pdf-meta-label">Project</div>
+              <div class="pdf-meta-value">Office Block Phase 2</div>
+            </div>
+            <div class="pdf-meta-cell">
+              <div class="pdf-meta-label">Standard</div>
+              <div class="pdf-meta-value">EN 1993-1-1 (EC3)</div>
+            </div>
+            <div class="pdf-meta-cell">
+              <div class="pdf-meta-label">Date</div>
+              <div class="pdf-meta-value">May 2026</div>
+            </div>
+            <div class="pdf-meta-cell">
+              <div class="pdf-meta-label">Reference</div>
+              <div class="pdf-meta-value">BM-A4X7K2</div>
+            </div>
+          </div>
+
+          <div class="pdf-table-head">
+            <span>Check / Result</span>
+            <span>Status</span>
+          </div>
+          <div class="pdf-row"><span class="pdf-row-label">Section: 203×203 UC 60</span><span class="pdf-row-value">—</span></div>
+          <div class="pdf-row"><span class="pdf-row-label">Applied Force NEd</span><span class="pdf-row-value">850 kN</span></div>
+          <div class="pdf-row"><span class="pdf-row-label">Buckling Resistance Nb,Rd</span><span class="pdf-row-value">1 124 kN</span></div>
+          <div class="pdf-row"><span class="pdf-row-label">Slenderness λ̄</span><span class="pdf-row-value">0.612</span></div>
+          <div class="pdf-row"><span class="pdf-row-label">Utilisation NEd / Nb,Rd</span><span class="pdf-row-value">75.6% <span class="pdf-row-pass">✓ PASS</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     PRICING
+════════════════════════════════════════ -->
+<section id="pricing">
+  <div class="pricing-inner">
+    <div class="section-eyebrow reveal" style="justify-content:center">Pricing</div>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center">Simple, transparent pricing.<br>Free for all of 2026.</h2>
+    <p class="section-sub reveal reveal-delay-2" style="text-align:center;margin:0 auto;">We're giving every engineer full access while we build and refine. No credit card needed.</p>
+
+    <div class="pricing-grid reveal reveal-delay-1">
+
+      <div class="pricing-card">
+        <div class="pricing-plan">Starter</div>
+        <div class="pricing-price">Free<span class="period"> / mo</span></div>
+        <div class="pricing-tagline">For individuals getting started</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 9 calculators</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> PDF & Excel reports</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> 3 active projects</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Design register</div>
+          <div class="pf-item dim"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Team sharing</div>
+          <div class="pf-item dim"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Priority support</div>
+        </div>
+        <a href="https://app.buildmetrics.uk/signup" class="pricing-btn outline">Get started free</a>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="pricing-featured-badge">⭐ Free for 2026</div>
+        <div class="pricing-plan">Professional</div>
+        <div class="pricing-price"><sup>£</sup>0<span class="period"> / mo in 2026</span></div>
+        <div class="pricing-tagline">Full access, no limits — all year</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 9 calculators</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> PDF & Excel reports</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited projects</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Design register + search</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Cost estimation tool</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> AI engineering assistant</div>
+        </div>
+        <a href="https://app.buildmetrics.uk/signup" class="pricing-btn primary">Start free — no card needed</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-plan">Team</div>
+        <div class="pricing-price"><sup>£</sup>?<span class="period"> / mo</span></div>
+        <div class="pricing-tagline">Coming in 2027 — join the waitlist</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Everything in Professional</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Team workspace</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Shared project registers</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Admin dashboard</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Priority support</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Custom templates</div>
+        </div>
+        <a href="#" onclick="openWaitlist();return false;" class="pricing-btn outline">Join the waitlist</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     CTA
+════════════════════════════════════════ -->
+<section id="cta">
+  <div class="cta-bg"></div>
+  <div class="cta-content">
+    <div class="cta-glass reveal">
+      <div class="cta-free-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8v4l3 3"/></svg>
+        Free for all of 2026
+      </div>
+      <h2 class="section-title">Start designing with confidence today</h2>
+      <p class="section-sub" style="margin:0 auto 36px;">Join engineers already using BuildMetrics. No credit card, no setup, no limits — just sign up and start calculating.</p>
+      <div class="cta-actions">
+        <a href="https://app.buildmetrics.uk/signup" class="btn btn-primary-lg">
+          Create Free Account →
+        </a>
+        <a href="#calculators" class="btn btn-ghost-lg">View calculators</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     FOOTER
+════════════════════════════════════════ -->
+<footer id="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#hero" class="footer-logo">
+          <div class="nav-logo-icon">
+            <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
+              <rect x="6" y="8" width="3" height="15" rx="1" fill="white"/>
+              <rect x="21" y="8" width="3" height="15" rx="1" fill="white"/>
+              <rect x="6" y="8" width="18" height="3" rx="1" fill="white"/>
+              <rect x="12" y="15" width="6" height="2.5" rx="1" fill="rgba(255,255,255,0.55)"/>
+            </svg>
+          </div>
+          <span class="footer-logo-name">BuildMetrics</span>
+        </a>
+        <p class="footer-tagline">Professional Eurocode-compliant structural engineering calculations — free for all of 2026.</p>
+        <div class="footer-standards" style="flex-wrap:wrap;gap:6px;">
+          <span class="std-chip">EC2</span>
+          <span class="std-chip">EC3</span>
+          <span class="std-chip">EC5</span>
+          <span class="std-chip">EC7</span>
+          <span class="std-chip">EN 1991</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Calculators</div>
+        <div class="footer-links">
+          <a href="../calcs/beam.html">Beam Design</a>
+          <a href="../calcs/column.html">Steel Column</a>
+          <a href="../calcs/concrete-column.html">Concrete Column</a>
+          <a href="../calcs/rc-beam.html">RC Beam</a>
+          <a href="../calcs/timber-column.html">Timber Column</a>
+          <a href="../calcs/slab.html">RC Slab</a>
+          <a href="../calcs/footing.html">Pad Footing</a>
+          <a href="../calcs/retaining-wall.html">Retaining Wall</a>
+          <a href="../calcs/connection.html">Connection Design</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Platform</div>
+        <div class="footer-links">
+          <a href="../dashboard.html">Dashboard</a>
+          <a href="../projects.html">Projects</a>
+          <a href="../calcs/design-register.html">Design Register</a>
+          <a href="../cost-report.html">Cost Report</a>
+          <a href="../tools.html">Quick Tools</a>
+          <a href="../ai-assistant.html">AI Assistant</a>
+          <a href="../standards.html">Standards Library</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Company</div>
+        <div class="footer-links">
+          <a href="#">About</a>
+          <a href="#">Blog</a>
+          <a href="mailto:support@buildmetrics.uk">Contact</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2026 BuildMetrics. All rights reserved. Results require verification by a licensed structural engineer.</p>
+      <div class="footer-standards">
+        <span class="std-chip">Eurocode Compliant</span>
+        <span class="std-chip">Browser-based</span>
+        <span class="std-chip">No install required</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+  /* ── Navbar scroll effect ── */
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  /* ── Mobile nav ── */
+  function closeMobileNav() {
+    document.getElementById('mobile-nav').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('nav-hamburger').addEventListener('click', function() {
+    document.getElementById('mobile-nav').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  });
+
+  /* ── Scroll reveal ── */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  /* ── Hero util bar animate ── */
+  const utilObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        document.getElementById('util-fill').style.width = '76.4%';
+        utilObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  const utilFill = document.getElementById('util-fill');
+  if (utilFill) utilObserver.observe(utilFill.closest('.hgc-util'));
+
+
+  /* ── Carousel: duplicate cards for seamless infinite loop ── */
+  const carouselTrack = document.getElementById('carousel-track');
+  if (carouselTrack) {
+    const clone = carouselTrack.innerHTML;
+    carouselTrack.innerHTML += clone;
+  }
+
+  /* ── How It Works connector line ── */
+  const howGrid = document.getElementById('how-grid');
+  if (howGrid) {
+    new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        howGrid.classList.add('line-drawn');
+      }
+    }, { threshold: 0.3 }).observe(howGrid);
+  }
+
+  /* ── Smooth active nav highlight on scroll ── */
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(section => {
+      if (window.scrollY >= section.offsetTop - 100) {
+        current = section.id;
+      }
+    });
+    navLinks.forEach(link => {
+      link.style.color = link.getAttribute('href') === '#' + current
+        ? '#fff'
+        : '';
+      link.style.background = link.getAttribute('href') === '#' + current
+        ? 'rgba(255,255,255,0.08)'
+        : '';
+    });
+  }, { passive: true });
+
+  /* ── Lenis smooth scroll ── */
+  const lenis = new Lenis({
+    duration: 3,
+    lerp: 0.03,
+    smoothWheel: true,
+    wheelMultiplier: 1
+  });
+
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  /* Helper for programmatic scrolls (hero button, mobile nav links) */
+  function fluidScrollTo(target) {
+    const el = typeof target === 'string' ? document.querySelector(target) : target;
+    if (!el) return;
+    lenis.scrollTo(el, { offset: -document.getElementById('navbar').offsetHeight });
+  }
+
+  /* Intercept all in-page anchor clicks */
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      const target = document.querySelector(href);
+      if (!target) return;
+      e.preventDefault();
+      fluidScrollTo(target);
+    });
+  });
+</script>
+
+<!-- ── Waitlist Modal ── -->
+<div id="waitlist-overlay" role="dialog" aria-modal="true" aria-label="Join the waitlist">
+  <div class="wl-modal">
+    <button class="wl-close" onclick="closeWaitlist()" aria-label="Close">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+
+    <div id="wl-form-wrap">
+      <div class="wl-badge">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+        Early Access
+      </div>
+      <div class="wl-title">Join the BuildMetrics<br>Waitlist</div>
+      <p class="wl-sub">Be first in line when we open access. We'll notify you as soon as your spot is ready.</p>
+
+      <form class="wl-form" id="wl-form" onsubmit="submitWaitlist(event)">
+        <div class="wl-row">
+          <div class="wl-field">
+            <label for="wl-name">Full Name *</label>
+            <input id="wl-name" name="name" type="text" placeholder="Jane Smith" required />
+          </div>
+          <div class="wl-field">
+            <label for="wl-email">Work Email *</label>
+            <input id="wl-email" name="email" type="email" placeholder="jane@firm.co.uk" required />
+          </div>
+        </div>
+        <div class="wl-row">
+          <div class="wl-field">
+            <label for="wl-company">Company / Practice</label>
+            <input id="wl-company" name="company" type="text" placeholder="Smith Engineers Ltd" />
+          </div>
+          <div class="wl-field">
+            <label for="wl-role">Your Role</label>
+            <select id="wl-role" name="role">
+              <option value="">Select role…</option>
+              <option>Structural Engineer</option>
+              <option>Civil Engineer</option>
+              <option>Chartered Engineer</option>
+              <option>Graduate Engineer</option>
+              <option>Consulting Engineer</option>
+              <option>Project Manager</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <p class="wl-error" id="wl-error"></p>
+        <button class="wl-submit" type="submit" id="wl-submit">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Join the Waitlist
+        </button>
+        <p style="font-size:0.75rem;color:rgba(255,255,255,0.3);text-align:center;margin-top:4px">No spam. Unsubscribe any time.</p>
+      </form>
+    </div>
+
+    <div class="wl-success" id="wl-success">
+      <div class="wl-success-icon">
+        <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h3>You're on the list!</h3>
+      <p>Thanks for signing up. We'll email you at <strong id="wl-confirmed-email"></strong> as soon as your access is ready.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openWaitlist() {
+    document.getElementById('waitlist-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (typeof lenis !== 'undefined') lenis.stop();
+  }
+  function closeWaitlist() {
+    document.getElementById('waitlist-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+    if (typeof lenis !== 'undefined') lenis.start();
+  }
+  document.getElementById('waitlist-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeWaitlist();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeWaitlist();
+  });
+
+  async function submitWaitlist(e) {
+    e.preventDefault();
+    const btn = document.getElementById('wl-submit');
+    const err = document.getElementById('wl-error');
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    const data = {
+      name:    document.getElementById('wl-name').value.trim(),
+      email:   document.getElementById('wl-email').value.trim(),
+      company: document.getElementById('wl-company').value.trim(),
+      role:    document.getElementById('wl-role').value,
+    };
+
+    try {
+      const res = await fetch('/api/waitlist.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Something went wrong.');
+      document.getElementById('wl-confirmed-email').textContent = data.email;
+      document.getElementById('wl-form-wrap').style.display = 'none';
+      document.getElementById('wl-success').style.display = 'flex';
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Join the Waitlist';
+    }
+  }
+</script>
+</body>
 </html>
