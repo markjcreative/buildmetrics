@@ -15,10 +15,10 @@ $configFile = __DIR__ . '/config.php';
 if (file_exists($configFile)) {
     require_once $configFile;
 }
-$OPENAI_API_KEY = defined('OPENAI_API_KEY') ? OPENAI_API_KEY : '';
-$MODEL          = 'gpt-4o-mini';
-$MAX_TOKENS     = 900;
-$MAX_HISTORY    = 20; // messages kept per session (controls cost)
+$ANTHROPIC_API_KEY = defined('ANTHROPIC_API_KEY') ? ANTHROPIC_API_KEY : '';
+$MODEL             = 'claude-haiku-4-5';  // fast + cost-efficient; swap to claude-sonnet-4-5 for richer responses
+$MAX_TOKENS        = 1024;
+$MAX_HISTORY       = 20; // messages kept per session (controls cost)
 
 // ── Engineering Knowledge Base (System Prompt) ────────────────────────────────
 $SYSTEM_PROMPT = <<<'PROMPT'
@@ -284,24 +284,23 @@ foreach ($messages as $msg) {
     }
 }
 
-// Prepend system prompt
-array_unshift($messages, ['role' => 'system', 'content' => $SYSTEM_PROMPT]);
-
-// ── Call OpenAI ───────────────────────────────────────────────────────────────
+// ── Call Anthropic Claude ─────────────────────────────────────────────────────
+// Anthropic Messages API: system prompt is a top-level field, not inside messages[]
 $payload = json_encode([
-    'model'       => $MODEL,
-    'messages'    => $messages,
-    'max_tokens'  => $MAX_TOKENS,
-    'temperature' => 0.6,
+    'model'      => $MODEL,
+    'max_tokens' => $MAX_TOKENS,
+    'system'     => $SYSTEM_PROMPT,
+    'messages'   => $messages,  // only user/assistant roles (no system in array)
 ]);
 
-$ch = curl_init('https://api.openai.com/v1/chat/completions');
+$ch = curl_init('https://api.anthropic.com/v1/messages');
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_POST           => true,
     CURLOPT_TIMEOUT        => 30,
     CURLOPT_HTTPHEADER     => [
-        'Authorization: Bearer ' . $OPENAI_API_KEY,
+        'x-api-key: ' . $ANTHROPIC_API_KEY,
+        'anthropic-version: 2023-06-01',
         'Content-Type: application/json',
     ],
     CURLOPT_POSTFIELDS => $payload,
@@ -322,14 +321,14 @@ $data = json_decode($response, true);
 
 if ($httpCode !== 200 || isset($data['error'])) {
     $msg = $data['error']['message'] ?? 'AI service error. Please try again.';
-    // Friendly message for common errors
-    if (strpos($msg, 'API key') !== false) {
-        $msg = 'API key not configured. Please add your OpenAI key to api/ai-chat.php.';
+    if (strpos($msg, 'API key') !== false || strpos($msg, 'authentication') !== false) {
+        $msg = 'Anthropic API key not configured. Please update api/config.php on the server.';
     }
     http_response_code(500);
     echo json_encode(['error' => $msg]);
     exit;
 }
 
-$reply = trim($data['choices'][0]['message']['content'] ?? '');
+// Anthropic response: content[0].text (not choices[0].message.content)
+$reply = trim($data['content'][0]['text'] ?? '');
 echo json_encode(['reply' => $reply]);

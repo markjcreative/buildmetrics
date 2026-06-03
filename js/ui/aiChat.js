@@ -146,7 +146,7 @@ const AIChat = (() => {
               '</svg>' +
             '</button>' +
           '</div>' +
-          '<div class="ai-footer-bar">Powered by OpenAI · BuildMetrics Engineering AI</div>' +
+          '<div class="ai-footer-bar">Powered by Claude · BuildMetrics Engineering AI</div>' +
 
         '</div>' +
       '</div>';
@@ -311,7 +311,7 @@ const AIChat = (() => {
     try {
       reply = await _callAPI(_msgs);
     } catch (e) {
-      reply = "I'm having trouble connecting right now. Please ensure your OpenAI API key is configured in `/api/ai-chat.php`, or try again shortly.";
+      reply = "I'm having trouble connecting right now. Please ensure your Anthropic API key is configured in `api/config.php` on the server, or try again shortly.";
     }
 
     _removeTyping(typingId);
