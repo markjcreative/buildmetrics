@@ -50,6 +50,22 @@
       <option value="approved">Approved</option>
     </select>
 
+    <button class="cb-save-btn" id="cb-save-btn" title="Save (Ctrl+S)">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+        <polyline stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="17 21 17 13 7 13 7 21"/>
+        <polyline stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="7 3 7 8 15 8"/>
+      </svg>
+      Save
+    </button>
+    <button class="cb-history-btn" id="cb-history-btn" title="Version history">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+        <polyline stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="12 8 12 12 14 14"/>
+        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3.05 11a9 9 0 1 0 .5-4.5"/>
+        <polyline stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="3 3 3 7 7 7"/>
+      </svg>
+    </button>
+
     <button class="cb-btn" id="cb-preview-btn" title="Preview report">
       <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
       <span>Preview</span>
@@ -194,6 +210,27 @@
   </div>
 </div>
 
+<!-- ══ Version History Panel ══════════════════════════════════════ -->
+<div class="vh-overlay" id="vh-overlay" style="display:none"></div>
+<div class="vh-panel" id="vh-panel">
+  <div class="vh-head">
+    <h3>Version History</h3>
+    <button class="vh-close" id="vh-close">✕</button>
+  </div>
+  <div class="vh-actions">
+    <button class="vh-snapshot-btn" id="vh-snapshot-btn">
+      📸 Save Named Version
+    </button>
+  </div>
+  <div class="vh-list" id="vh-list">
+    <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem">Loading history...</div>
+  </div>
+  <div class="vh-log-section">
+    <div class="vh-log-title">Activity Log</div>
+    <div class="vh-log" id="vh-log"></div>
+  </div>
+</div>
+
 <!-- ══ Scripts ═══════════════════════════════════════════════════ -->
 <script src="/js/auth/auth.js"></script>
 <script src="/js/projects/projects.js"></script>
@@ -310,6 +347,10 @@ const RB = (() => {
     _wireSidebar();
     _wireBlockPicker();
     _wireMobile();
+    _wireManualSave();
+    _wireHistoryPanel();
+    // Auto-snapshot every 10 minutes if there are changes
+    setInterval(() => { if (reportId && window.Canvas) _createSnapshot('Auto-save'); }, 10 * 60 * 1000);
   }
 
   /* ── Report lifecycle ─────────────────────────────────────── */
@@ -1595,14 +1636,170 @@ const RB = (() => {
     );
   }
 
-  /* ── Public API ───────────────────────────────────────────── */
+  /* ── Manual Save button ────────────────────────────────────── */
+  function _wireManualSave() {
+    const btn = document.getElementById('cb-save-btn');
+    if (!btn) return;
+    btn.addEventListener('click', () => _manualSave());
+    // Ctrl+S / Cmd+S
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        _manualSave();
+      }
+    });
+  }
+
+  async function _manualSave() {
+    const btn = document.getElementById('cb-save-btn');
+    if (btn) {
+      btn.classList.add('saving');
+      btn.innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline stroke="currentColor" stroke-width="2" points="17 21 17 13 7 13 7 21"/><polyline stroke="currentColor" stroke-width="2" points="7 3 7 8 15 8"/></svg> Saving…`;
+    }
+
+    if (window.Canvas && Canvas.save) {
+      await Canvas.save();
+    }
+
+    // Create an auto-save snapshot
+    await _createSnapshot('Auto-save');
+
+    if (btn) {
+      btn.classList.remove('saving');
+      btn.classList.add('saved');
+      btn.innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><polyline stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="20 6 9 17 4 12"/></svg> Saved`;
+      setTimeout(() => {
+        btn.classList.remove('saved');
+        btn.innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline stroke="currentColor" stroke-width="2" points="17 21 17 13 7 13 7 21"/><polyline stroke="currentColor" stroke-width="2" points="7 3 7 8 15 8"/></svg> Save`;
+      }, 2500);
+    }
+  }
+
+  /* ── Version History Panel ─────────────────────────────────── */
+  function _wireHistoryPanel() {
+    const btn       = document.getElementById('cb-history-btn');
+    const overlay   = document.getElementById('vh-overlay');
+    const closeBtn  = document.getElementById('vh-close');
+    const snapshotBtn = document.getElementById('vh-snapshot-btn');
+
+    if (!btn) return;
+
+    btn.addEventListener('click', () => _openHistoryPanel());
+    overlay   && overlay.addEventListener('click', _closeHistoryPanel);
+    closeBtn  && closeBtn.addEventListener('click', _closeHistoryPanel);
+    snapshotBtn && snapshotBtn.addEventListener('click', _promptSnapshot);
+  }
+
+  function _openHistoryPanel() {
+    document.getElementById('vh-overlay').style.display = 'block';
+    document.getElementById('vh-panel').classList.add('open');
+    _loadHistory();
+    _loadActivityLog();
+  }
+
+  function _closeHistoryPanel() {
+    document.getElementById('vh-overlay').style.display = 'none';
+    document.getElementById('vh-panel').classList.remove('open');
+  }
+
+  async function _loadHistory() {
+    if (!reportId) return;
+    const list = document.getElementById('vh-list');
+    try {
+      const r = await fetch('/api/report-versions.php?action=list&report_id=' + encodeURIComponent(reportId), { headers: Auth.authHeaders() });
+      const versions = await r.json();
+      if (!versions.length) {
+        list.innerHTML = '<div style="padding:24px 16px;text-align:center;color:var(--text-muted);font-size:0.83rem">No saved versions yet.<br>Click “Save Named Version” to create one.</div>';
+        return;
+      }
+      list.innerHTML = versions.map(v => `
+        <div class="vh-item">
+          <div class="vh-item-dot ${v.version_label === 'Auto-save' ? 'auto' : ''}"></div>
+          <div class="vh-item-info">
+            <div class="vh-item-label">${_esc(v.version_label)}</div>
+            <div class="vh-item-meta">${v.block_count || 0} blocks · ${_timeAgo(v.created_at)}</div>
+          </div>
+          <button class="vh-item-restore" onclick="RB._restoreVersion('${v.id}')">Restore</button>
+        </div>
+      `).join('');
+    } catch(e) {
+      list.innerHTML = '<div style="padding:16px;color:#dc2626;font-size:0.83rem">Failed to load history.</div>';
+    }
+  }
+
+  async function _loadActivityLog() {
+    if (!reportId) return;
+    const log = document.getElementById('vh-log');
+    if (!log) return;
+    try {
+      const r = await fetch('/api/report-versions.php?action=log&report_id=' + encodeURIComponent(reportId), { headers: Auth.authHeaders() });
+      const entries = await r.json();
+      log.innerHTML = entries.slice(0,10).map(e => `
+        <div class="vh-log-item">
+          <span>${_esc(e.action)}</span>
+          ${e.detail ? '<span style="color:var(--text-muted)">— ' + _esc(e.detail) + '</span>' : ''}
+          <span class="vh-log-time">${_timeAgo(e.created_at)}</span>
+        </div>
+      `).join('') || '<div style="color:var(--text-muted);font-size:0.78rem">No activity yet.</div>';
+    } catch(e) {}
+  }
+
+  async function _createSnapshot(label) {
+    if (!reportId) return;
+    const blocksData = window.Canvas && Canvas.getState ? Canvas.getState().blocks : _collectBlockData();
+    try {
+      await fetch('/api/report-versions.php', {
+        method: 'POST',
+        headers: Auth.authHeaders(),
+        body: JSON.stringify({ action: 'snapshot', report_id: reportId, version_label: label, blocks_json: blocksData })
+      });
+    } catch(e) {}
+  }
+
+  async function _promptSnapshot() {
+    const label = prompt('Name this version (e.g. "Rev A", "Before client review"):');
+    if (!label) return;
+    const btn = document.getElementById('vh-snapshot-btn');
+    if (btn) btn.textContent = 'Saving…';
+    await _createSnapshot(label);
+    if (btn) btn.textContent = '📸 Save Named Version';
+    await _loadHistory();
+  }
+
+  async function _restoreVersion(versionId) {
+    if (!confirm('Restore this version? Current unsaved changes will be lost.')) return;
+    try {
+      const r = await fetch('/api/report-versions.php', {
+        method: 'POST',
+        headers: Auth.authHeaders(),
+        body: JSON.stringify({ action: 'restore', report_id: reportId, version_id: versionId })
+      });
+      const d = await r.json();
+      if (d.success) window.location.reload();
+      else alert('Failed to restore. Please try again.');
+    } catch(e) { alert('Failed to restore. Please try again.'); }
+  }
+
+  function _timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + 'm ago';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h ago';
+    return Math.floor(h / 24) + 'd ago';
+  }
+
+  /* ── Public API ─────────────────────────────────────────────── */
   return {
     init,
     addBlock,
     showBlockPicker,
     closeBlockPicker,
     filterBlockPicker,
-    save: _saveAll
+    save: _saveAll,
+    _restoreVersion
   };
 
 })();

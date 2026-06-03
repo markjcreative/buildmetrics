@@ -400,18 +400,44 @@ function confirmDelete(reportId) {
   _delTargetId = reportId;
   document.getElementById('del-modal').style.display = 'flex';
   document.getElementById('del-confirm-btn').onclick = async () => {
-    try {
-      await fetch('/api/reports.php', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', id: _delTargetId })
-      });
-    } catch(e) {}
+    const idToDelete = _delTargetId;
     closeDelModal();
-    _reports = _reports.filter(r => r.id !== _delTargetId);
-    renderReports();
+    try {
+      const resp = await fetch('/api/reports.php', {
+        method: 'POST',
+        headers: Auth.authHeaders(),
+        body: JSON.stringify({ action: 'delete', id: idToDelete })
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.error) {
+        _toast('Failed to delete report. Please try again.', 'error');
+        return;
+      }
+      _reports = _reports.filter(r => r.id !== idToDelete);
+      renderReports();
+      _toast('Report deleted.', 'success');
+    } catch(e) {
+      _toast('Failed to delete report. Please try again.', 'error');
+    }
   };
+}
+
+function _toast(message, type) {
+  const existing = document.getElementById('pj-toast');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = 'pj-toast';
+  el.textContent = message;
+  el.style.cssText = [
+    'position:fixed', 'bottom:24px', 'right:24px', 'z-index:9999',
+    'padding:12px 20px', 'border-radius:10px', 'font-size:0.85rem', 'font-weight:600',
+    'box-shadow:0 4px 20px rgba(0,0,0,.15)', 'transition:opacity .3s',
+    type === 'error'
+      ? 'background:#FEE2E2;color:#991B1B;border:1px solid #FECACA'
+      : 'background:#DCFCE7;color:#166534;border:1px solid #BBF7D0'
+  ].join(';');
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 350); }, 3000);
 }
 
 function closeDelModal() {
