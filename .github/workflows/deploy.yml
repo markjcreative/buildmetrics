@@ -1,12 +1,10 @@
 name: Deploy to Hostinger
 
-# ─── Trigger ──────────────────────────────────────────────────────────────────
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-# ─── Jobs ─────────────────────────────────────────────────────────────────────
 jobs:
 
   # ── 1. Deploy landing page → buildmetrics.uk ─────────────────────────────
@@ -17,42 +15,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: FTP upload → public_html/ (attempt 1)
-        id: ftp_landing_1
-        continue-on-error: true
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server:    ${{ secrets.FTP_SERVER }}
-          username:  ${{ secrets.FTP_USERNAME }}
-          password:  ${{ secrets.FTP_PASSWORD }}
-          port:      21
-          protocol:  ftps
-          local-dir: ./landing/
-          server-dir: /public_html/
-          timeout:   60000
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/.DS_Store
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
 
-      - name: FTP upload → public_html/ (retry with plain FTP)
-        if: steps.ftp_landing_1.outcome == 'failure'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server:    ${{ secrets.FTP_SERVER }}
-          username:  ${{ secrets.FTP_USERNAME }}
-          password:  ${{ secrets.FTP_PASSWORD }}
-          port:      21
-          protocol:  ftp
-          local-dir: ./landing/
-          server-dir: /public_html/
-          timeout:   60000
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/.DS_Store
+      - name: Deploy landing via SFTP
+        env:
+          SFTP_SERVER:   ${{ secrets.FTP_SERVER }}
+          SFTP_USER:     ${{ secrets.FTP_USERNAME }}
+          SFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes;
+            set net:max-retries 3;
+            set net:reconnect-interval-base 5;
+            open sftp://$SFTP_USER:$SFTP_PASSWORD@$SFTP_SERVER:22;
+            mirror --reverse --delete --verbose \
+              --exclude '^\.git' \
+              --exclude '\.DS_Store' \
+              ./landing/ /public_html/
+          "
 
   # ── 2. Deploy app → app.buildmetrics.uk ──────────────────────────────────
   deploy-app:
@@ -62,51 +43,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: FTP upload → subdomain document root (attempt 1)
-        id: ftp_app_1
-        continue-on-error: true
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server:    ${{ secrets.FTP_SERVER }}
-          username:  ${{ secrets.FTP_USERNAME }}
-          password:  ${{ secrets.FTP_PASSWORD }}
-          port:      21
-          protocol:  ftps
-          local-dir: ./
-          server-dir: /public_html/buildmetrics_app/
-          timeout:   60000
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/.DS_Store
-            **/.claude/**
-            .github/**
-            landing/**
-            beamcalc-pro/**
-            markjcreative-landing.html
-            AUDIT_REPORT.md
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
 
-      - name: FTP upload → subdomain document root (retry with plain FTP)
-        if: steps.ftp_app_1.outcome == 'failure'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server:    ${{ secrets.FTP_SERVER }}
-          username:  ${{ secrets.FTP_USERNAME }}
-          password:  ${{ secrets.FTP_PASSWORD }}
-          port:      21
-          protocol:  ftp
-          local-dir: ./
-          server-dir: /public_html/buildmetrics_app/
-          timeout:   60000
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/.DS_Store
-            **/.claude/**
-            .github/**
-            landing/**
-            beamcalc-pro/**
-            markjcreative-landing.html
-            AUDIT_REPORT.md
+      - name: Deploy app via SFTP
+        env:
+          SFTP_SERVER:   ${{ secrets.FTP_SERVER }}
+          SFTP_USER:     ${{ secrets.FTP_USERNAME }}
+          SFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes;
+            set net:max-retries 3;
+            set net:reconnect-interval-base 5;
+            open sftp://$SFTP_USER:$SFTP_PASSWORD@$SFTP_SERVER:22;
+            mirror --reverse --delete --verbose \
+              --exclude '^\.git' \
+              --exclude '\.DS_Store' \
+              --exclude '^\.claude/' \
+              --exclude '^\.github/' \
+              --exclude '^landing/' \
+              --exclude '^beamcalc-pro/' \
+              --exclude '^node_modules/' \
+              --exclude 'AUDIT_REPORT\.md' \
+              --exclude 'markjcreative-landing\.html' \
+              ./ /public_html/buildmetrics_app/
+          "
