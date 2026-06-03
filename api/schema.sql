@@ -108,3 +108,29 @@ CREATE TABLE IF NOT EXISTS `report_templates` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ── Report Version History ──────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `report_versions` (
+  `id` varchar(36) NOT NULL,
+  `report_id` varchar(36) NOT NULL,
+  `user_id` varchar(36) NOT NULL,
+  `version_label` varchar(50) NOT NULL DEFAULT 'Auto-save',
+  `blocks_snapshot` longtext NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_rv_report` (`report_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ── Report Activity Log ──────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `report_activity` (
+  `id` varchar(36) NOT NULL,
+  `report_id` varchar(36) NOT NULL,
+  `user_id` varchar(36) NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `detail` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ra_report` (`report_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
