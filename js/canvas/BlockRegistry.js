@@ -559,6 +559,60 @@ const BlockRegistry = (() => {
 
     wrap.appendChild(formGrid);
 
+    // ── AI Section Picker (calc_beam only) ───────────────────────────────
+    if (block.type === 'calc_beam') {
+      const aiPickBtn = _el('button', { className: 'cb-ai-pick-btn', type: 'button' });
+      aiPickBtn.innerHTML = '🤖 AI Suggest Section';
+      aiPickBtn.addEventListener('click', async () => {
+        const span  = block.config.span  || 5;
+        const Gk    = block.config.Gk    || 5;
+        const Qk    = block.config.Qk    || 3;
+        const grade = block.config.grade || 'S275';
+
+        aiPickBtn.disabled = true;
+        aiPickBtn.textContent = '⏳ Analysing…';
+
+        const wEd = (1.35 * parseFloat(Gk) + 1.5 * parseFloat(Qk)).toFixed(2);
+
+        const prompt = `You are a structural engineer. For a simply supported steel beam:
+- Span: ${span}m
+- Permanent load Gk: ${Gk} kN/m
+- Variable load Qk: ${Qk} kN/m
+- Design ULS load wEd = ${wEd} kN/m
+- Steel grade: ${grade}
+- Design to EN 1993-1-1 (Eurocode 3)
+
+Deflection limit: span/360 for imposed loads.
+
+Recommend the MOST SUITABLE UB section (Universal Beam). Give your answer in this exact format:
+SECTION: [designation e.g. 254×146×31 UB]
+REASON: [one sentence explaining why]
+UTILISATION: [approximate bending utilisation as percentage]
+
+Only give one recommendation. Be concise.`;
+
+        const result = await _callAI(prompt);
+
+        if (result) {
+          let tipEl = wrap.querySelector('.cb-ai-tip');
+          if (!tipEl) {
+            tipEl = _el('div', { className: 'cb-ai-tip' });
+            aiPickBtn.parentNode.insertBefore(tipEl, aiPickBtn.nextSibling);
+          }
+          tipEl.innerHTML = '<span style="color:#7C3AED;font-weight:700">🤖 AI Suggestion:</span> ' + result.replace(/\n/g, '<br>');
+        } else {
+          aiPickBtn.innerHTML = '⚠ AI unavailable';
+          setTimeout(() => { aiPickBtn.innerHTML = '🤖 AI Suggest Section'; }, 2500);
+          aiPickBtn.disabled = false;
+          return;
+        }
+
+        aiPickBtn.disabled = false;
+        aiPickBtn.innerHTML = '🤖 AI Suggest Section';
+      });
+      wrap.appendChild(aiPickBtn);
+    }
+
     // ── Calculate button ─────────────────────────────────────────────────
     const calcBtn = _el('button', { className: 'cb-calc-btn' });
     calcBtn.innerHTML = '<span style="font-size:11px;opacity:0.85">▶</span> Calculate';
@@ -653,6 +707,56 @@ const BlockRegistry = (() => {
     detailContent.appendChild(tbl);
     card.appendChild(toggleBtn);
     card.appendChild(detailContent);
+
+    // ── AI Explain Results button ─────────────────────────────────────────
+    const explainBtn = _el('button', { className: 'cb-ai-explain-btn', type: 'button' });
+    explainBtn.innerHTML = '🤖 AI Explain These Results';
+    explainBtn.addEventListener('click', async () => {
+      explainBtn.disabled = true;
+      explainBtn.textContent = '⏳ Explaining…';
+
+      const metricVals = card.querySelectorAll('.cb-metric-val');
+      const metricLbls = card.querySelectorAll('.cb-metric-lbl');
+      let metricsText = '';
+      metricVals.forEach((m, idx) => {
+        const lbl = metricLbls[idx]?.textContent;
+        if (m.textContent && lbl) metricsText += `${lbl}: ${m.textContent}\n`;
+      });
+
+      const status = statusBar ? statusBar.textContent.trim() : 'completed';
+      const calcName = (block.label || block.type.replace('calc_', '').replace(/_/g, ' '));
+
+      const prompt = `You are explaining ${calcName} calculation results to an engineer. Results:
+${metricsText}
+Overall: ${status}
+
+Explain in 2-3 sentences:
+1. What these results mean structurally
+2. Whether there's any concern or the design is efficient
+3. One practical recommendation if the utilisation is high (>80%) or low (<40%)
+
+Be direct and professional. Use engineering terminology but keep it concise.`;
+
+      const result = await _callAI(prompt);
+      if (result) {
+        let explainEl = card.querySelector('.cb-ai-explanation');
+        if (!explainEl) {
+          explainEl = _el('div', { className: 'cb-ai-explanation' });
+          card.appendChild(explainEl);
+        }
+        explainEl.innerHTML = '<div class="cb-ai-exp-label">🤖 AI Analysis</div><div class="cb-ai-exp-text">' + result.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+      } else {
+        explainBtn.innerHTML = '⚠ AI unavailable';
+        setTimeout(() => { explainBtn.innerHTML = '🤖 AI Explain These Results'; }, 2500);
+        explainBtn.disabled = false;
+        return;
+      }
+
+      explainBtn.disabled = false;
+      explainBtn.innerHTML = '🤖 AI Explain These Results';
+    });
+    card.appendChild(explainBtn);
+
     container.appendChild(card);
 
     // ── Engineering diagram section ───────────────────────────────────────
@@ -869,6 +973,23 @@ const BlockRegistry = (() => {
       s.onerror = () => reject(new Error('Failed to load: ' + src));
       document.head.appendChild(s);
     });
+  }
+
+  // ── AI helper ────────────────────────────────────────────────────────────
+
+  async function _callAI(prompt) {
+    try {
+      const resp = await fetch('/api/ai-chat.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
+      });
+      const data = await resp.json();
+      return data.reply || null;
+    } catch (e) {
+      console.error('AI call failed:', e);
+      return null;
+    }
   }
 
   function _buildBeamSupports(cfg, span) {
@@ -1785,6 +1906,46 @@ const BlockRegistry = (() => {
       checkGroup.appendChild(item);
     });
     wrap.appendChild(checkGroup);
+
+    // ── AI Draft button ────────────────────────────────────────────────────
+    const aiBtn = _el('button', { className: 'cb-ai-btn', type: 'button' });
+    aiBtn.textContent = '✨ AI Draft';
+    aiBtn.style.marginTop = '12px';
+    aiBtn.addEventListener('click', async () => {
+      const designCode = cfg.design_code || 'Eurocode';
+      const projectType = cfg.project_type || 'structural';
+      const textarea = wrap.querySelector('textarea');
+
+      aiBtn.disabled = true;
+      aiBtn.textContent = '⏳ Drafting…';
+
+      const prompt = `Write a professional structural engineering design basis statement for a ${projectType} project using ${designCode}. Include:
+1. Code of practice and edition
+2. Loading standard
+3. Material standards
+4. Key assumptions (e.g. serviceability limits, exposure class, load combinations)
+5. Brief scope statement
+
+Format it as formal engineering text, 3-4 short paragraphs. No bullet points. Professional tone suitable for a calculation report submission.`;
+
+      const result = await _callAI(prompt);
+      if (result && textarea) {
+        textarea.value = result;
+        cfg.text = result;
+        textarea.dispatchEvent(new Event('input'));
+        _dispatch(wrap, block.id);
+      } else if (!result) {
+        aiBtn.textContent = '⚠ AI unavailable';
+        setTimeout(() => { aiBtn.textContent = '✨ AI Draft'; }, 2500);
+        aiBtn.disabled = false;
+        return;
+      }
+
+      aiBtn.disabled = false;
+      aiBtn.textContent = '✨ AI Draft';
+    });
+    wrap.appendChild(aiBtn);
+
     return wrap;
   }
 
@@ -1867,6 +2028,59 @@ const BlockRegistry = (() => {
       _dispatch(wrap, block.id);
     });
     wrap.appendChild(addBtn);
+
+    // ── AI Suggest Codes button ────────────────────────────────────────────
+    const aiCodeBtn = _el('button', { className: 'cb-ai-btn', type: 'button' });
+    aiCodeBtn.innerHTML = '🤖 AI Suggest Codes';
+    aiCodeBtn.style.marginTop = '8px';
+    aiCodeBtn.addEventListener('click', async () => {
+      aiCodeBtn.disabled = true;
+      aiCodeBtn.textContent = '⏳ Finding codes…';
+
+      // Detect calc block types on the canvas
+      const calcTypes = new Set();
+      document.querySelectorAll('.canvas-block[data-type]').forEach(el => {
+        const t = el.dataset.type;
+        if (t && t.startsWith('calc_')) calcTypes.add(t);
+      });
+
+      const typeNames = [...calcTypes].map(t => t.replace('calc_', '').replace(/_/g, ' ')).join(', ');
+
+      const prompt = `For a structural engineering calculation report containing: ${typeNames || 'general structural calculations'}, list the relevant Eurocodes and British Standards that should be referenced. Format as a simple list, one code per line:
+CODE: [code number and title]
+
+Include only codes directly relevant to the calculations. Maximum 6 codes. Example format:
+CODE: EN 1993-1-1:2005 — Design of Steel Structures
+CODE: UK National Annex to EN 1993-1-1`;
+
+      const result = await _callAI(prompt);
+
+      if (result) {
+        const lines = result.split('\n').filter(l => l.trim().startsWith('CODE:'));
+        const codes = lines.map(l => l.replace('CODE:', '').trim()).filter(Boolean);
+        if (codes.length > 0) {
+          cfg.codes = codes.map(c => {
+            const dashIdx = c.indexOf('—');
+            if (dashIdx > -1) {
+              return { name: c.slice(0, dashIdx).trim(), description: c.slice(dashIdx + 1).trim(), edition: '' };
+            }
+            return { name: c, description: '', edition: '' };
+          });
+          rebuild();
+          _dispatch(wrap, block.id);
+        }
+      } else {
+        aiCodeBtn.innerHTML = '⚠ AI unavailable';
+        setTimeout(() => { aiCodeBtn.innerHTML = '🤖 AI Suggest Codes'; }, 2500);
+        aiCodeBtn.disabled = false;
+        return;
+      }
+
+      aiCodeBtn.disabled = false;
+      aiCodeBtn.innerHTML = '🤖 AI Suggest Codes';
+    });
+    wrap.appendChild(aiCodeBtn);
+
     return wrap;
   }
 
@@ -1921,6 +2135,50 @@ const BlockRegistry = (() => {
       slsVal.textContent = (Gk + Qk).toFixed(2);
     }
     updateTable();
+
+    // ── AI Recommend Loads button ──────────────────────────────────────────
+    const aiLoadBtn = _el('button', { className: 'cb-ai-btn', type: 'button' });
+    aiLoadBtn.innerHTML = '🤖 AI Recommend Loads';
+    aiLoadBtn.style.marginTop = '10px';
+    aiLoadBtn.addEventListener('click', async () => {
+      aiLoadBtn.disabled = true;
+      aiLoadBtn.textContent = '⏳ Calculating…';
+
+      // Get project type from project_info block if available
+      const projBlock = document.querySelector('.canvas-block[data-type="project_info"]');
+      const projType = projBlock?.querySelector('input[placeholder*="Office"], select')?.value || 'office';
+
+      const prompt = `For a ${projType} building, recommend typical characteristic loads per EN 1991-1-1 (Eurocode 1). Give values only:
+FLOOR_GK: [value] kN/m² (self-weight of floor slab and finishes)
+FLOOR_QK: [value] kN/m² (imposed floor load)
+ROOF_GK: [value] kN/m² (roof dead load)
+ROOF_QK: [value] kN/m² (imposed roof load)
+NOTE: [one brief note about load category]
+
+Give realistic typical values, not ranges.`;
+
+      const result = await _callAI(prompt);
+
+      if (result) {
+        let tipEl = wrap.querySelector('.cb-ai-load-tip');
+        if (!tipEl) {
+          tipEl = _el('div', { className: 'cb-ai-tip' });
+          tipEl.classList.add('cb-ai-load-tip');
+          wrap.appendChild(tipEl);
+        }
+        tipEl.innerHTML = '<span style="color:#7C3AED;font-weight:700">🤖 EC1 Recommendation:</span><br>' + result.replace(/\n/g, '<br>');
+      } else {
+        aiLoadBtn.innerHTML = '⚠ AI unavailable';
+        setTimeout(() => { aiLoadBtn.innerHTML = '🤖 AI Recommend Loads'; }, 2500);
+        aiLoadBtn.disabled = false;
+        return;
+      }
+
+      aiLoadBtn.disabled = false;
+      aiLoadBtn.innerHTML = '🤖 AI Recommend Loads';
+    });
+    wrap.appendChild(aiLoadBtn);
+
     return wrap;
   }
 
@@ -2009,8 +2267,65 @@ const BlockRegistry = (() => {
     textField.style.marginTop = '10px';
     wrap.appendChild(textField);
 
-    const aiBtn = _el('button', { className: 'btn-ai-draft' }, '✨ AI Draft — Coming soon');
-    aiBtn.disabled = true;
+    // ── AI Generate Conclusions button ─────────────────────────────────────
+    const aiBtn = _el('button', { className: 'cb-ai-btn', type: 'button' });
+    aiBtn.textContent = '✨ AI Generate Conclusions';
+    aiBtn.style.marginTop = '10px';
+    aiBtn.addEventListener('click', async () => {
+      aiBtn.disabled = true;
+      aiBtn.textContent = '⏳ Generating…';
+
+      // Collect calc results from all blocks on the canvas
+      const allBlocks = document.querySelectorAll('.canvas-block[data-type]');
+      const calcSummaries = [];
+      allBlocks.forEach(blockEl => {
+        const type = blockEl.dataset.type;
+        if (!type || !type.startsWith('calc_')) return;
+        const resultBar = blockEl.querySelector('.cb-result-status-bar');
+        const metrics = blockEl.querySelectorAll('.cb-metric-val');
+        const labels  = blockEl.querySelectorAll('.cb-metric-lbl');
+        if (resultBar) {
+          let summary = type.replace('calc_', '').replace(/_/g, ' ') + ': ' + resultBar.textContent.trim();
+          metrics.forEach((m, idx) => {
+            const lbl = labels[idx]?.textContent;
+            if (m.textContent && lbl) summary += `, ${lbl}=${m.textContent}`;
+          });
+          calcSummaries.push(summary);
+        }
+      });
+
+      const summaryText = calcSummaries.length > 0
+        ? calcSummaries.join('\n')
+        : 'Calculations have been performed per the relevant Eurocodes.';
+
+      const prompt = `You are a structural engineer writing engineering conclusions for a calculation report. Based on these calculation results:
+
+${summaryText}
+
+Write professional engineering conclusions/notes (3-5 sentences) suitable for a formal calculation report. Include:
+- Overall structural adequacy statement
+- Key governing checks and utilisation ratios
+- Any recommendations or notes for the design
+- Confirmation that all checks satisfy the relevant code requirements
+
+Write in first person plural ("The calculations demonstrate...", "All members satisfy..."). Professional, formal engineering language.`;
+
+      const result = await _callAI(prompt);
+      const textarea = wrap.querySelector('textarea');
+      if (result && textarea) {
+        textarea.value = result;
+        cfg.text = result;
+        _dispatch(wrap, block.id);
+      } else if (!result) {
+        aiBtn.textContent = '⚠ AI unavailable';
+        setTimeout(() => { aiBtn.textContent = '✨ AI Generate Conclusions'; }, 2500);
+        aiBtn.disabled = false;
+        return;
+      }
+
+      aiBtn.disabled = false;
+      aiBtn.textContent = '✨ AI Generate Conclusions';
+    });
     wrap.appendChild(aiBtn);
     return wrap;
   }

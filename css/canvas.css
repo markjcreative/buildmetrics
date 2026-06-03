@@ -1756,6 +1756,107 @@ td.util-val {
   transform: none;
 }
 
+/* ─── AI Feature Buttons ──────────────────────────────────────── */
+
+/* Full-width solid AI button (design_basis, engineer_notes, code_ref, load_table) */
+.cb-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: linear-gradient(135deg, #7C3AED, #5B21B6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.cb-ai-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.cb-ai-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* Dashed outline AI section picker (calc_beam) */
+.cb-ai-pick-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px;
+  margin-top: 10px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(91,33,182,0.05));
+  color: #7C3AED;
+  border: 1.5px dashed #C4B5FD;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+}
+.cb-ai-pick-btn:hover { background: rgba(124,58,237,0.12); border-style: solid; }
+.cb-ai-pick-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Ghost AI explain button (inside result card) */
+.cb-ai-explain-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px;
+  margin-top: 8px;
+  background: none;
+  color: #7C3AED;
+  border: 1px solid #DDD6FE;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.13s;
+}
+.cb-ai-explain-btn:hover { background: #F5F3FF; border-color: #7C3AED; }
+.cb-ai-explain-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* AI suggestion / tip box */
+.cb-ai-tip {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #F5F3FF;
+  border: 1.5px solid #DDD6FE;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+/* AI explanation box inside result card */
+.cb-ai-explanation {
+  border-top: 1px solid rgba(0,0,0,0.06);
+  padding: 10px 14px;
+  background: #F5F3FF;
+  border-radius: 0 0 8px 8px;
+}
+.cb-ai-exp-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7C3AED;
+  margin-bottom: 6px;
+}
+.cb-ai-exp-text {
+  font-size: 12px;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
 /* ─── Status Chips ────────────────────────────────────────── */
 .status-chip {
   display: inline-block;
