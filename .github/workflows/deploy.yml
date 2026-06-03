@@ -1,8 +1,6 @@
 name: Deploy to Hostinger
 
 # ─── Trigger ──────────────────────────────────────────────────────────────────
-# Runs automatically on every push to main.
-# You can also trigger it manually via Actions → Run workflow.
 on:
   push:
     branches: [main]
@@ -19,15 +17,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: FTP upload → public_html/
+      - name: FTP upload → public_html/ (attempt 1)
+        id: ftp_landing_1
+        continue-on-error: true
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server:    ${{ secrets.FTP_SERVER }}
           username:  ${{ secrets.FTP_USERNAME }}
           password:  ${{ secrets.FTP_PASSWORD }}
           port:      21
-          local-dir: ./landing/          # contents of /landing go to root
+          protocol:  ftps
+          local-dir: ./landing/
           server-dir: /public_html/
+          timeout:   60000
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.DS_Store
+
+      - name: FTP upload → public_html/ (retry with plain FTP)
+        if: steps.ftp_landing_1.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server:    ${{ secrets.FTP_SERVER }}
+          username:  ${{ secrets.FTP_USERNAME }}
+          password:  ${{ secrets.FTP_PASSWORD }}
+          port:      21
+          protocol:  ftp
+          local-dir: ./landing/
+          server-dir: /public_html/
+          timeout:   60000
           exclude: |
             **/.git*
             **/.git*/**
@@ -42,15 +62,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: FTP upload → subdomain document root
+      - name: FTP upload → subdomain document root (attempt 1)
+        id: ftp_app_1
+        continue-on-error: true
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server:    ${{ secrets.FTP_SERVER }}
           username:  ${{ secrets.FTP_USERNAME }}
           password:  ${{ secrets.FTP_PASSWORD }}
           port:      21
-          local-dir: ./                  # repo root (the app)
+          protocol:  ftps
+          local-dir: ./
           server-dir: /public_html/buildmetrics_app/
+          timeout:   60000
           exclude: |
             **/.git*
             **/.git*/**
@@ -61,3 +85,28 @@ jobs:
             landing/**
             beamcalc-pro/**
             markjcreative-landing.html
+            AUDIT_REPORT.md
+
+      - name: FTP upload → subdomain document root (retry with plain FTP)
+        if: steps.ftp_app_1.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server:    ${{ secrets.FTP_SERVER }}
+          username:  ${{ secrets.FTP_USERNAME }}
+          password:  ${{ secrets.FTP_PASSWORD }}
+          port:      21
+          protocol:  ftp
+          local-dir: ./
+          server-dir: /public_html/buildmetrics_app/
+          timeout:   60000
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.DS_Store
+            **/.claude/**
+            .github/**
+            landing/**
+            beamcalc-pro/**
+            markjcreative-landing.html
+            AUDIT_REPORT.md
