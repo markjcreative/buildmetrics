@@ -4,59 +4,129 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Design Register — BuildMetrics</title>
-  <meta name="description" content="All saved structural calculations organised by project">
+  <meta name="description" content="Master index of all engineering calculations across all projects">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/app.css">
   <style>
-    .dr-page { max-width: 960px; margin: 0 auto; padding: 24px 20px 48px; }
-    .dr-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
-    .dr-topbar h1 { font-size:1.4rem; font-weight:700; margin:0; }
-    .dr-subtitle { font-size:0.83rem; color:var(--text-secondary); margin:0; }
-    .dr-search { display:flex; gap:8px; align-items:center; }
-    .dr-search input { border:1px solid var(--border); border-radius:8px; padding:7px 12px; font-size:0.85rem; outline:none; min-width:220px; background:var(--bg-surface); }
-    .dr-search input:focus { border-color:var(--accent); }
+    /* ── Page Layout ─────────────────────────────────────── */
+    .dr-page { max-width: 1200px; margin: 0 auto; padding: 28px 24px 64px; }
 
-    .project-block { margin-bottom:28px; background:var(--bg-surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
-    .project-header { display:flex; align-items:center; gap:12px; padding:14px 18px; background:var(--bg-subtle); border-bottom:1px solid var(--border); cursor:pointer; user-select:none; }
-    .project-header .proj-name { font-weight:700; font-size:0.95rem; flex:1; }
-    .project-header .proj-meta { font-size:0.75rem; color:var(--text-muted); }
-    .project-header .proj-chevron { font-size:0.8rem; color:var(--text-muted); transition:transform .2s; }
-    .project-block.collapsed .proj-chevron { transform:rotate(-90deg); }
-    .project-block.collapsed .proj-calcs { display:none; }
+    /* ── Header ──────────────────────────────────────────── */
+    .dr-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+    .dr-header-left h1 { font-size:1.5rem; font-weight:800; color:var(--text-primary); margin:0 0 4px; letter-spacing:-0.02em; }
+    .dr-header-left p  { font-size:0.85rem; color:var(--text-muted); margin:0; }
+    .dr-header-right { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+    .dr-new-btn { position:relative; display:inline-flex; align-items:center; gap:6px; background:var(--accent); color:white; font-size:0.83rem; font-weight:600; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; text-decoration:none; white-space:nowrap; }
+    .dr-new-btn:hover { background:var(--accent-hover); }
+    .dr-new-btn .caret { font-size:0.7rem; opacity:0.8; }
 
-    .proj-calcs table { width:100%; border-collapse:collapse; }
-    .proj-calcs th { font-size:0.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); padding:9px 16px; border-bottom:1px solid var(--border); background:var(--bg-subtle); text-align:left; font-weight:700; }
-    .proj-calcs td { padding:11px 16px; font-size:0.83rem; border-bottom:1px solid var(--border); vertical-align:middle; }
-    .proj-calcs tr:last-child td { border-bottom:none; }
-    .proj-calcs tr:hover td { background:var(--bg-subtle); }
-    .calc-type-badge { display:inline-block; font-size:0.72rem; font-weight:600; padding:2px 8px; border-radius:4px; background:var(--accent-light); color:var(--accent); white-space:nowrap; }
-    .pass-chip { font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:99px; white-space:nowrap; }
-    .pass-chip.pass { background:#DCFCE7; color:#166534; }
-    .pass-chip.fail { background:#FEE2E2; color:#991B1B; }
-    .pass-chip.unknown { background:var(--bg-subtle); color:var(--text-muted); }
-    .calc-summary { font-size:0.78rem; color:var(--text-secondary); max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .btn-del { background:none; border:none; cursor:pointer; font-size:0.82rem; color:var(--text-muted); padding:4px 8px; border-radius:6px; }
-    .btn-del:hover { background:#FEE2E2; color:#DC2626; }
+    /* ── Stats Bar ───────────────────────────────────────── */
+    .dr-stats { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+    .dr-stat { background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; padding:12px 18px; flex:1; min-width:110px; }
+    .dr-stat-val { font-size:1.6rem; font-weight:800; color:var(--accent); font-family:'JetBrains Mono',monospace; line-height:1; }
+    .dr-stat-val.pass { color:#16A34A; }
+    .dr-stat-val.fail { color:#DC2626; }
+    .dr-stat-lbl { font-size:0.71rem; color:var(--text-muted); margin-top:4px; text-transform:uppercase; letter-spacing:.04em; font-weight:600; }
 
-    .dr-empty { text-align:center; padding:56px 24px; color:var(--text-muted); }
-    .dr-empty-icon { font-size:3rem; margin-bottom:12px; }
-    .dr-empty h3 { margin:0 0 8px; font-size:1.1rem; color:var(--text-secondary); }
-    .dr-empty p { margin:0; font-size:0.85rem; }
-    .dr-empty a { color:var(--accent); text-decoration:none; font-weight:600; }
+    /* ── Filter Bar ──────────────────────────────────────── */
+    .dr-filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+    .dr-search-wrap { position:relative; flex:1; min-width:200px; }
+    .dr-search-wrap svg { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); pointer-events:none; }
+    .dr-search-input { width:100%; border:1px solid var(--border); border-radius:8px; padding:8px 12px 8px 34px; font-size:0.84rem; outline:none; background:var(--bg-surface); color:var(--text-primary); font-family:inherit; }
+    .dr-search-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.08); }
+    .dr-filter-select { border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:0.83rem; background:var(--bg-surface); color:var(--text-primary); outline:none; cursor:pointer; font-family:inherit; }
+    .dr-filter-select:focus { border-color:var(--accent); }
+    .dr-filter-group { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .dr-sort-label { font-size:0.78rem; color:var(--text-muted); font-weight:500; white-space:nowrap; }
 
-    .no-calcs { padding:18px 20px; color:var(--text-muted); font-size:0.83rem; font-style:italic; }
+    /* ── Table Container ─────────────────────────────────── */
+    .dr-table-wrap { background:var(--bg-surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
 
-    .dr-stats { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
-    .stat-chip { background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:10px 16px; min-width:120px; }
-    .stat-chip .stat-val { font-size:1.5rem; font-weight:800; color:var(--accent); font-family:'JetBrains Mono',monospace; }
-    .stat-chip .stat-lbl { font-size:0.72rem; color:var(--text-muted); margin-top:2px; }
+    /* ── Table ───────────────────────────────────────────── */
+    .dr-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+    .dr-table thead { position:sticky; top:0; z-index:1; }
+    .dr-table th { padding:10px 16px; text-align:left; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); background:var(--bg-surface); border-bottom:2px solid var(--border); white-space:nowrap; }
+    .dr-table th.sortable { cursor:pointer; user-select:none; }
+    .dr-table th.sortable:hover { color:var(--text-primary); }
+    .dr-table td { padding:12px 16px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .dr-table tbody tr:hover td { background:var(--bg-subtle); }
+    .dr-table tr:last-child td { border-bottom:none; }
+    .dr-table th:first-child,
+    .dr-table td:first-child { padding-left:20px; }
+    .dr-table th:last-child,
+    .dr-table td:last-child { padding-right:20px; }
 
-    .breadcrumb { display:flex; align-items:center; gap:6px; font-size:0.82rem; margin-bottom:20px; }
-    .breadcrumb a { color:var(--accent); text-decoration:none; }
-    .breadcrumb a:hover { text-decoration:underline; }
-    .bc-sep { color:var(--text-muted); }
+    /* ── Cell Styles ─────────────────────────────────────── */
+    .calc-ref { font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--text-muted); background:var(--bg-subtle); padding:2px 7px; border-radius:4px; white-space:nowrap; border:1px solid var(--border); }
+    .calc-name-link { font-weight:600; color:var(--text-primary); text-decoration:none; display:block; }
+    .calc-name-link:hover { color:var(--accent); }
+    .calc-name-sub { font-size:0.74rem; color:var(--text-muted); margin-top:1px; }
+    .proj-link { color:var(--accent); text-decoration:none; font-size:0.82rem; }
+    .proj-link:hover { text-decoration:underline; }
+
+    /* Type pills */
+    .calc-type-pill { display:inline-block; font-size:0.70rem; font-weight:700; padding:2px 8px; border-radius:99px; white-space:nowrap; }
+    .pill-beam        { background:#DBEAFE; color:#1E40AF; }
+    .pill-column      { background:#EDE9FE; color:#5B21B6; }
+    .pill-rc-beam     { background:#FEF3C7; color:#92400E; }
+    .pill-rc-column   { background:#FEF3C7; color:#92400E; }
+    .pill-slab        { background:#D1FAE5; color:#065F46; }
+    .pill-footing     { background:#FFE4E6; color:#9F1239; }
+    .pill-retaining   { background:#E0F2FE; color:#0C4A6E; }
+    .pill-report      { background:#F3E8FF; color:#7C3AED; }
+    .pill-default     { background:var(--bg-subtle); color:var(--text-muted); }
+
+    /* Status chips */
+    .status-pass { background:#DCFCE7; color:#166534; font-weight:700; font-size:0.72rem; padding:3px 10px; border-radius:99px; white-space:nowrap; display:inline-block; }
+    .status-fail { background:#FEE2E2; color:#991B1B; font-weight:700; font-size:0.72rem; padding:3px 10px; border-radius:99px; white-space:nowrap; display:inline-block; }
+    .status-na   { color:var(--text-muted); font-size:0.82rem; }
+
+    /* Engineer avatar */
+    .engineer-avatar { width:26px; height:26px; border-radius:50%; background:var(--accent); color:white; font-size:0.68rem; font-weight:700; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+    /* Date cell */
+    .date-cell { font-size:0.80rem; color:var(--text-secondary); white-space:nowrap; }
+    .date-ago  { font-size:0.72rem; color:var(--text-muted); }
+
+    /* Actions */
+    .dr-action-btn { background:none; border:none; cursor:pointer; padding:5px 8px; border-radius:6px; font-size:0.78rem; color:var(--text-muted); }
+    .dr-action-btn:hover { background:var(--bg-subtle); color:var(--accent); }
+    .dr-action-btn.danger:hover { background:#FEE2E2; color:#DC2626; }
+    .dr-actions { display:flex; gap:2px; align-items:center; white-space:nowrap; }
+
+    /* ── Empty State ─────────────────────────────────────── */
+    .dr-empty { text-align:center; padding:72px 24px; color:var(--text-muted); }
+    .dr-empty-icon { width:64px; height:64px; background:var(--bg-subtle); border-radius:16px; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+    .dr-empty h3 { margin:0 0 8px; font-size:1.1rem; color:var(--text-secondary); font-weight:700; }
+    .dr-empty p  { margin:0 0 20px; font-size:0.85rem; line-height:1.6; max-width:360px; margin-left:auto; margin-right:auto; }
+    .dr-empty a  { color:var(--accent); text-decoration:none; font-weight:600; }
+
+    /* ── Pagination ──────────────────────────────────────── */
+    .dr-pagination { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-top:1px solid var(--border); gap:12px; flex-wrap:wrap; }
+    .dr-page-info { font-size:0.80rem; color:var(--text-muted); }
+    .dr-page-btns { display:flex; gap:6px; }
+    .dr-page-btn { border:1px solid var(--border); background:var(--bg-surface); border-radius:6px; padding:5px 12px; font-size:0.82rem; cursor:pointer; color:var(--text-secondary); font-family:inherit; }
+    .dr-page-btn:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+    .dr-page-btn:disabled { opacity:.4; cursor:default; }
+    .dr-page-btn.active { background:var(--accent); color:white; border-color:var(--accent); }
+
+    /* ── Skeleton / Loading ───────────────────────────────── */
+    .dr-loading { padding:48px; text-align:center; color:var(--text-muted); font-size:0.9rem; }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .dr-table th:nth-child(4),
+      .dr-table td:nth-child(4),
+      .dr-table th:nth-child(5),
+      .dr-table td:nth-child(5) { display:none; }
+      .dr-stat { min-width:80px; }
+    }
+    @media (max-width: 540px) {
+      .dr-table th:nth-child(3),
+      .dr-table td:nth-child(3) { display:none; }
+    }
   </style>
 </head>
 <body>
@@ -66,29 +136,74 @@
 
     <div class="dr-page">
 
-      <div class="breadcrumb">
-        <a href="/dashboard.html">Dashboard</a>
-        <span class="bc-sep">›</span>
-        <span>Design Register</span>
-      </div>
-
-      <div class="dr-topbar">
-        <div>
-          <h1>📋 Design Register</h1>
-          <p class="dr-subtitle">All saved calculations grouped by project</p>
+      <!-- Header -->
+      <div class="dr-header">
+        <div class="dr-header-left">
+          <h1>Design Register</h1>
+          <p>All engineering calculations across all projects</p>
         </div>
-        <div class="dr-search">
-          <input type="text" id="search-input" placeholder="Search calculations…" oninput="applySearch(this.value)">
-          <a href="/dashboard.html" class="btn btn-primary" style="white-space:nowrap">+ New Project</a>
+        <div class="dr-header-right">
+          <a href="/projects.html" class="dr-new-btn">
+            + New Calculation <span class="caret">▾</span>
+          </a>
         </div>
       </div>
 
-      <div class="dr-stats" id="dr-stats"></div>
+      <!-- Stats Bar -->
+      <div class="dr-stats" id="dr-stats">
+        <div class="dr-stat"><div class="dr-stat-val" id="stat-total">—</div><div class="dr-stat-lbl">Total Calculations</div></div>
+        <div class="dr-stat"><div class="dr-stat-val" id="stat-projects">—</div><div class="dr-stat-lbl">Projects Active</div></div>
+        <div class="dr-stat"><div class="dr-stat-val pass" id="stat-pass">—</div><div class="dr-stat-lbl">Passing</div></div>
+        <div class="dr-stat"><div class="dr-stat-val fail" id="stat-fail">—</div><div class="dr-stat-lbl">Failing</div></div>
+        <div class="dr-stat"><div class="dr-stat-val" id="stat-month">—</div><div class="dr-stat-lbl">This Month</div></div>
+      </div>
 
-      <div id="dr-content"></div>
+      <!-- Filter Bar -->
+      <div class="dr-filters">
+        <div class="dr-search-wrap">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+          <input class="dr-search-input" id="search-input" type="text" placeholder="Search name, project, engineer, type…" oninput="DR.applyFilters()">
+        </div>
+        <div class="dr-filter-group">
+          <select class="dr-filter-select" id="filter-project" onchange="DR.applyFilters()">
+            <option value="">All Projects</option>
+          </select>
+          <select class="dr-filter-select" id="filter-type" onchange="DR.applyFilters()">
+            <option value="">All Types</option>
+            <option value="beam">Steel Beam</option>
+            <option value="column">Steel Column</option>
+            <option value="rc-beam">RC Beam</option>
+            <option value="rc-column">RC Column</option>
+            <option value="slab">RC Slab</option>
+            <option value="footing">Pad Footing</option>
+            <option value="retaining-wall">Retaining Wall</option>
+            <option value="report">Report</option>
+          </select>
+          <select class="dr-filter-select" id="filter-status" onchange="DR.applyFilters()">
+            <option value="">All Status</option>
+            <option value="pass">Pass</option>
+            <option value="fail">Fail</option>
+            <option value="na">No Result</option>
+          </select>
+        </div>
+        <div class="dr-filter-group">
+          <span class="dr-sort-label">Sort:</span>
+          <select class="dr-filter-select" id="filter-sort" onchange="DR.applyFilters()">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="project">Project</option>
+            <option value="type">Type</option>
+            <option value="name">Name A–Z</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="dr-table-wrap" id="dr-table-wrap">
+        <div class="dr-loading">Loading calculations…</div>
+      </div>
 
     </div>
-
   </main>
 </div>
 
@@ -99,182 +214,385 @@
 <script src="/js/ui/topNav.js"></script>
 
 <script>
-const CALC_TYPE_LABELS = {
-  'beam':             { label: 'Beam',            icon: '🏗' },
-  'rc-beam':          { label: 'RC Beam',          icon: '🧱' },
-  'column':           { label: 'Steel Column',     icon: '⚙' },
-  'timber-column':    { label: 'Timber Column',    icon: '🌲' },
-  'concrete-column':  { label: 'Concrete Column',  icon: '🏛' },
-  'slab':             { label: 'RC Slab',          icon: '📐' },
-  'footing':          { label: 'Pad Footing',      icon: '🏗' },
-  'retaining-wall':   { label: 'Retaining Wall',   icon: '🧱' },
-  'connection':       { label: 'Connection',       icon: '🔩' },
-  'bbs':              { label: 'BBS',              icon: '📋' },
-  'section-properties': { label: 'Section Props',  icon: '📐' },
-  'steel-member':     { label: 'Steel Member',     icon: '🔧' },
-  'wind-loading':     { label: 'Wind Loading',     icon: '🌬' },
-  'load-takedown':    { label: 'Load Takedown',    icon: '⬇️' },
+/* ── Constants ──────────────────────────────────────────── */
+const CALC_META = {
+  'beam':               { label: 'Steel Beam',    pill: 'pill-beam',      url: '/calcs/beam.html' },
+  'rc-beam':            { label: 'RC Beam',        pill: 'pill-rc-beam',   url: '/calcs/rc-beam.html' },
+  'column':             { label: 'Steel Column',   pill: 'pill-column',    url: '/calcs/column.html' },
+  'timber-column':      { label: 'Timber Column',  pill: 'pill-column',    url: '/calcs/timber-column.html' },
+  'concrete-column':    { label: 'RC Column',      pill: 'pill-rc-column', url: '/calcs/concrete-column.html' },
+  'rc-column':          { label: 'RC Column',      pill: 'pill-rc-column', url: '/calcs/concrete-column.html' },
+  'slab':               { label: 'RC Slab',        pill: 'pill-slab',      url: '/calcs/slab.html' },
+  'footing':            { label: 'Pad Footing',    pill: 'pill-footing',   url: '/calcs/footing.html' },
+  'retaining-wall':     { label: 'Retaining Wall', pill: 'pill-retaining', url: '/calcs/retaining-wall.html' },
+  'connection':         { label: 'Connection',     pill: 'pill-beam',      url: '/calcs/connection.html' },
+  'bbs':                { label: 'BBS',             pill: 'pill-slab',      url: '/calcs/bbs.html' },
+  'section-properties': { label: 'Section Props',  pill: 'pill-default',   url: '/calcs/section-properties.html' },
+  'steel-member':       { label: 'Steel Member',   pill: 'pill-beam',      url: '/calcs/steel-member.html' },
+  'wind-loading':       { label: 'Wind Loading',   pill: 'pill-retaining', url: '/calcs/wind-loading.html' },
+  'load-takedown':      { label: 'Load Takedown',  pill: 'pill-default',   url: '/calcs/load-takedown.html' },
+  'report':             { label: 'Report',         pill: 'pill-report',    url: '/report-builder.html' },
 };
 
-const CALC_URLS = {
-  'beam':            '/calcs/beam.html',
-  'rc-beam':         '/calcs/rc-beam.html',
-  'column':          '/calcs/column.html',
-  'timber-column':   '/calcs/timber-column.html',
-  'concrete-column': '/calcs/concrete-column.html',
-  'slab':            '/calcs/slab.html',
-  'footing':         '/calcs/footing.html',
-  'retaining-wall':  '/calcs/retaining-wall.html',
-  'connection':      '/calcs/connection.html',
-  'bbs':             '/calcs/bbs.html',
-  'section-properties': '/calcs/section-properties.html',
-  'steel-member':    '/calcs/steel-member.html',
-  'wind-loading':    '/calcs/wind-loading.html',
-  'load-takedown':   '/calcs/load-takedown.html',
-};
+const PAGE_SIZE = 20;
 
-let allData = [];  // [{project, calcs[]}]
+/* ── Module ─────────────────────────────────────────────── */
+const DR = (() => {
+  let _allRows  = [];   // flat array of normalised row objects
+  let _filtered = [];   // after filters applied
+  let _projects = {};   // id → project obj
+  let _page     = 1;
+  let _counters  = {};  // ref# counters per project+type combo
 
+  /* ── Ref # generator ────────────────────────────────── */
+  function _genRef(projectName, type) {
+    const initials = (projectName || 'UNK')
+      .replace(/[^a-zA-Z0-9 ]/g, '')
+      .split(/\s+/)
+      .map(w => w[0] || '')
+      .join('')
+      .toUpperCase()
+      .slice(0, 3);
+
+    const typeCode = {
+      'beam': 'BM', 'rc-beam': 'RB', 'column': 'CL',
+      'timber-column': 'TC', 'concrete-column': 'RC', 'rc-column': 'RC',
+      'slab': 'SL', 'footing': 'FT', 'retaining-wall': 'RW',
+      'connection': 'CN', 'bbs': 'BB', 'section-properties': 'SP',
+      'steel-member': 'SM', 'wind-loading': 'WL', 'load-takedown': 'LT',
+      'report': 'RP',
+    }[type] || 'GN';
+
+    const key = initials + '-' + typeCode;
+    _counters[key] = (_counters[key] || 0) + 1;
+    return key + '-' + String(_counters[key]).padStart(3, '0');
+  }
+
+  /* ── Normalise a calc history record ────────────────── */
+  function _normaliseCalc(c, proj) {
+    const type = c.calc_type || (c.inputs && c.inputs.calcType) || 'unknown';
+    const res  = c.results || {};
+    let pass;
+    if (res.pass !== undefined) {
+      pass = res.pass;
+    } else if (typeof res.summary === 'string') {
+      pass = /\bPASS\b/i.test(res.summary) ? true : /\bFAIL\b/i.test(res.summary) ? false : undefined;
+    }
+    const projName = proj ? proj.name : 'No Project';
+    return {
+      id:        c.id,
+      ref:       _genRef(projName, type),
+      name:      c.name || 'Untitled',
+      type,
+      projectId: proj ? proj.id : null,
+      projectName: projName,
+      engineer:  c.engineer || (proj && proj.lead) || null,
+      date:      new Date(c.created_at || c.updated_at || Date.now()),
+      pass,
+      summary:   res.summary || null,
+      url:       (CALC_META[type] || {}).url || '/dashboard.html',
+      source:    'calc',
+    };
+  }
+
+  /* ── Normalise a canvas report ──────────────────────── */
+  function _normaliseReport(r) {
+    const proj = _projects[r.project_id];
+    const projName = proj ? proj.name : 'No Project';
+    return {
+      id:        'rpt-' + r.id,
+      ref:       _genRef(projName, 'report'),
+      name:      r.title || r.name || 'Untitled Report',
+      type:      'report',
+      projectId: r.project_id || null,
+      projectName: projName,
+      engineer:  r.created_by || null,
+      date:      new Date(r.created_at || Date.now()),
+      pass:      undefined,
+      summary:   null,
+      url:       '/report-builder.html?id=' + r.id,
+      source:    'report',
+    };
+  }
+
+  /* ── Date helpers ───────────────────────────────────── */
+  function _fmtDate(d) {
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  }
+  function _timeAgo(d) {
+    const diff = Date.now() - d.getTime();
+    const days = Math.floor(diff / 86400000);
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days < 30)  return days + 'd ago';
+    const months = Math.floor(days / 30);
+    if (months < 12) return months + 'mo ago';
+    return Math.floor(months / 12) + 'yr ago';
+  }
+
+  /* ── HTML escaping ──────────────────────────────────── */
+  function _esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Initials avatar ────────────────────────────────── */
+  function _initials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+  }
+
+  /* ── Load data ──────────────────────────────────────── */
+  async function load() {
+    try {
+      // Load projects and calcs in parallel; reports separately (may fail if API not ready)
+      const [projectsArr, calcs] = await Promise.all([
+        Projects.getAll(),
+        CalcHistory.getAll(),
+      ]);
+
+      // Build lookup
+      projectsArr.forEach(p => { _projects[p.id] = p; });
+
+      // Reset ref counters before building rows
+      _counters = {};
+
+      // Normalise calc history rows
+      _allRows = calcs.map(c => _normaliseCalc(c, _projects[c.project_id]));
+
+      // Attempt to load canvas reports
+      try {
+        const resp = await fetch('/api/reports.php?action=list', { headers: Auth.authHeaders() });
+        if (resp.ok) {
+          const data = await resp.json();
+          const reports = Array.isArray(data) ? data : (data.reports || data.data || []);
+          reports.forEach(r => { _allRows.push(_normaliseReport(r)); });
+        }
+      } catch (_) { /* reports API optional */ }
+
+      // Populate project filter dropdown
+      _populateProjectFilter(projectsArr);
+
+      // Update stats
+      _renderStats();
+
+      // Apply and render
+      applyFilters();
+
+    } catch (e) {
+      console.error('DR.load error:', e);
+      document.getElementById('dr-table-wrap').innerHTML =
+        '<div class="dr-empty"><div class="dr-empty-icon">' +
+        '<svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path stroke="#A1A1AA" stroke-width="1.8" stroke-linecap="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>' +
+        '</div><h3>Failed to load data</h3><p>Please refresh the page and try again.</p></div>';
+    }
+  }
+
+  function _populateProjectFilter(projects) {
+    const sel = document.getElementById('filter-project');
+    projects.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  /* ── Stats ──────────────────────────────────────────── */
+  function _renderStats() {
+    const now = new Date();
+    const thisMonth = _allRows.filter(r => {
+      return r.date.getFullYear() === now.getFullYear() && r.date.getMonth() === now.getMonth();
+    }).length;
+    const projectIds = new Set(_allRows.map(r => r.projectId).filter(Boolean));
+
+    document.getElementById('stat-total').textContent    = _allRows.length;
+    document.getElementById('stat-projects').textContent = projectIds.size;
+    document.getElementById('stat-pass').textContent     = _allRows.filter(r => r.pass === true).length;
+    document.getElementById('stat-fail').textContent     = _allRows.filter(r => r.pass === false).length;
+    document.getElementById('stat-month').textContent    = thisMonth;
+  }
+
+  /* ── Filters & Sort ─────────────────────────────────── */
+  function applyFilters() {
+    const q       = (document.getElementById('search-input').value || '').toLowerCase().trim();
+    const projId  = document.getElementById('filter-project').value;
+    const type    = document.getElementById('filter-type').value;
+    const status  = document.getElementById('filter-status').value;
+    const sort    = document.getElementById('filter-sort').value;
+
+    _filtered = _allRows.filter(row => {
+      if (projId && String(row.projectId) !== String(projId)) return false;
+      if (type   && row.type !== type) return false;
+      if (status === 'pass' && row.pass !== true) return false;
+      if (status === 'fail' && row.pass !== false) return false;
+      if (status === 'na'   && row.pass !== undefined) return false;
+      if (q) {
+        const hay = [row.name, row.projectName, row.engineer, row.type,
+                     (CALC_META[row.type] || {}).label || ''].join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    _filtered.sort((a, b) => {
+      switch (sort) {
+        case 'oldest':  return a.date - b.date;
+        case 'project': return a.projectName.localeCompare(b.projectName);
+        case 'type':    return a.type.localeCompare(b.type);
+        case 'name':    return a.name.localeCompare(b.name);
+        default:        return b.date - a.date; // newest
+      }
+    });
+
+    _page = 1;
+    _render();
+  }
+
+  /* ── Render table ───────────────────────────────────── */
+  function _render() {
+    const wrap = document.getElementById('dr-table-wrap');
+
+    if (!_filtered.length) {
+      wrap.innerHTML =
+        '<div class="dr-empty">' +
+        '<div class="dr-empty-icon"><svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path stroke="#A1A1AA" stroke-width="1.8" stroke-linecap="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5l2 2h5a2 2 0 012 2v12a2 2 0 01-2 2z"/></svg></div>' +
+        '<h3>' + (_allRows.length ? 'No matching calculations' : 'No calculations yet') + '</h3>' +
+        '<p>' + (_allRows.length
+          ? 'Try adjusting your filters or search term.'
+          : 'Run a calculation and click Save to add it here. Or <a href="/projects.html">create a project</a> to get started.') +
+        '</p></div>';
+      return;
+    }
+
+    const start   = (_page - 1) * PAGE_SIZE;
+    const end     = Math.min(start + PAGE_SIZE, _filtered.length);
+    const pageRows = _filtered.slice(start, end);
+    const totalPages = Math.ceil(_filtered.length / PAGE_SIZE);
+
+    const rows = pageRows.map(row => {
+      const meta    = CALC_META[row.type] || { label: row.type, pill: 'pill-default' };
+      const pillCls = meta.pill || 'pill-default';
+      const typePill = '<span class="calc-type-pill ' + pillCls + '">' + _esc(meta.label) + '</span>';
+
+      const nameCell =
+        '<a href="' + _esc(row.url) + (row.source === 'calc' ? '?load=' + _esc(row.id) : '') + '" class="calc-name-link">' + _esc(row.name) + '</a>' +
+        (row.summary ? '<div class="calc-name-sub" title="' + _esc(row.summary) + '">' + _esc(row.summary.slice(0, 60)) + (row.summary.length > 60 ? '…' : '') + '</div>' : '');
+
+      const projCell = row.projectId
+        ? '<a href="/project.html?id=' + _esc(row.projectId) + '" class="proj-link">' + _esc(row.projectName) + '</a>'
+        : '<span style="color:var(--text-muted);font-size:0.82rem">—</span>';
+
+      const engCell = row.engineer
+        ? '<div style="display:flex;align-items:center;gap:7px"><div class="engineer-avatar" title="' + _esc(row.engineer) + '">' + _esc(_initials(row.engineer)) + '</div><span style="font-size:0.80rem;color:var(--text-secondary)">' + _esc(row.engineer.split(' ')[0]) + '</span></div>'
+        : '<span class="status-na">—</span>';
+
+      let statusCell;
+      if (row.pass === true)       statusCell = '<span class="status-pass">PASS</span>';
+      else if (row.pass === false) statusCell = '<span class="status-fail">FAIL</span>';
+      else                         statusCell = '<span class="status-na">—</span>';
+
+      const dateCell =
+        '<div class="date-cell">' + _fmtDate(row.date) + '</div>' +
+        '<div class="date-ago">'  + _timeAgo(row.date) + '</div>';
+
+      const openUrl = row.url + (row.source === 'calc' ? '?load=' + encodeURIComponent(row.id) : '');
+      const actions =
+        '<div class="dr-actions">' +
+        '<button class="dr-action-btn" onclick="window.location.href=\'' + _esc(openUrl) + '\'" title="Open">Open</button>' +
+        '<button class="dr-action-btn danger" onclick="DR.deleteRow(\'' + _esc(row.id) + '\',\'' + _esc(row.source) + '\')" title="Delete">' +
+          '<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
+        '</button>' +
+        '</div>';
+
+      return '<tr>' +
+        '<td><span class="calc-ref">' + _esc(row.ref) + '</span></td>' +
+        '<td>' + nameCell + '</td>' +
+        '<td>' + projCell + '</td>' +
+        '<td>' + typePill + '</td>' +
+        '<td>' + engCell + '</td>' +
+        '<td>' + dateCell + '</td>' +
+        '<td>' + statusCell + '</td>' +
+        '<td>' + actions + '</td>' +
+      '</tr>';
+    }).join('');
+
+    // Pagination controls
+    const pageInfo = 'Showing ' + (start + 1) + '–' + end + ' of ' + _filtered.length + ' calculations';
+
+    let pageBtns = '';
+    if (totalPages > 1) {
+      pageBtns += '<button class="dr-page-btn" onclick="DR.goPage(' + (_page - 1) + ')" ' + (_page <= 1 ? 'disabled' : '') + '>← Prev</button>';
+      // Show at most 5 page number buttons
+      const startP = Math.max(1, _page - 2);
+      const endP   = Math.min(totalPages, startP + 4);
+      for (let i = startP; i <= endP; i++) {
+        pageBtns += '<button class="dr-page-btn' + (i === _page ? ' active' : '') + '" onclick="DR.goPage(' + i + ')">' + i + '</button>';
+      }
+      pageBtns += '<button class="dr-page-btn" onclick="DR.goPage(' + (_page + 1) + ')" ' + (_page >= totalPages ? 'disabled' : '') + '>Next →</button>';
+    }
+
+    wrap.innerHTML =
+      '<table class="dr-table">' +
+        '<thead><tr>' +
+          '<th>Ref #</th>' +
+          '<th>Calculation</th>' +
+          '<th>Project</th>' +
+          '<th>Type</th>' +
+          '<th>Engineer</th>' +
+          '<th>Date</th>' +
+          '<th>Status</th>' +
+          '<th></th>' +
+        '</tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table>' +
+      '<div class="dr-pagination">' +
+        '<span class="dr-page-info">' + pageInfo + '</span>' +
+        '<div class="dr-page-btns">' + pageBtns + '</div>' +
+      '</div>';
+  }
+
+  /* ── Pagination ─────────────────────────────────────── */
+  function goPage(n) {
+    const totalPages = Math.ceil(_filtered.length / PAGE_SIZE);
+    _page = Math.max(1, Math.min(n, totalPages));
+    _render();
+    document.querySelector('.dr-table-wrap, #dr-table-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ── Delete ─────────────────────────────────────────── */
+  async function deleteRow(id, source) {
+    if (!confirm('Delete this ' + (source === 'report' ? 'report' : 'calculation') + '? This cannot be undone.')) return;
+    try {
+      if (source === 'calc') {
+        await CalcHistory.remove(id);
+      } else {
+        const realId = String(id).replace(/^rpt-/, '');
+        await fetch('/api/reports.php?action=delete&id=' + encodeURIComponent(realId), {
+          method: 'DELETE',
+          headers: Auth.authHeaders(),
+        });
+      }
+      // Remove from local array and re-render
+      _allRows = _allRows.filter(r => String(r.id) !== String(id));
+      _counters = {}; // reset refs
+      _allRows.forEach((r, i) => { r.ref = _genRef(r.projectName, r.type); });
+      _renderStats();
+      applyFilters();
+    } catch (e) {
+      alert(e.message || 'Delete failed. Please try again.');
+    }
+  }
+
+  return { load, applyFilters, goPage, deleteRow };
+})();
+
+/* ── Bootstrap ──────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   TopNav.init();
   if (!Auth.guard()) return;
-  loadData();
+  DR.load();
 });
-
-async function loadData() {
-  try {
-    const [projects, calcs] = await Promise.all([
-      Projects.getAll(),
-      CalcHistory.getAll(),
-    ]);
-    allData = projects.map(proj => ({
-      project: proj,
-      calcs: calcs.filter(c => c.project_id === proj.id),
-    }));
-    renderStats();
-    renderContent(allData);
-  } catch (e) {
-    console.error('loadData error:', e);
-    document.getElementById('dr-content').innerHTML =
-      '<div class="dr-empty"><div class="dr-empty-icon">⚠️</div><h3>Failed to load data</h3><p>Please refresh the page.</p></div>';
-  }
-}
-
-function renderStats() {
-  const totalProj  = allData.length;
-  const totalCalcs = allData.reduce((s, p) => s + p.calcs.length, 0);
-  const totalPass  = allData.reduce((s, p) => s + p.calcs.filter(c => c.results?.pass === true).length, 0);
-  document.getElementById('dr-stats').innerHTML = `
-    <div class="stat-chip"><div class="stat-val">${totalProj}</div><div class="stat-lbl">Projects</div></div>
-    <div class="stat-chip"><div class="stat-val">${totalCalcs}</div><div class="stat-lbl">Calculations</div></div>
-    <div class="stat-chip"><div class="stat-val">${totalPass}</div><div class="stat-lbl">Passing</div></div>
-  `;
-}
-
-function renderContent(data) {
-  const container = document.getElementById('dr-content');
-
-  if (!data.length || data.every(p => !p.calcs.length && !p._forceShow)) {
-    const hasProjects = allData.length > 0;
-    container.innerHTML = `<div class="dr-empty">
-      <div class="dr-empty-icon">📋</div>
-      <h3>${hasProjects ? 'No calculations yet' : 'No projects yet'}</h3>
-      <p>${hasProjects
-        ? 'Run a calculation and click Save to add it to your register.'
-        : 'Create a project from the <a href="/dashboard.html">Dashboard</a> to get started.'}</p>
-    </div>`;
-    return;
-  }
-
-  container.innerHTML = data.map(({ project, calcs }) => {
-    const count = calcs.length;
-    const rows = count
-      ? calcs.map(c => calcRow(c, project.id)).join('')
-      : `<tr><td colspan="6" class="no-calcs">No calculations saved yet.</td></tr>`;
-
-    return `<div class="project-block" id="proj-${project.id}">
-      <div class="project-header" onclick="toggleProject('${project.id}')">
-        <span style="font-size:1.2rem">📁</span>
-        <span class="proj-name">${escHtml(project.name)}</span>
-        ${project.description ? `<span class="proj-meta">${escHtml(project.description)}</span>` : ''}
-        <span class="proj-meta">${count} calc${count !== 1 ? 's' : ''}</span>
-        <span class="proj-chevron">▾</span>
-      </div>
-      <div class="proj-calcs">
-        <table>
-          <thead><tr>
-            <th>Type</th>
-            <th>Name</th>
-            <th>Summary</th>
-            <th>Status</th>
-            <th>Saved</th>
-            <th></th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function calcRow(calc, projectId) {
-  // MySQL API: calc_type, inputs, results, created_at
-  const ct   = calc.calc_type || (calc.inputs && calc.inputs.calcType) || 'unknown';
-  const meta = CALC_TYPE_LABELS[ct] || { label: ct, icon: '📄' };
-  // Pass/fail from results object
-  const res  = calc.results || {};
-  const pass = res.pass !== undefined ? res.pass : (
-    typeof res.summary === 'string' && /\bPASS\b/i.test(res.summary) ? true :
-    typeof res.summary === 'string' && /\bFAIL\b/i.test(res.summary) ? false : undefined
-  );
-  const passChip = pass === true
-    ? '<span class="pass-chip pass">PASS</span>'
-    : pass === false
-    ? '<span class="pass-chip fail">FAIL</span>'
-    : '<span class="pass-chip unknown">—</span>';
-  const summary = res.summary || '—';
-  const date = new Date(calc.created_at || calc.updated_at).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-  const url  = (CALC_URLS[ct] || '/dashboard.html') + '?load=' + calc.id;
-
-  return `<tr data-calc-id="${calc.id}" data-search="${escHtml((calc.name + ' ' + summary + ' ' + meta.label).toLowerCase())}">
-    <td><span class="calc-type-badge">${meta.icon} ${meta.label}</span></td>
-    <td><a href="${url}" style="color:var(--text-primary);text-decoration:none;font-weight:600">${escHtml(calc.name)}</a></td>
-    <td><div class="calc-summary" title="${escHtml(summary)}">${escHtml(summary)}</div></td>
-    <td>${passChip}</td>
-    <td style="white-space:nowrap;color:var(--text-muted);font-size:0.78rem">${date}</td>
-    <td><button class="btn-del" onclick="deleteCalc('${calc.id}','${projectId}')" title="Delete">🗑</button></td>
-  </tr>`;
-}
-
-async function deleteCalc(calcId, projectId) {
-  if (!confirm('Delete this calculation? This cannot be undone.')) return;
-  try {
-    await CalcHistory.remove(calcId);
-    loadData();
-  } catch (e) {
-    alert(e.message || 'Delete failed.');
-  }
-}
-
-function toggleProject(id) {
-  document.getElementById('proj-' + id).classList.toggle('collapsed');
-}
-
-function applySearch(query) {
-  const q = query.toLowerCase().trim();
-  document.querySelectorAll('[data-calc-id]').forEach(row => {
-    const text = row.dataset.search || '';
-    row.style.display = (!q || text.includes(q)) ? '' : 'none';
-  });
-}
-
-function escHtml(s) {
-  return String(s || '')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
-}
 </script>
 </body>
 </html>
