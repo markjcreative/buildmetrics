@@ -55,32 +55,22 @@ const Canvas = (() => {
   // ── Canvas shell HTML for a block ─────────────────────────────────────
 
   function _buildBlockShell(block) {
-    const def = BlockRegistry.getDefinition(block.type) || { icon: '◻', label: block.type };
+    const def = BlockRegistry.getDefinition(block.type) || { icon: '◻', label: block.type, category: '' };
 
     const shell = document.createElement('div');
     shell.className = 'canvas-block';
     shell.dataset.id = block.id;
     shell.dataset.type = block.type;
-
-    // Determine status indicator
-    let statusHTML = '';
-    if (block.type.startsWith('calc_')) {
-      if (block.validated && block.results && block.results._ran) {
-        statusHTML = '<span class="block-status-dot dot-pass" title="Calculated"></span>';
-      } else {
-        statusHTML = '<span class="block-status-dot dot-pending" title="Not yet calculated"></span>';
-      }
-    }
+    shell.dataset.category = def.category || '';
 
     shell.innerHTML = `
       <div class="canvas-block-header">
         <span class="canvas-block-drag" title="Drag to reorder">⠿</span>
-        <span class="canvas-block-icon">${def.icon}</span>
-        <span class="canvas-block-label">${_escHTML(block.label || def.label)}</span>
-        ${statusHTML}
-        <div class="canvas-block-header-actions">
+        <span class="canvas-block-icon-sq">${def.icon}</span>
+        <span class="canvas-block-name">${_escHTML(block.label || def.label)}</span>
+        <div class="canvas-block-actions">
           <button class="canvas-block-btn btn-collapse" title="Collapse/Expand" data-action="collapse">−</button>
-          <button class="canvas-block-btn btn-delete" title="Delete block" data-action="delete">✕</button>
+          <button class="canvas-block-btn delete" title="Delete block" data-action="delete">✕</button>
         </div>
       </div>
       <div class="canvas-block-body" id="cbody-${block.id}"></div>
@@ -98,9 +88,10 @@ const Canvas = (() => {
     }
 
     // Collapse/expand button
-    shell.querySelector('[data-action="collapse"]').addEventListener('click', () => {
+    const collapseBtn = shell.querySelector('[data-action="collapse"]');
+    collapseBtn.addEventListener('click', () => {
       const isCollapsed = bodyEl.classList.toggle('collapsed');
-      shell.querySelector('[data-action="collapse"]').textContent = isCollapsed ? '+' : '−';
+      collapseBtn.textContent = isCollapsed ? '+' : '−';
     });
 
     // Delete button
