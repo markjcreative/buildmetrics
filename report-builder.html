@@ -71,6 +71,11 @@
       <span>Preview</span>
     </button>
 
+    <button class="cb-btn" id="cb-share-btn" title="Share report (generates public link)">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" stroke-width="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" stroke-width="2"/></svg>
+      <span>Share</span>
+    </button>
+
     <div class="cb-export-wrap" id="cb-export-wrap">
       <button class="cb-btn" id="cb-export-btn">
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
@@ -429,7 +434,11 @@ const RB = (() => {
 
   function _applyReportMeta(data) {
     if (data.title) document.getElementById('cb-title-input').value = data.title;
-    if (data.status) document.getElementById('cb-status-select').value = data.status;
+    if (data.status) {
+      const sel = document.getElementById('cb-status-select');
+      sel.value = data.status;
+      sel.dataset.status = data.status;
+    }
     // Back link: go to the specific project page
     const backBtn = document.getElementById('cb-back-btn');
     if (backBtn) {
@@ -454,16 +463,48 @@ const RB = (() => {
       _scheduleSave();
     });
 
-    // Status change
+    // Status change — sync dataset for CSS colour and save
     statusSel.addEventListener('change', () => {
+      statusSel.dataset.status = statusSel.value;
       _saveStatus(statusSel.value);
     });
+    // Set initial colour
+    if (statusSel) statusSel.dataset.status = statusSel.value;
 
     // Preview
     previewBtn.addEventListener('click', () => {
       if (!reportId) return;
       window.open('/report-preview.html?report_id=' + encodeURIComponent(reportId), '_blank');
     });
+
+    // Share
+    const shareBtn = document.getElementById('cb-share-btn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async () => {
+        if (!reportId) return;
+        shareBtn.textContent = 'Sharing…';
+        shareBtn.disabled = true;
+        try {
+          const resp = await fetch('/api/report-shares.php', {
+            method: 'POST',
+            headers: Auth.authHeaders(),
+            body: JSON.stringify({ action: 'create', report_id: reportId })
+          });
+          const data = await resp.json();
+          if (data.share_url) {
+            await navigator.clipboard.writeText(data.share_url).catch(() => {});
+            CalcShared && CalcShared.showToast
+              ? CalcShared.showToast('Share link copied! 🔗', 'success')
+              : alert('Share link: ' + data.share_url);
+          }
+        } catch(e) {
+          alert('Failed to create share link');
+        } finally {
+          shareBtn.innerHTML = '<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" stroke-width="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" stroke-width="2"/></svg> <span>Share</span>';
+          shareBtn.disabled = false;
+        }
+      });
+    }
 
     // Export dropdown toggle
     exportBtn.addEventListener('click', (e) => {

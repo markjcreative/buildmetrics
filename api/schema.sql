@@ -134,3 +134,20 @@ CREATE TABLE IF NOT EXISTS `report_activity` (
   PRIMARY KEY (`id`),
   KEY `idx_ra_report` (`report_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ── Report Share Links ───────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS `report_shares` (
+  `id` varchar(36) NOT NULL,
+  `report_id` varchar(36) NOT NULL,
+  `user_id` varchar(36) NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `view_count` int NOT NULL DEFAULT 0,
+  `active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_token` (`token`),
+  KEY `idx_rs_report` (`report_id`),
+  KEY `idx_rs_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
