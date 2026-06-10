@@ -335,6 +335,11 @@ const PreviewRenderer = (() => {
     const hasResults = res._ran === true;
     const noCalcMsg  = hasResults ? '' : `<tr><td colspan="4" style="color:#999;font-style:italic;padding:6pt 10pt;">[Calculation not yet run — click Calculate in editor]</td></tr>`;
 
+    // Engineering diagram (generated from config+results via BlockRegistry)
+    const diagramHTML = (typeof BlockRegistry !== 'undefined' && typeof BlockRegistry.generateDiagramHTML === 'function')
+      ? (BlockRegistry.generateDiagramHTML(block) || '')
+      : '';
+
     return `<div class="rp-calc-section">
   <div class="rp-calc-header">
     <span class="rp-calc-title">${label}</span>
@@ -368,7 +373,11 @@ const PreviewRenderer = (() => {
       <th>Status</th>
     </tr></thead>
     <tbody>${checkRows || noCalcMsg}</tbody>
-  </table>` : `
+  </table>
+
+  ${diagramHTML ? `
+  <div class="rp-subsection-title">Engineering Diagram</div>
+  ${diagramHTML}` : ''}` : `
   <div class="rp-calc-table"><table><tbody>${noCalcMsg}</tbody></table></div>`}
 
 </div>`;
@@ -853,6 +862,16 @@ body { font-family:'Times New Roman',Times,serif; font-size:10pt; color:#000; ba
 .rp-pass { color:#006600; font-weight:bold; }
 .rp-fail { color:#cc0000; font-weight:bold; }
 
+/* ── Engineering Diagrams ── */
+.rp-diagram-section { margin:8pt 0 4pt; }
+.rp-diagram-label { font-size:8pt; font-weight:bold; text-transform:uppercase; letter-spacing:.4pt; color:#444; margin-bottom:6pt; padding:3pt 6pt; background:#f9f9f9; border-left:2pt solid #2563EB; }
+.rp-diagram-body { padding:8pt 6pt; text-align:center; background:#fff; }
+.rp-diagram-body svg { max-width:100%; height:auto; display:inline-block; }
+.rp-beam-diagrams { display:grid; grid-template-columns:1fr 1fr; gap:8pt; margin-top:6pt; }
+.rp-beam-diagram-panel { border:0.5pt solid #ddd; padding:4pt; background:#fafafa; }
+.rp-beam-diagram-label { font-size:7.5pt; font-weight:bold; text-align:center; color:#555; margin-bottom:4pt; text-transform:uppercase; letter-spacing:.3pt; }
+.rp-beam-diagram-panel svg { max-width:100%; height:auto; display:block; margin:0 auto; }
+
 /* ── Prose ── */
 .rp-prose { font-size:10pt; line-height:1.6; margin-bottom:10pt; }
 .rp-prose-label { font-weight:bold; font-size:10pt; margin-bottom:4pt; }
@@ -884,6 +903,9 @@ body { font-family:'Times New Roman',Times,serif; font-size:10pt; color:#000; ba
   .rp-page-break { page-break-after:always; }
   .rp-calc-section { page-break-inside:avoid; }
   .rp-title-block { page-break-after:always; }
+  .rp-diagram-section { page-break-inside:avoid; }
+  .rp-beam-diagrams { display:grid; grid-template-columns:1fr 1fr; gap:6pt; }
+  .rp-diagram-body svg, .rp-beam-diagram-panel svg { max-width:100%; height:auto; }
 }`;
   }
 
