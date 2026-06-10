@@ -36,8 +36,10 @@ if ($m === 'POST') {
         mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff),
         mt_rand(0,0x0fff)|0x4000, mt_rand(0,0x3fff)|0x8000,
         mt_rand(0,0xffff), mt_rand(0,0xffff), mt_rand(0,0xffff));
-    $colour = $b['colour'] ?? '#2563EB';
-    $desc   = trim($b['description'] ?? '');
+    $colour   = $b['colour'] ?? '#2563EB';
+    // description may be a JSON string or an object/array — handle both safely
+    $desc_raw = $b['description'] ?? '';
+    $desc     = is_string($desc_raw) ? trim($desc_raw) : json_encode($desc_raw);
     db()->prepare('INSERT INTO projects (id, user_id, name, description, colour) VALUES (?, ?, ?, ?, ?)')
         ->execute([$pid, $u['id'], $name, $desc, $colour]);
     $stmt = db()->prepare('SELECT * FROM projects WHERE id = ?');

@@ -559,6 +559,71 @@ const PreviewRenderer = (() => {
           _calcRow('Peak velocity pressure', 'q<sub>p</sub> = [1+7·I<sub>v</sub>]·½·ρ·v<sub>m</sub>²', res.qp, 'kN/m²'),
           _calcRow('Wind force per unit height', 'F<sub>w</sub> = c<sub>s</sub>c<sub>d</sub>·c<sub>f</sub>·q<sub>p</sub>·A<sub>ref</sub>', res.Fw_total, 'kN'),
         ].join('');
+      case 'calc_rc_column':
+        return [
+          _calcRow('Effective length', 'l₀ = β·l', res.lo_eff || (cfg.lo||0), 'm'),
+          _calcRow('Slenderness ratio', 'λ = l₀/i', res.lambda, ''),
+          _calcRow('Min. eccentricity', 'e₀ = max(h/30, 20mm)', res.e0, 'mm'),
+          _calcRow('Total moment (incl. 2nd order)', 'M<sub>Ed,tot</sub>', res.MEd_tot || res.MEd, 'kNm'),
+          _calcRow('Required rebar area', 'A<sub>s,req</sub>', res.As_req, 'mm²'),
+        ].filter(r => r).join('');
+      case 'calc_slab':
+        return [
+          _calcRow('ULS applied load', 'n = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.n_uls || (1.35*(cfg.gk||0)+1.5*(cfg.qk||0)), 'kN/m²'),
+          _calcRow('Design moment', 'M<sub>Ed</sub> = n·l²/8', res.MEd, 'kNm/m'),
+          _calcRow('Effective depth', 'd = h – c<sub>nom</sub> – φ/2', res.d_eff || ((cfg.thickness||200)-35), 'mm'),
+          _calcRow('Required reinforcement', 'A<sub>s,req</sub> per metre', res.As_req, 'mm²/m'),
+          _calcRow('Deflection check (span/d)', 'l/d = ' + (res.span_d_ratio ? res.span_d_ratio.toFixed(1) : '—'), res.span_d_ratio, ''),
+        ].filter(r => r).join('');
+      case 'calc_retaining':
+        return [
+          _calcRow('Active earth pressure coefficient', 'K<sub>a</sub> = tan²(45°–φ/2)', res.Ka, ''),
+          _calcRow('Active force', 'P<sub>a</sub> = ½·K<sub>a</sub>·γ·H²', res.Pa, 'kN/m'),
+          _calcRow('Overturning moment', 'M<sub>ov</sub>', res.Mov, 'kNm/m'),
+          _calcRow('Stabilising moment', 'M<sub>stab</sub>', res.Mstab, 'kNm/m'),
+          _calcRow('Sliding resistance', 'H<sub>Rd</sub> = N<sub>Ed</sub>·tan δ', res.Hrd, 'kN/m'),
+        ].filter(r => r).join('');
+      case 'calc_connection':
+        return [
+          _calcRow('Bolt shear resistance', 'F<sub>v,Rd</sub>/bolt', res.Fv_Rd, 'kN'),
+          _calcRow('Bolt bearing resistance', 'F<sub>b,Rd</sub>/bolt', res.Fb_Rd, 'kN'),
+          _calcRow('Total connection resistance', 'V<sub>Rd</sub> = n·min(F<sub>v</sub>,F<sub>b</sub>)', res.VRd, 'kN'),
+          _calcRow('Applied force', 'V<sub>Ed</sub>', res.VEd || cfg.VEd, 'kN'),
+        ].filter(r => r).join('');
+      case 'calc_timber_col':
+        return [
+          _calcRow('Design compressive strength', 'f<sub>c,0,d</sub> = k<sub>mod</sub>·f<sub>c,0,k</sub>/γ<sub>M</sub>', res.fc0d, 'MPa'),
+          _calcRow('Relative slenderness', 'λ<sub>rel,c</sub>', res.lambdaRel, ''),
+          _calcRow('Instability factor', 'k<sub>c</sub>', res.kc, ''),
+          _calcRow('Design resistance', 'N<sub>Rd</sub> = k<sub>c</sub>·A·f<sub>c,0,d</sub>', res.NRd, 'kN'),
+        ].filter(r => r).join('');
+      case 'calc_steel_member':
+        return [
+          _calcRow('Plastic moment resistance', 'M<sub>c,Rd</sub> = W<sub>pl</sub>·f<sub>y</sub>/γ<sub>M0</sub>', res.McRd, 'kNm'),
+          _calcRow('Shear resistance', 'V<sub>c,Rd</sub> = A<sub>v</sub>·f<sub>y</sub>/(√3·γ<sub>M0</sub>)', res.VcRd, 'kN'),
+          _calcRow('Compression resistance', 'N<sub>b,Rd</sub>', res.NbRd, 'kN'),
+          _calcRow('Interaction check (y-y axis)', 'N<sub>Ed</sub>/(χ<sub>y</sub>·N<sub>Rk</sub>) + k<sub>yy</sub>·M<sub>y,Ed</sub>/(M<sub>y,Rk</sub>)', res.interactionY, ''),
+        ].filter(r => r).join('');
+      case 'calc_bbs':
+        return [
+          _calcRow('Total bar count', '', res.bar_count || cfg.bar_count, 'bars'),
+          _calcRow('Total steel weight', '', res.total_weight || cfg.total_weight, 'kg'),
+          _calcRow('Primary bar diameter', '', res.primary_dia || cfg.primary_dia, 'mm'),
+        ].filter(r => r).join('');
+      case 'calc_section':
+        return [
+          _calcRow('Cross-sectional area', 'A', res.A, 'mm²'),
+          _calcRow('Second moment of area (xx)', 'I<sub>xx</sub>', res.Ixx, 'mm⁴'),
+          _calcRow('Elastic modulus (xx)', 'W<sub>el,xx</sub> = I<sub>xx</sub>/y<sub>max</sub>', res.Wel_xx, 'mm³'),
+          _calcRow('Radius of gyration', 'i<sub>xx</sub> = √(I<sub>xx</sub>/A)', res.i_xx, 'mm'),
+        ].filter(r => r).join('');
+      case 'calc_load_takedown':
+        return [
+          _calcRow('Total unfactored (G<sub>k</sub>)', 'Σ dead load', res.total_Gk, 'kN'),
+          _calcRow('Total unfactored (Q<sub>k</sub>)', 'Σ imposed load', res.total_Qk, 'kN'),
+          _calcRow('ULS design load', 'N<sub>Ed</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.NEd, 'kN'),
+          _calcRow('SLS service load', 'N<sub>SLS</sub> = G<sub>k</sub> + Q<sub>k</sub>', res.N_SLS, 'kN'),
+        ].filter(r => r).join('');
       default:
         // Generic: first 5 numeric results
         return Object.entries(res)
@@ -599,6 +664,54 @@ const PreviewRenderer = (() => {
           rows.push(_checkRow('Bearing pressure', res.q_net, 'kPa', res.soilBearing, 'kPa', res.bearingUtil || res.q_net/res.soilBearing, res.bearingPass !== false));
         if (res.Vc !== undefined)
           rows.push(_checkRow('Punching shear', res.vEd_punching, 'kPa', res.vRdc, 'kPa', res.punchingUtil, res.punchingPass !== false));
+        break;
+      case 'calc_rc_column':
+        if (res.NRd !== undefined)
+          rows.push(_checkRow('Axial capacity', res.NEd || 0, 'kN', res.NRd, 'kN', res.utilisation || (res.NEd||0)/res.NRd, res.pass !== false));
+        if (res.As_req !== undefined && res.As_prov !== undefined)
+          rows.push(_checkRow('Reinforcement', res.As_req, 'mm²', res.As_prov, 'mm²', res.As_req/res.As_prov, res.rebarPass !== false));
+        break;
+      case 'calc_slab':
+        if (res.As_req !== undefined && res.As_prov !== undefined)
+          rows.push(_checkRow('Flexure', res.As_req, 'mm²/m', res.As_prov, 'mm²/m', res.flexureUtil || res.As_req/res.As_prov, res.flexurePass !== false));
+        if (res.span_d_ratio !== undefined)
+          rows.push(_checkRow('Deflection (span/d)', res.span_d_ratio, '', res.span_d_limit || 30, '', (res.span_d_ratio)/(res.span_d_limit||30), res.deflPass !== false));
+        break;
+      case 'calc_retaining':
+        if (res.FoS_overturning !== undefined)
+          rows.push(_checkRow('Overturning', 1, '', res.FoS_overturning, '', 1/res.FoS_overturning, res.overturningPass !== false));
+        if (res.FoS_sliding !== undefined)
+          rows.push(_checkRow('Sliding', 1, '', res.FoS_sliding, '', 1/res.FoS_sliding, res.slidingPass !== false));
+        if (res.q_max !== undefined)
+          rows.push(_checkRow('Bearing pressure', res.q_max, 'kPa', res.qa || 150, 'kPa', res.bearingUtil, res.bearingPass !== false));
+        break;
+      case 'calc_connection':
+        if (res.VRd !== undefined && (res.VEd || 0) > 0)
+          rows.push(_checkRow('Bolt group shear', res.VEd, 'kN', res.VRd, 'kN', res.utilisation || (res.VEd||0)/res.VRd, res.pass !== false));
+        break;
+      case 'calc_timber_col':
+        if (res.NRd !== undefined)
+          rows.push(_checkRow('Compression (with instability)', res.NEd || 0, 'kN', res.NRd, 'kN', res.utilisation || (res.NEd||0)/res.NRd, res.pass !== false));
+        break;
+      case 'calc_steel_member':
+        if (res.interactionY !== undefined)
+          rows.push(_checkRow('Combined (N+M, y-y)', res.interactionY, '', 1, '', res.interactionY, (res.interactionY||0) <= 1.0));
+        if (res.interactionZ !== undefined)
+          rows.push(_checkRow('Combined (N+M, z-z)', res.interactionZ, '', 1, '', res.interactionZ, (res.interactionZ||0) <= 1.0));
+        if (res.VEd !== undefined && res.VcRd !== undefined)
+          rows.push(_checkRow('Shear', res.VEd, 'kN', res.VcRd, 'kN', (res.VEd||0)/res.VcRd, res.shearPass !== false));
+        break;
+      case 'calc_bbs':
+        if (res.total_weight !== undefined)
+          rows.push(_checkRow('BBS Quantity', res.total_weight, 'kg', res.total_weight, 'kg', 1.0, true));
+        break;
+      case 'calc_section':
+        if (res.A !== undefined)
+          rows.push(_checkRow('Section properties computed', res.A, 'mm²', res.A, 'mm²', 1.0, true));
+        break;
+      case 'calc_load_takedown':
+        if (res.NEd !== undefined)
+          rows.push(_checkRow('Column ULS design load', res.NEd, 'kN', res.NEd, 'kN', 1.0, true));
         break;
       default:
         // Generic pass/fail from results
