@@ -2530,7 +2530,7 @@ Write in first person plural ("The calculations demonstrate...", "All members sa
 
     if (type === 'calc_beam') {
       // Static elevation + BMD side by side
-      inner += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
+      inner += '<div class="rp-beam-elevation-grid">';
       inner += '<div>' + _svgBeamElevation(cfg, r) + '</div>';
       inner += '<div>' + _svgBeamBMD(cfg, r) + '</div>';
       inner += '</div>';

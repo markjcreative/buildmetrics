@@ -863,14 +863,40 @@ body { font-family:'Times New Roman',Times,serif; font-size:10pt; color:#000; ba
 .rp-fail { color:#cc0000; font-weight:bold; }
 
 /* ── Engineering Diagrams ── */
-.rp-diagram-section { margin:8pt 0 4pt; }
-.rp-diagram-label { font-size:8pt; font-weight:bold; text-transform:uppercase; letter-spacing:.4pt; color:#444; margin-bottom:6pt; padding:3pt 6pt; background:#f9f9f9; border-left:2pt solid #2563EB; }
-.rp-diagram-body { padding:8pt 6pt; text-align:center; background:#fff; }
-.rp-diagram-body svg { max-width:100%; height:auto; display:inline-block; }
-.rp-beam-diagrams { display:grid; grid-template-columns:1fr 1fr; gap:8pt; margin-top:6pt; }
-.rp-beam-diagram-panel { border:0.5pt solid #ddd; padding:4pt; background:#fafafa; }
-.rp-beam-diagram-label { font-size:7.5pt; font-weight:bold; text-align:center; color:#555; margin-bottom:4pt; text-transform:uppercase; letter-spacing:.3pt; }
-.rp-beam-diagram-panel svg { max-width:100%; height:auto; display:block; margin:0 auto; }
+.rp-diagram-section {
+  margin:8pt 0 6pt;
+  /* Force entire diagram section to greyscale for professional B&W printing */
+  filter: grayscale(100%) contrast(1.15);
+}
+.rp-diagram-label {
+  font-size:7.5pt; font-weight:bold; text-transform:uppercase;
+  letter-spacing:.5pt; color:#000; margin-bottom:4pt;
+  padding:2pt 6pt; background:#eee; border-left:2.5pt solid #000;
+}
+.rp-diagram-body {
+  padding:6pt 4pt; text-align:center; background:#fff;
+}
+/* Constrain SVG height — diagrams should be compact in a report */
+.rp-diagram-body svg {
+  max-width:60%; max-height:110pt; height:auto; display:inline-block;
+}
+/* For beam type: two panels side by side, tighter */
+.rp-beam-elevation-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:6pt; margin-bottom:6pt;
+}
+.rp-beam-elevation-grid svg { max-width:100%; max-height:100pt; height:auto; }
+/* Tabbed beam diagrams: 2×2 grid, small */
+.rp-beam-diagrams {
+  display:grid; grid-template-columns:1fr 1fr; gap:5pt; margin-top:4pt;
+}
+.rp-beam-diagram-panel {
+  border:0.5pt solid #bbb; padding:3pt; background:#fafafa;
+}
+.rp-beam-diagram-label {
+  font-size:6.5pt; font-weight:bold; text-align:center;
+  color:#000; margin-bottom:2pt; text-transform:uppercase; letter-spacing:.2pt;
+}
+.rp-beam-diagram-panel svg { max-width:100%; max-height:80pt; height:auto; display:block; margin:0 auto; }
 
 /* ── Prose ── */
 .rp-prose { font-size:10pt; line-height:1.6; margin-bottom:10pt; }
@@ -903,9 +929,12 @@ body { font-family:'Times New Roman',Times,serif; font-size:10pt; color:#000; ba
   .rp-page-break { page-break-after:always; }
   .rp-calc-section { page-break-inside:avoid; }
   .rp-title-block { page-break-after:always; }
-  .rp-diagram-section { page-break-inside:avoid; }
-  .rp-beam-diagrams { display:grid; grid-template-columns:1fr 1fr; gap:6pt; }
-  .rp-diagram-body svg, .rp-beam-diagram-panel svg { max-width:100%; height:auto; }
+  .rp-diagram-section { page-break-inside:avoid; filter:grayscale(100%) contrast(1.15); }
+  .rp-diagram-body svg { max-width:55%; max-height:100pt; }
+  .rp-beam-elevation-grid { grid-template-columns:1fr 1fr; gap:5pt; }
+  .rp-beam-elevation-grid svg { max-height:90pt; }
+  .rp-beam-diagrams { grid-template-columns:1fr 1fr; gap:4pt; }
+  .rp-beam-diagram-panel svg { max-height:72pt; }
 }`;
   }
 
