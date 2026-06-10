@@ -45,6 +45,21 @@ function block_report_id(string $block_id, string $user_id): ?string {
 }
 
 /**
+ * Decode a JSON column safely.
+ * Empty JSON objects '{}' decoded as associative arrays return [].
+ * json_encode([]) gives '[]' not '{}' — corrupting block configs.
+ * We return stdClass for empty objects so json_encode gives '{}' correctly.
+ */
+function _decode_json_col(?string $json): mixed {
+    if ($json === null || $json === '') return new stdClass();
+    $decoded = json_decode($json, true);
+    if ($decoded === null) return new stdClass();
+    // Empty associative result (was '{}') — must stay as object
+    if (is_array($decoded) && count($decoded) === 0) return new stdClass();
+    return $decoded;
+}
+
+/**
  * Fetch and return a single block row with decoded JSON fields.
  */
 function fetch_block(string $id): ?array {
@@ -52,8 +67,8 @@ function fetch_block(string $id): ?array {
     $stmt->execute([$id]);
     $row = $stmt->fetch();
     if (!$row) return null;
-    $row['config']    = $row['config_json']  ? json_decode($row['config_json'],  true) : null;
-    $row['results']   = $row['results_json'] ? json_decode($row['results_json'], true) : null;
+    $row['config']    = _decode_json_col($row['config_json']  ?? null);
+    $row['results']   = _decode_json_col($row['results_json'] ?? null);
     $row['validated'] = (bool)$row['validated'];
     unset($row['config_json'], $row['results_json']);
     return $row;
@@ -66,11 +81,13 @@ if ($action === 'create') {
     $order_index = $b['order_index'] ?? 0;
     $label       = $b['label']       ?? null;
     // config_json may arrive as a JSON string (already encoded by JS) or as an object.
-    // If it's already a string, store it directly. If it's an object/array, encode it.
+    // Always store a valid JSON object string — never null, never '[]'.
     if (isset($b['config_json'])) {
-        $config_json = is_string($b['config_json']) ? $b['config_json'] : json_encode($b['config_json']);
+        $raw = is_string($b['config_json']) ? $b['config_json'] : json_encode($b['config_json'] ?: new stdClass());
+        // Guard: if encoded as array '[]', force to '{}'
+        $config_json = ($raw === '[]' || $raw === '' || $raw === 'null') ? '{}' : $raw;
     } else {
-        $config_json = null;
+        $config_json = '{}'; // always default to empty object, never null
     }
 
     if (!$report_id) json_err('report_id required');
@@ -104,8 +121,10 @@ if ($action === 'update') {
     }
     if (array_key_exists('config_json', $b)) {
         $sets[] = 'config_json = ?';
-        // config_json may arrive as a string (already encoded by JS) or as an object
-        $vals[] = is_string($b['config_json']) ? $b['config_json'] : json_encode($b['config_json']);
+        // config_json may arrive as a string (already encoded by JS) or as an object.
+        // Guard against '[]' being stored instead of '{}'
+        $raw = is_string($b['config_json']) ? $b['config_json'] : json_encode($b['config_json'] ?: new stdClass());
+        $vals[] = ($raw === '[]' || $raw === '' || $raw === 'null') ? '{}' : $raw;
     }
     if (array_key_exists('results_json', $b)) {
         $sets[] = 'results_json = ?';

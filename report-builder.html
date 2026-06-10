@@ -186,6 +186,48 @@
 
   <!-- Sidebar toggle (mobile) -->
   <button class="cb-sidebar-toggle" id="cb-sidebar-toggle" title="Toggle block palette">☰</button>
+
+  <!-- ── Bottom Workflow Status Bar ────────────────────────── -->
+  <div class="cb-workflow-bar" id="cb-workflow-bar">
+    <div class="cb-wf-label-text">Workflow:</div>
+    <div class="cb-workflow-stages" id="cb-workflow-stages">
+      <button class="cb-wf-stage" data-status="draft" onclick="RB._setWorkflowStatus('draft')" title="Mark as Draft">
+        <span class="cb-wf-dot"></span>
+        <span class="cb-wf-stage-label">Draft</span>
+      </button>
+      <div class="cb-wf-connector"></div>
+      <button class="cb-wf-stage" data-status="review" onclick="RB._setWorkflowStatus('review')" title="Submit for Review">
+        <span class="cb-wf-dot"></span>
+        <span class="cb-wf-stage-label">Needs Review</span>
+      </button>
+      <div class="cb-wf-connector"></div>
+      <button class="cb-wf-stage" data-status="checked" onclick="RB._setWorkflowStatus('checked')" title="Mark as Checked">
+        <span class="cb-wf-dot"></span>
+        <span class="cb-wf-stage-label">Checked</span>
+      </button>
+      <div class="cb-wf-connector"></div>
+      <button class="cb-wf-stage" data-status="approved" onclick="RB._setWorkflowStatus('approved')" title="Mark as Approved">
+        <span class="cb-wf-dot"></span>
+        <span class="cb-wf-stage-label">Approved</span>
+      </button>
+      <div class="cb-wf-connector"></div>
+      <button class="cb-wf-stage" data-status="exported" onclick="RB._setWorkflowStatus('exported')" title="Mark as Exported">
+        <span class="cb-wf-dot"></span>
+        <span class="cb-wf-stage-label">Exported</span>
+      </button>
+    </div>
+    <div class="cb-wf-right">
+      <span class="cb-wf-autosave" id="cb-wf-autosave">All saved</span>
+      <button class="cb-wf-save-btn" id="cb-wf-save-btn" onclick="RB._wfSave()" title="Save (Ctrl+S)">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+          <polyline stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="17 21 17 13 7 13 7 21"/>
+          <polyline stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="7 3 7 8 15 8"/>
+        </svg>
+        Save
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ Block Picker Modal ═══════════════════════════════════════ -->
@@ -354,6 +396,8 @@ const RB = (() => {
     _wireMobile();
     _wireManualSave();
     _wireHistoryPanel();
+    // Initialise workflow bar (will sync after report loads via _applyReportMeta)
+    _initWorkflowBar();
     // Auto-snapshot every 10 minutes if there are changes
     setInterval(() => { if (reportId && window.Canvas) _createSnapshot('Auto-save'); }, 10 * 60 * 1000);
   }
@@ -421,15 +465,16 @@ const RB = (() => {
     { id:'tpl-wind-load',       name:'Wind & Load Assessment',     blocks:[{type:'title'},{type:'project_info'},{type:'design_basis'},{type:'code_ref',default_config:{codes:['EN 1991-1-4:2005']}},{type:'calc_wind'},{type:'calc_load_takedown'},{type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}] },
   ];
 
-  function _applyTemplate(templateId) {
+  async function _applyTemplate(templateId) {
     const tpl = TEMPLATES.find(t => t.id === templateId);
     if (!tpl || !window.Canvas) return;
-    // Small delay to ensure canvas is ready
-    setTimeout(() => {
-      tpl.blocks.forEach((b, i) => {
-        Canvas.addBlock(b.type, b.default_config || {}, i);
-      });
-    }, 300);
+    // Wait for canvas to be fully ready
+    await new Promise(resolve => setTimeout(resolve, 400));
+    // Use for...of with await so blocks are created in order (forEach is NOT async-aware)
+    for (let i = 0; i < tpl.blocks.length; i++) {
+      const b = tpl.blocks[i];
+      await Canvas.addBlock(b.type, b.default_config || {}, i);
+    }
   }
 
   function _applyReportMeta(data) {
@@ -438,6 +483,8 @@ const RB = (() => {
       const sel = document.getElementById('cb-status-select');
       sel.value = data.status;
       sel.dataset.status = data.status;
+      // Sync the bottom workflow bar
+      _initWorkflowBar();
     }
     // Back link: go to the specific project page
     const backBtn = document.getElementById('cb-back-btn');
@@ -463,9 +510,10 @@ const RB = (() => {
       _scheduleSave();
     });
 
-    // Status change — sync dataset for CSS colour and save
+    // Status change — sync dataset for CSS colour, bottom bar, and save
     statusSel.addEventListener('change', () => {
       statusSel.dataset.status = statusSel.value;
+      _updateWorkflowBar(statusSel.value);
       _saveStatus(statusSel.value);
     });
     // Set initial colour
@@ -1625,9 +1673,9 @@ const RB = (() => {
 
     fetch('/api/ai-chat.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Auth.authHeaders(),
       body: JSON.stringify({
-        message: 'Generate a professional structural engineering ' + block.type.replace('_',' ') + ' for a report. Be concise, 3-5 sentences, technical, formal.',
+        messages: [{ role: 'user', content: 'Generate a professional structural engineering ' + block.type.replace(/_/g,' ') + ' section for a formal calculation report. Be concise, 3–5 sentences, technical and professional. UK Eurocode context.' }],
         context: 'report_builder'
       })
     })
@@ -1832,6 +1880,57 @@ const RB = (() => {
     return Math.floor(h / 24) + 'd ago';
   }
 
+  /* ── Workflow Bar ──────────────────────────────────────────── */
+  function _initWorkflowBar() {
+    // Sync workflow bar with the status select
+    const sel = document.getElementById('cb-status-select');
+    if (sel) _updateWorkflowBar(sel.value);
+  }
+
+  function _updateWorkflowBar(status) {
+    const stages = document.querySelectorAll('.cb-wf-stage');
+    const order  = ['draft', 'review', 'checked', 'approved', 'exported'];
+    const idx    = order.indexOf(status);
+    stages.forEach(s => {
+      const si = order.indexOf(s.dataset.status);
+      s.classList.remove('active', 'done');
+      if (si === idx)   s.classList.add('active');
+      if (si < idx)     s.classList.add('done');
+    });
+    // Also sync the select in the top bar
+    const sel = document.getElementById('cb-status-select');
+    if (sel && sel.value !== status && order.includes(status)) {
+      sel.value = status;
+      sel.dataset.status = status;
+    }
+    // Update the save-status mirror
+    const wfSave = document.getElementById('cb-wf-autosave');
+    if (wfSave) {
+      const labels = { draft:'📝 Draft', review:'🔎 Needs Review', checked:'✅ Checked', approved:'🏆 Approved', exported:'📤 Exported' };
+      wfSave.textContent = labels[status] || status;
+    }
+  }
+
+  function _setWorkflowStatus(status) {
+    _updateWorkflowBar(status);
+    _saveStatus(status);
+  }
+
+  async function _wfSave() {
+    const btn = document.getElementById('cb-wf-save-btn');
+    if (btn) { btn.classList.add('saving'); btn.innerHTML = '<svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Saving…'; }
+    if (window.Canvas && Canvas.save) await Canvas.save();
+    if (btn) {
+      btn.classList.remove('saving');
+      btn.classList.add('saved');
+      btn.innerHTML = '<svg width="13" height="13" fill="none" viewBox="0 0 24 24"><polyline stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="20 6 9 17 4 12"/></svg> Saved';
+      setTimeout(() => {
+        btn.classList.remove('saved');
+        btn.innerHTML = '<svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline stroke="currentColor" stroke-width="2" points="17 21 17 13 7 13 7 21"/><polyline stroke="currentColor" stroke-width="2" points="7 3 7 8 15 8"/></svg> Save';
+      }, 2500);
+    }
+  }
+
   /* ── Public API ─────────────────────────────────────────────── */
   return {
     init,
@@ -1840,7 +1939,10 @@ const RB = (() => {
     closeBlockPicker,
     filterBlockPicker,
     save: _saveAll,
-    _restoreVersion
+    _restoreVersion,
+    _setWorkflowStatus,
+    _updateWorkflowBar,
+    _wfSave
   };
 
 })();

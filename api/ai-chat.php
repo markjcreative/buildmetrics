@@ -2,12 +2,16 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405); echo json_encode(['error' => 'Method not allowed']); exit;
 }
+
+// Require authentication — prevents unauthenticated API credit usage
+require_once __DIR__ . '/db.php';
+require_auth();
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 // Load API key from gitignored config file (never commit the key directly)
@@ -309,7 +313,7 @@ curl_setopt_array($ch, [
 $response  = curl_exec($ch);
 $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $curlError = curl_error($ch);
-curl_close($ch);
+// curl_close() removed — deprecated in PHP 8.0+, causes warning output before JSON
 
 if ($curlError) {
     http_response_code(503);

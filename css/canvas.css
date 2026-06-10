@@ -251,7 +251,7 @@
 /* ─── Main Layout ────────────────────────────────────────── */
 .cb-layout {
   display: flex;
-  height: calc(100vh - 56px - 52px);
+  height: calc(100vh - 56px - 52px - 50px); /* subtract workflow bar height */
   overflow: hidden;
 }
 
@@ -531,8 +531,8 @@
   align-items: center;
   gap: 9px;
   padding: 0 12px 0 16px;
-  background: white;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: #FAFBFC;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
   cursor: default;
   user-select: none;
 }
@@ -638,7 +638,8 @@
 
 /* ─── Block Body ─────────────────────────────────────────── */
 .canvas-block-body {
-  padding: 20px 20px 16px;
+  padding: 18px 20px 20px 24px; /* extra left pad to visually clear accent strip */
+  background: white;
 }
 
 .canvas-block.collapsed .canvas-block-body {
@@ -771,13 +772,13 @@ textarea.cb-input {
 .calc-run-btn,
 .btn-calc-run {
   width: 100%;
-  height: 40px;
-  background: var(--accent);
+  height: 42px;
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -785,22 +786,95 @@ textarea.cb-input {
   gap: 8px;
   margin-top: 16px;
   font-family: 'Inter', sans-serif;
-  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  transition: all 0.15s ease;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
 }
 
 .calc-run-btn:hover,
 .btn-calc-run:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(37,99,235,0.3);
+  background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37,99,235,0.35);
+}
+
+.calc-run-btn:active,
+.btn-calc-run:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(37,99,235,0.2);
 }
 
 .calc-run-btn:disabled,
 .btn-calc-run:disabled {
-  opacity: 0.55;
+  opacity: 0.65;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+/* Calculation details panel (shown after running calc) */
+.calc-details-panel {
+  margin-top: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+  background: white;
+}
+
+.calc-details-toggle {
+  width: 100%;
+  padding: 9px 14px;
+  background: #F8FAFC;
+  border: none;
+  border-bottom: 1px solid #E2E8F0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.1s;
+}
+
+.calc-details-toggle:hover {
+  background: #F1F5F9;
+  color: #1E293B;
+}
+
+.calc-details-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.calc-details-panel th {
+  background: #F1F5F9;
+  color: #64748B;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.calc-details-panel td {
+  padding: 5px 10px;
+  border-bottom: 1px solid #F1F5F9;
+  color: #374151;
+}
+
+.calc-details-panel td:first-child {
+  color: #64748B;
+  font-weight: 500;
+  width: 55%;
+}
+
+.calc-details-panel td:last-child {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: #1E293B;
 }
 
 /* ─── Result Card ────────────────────────────────────────── */
@@ -1604,12 +1678,13 @@ td.util-val {
 .cb-form-row label,
 .block-form-row label,
 .block-form-label {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: #6B7280;
   display: block;
+  margin-bottom: 1px;
 }
 
 .cb-form-row input,
@@ -1622,16 +1697,17 @@ td.util-val {
 .block-select,
 .block-textarea {
   width: 100%;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid #E5E7EB;
   border-radius: 8px;
-  padding: 7px 10px;
+  padding: 8px 10px;
   font-size: 13px;
   outline: none;
   font-family: 'Inter', sans-serif;
-  color: var(--text-primary);
+  color: #1F2937;
   background: white;
   transition: border-color 0.13s, box-shadow 0.13s;
   box-sizing: border-box;
+  line-height: 1.4;
 }
 
 .cb-form-row input:focus,
@@ -2130,36 +2206,80 @@ td.util-val {
 }
 
 /* ─── Calc result bar (legacy, kept for compat) ───────────── */
+/* ─── Calculation Result Bar ────────────────────────────────── */
 .calc-result-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: var(--bg-subtle);
-  border-radius: 8px;
+  gap: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  border-radius: 10px;
   margin-top: 14px;
   font-size: 13px;
   flex-wrap: wrap;
-  border: 1px solid var(--border);
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
 .calc-result-bar .pass-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 99px;
-  font-size: 11px;
+  font-size: 11.5px;
   flex-shrink: 0;
+  letter-spacing: 0.03em;
+  border: 1.5px solid transparent;
 }
 
-.calc-result-bar .pass-chip.pass   { background: #DCFCE7; color: #166534; }
-.calc-result-bar .pass-chip.fail   { background: #FEE2E2; color: #991B1B; }
-.calc-result-bar .pass-chip.pending { background: var(--bg-muted); color: var(--text-muted); }
+.calc-result-bar .pass-chip.pass {
+  background: #DCFCE7;
+  color: #15803D;
+  border-color: #86EFAC;
+}
 
-.calc-result-kv { display: flex; gap: 4px; align-items: center; }
-.calc-result-kv span:first-child { color: var(--text-muted); font-size: 11px; }
-.calc-result-kv span:last-child { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-primary); }
+.calc-result-bar .pass-chip.fail {
+  background: #FEE2E2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
 
-.calc-result-separator { width: 1px; height: 14px; background: var(--border); flex-shrink: 0; }
+.calc-result-bar .pass-chip.pending {
+  background: #F1F5F9;
+  color: #64748B;
+  border-color: #CBD5E1;
+}
+
+.calc-result-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: flex-start;
+}
+
+.calc-result-kv span:first-child {
+  color: #94A3B8;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.calc-result-kv span:last-child {
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: #1E293B;
+}
+
+.calc-result-separator {
+  width: 1px;
+  height: 28px;
+  background: #E2E8F0;
+  flex-shrink: 0;
+}
 
 /* ─── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -2179,7 +2299,7 @@ td.util-val {
   .cb-sidebar.mobile-open { transform: translateX(0); }
   .cb-sidebar-toggle { display: flex; }
 
-  .cb-layout { height: calc(100vh - 56px - 52px); }
+  .cb-layout { height: calc(100vh - 56px - 52px - 50px); }
 
   .cb-canvas { padding: 16px 14px 72px; }
 
@@ -2351,5 +2471,162 @@ td.util-val {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+/* ─── Bottom Workflow Status Bar ─────────────────────────── */
+.cb-workflow-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: white;
+  border-top: 1px solid #E5E7EB;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.07);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  z-index: 88;
+  font-family: 'Inter', sans-serif;
+}
+
+.cb-wf-label-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+.cb-workflow-stages {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.cb-wf-stage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 20px;
+  background: #F9FAFB;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  color: #9CA3AF;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cb-wf-stage:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+  color: #374151;
+}
+
+.cb-wf-stage.active {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+  color: #1D4ED8;
+}
+
+.cb-wf-stage.done {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+  color: #15803D;
+}
+
+/* Status-specific active colours */
+.cb-wf-stage[data-status="draft"].active      { background: #FFFBEB; border-color: #FCD34D; color: #92400E; }
+.cb-wf-stage[data-status="review"].active     { background: #EFF6FF; border-color: #93C5FD; color: #1E40AF; }
+.cb-wf-stage[data-status="checked"].active    { background: #F0FDF4; border-color: #86EFAC; color: #166534; }
+.cb-wf-stage[data-status="approved"].active   { background: #F0FDF4; border-color: #34D399; color: #065F46; }
+.cb-wf-stage[data-status="exported"].active   { background: #F5F3FF; border-color: #A78BFA; color: #5B21B6; }
+
+.cb-wf-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.cb-wf-stage-label {
+  font-size: 12px;
+}
+
+.cb-wf-connector {
+  width: 24px;
+  height: 1px;
+  background: #E5E7EB;
+  flex-shrink: 0;
+}
+
+.cb-wf-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.cb-wf-autosave {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.cb-wf-save-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 16px;
+  background: #1D4ED8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+
+.cb-wf-save-btn:hover {
+  background: #1E40AF;
+  transform: translateY(-1px);
+}
+
+.cb-wf-save-btn:active {
+  transform: translateY(0);
+}
+
+.cb-wf-save-btn.saving {
+  background: #6B7280;
+  cursor: not-allowed;
+}
+
+.cb-wf-save-btn.saved {
+  background: #059669;
+}
+
+/* Mobile: hide connector lines and compress stages */
+@media (max-width: 768px) {
+  .cb-wf-connector { display: none; }
+  .cb-wf-stage-label { display: none; }
+  .cb-wf-stage { padding: 5px 8px; }
+  .cb-wf-label-text { display: none; }
+  .cb-wf-autosave { display: none; }
 }
 .vh-log-time { color:var(--text-muted); font-size:0.70rem; white-space:nowrap; }

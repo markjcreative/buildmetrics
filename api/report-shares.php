@@ -37,8 +37,10 @@ if ($m === 'GET' && ($_GET['action'] ?? '') === 'view') {
     $bs->execute([$share['report_id']]);
     $blocks = $bs->fetchAll();
     foreach ($blocks as &$b) {
-        $b['config']  = $b['config_json']  ? json_decode($b['config_json'],  true) : [];
-        $b['results'] = $b['results_json'] ? json_decode($b['results_json'], true) : [];
+        $b['config']  = $b['config_json']  ? json_decode($b['config_json'],  true) : (object)[];
+        $b['results'] = $b['results_json'] ? json_decode($b['results_json'], true) : (object)[];
+        // Remove raw JSON strings — prevent data leak and reduce payload size
+        unset($b['config_json'], $b['results_json']);
     }
 
     json_out([
