@@ -905,6 +905,15 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
           // So we temporarily swap IDs, call renderAll, then restore.
           _renderUsingBeamDiagrams(svgEls, results, config, blockId);
         }
+
+        // Capture rendered SVGs for report preview / print
+        // Store as plain HTML strings in results so PreviewRenderer can embed them
+        if (!block.results) block.results = {};
+        block.results._beamTabSVGs = {};
+        Object.keys(svgEls).forEach(k => {
+          try { block.results._beamTabSVGs[k] = svgEls[k].outerHTML; } catch (_) {}
+        });
+
       } catch (err) {
         console.warn('[BlockRegistry] Beam diagram render error:', err);
       }
@@ -2497,7 +2506,75 @@ Write in first person plural ("The calculations demonstrate...", "All members sa
     return '<div style="color:#999;font-size:9pt;">[' + _esc(block.label) + ']</div>';
   }
 
-  return { ALL_BLOCKS, render, renderPreview, getDefinition, _extractChecks, _esc, CALC_CODES };
+  /**
+   * generateDiagramHTML(block)
+   * ─────────────────────────
+   * Returns an HTML string containing the engineering diagram for a calc block.
+   * This is used by PreviewRenderer to embed diagrams into the printable report.
+   *
+   * For static types (column, slab, footing, etc.) the SVG is generated directly
+   * from block.config + block.results without touching the DOM.
+   *
+   * For beam types, the static elevation+BMD panels are generated immediately.
+   * Tabbed BMD/SFD/Deflection diagrams are included only if the canvas has already
+   * rendered them (block.results._beamTabSVGs populated during calc run).
+   */
+  function generateDiagramHTML(block) {
+    const type = block.type;
+    const r    = block.results || {};
+    const cfg  = block.config  || {};
+    if (!r._ran) return '';
+
+    const label = _diagramLabelFor(type);
+    let inner = '';
+
+    if (type === 'calc_beam') {
+      // Static elevation + BMD side by side
+      inner += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
+      inner += '<div>' + _svgBeamElevation(cfg, r) + '</div>';
+      inner += '<div>' + _svgBeamBMD(cfg, r) + '</div>';
+      inner += '</div>';
+      // Tabbed diagrams captured after async render
+      if (r._beamTabSVGs) {
+        const tabLabels = { reactions: 'Configuration', bmd: 'Bending Moment', sfd: 'Shear Force', deflection: 'Deflection' };
+        inner += '<div class="rp-beam-diagrams">';
+        ['reactions', 'bmd', 'sfd', 'deflection'].forEach(k => {
+          if (r._beamTabSVGs[k]) {
+            inner += '<div class="rp-beam-diagram-panel">';
+            inner += '<div class="rp-beam-diagram-label">' + (tabLabels[k] || k) + '</div>';
+            inner += r._beamTabSVGs[k];
+            inner += '</div>';
+          }
+        });
+        inner += '</div>';
+      }
+    } else if (type === 'calc_rc_beam') {
+      inner += _svgRCBeamSection(cfg, r);
+      if (r._beamTabSVGs) {
+        const tabLabels = { reactions: 'Configuration', bmd: 'Bending Moment', sfd: 'Shear Force', deflection: 'Deflection' };
+        inner += '<div class="rp-beam-diagrams">';
+        ['reactions', 'bmd', 'sfd', 'deflection'].forEach(k => {
+          if (r._beamTabSVGs[k]) {
+            inner += '<div class="rp-beam-diagram-panel">';
+            inner += '<div class="rp-beam-diagram-label">' + (tabLabels[k] || k) + '</div>';
+            inner += r._beamTabSVGs[k];
+            inner += '</div>';
+          }
+        });
+        inner += '</div>';
+      }
+    } else {
+      inner = _staticDiagramHTML(type, cfg, r);
+    }
+
+    if (!inner) return '';
+    return `<div class="rp-diagram-section">
+  <div class="rp-diagram-label">${label}</div>
+  <div class="rp-diagram-body">${inner}</div>
+</div>`;
+  }
+
+  return { ALL_BLOCKS, render, renderPreview, generateDiagramHTML, getDefinition, _extractChecks, _esc, CALC_CODES };
 
 })();
 
