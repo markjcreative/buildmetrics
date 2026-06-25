@@ -1668,35 +1668,53 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     const pass = r.overallPass !== false;
     const pCol = pass ? '#16A34A' : '#DC2626';
 
-    const bx = 110, by = 18, bw = 80, bh = 100;
-    const nArrows = 6;
+    const bx = 120, by = 18, bw = 70, bh = 100;
+    const nArrows = 7;
+    // Wind pressure increases with height (qp(z) exposure profile, EN1991-1-4 Fig NA.7).
+    // Arrow length grows toward the top; minimum 40% at the base.
+    const maxLen = 34;
     const arrows = Array.from({ length: nArrows }, (_, i) => {
-      const ay = by + (i / (nArrows-1)) * bh;
-      // Intensity proportional to height (lower = higher according to profile)
-      return `<line x1="${bx-30}" y1="${ay.toFixed(1)}" x2="${bx-2}" y2="${ay.toFixed(1)}" stroke="#DC2626" stroke-width="1.5" marker-end="url(#aRed${id})"/>`;
+      const frac = i / (nArrows - 1);             // 0 at top, 1 at base
+      const ay   = by + frac * bh;
+      const len  = maxLen * (1 - 0.55 * frac);    // longer near top
+      const x1   = (bx - len).toFixed(1);
+      return `<line x1="${x1}" y1="${ay.toFixed(1)}" x2="${bx-2}" y2="${ay.toFixed(1)}" stroke="#DC2626" stroke-width="1.5" marker-end="url(#aRed${id})"/>`;
     }).join('');
+    // Profile envelope (parabola-ish curve linking arrow tips) — the qp(z) shape
+    const tips = Array.from({ length: nArrows }, (_, i) => {
+      const frac = i / (nArrows - 1);
+      const ay   = by + frac * bh;
+      const len  = maxLen * (1 - 0.55 * frac);
+      return `${(bx - len).toFixed(1)},${ay.toFixed(1)}`;
+    }).join(' ');
+    const weDisp = (typeof we === 'number') ? we.toFixed(2) : we;
+    const qpDisp = (typeof qp === 'number') ? qp.toFixed(2) : qp;
 
     return `<svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
   ${_svgDefs(id)}
-  <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">WIND LOADING — h = ${h}m</text>
+  <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">WIND LOADING — q<tspan baseline-shift="sub" font-size="6">p</tspan>(z) PROFILE, h = ${h}m</text>
   <!-- Building body -->
   <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" rx="1"/>
   <!-- Roof triangle -->
   <polygon points="${bx-3},${by} ${bx+bw/2},${by-18} ${bx+bw+3},${by}" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.5"/>
   <!-- Ground line + hatch -->
   <line x1="${bx-55}" y1="${by+bh+1}" x2="${bx+bw+25}" y2="${by+bh+1}" stroke="#374151" stroke-width="2" opacity="0.5"/>
-  ${Array.from({length:6},(_,i)=>`<line x1="${bx-55+i*22}" y1="${by+bh+1}" x2="${bx-65+i*22}" y2="${by+bh+12}" stroke="#374151" stroke-width="1.2" opacity="0.3"/>`).join('')}
-  <!-- Wind pressure arrows (horizontal, left→right) -->
+  ${Array.from({length:6},(_,i)=>`<line x1="${bx-55+i*20}" y1="${by+bh+1}" x2="${bx-65+i*20}" y2="${by+bh+12}" stroke="#374151" stroke-width="1.2" opacity="0.3"/>`).join('')}
+  <!-- qp(z) exposure-profile envelope -->
+  <polyline points="${tips}" fill="none" stroke="#DC2626" stroke-width="0.8" stroke-dasharray="3,2" opacity="0.7"/>
+  <!-- Wind pressure arrows (horizontal, profile-scaled) -->
   ${arrows}
   <!-- Wind direction label -->
-  <text x="${bx-42}" y="${by+bh/2+20}" text-anchor="middle" font-size="9" fill="#DC2626" font-weight="600" transform="rotate(-90,${bx-42},${by+bh/2+20})">Wind &#8594;</text>
-  <!-- Height label -->
-  <text x="${bx+bw+16}" y="${by+bh/2+4}" font-size="8.5" fill="#374151">h=${h}m</text>
+  <text x="${bx-48}" y="${by+bh/2+20}" text-anchor="middle" font-size="9" fill="#DC2626" font-weight="600" transform="rotate(-90,${bx-48},${by+bh/2+20})">Wind &#8594;</text>
+  <!-- z (height) axis with z=h annotation -->
+  <text x="${bx+bw+16}" y="${by+10}" font-size="7.5" fill="#374151">z=${h}m</text>
+  <text x="${bx+bw+16}" y="${by+bh}" font-size="7.5" fill="#374151">z=0</text>
   <!-- Peak pressure badge -->
-  <rect x="${bx+bw+26}" y="${by+18}" width="72" height="54" rx="6" fill="#FFF7ED" stroke="#FED7AA" stroke-width="1.5"/>
-  <text x="${bx+bw+62}" y="${by+36}" font-size="8" fill="#92400E" text-anchor="middle">qp(z)</text>
-  <text x="${bx+bw+62}" y="${by+54}" font-size="15" font-weight="800" fill="#B45309" text-anchor="middle" font-family="'JetBrains Mono',monospace">${(+qp).toFixed?((+qp).toFixed(2)):qp}</text>
-  <text x="${bx+bw+62}" y="${by+67}" font-size="8" fill="#92400E" text-anchor="middle">kN/m²</text>
+  <rect x="${bx+bw+24}" y="${by+24}" width="74" height="68" rx="6" fill="#FFF7ED" stroke="#FED7AA" stroke-width="1.5"/>
+  <text x="${bx+bw+61}" y="${by+40}" font-size="8" fill="#92400E" text-anchor="middle">q<tspan baseline-shift="sub" font-size="6">p</tspan>(z) peak</text>
+  <text x="${bx+bw+61}" y="${by+57}" font-size="15" font-weight="800" fill="#B45309" text-anchor="middle" font-family="'JetBrains Mono',monospace">${qpDisp}</text>
+  <text x="${bx+bw+61}" y="${by+69}" font-size="7.5" fill="#92400E" text-anchor="middle">kN/m²</text>
+  <text x="${bx+bw+61}" y="${by+84}" font-size="8" fill="#92400E" text-anchor="middle">w<tspan baseline-shift="sub" font-size="6">e</tspan> = ${weDisp}</text>
 </svg>`;
   }
 
