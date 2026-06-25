@@ -1036,11 +1036,16 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
 
   async function _callAI(prompt) {
     try {
+      // ai-chat.php requires authentication — send the Bearer token
+      const headers = (typeof window !== 'undefined' && window.Auth)
+        ? window.Auth.authHeaders()
+        : { 'Content-Type': 'application/json' };
       const resp = await fetch('/api/ai-chat.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
       });
+      if (!resp.ok) { console.warn('AI call HTTP', resp.status); return null; }
       const data = await resp.json();
       return data.reply || null;
     } catch (e) {

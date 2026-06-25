@@ -325,13 +325,17 @@ const AIChat = (() => {
 
   /* ── API ── */
   async function _callAPI(messages) {
+    // ai-chat.php requires authentication — include the Bearer token
+    const headers = (window.Auth && typeof window.Auth.authHeaders === 'function')
+      ? window.Auth.authHeaders()
+      : { 'Content-Type': 'application/json' };
     const res  = await fetch(ENDPOINT, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body:    JSON.stringify({ messages }),
     });
     const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'API error');
+    if (!res.ok || data.error) throw new Error(data.error || (res.status === 401 ? 'Please sign in to use the AI assistant.' : 'API error'));
     return data.reply;
   }
 
