@@ -560,6 +560,7 @@ const BlockRegistry = (() => {
 
     // ── Input grid (2-col, label-above-input) ─────────────────────────────
     const formGrid = _el('div', { className: 'cb-form-grid' });
+    let vb0Input = null;
 
     fields.forEach(f => {
       let inputEl;
@@ -583,10 +584,27 @@ const BlockRegistry = (() => {
         });
       }
 
+      if (f.key === 'vb0') vb0Input = inputEl;
       formGrid.appendChild(_cbField(f.label, inputEl));
     });
 
     wrap.appendChild(formGrid);
+
+    // ── UK wind-speed map picker (hoarding / wind blocks) ─────────────────
+    if (vb0Input && (block.type === 'calc_hoarding' || block.type === 'calc_wind')) {
+      const mapBtn = _el('button', { className: 'cb-ai-pick-btn', type: 'button' });
+      mapBtn.innerHTML = '📍 Pick wind speed from UK map';
+      mapBtn.addEventListener('click', () => {
+        if (!window.WindMap) { console.warn('WindMap not loaded'); return; }
+        window.WindMap.open((vb0, region) => {
+          block.config.vb0 = vb0;
+          if (vb0Input) vb0Input.value = vb0;
+          mapBtn.innerHTML = '📍 ' + vb0 + ' m/s — ' + region;
+          _dispatch(formGrid, block.id);
+        });
+      });
+      wrap.appendChild(mapBtn);
+    }
 
     // ── AI Section Picker (calc_beam only) ───────────────────────────────
     if (block.type === 'calc_beam') {
