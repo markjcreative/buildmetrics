@@ -333,7 +333,7 @@ const PreviewRenderer = (() => {
     const checkRows = _buildCheckRows(block.type, res);
 
     const hasResults = res._ran === true;
-    const noCalcMsg  = hasResults ? '' : `<tr><td colspan="4" style="color:#999;font-style:italic;padding:6pt 10pt;">[Calculation not yet run — click Calculate in editor]</td></tr>`;
+    const noCalcMsg  = hasResults ? '' : `<tr><td colspan="5" style="color:#999;font-style:italic;padding:6pt 10pt;">[Calculation not yet run — click Calculate in editor]</td></tr>`;
 
     // Engineering diagram (generated from config+results via BlockRegistry)
     const diagramHTML = (typeof BlockRegistry !== 'undefined' && typeof BlockRegistry.generateDiagramHTML === 'function')
@@ -355,10 +355,11 @@ const PreviewRenderer = (() => {
   <div class="rp-subsection-title">Calculations</div>
   <table class="rp-calc-table">
     <thead><tr>
-      <th style="width:40%">Step</th>
-      <th style="width:30%">Formula</th>
+      <th style="width:13%">Ref / Clause</th>
+      <th style="width:31%">Step</th>
+      <th style="width:29%">Formula</th>
       <th style="text-align:right;width:15%">Value</th>
-      <th style="width:15%">Unit</th>
+      <th style="width:12%">Unit</th>
     </tr></thead>
     <tbody>${calcRows || noCalcMsg}</tbody>
   </table>
@@ -392,8 +393,9 @@ const PreviewRenderer = (() => {
     </tr>`;
   }
 
-  function _calcRow(desc, formula, value, unit) {
+  function _calcRow(ref, desc, formula, value, unit) {
     return `<tr>
+      <td class="rp-clause">${esc(ref || '')}</td>
       <td class="rp-step-desc">${desc}</td>
       <td class="rp-formula">${formula}</td>
       <td class="rp-calc-val">${fmt(value, 3)}</td>
@@ -534,111 +536,111 @@ const PreviewRenderer = (() => {
     switch (type) {
       case 'calc_beam':
         return [
-          _calcRow('ULS design load', 'w = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', (1.35*(cfg.Gk||0) + 1.5*(cfg.Qk||0)), 'kN/m'),
-          _calcRow('Design bending moment', 'M<sub>Ed</sub> = w·L²/8', res.MEd, 'kNm'),
-          _calcRow('Moment resistance', 'M<sub>Rd</sub> = f<sub>y</sub>·S<sub>xx</sub>/γ<sub>M0</sub>', res.MRd, 'kNm'),
-          _calcRow('Design shear force', 'V<sub>Ed</sub> = w·L/2', res.VEd, 'kN'),
-          _calcRow('Shear resistance', 'V<sub>Rd</sub> = A<sub>v</sub>·f<sub>y</sub>/(√3·γ<sub>M0</sub>)', res.VRd, 'kN'),
+          _calcRow('EN1990 (6.10)', 'ULS design load', 'w = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', (1.35*(cfg.Gk||0) + 1.5*(cfg.Qk||0)), 'kN/m'),
+          _calcRow('EN1990', 'Design bending moment', 'M<sub>Ed</sub> = w·L²/8', res.MEd, 'kNm'),
+          _calcRow('EC3 §6.2.5', 'Moment resistance', 'M<sub>Rd</sub> = f<sub>y</sub>·S<sub>xx</sub>/γ<sub>M0</sub>', res.MRd, 'kNm'),
+          _calcRow('EN1990', 'Design shear force', 'V<sub>Ed</sub> = w·L/2', res.VEd, 'kN'),
+          _calcRow('EC3 §6.2.6', 'Shear resistance', 'V<sub>Rd</sub> = A<sub>v</sub>·f<sub>y</sub>/(√3·γ<sub>M0</sub>)', res.VRd, 'kN'),
         ].join('');
       case 'calc_column':
         return [
-          _calcRow('Slenderness ratio', 'λ = L<sub>cr</sub>/i', res.lambdaZ || res.lambda_z, ''),
-          _calcRow('Non-dimensional slenderness', 'λ̄ = λ/λ<sub>1</sub>', res.lambdaBarZ || res.lambdaBar_z, ''),
-          _calcRow('Buckling reduction factor', 'χ (from buckling curve)', res.chiZ || res.chi_z, ''),
-          _calcRow('Buckling resistance', 'N<sub>b,Rd</sub> = χ·A·f<sub>y</sub>/γ<sub>M1</sub>', res.NbRd, 'kN'),
+          _calcRow('EC3 §6.3.1.3', 'Slenderness ratio', 'λ = L<sub>cr</sub>/i', res.lambdaZ || res.lambda_z, ''),
+          _calcRow('EC3 §6.3.1.2', 'Non-dimensional slenderness', 'λ̄ = λ/λ<sub>1</sub>', res.lambdaBarZ || res.lambdaBar_z, ''),
+          _calcRow('EC3 §6.3.1.2', 'Buckling reduction factor', 'χ (from buckling curve)', res.chiZ || res.chi_z, ''),
+          _calcRow('EC3 §6.3.1.1', 'Buckling resistance', 'N<sub>b,Rd</sub> = χ·A·f<sub>y</sub>/γ<sub>M1</sub>', res.NbRd, 'kN'),
         ].join('');
       case 'calc_rc_beam':
         return [
-          _calcRow('Design compressive strength', 'f<sub>cd</sub> = 0.85·f<sub>ck</sub>/γ<sub>C</sub>', res.fcd, 'MPa'),
-          _calcRow('Normalised moment', 'K = M<sub>Ed</sub>/(b·d²·f<sub>cd</sub>)', res.K, ''),
-          _calcRow('Required reinforcement', 'A<sub>s,req</sub> = M<sub>Ed</sub>/(f<sub>yd</sub>·z)', res.As_req, 'mm²'),
-          _calcRow('Shear capacity (no links)', 'V<sub>Rd,c</sub>', res.VRdc, 'kN'),
+          _calcRow('EC2 §3.1.6', 'Design compressive strength', 'f<sub>cd</sub> = 0.85·f<sub>ck</sub>/γ<sub>C</sub>', res.fcd, 'MPa'),
+          _calcRow('EC2 §6.1', 'Normalised moment', 'K = M<sub>Ed</sub>/(b·d²·f<sub>cd</sub>)', res.K, ''),
+          _calcRow('EC2 §6.1', 'Required reinforcement', 'A<sub>s,req</sub> = M<sub>Ed</sub>/(f<sub>yd</sub>·z)', res.As_req, 'mm²'),
+          _calcRow('EC2 §6.2.2', 'Shear capacity (no links)', 'V<sub>Rd,c</sub>', res.VRdc, 'kN'),
         ].join('');
       case 'calc_footing':
         return [
-          _calcRow('Service load', 'N<sub>SLS</sub> = G<sub>k</sub> + Q<sub>k</sub>', (cfg.Gk||0)+(cfg.Qk||0), 'kN'),
-          _calcRow('Required footing size', 'B = √(N/q<sub>a</sub>)', res.B, 'm'),
-          _calcRow('Net bearing pressure', 'q<sub>net</sub> = N/A<sub>ftg</sub>', res.q_net, 'kPa'),
-          _calcRow('ULS load', 'N<sub>ULS</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.N_ULS, 'kN'),
+          _calcRow('EN1990', 'Service load', 'N<sub>SLS</sub> = G<sub>k</sub> + Q<sub>k</sub>', (cfg.Gk||0)+(cfg.Qk||0), 'kN'),
+          _calcRow('EC7 §6.5', 'Required footing size', 'B = √(N/q<sub>a</sub>)', res.B, 'm'),
+          _calcRow('EC7 §6.5.2', 'Net bearing pressure', 'q<sub>net</sub> = N/A<sub>ftg</sub>', res.q_net, 'kPa'),
+          _calcRow('EN1990 (6.10)', 'ULS load', 'N<sub>ULS</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.N_ULS, 'kN'),
         ].join('');
       case 'calc_wind':
         return [
-          _calcRow('Basic wind velocity', 'v<sub>b</sub> = c<sub>dir</sub>·c<sub>season</sub>·v<sub>b0</sub>', res.vb, 'm/s'),
-          _calcRow('Mean wind velocity', 'v<sub>m</sub> = c<sub>r</sub>·c<sub>o</sub>·v<sub>b</sub>', res.vm, 'm/s'),
-          _calcRow('Peak velocity pressure', 'q<sub>p</sub> = [1+7·I<sub>v</sub>]·½·ρ·v<sub>m</sub>²', res.qp, 'kN/m²'),
-          _calcRow('Wind force per unit height', 'F<sub>w</sub> = c<sub>s</sub>c<sub>d</sub>·c<sub>f</sub>·q<sub>p</sub>·A<sub>ref</sub>', res.Fw_total, 'kN'),
+          _calcRow('EN1991-1-4 §4.2', 'Basic wind velocity', 'v<sub>b</sub> = c<sub>dir</sub>·c<sub>season</sub>·v<sub>b0</sub>', res.vb, 'm/s'),
+          _calcRow('EN1991-1-4 §4.3', 'Mean wind velocity', 'v<sub>m</sub> = c<sub>r</sub>·c<sub>o</sub>·v<sub>b</sub>', res.vm, 'm/s'),
+          _calcRow('EN1991-1-4 §4.5', 'Peak velocity pressure', 'q<sub>p</sub> = [1+7·I<sub>v</sub>]·½·ρ·v<sub>m</sub>²', res.qp, 'kN/m²'),
+          _calcRow('EN1991-1-4 §5.3', 'Wind force per unit height', 'F<sub>w</sub> = c<sub>s</sub>c<sub>d</sub>·c<sub>f</sub>·q<sub>p</sub>·A<sub>ref</sub>', res.Fw_total, 'kN'),
         ].join('');
       case 'calc_rc_column':
         return [
-          _calcRow('Effective length', 'l₀ = β·l', res.lo_eff || (cfg.lo||0), 'm'),
-          _calcRow('Slenderness ratio', 'λ = l₀/i', res.lambda, ''),
-          _calcRow('Min. eccentricity', 'e₀ = max(h/30, 20mm)', res.e0, 'mm'),
-          _calcRow('Total moment (incl. 2nd order)', 'M<sub>Ed,tot</sub>', res.MEd_tot || res.MEd, 'kNm'),
-          _calcRow('Required rebar area', 'A<sub>s,req</sub>', res.As_req, 'mm²'),
+          _calcRow('EC2 §5.8.3.2', 'Effective length', 'l₀ = β·l', res.lo_eff || (cfg.lo||0), 'm'),
+          _calcRow('EC2 §5.8.3', 'Slenderness ratio', 'λ = l₀/i', res.lambda, ''),
+          _calcRow('EC2 §6.1(4)', 'Min. eccentricity', 'e₀ = max(h/30, 20mm)', res.e0, 'mm'),
+          _calcRow('EC2 §5.8.8', 'Total moment (incl. 2nd order)', 'M<sub>Ed,tot</sub>', res.MEd_tot || res.MEd, 'kNm'),
+          _calcRow('EC2 §6.1', 'Required rebar area', 'A<sub>s,req</sub>', res.As_req, 'mm²'),
         ].filter(r => r).join('');
       case 'calc_slab':
         return [
-          _calcRow('ULS applied load', 'n = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.n_uls || (1.35*(cfg.gk||0)+1.5*(cfg.qk||0)), 'kN/m²'),
-          _calcRow('Design moment', 'M<sub>Ed</sub> = n·l²/8', res.MEd, 'kNm/m'),
-          _calcRow('Effective depth', 'd = h – c<sub>nom</sub> – φ/2', res.d_eff || ((cfg.thickness||200)-35), 'mm'),
-          _calcRow('Required reinforcement', 'A<sub>s,req</sub> per metre', res.As_req, 'mm²/m'),
-          _calcRow('Deflection check (span/d)', 'l/d = ' + (res.span_d_ratio ? res.span_d_ratio.toFixed(1) : '—'), res.span_d_ratio, ''),
+          _calcRow('EN1990 (6.10)', 'ULS applied load', 'n = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.n_uls || (1.35*(cfg.gk||0)+1.5*(cfg.qk||0)), 'kN/m²'),
+          _calcRow('EC2 §5.4', 'Design moment', 'M<sub>Ed</sub> = n·l²/8', res.MEd, 'kNm/m'),
+          _calcRow('EC2 §4.4.1', 'Effective depth', 'd = h – c<sub>nom</sub> – φ/2', res.d_eff || ((cfg.thickness||200)-35), 'mm'),
+          _calcRow('EC2 §9.3', 'Required reinforcement', 'A<sub>s,req</sub> per metre', res.As_req, 'mm²/m'),
+          _calcRow('EC2 §7.4.2', 'Deflection check (span/d)', 'l/d = ' + (res.span_d_ratio ? res.span_d_ratio.toFixed(1) : '—'), res.span_d_ratio, ''),
         ].filter(r => r).join('');
       case 'calc_retaining':
         return [
-          _calcRow('Active earth pressure coefficient', 'K<sub>a</sub> = tan²(45°–φ/2)', res.Ka, ''),
-          _calcRow('Active force', 'P<sub>a</sub> = ½·K<sub>a</sub>·γ·H²', res.Pa, 'kN/m'),
-          _calcRow('Overturning moment', 'M<sub>ov</sub>', res.Mov, 'kNm/m'),
-          _calcRow('Stabilising moment', 'M<sub>stab</sub>', res.Mstab, 'kNm/m'),
-          _calcRow('Sliding resistance', 'H<sub>Rd</sub> = N<sub>Ed</sub>·tan δ', res.Hrd, 'kN/m'),
+          _calcRow('Rankine', 'Active earth pressure coefficient', 'K<sub>a</sub> = tan²(45°–φ/2)', res.Ka, ''),
+          _calcRow('EC7 §9.3', 'Active force', 'P<sub>a</sub> = ½·K<sub>a</sub>·γ·H²', res.Pa, 'kN/m'),
+          _calcRow('EC7 §6.5.4', 'Overturning moment', 'M<sub>ov</sub>', res.Mov, 'kNm/m'),
+          _calcRow('EC7 §6.5.4', 'Stabilising moment', 'M<sub>stab</sub>', res.Mstab, 'kNm/m'),
+          _calcRow('EC7 §6.5.3', 'Sliding resistance', 'H<sub>Rd</sub> = N<sub>Ed</sub>·tan δ', res.Hrd, 'kN/m'),
         ].filter(r => r).join('');
       case 'calc_connection':
         return [
-          _calcRow('Bolt shear resistance', 'F<sub>v,Rd</sub>/bolt', res.Fv_Rd, 'kN'),
-          _calcRow('Bolt bearing resistance', 'F<sub>b,Rd</sub>/bolt', res.Fb_Rd, 'kN'),
-          _calcRow('Total connection resistance', 'V<sub>Rd</sub> = n·min(F<sub>v</sub>,F<sub>b</sub>)', res.VRd, 'kN'),
-          _calcRow('Applied force', 'V<sub>Ed</sub>', res.VEd || cfg.VEd, 'kN'),
+          _calcRow('EC3 §3.6.1', 'Bolt shear resistance', 'F<sub>v,Rd</sub>/bolt', res.Fv_Rd, 'kN'),
+          _calcRow('EC3 §3.6.1', 'Bolt bearing resistance', 'F<sub>b,Rd</sub>/bolt', res.Fb_Rd, 'kN'),
+          _calcRow('EC3 §3.7', 'Total connection resistance', 'V<sub>Rd</sub> = n·min(F<sub>v</sub>,F<sub>b</sub>)', res.VRd, 'kN'),
+          _calcRow('EN1990', 'Applied force', 'V<sub>Ed</sub>', res.VEd || cfg.VEd, 'kN'),
         ].filter(r => r).join('');
       case 'calc_timber_col':
         return [
-          _calcRow('Design compressive strength', 'f<sub>c,0,d</sub> = k<sub>mod</sub>·f<sub>c,0,k</sub>/γ<sub>M</sub>', res.fc0d, 'MPa'),
-          _calcRow('Relative slenderness', 'λ<sub>rel,c</sub>', res.lambdaRel, ''),
-          _calcRow('Instability factor', 'k<sub>c</sub>', res.kc, ''),
-          _calcRow('Design resistance', 'N<sub>Rd</sub> = k<sub>c</sub>·A·f<sub>c,0,d</sub>', res.NRd, 'kN'),
+          _calcRow('EC5 §2.4.1', 'Design compressive strength', 'f<sub>c,0,d</sub> = k<sub>mod</sub>·f<sub>c,0,k</sub>/γ<sub>M</sub>', res.fc0d, 'MPa'),
+          _calcRow('EC5 §6.3.2', 'Relative slenderness', 'λ<sub>rel,c</sub>', res.lambdaRel, ''),
+          _calcRow('EC5 §6.3.2', 'Instability factor', 'k<sub>c</sub>', res.kc, ''),
+          _calcRow('EC5 §6.3.2', 'Design resistance', 'N<sub>Rd</sub> = k<sub>c</sub>·A·f<sub>c,0,d</sub>', res.NRd, 'kN'),
         ].filter(r => r).join('');
       case 'calc_steel_member':
         return [
-          _calcRow('Plastic moment resistance', 'M<sub>c,Rd</sub> = W<sub>pl</sub>·f<sub>y</sub>/γ<sub>M0</sub>', res.McRd, 'kNm'),
-          _calcRow('Shear resistance', 'V<sub>c,Rd</sub> = A<sub>v</sub>·f<sub>y</sub>/(√3·γ<sub>M0</sub>)', res.VcRd, 'kN'),
-          _calcRow('Compression resistance', 'N<sub>b,Rd</sub>', res.NbRd, 'kN'),
-          _calcRow('Interaction check (y-y axis)', 'N<sub>Ed</sub>/(χ<sub>y</sub>·N<sub>Rk</sub>) + k<sub>yy</sub>·M<sub>y,Ed</sub>/(M<sub>y,Rk</sub>)', res.interactionY, ''),
+          _calcRow('EC3 §6.2.5', 'Plastic moment resistance', 'M<sub>c,Rd</sub> = W<sub>pl</sub>·f<sub>y</sub>/γ<sub>M0</sub>', res.McRd, 'kNm'),
+          _calcRow('EC3 §6.2.6', 'Shear resistance', 'V<sub>c,Rd</sub> = A<sub>v</sub>·f<sub>y</sub>/(√3·γ<sub>M0</sub>)', res.VcRd, 'kN'),
+          _calcRow('EC3 §6.3.1', 'Compression resistance', 'N<sub>b,Rd</sub>', res.NbRd, 'kN'),
+          _calcRow('EC3 §6.3.3', 'Interaction check (y-y axis)', 'N<sub>Ed</sub>/(χ<sub>y</sub>·N<sub>Rk</sub>) + k<sub>yy</sub>·M<sub>y,Ed</sub>/(M<sub>y,Rk</sub>)', res.interactionY, ''),
         ].filter(r => r).join('');
       case 'calc_bbs':
         return [
-          _calcRow('Total bar count', '', res.bar_count || cfg.bar_count, 'bars'),
-          _calcRow('Total steel weight', '', res.total_weight || cfg.total_weight, 'kg'),
-          _calcRow('Primary bar diameter', '', res.primary_dia || cfg.primary_dia, 'mm'),
+          _calcRow('BS 8666', 'Total bar count', '', res.bar_count || cfg.bar_count, 'bars'),
+          _calcRow('BS 8666', 'Total steel weight', '', res.total_weight || cfg.total_weight, 'kg'),
+          _calcRow('BS 8666', 'Primary bar diameter', '', res.primary_dia || cfg.primary_dia, 'mm'),
         ].filter(r => r).join('');
       case 'calc_section':
         return [
-          _calcRow('Cross-sectional area', 'A', res.A, 'mm²'),
-          _calcRow('Second moment of area (xx)', 'I<sub>xx</sub>', res.Ixx, 'mm⁴'),
-          _calcRow('Elastic modulus (xx)', 'W<sub>el,xx</sub> = I<sub>xx</sub>/y<sub>max</sub>', res.Wel_xx, 'mm³'),
-          _calcRow('Radius of gyration', 'i<sub>xx</sub> = √(I<sub>xx</sub>/A)', res.i_xx, 'mm'),
+          _calcRow('Geometry', 'Cross-sectional area', 'A', res.A, 'mm²'),
+          _calcRow('Geometry', 'Second moment of area (xx)', 'I<sub>xx</sub>', res.Ixx, 'mm⁴'),
+          _calcRow('Geometry', 'Elastic modulus (xx)', 'W<sub>el,xx</sub> = I<sub>xx</sub>/y<sub>max</sub>', res.Wel_xx, 'mm³'),
+          _calcRow('Geometry', 'Radius of gyration', 'i<sub>xx</sub> = √(I<sub>xx</sub>/A)', res.i_xx, 'mm'),
         ].filter(r => r).join('');
       case 'calc_load_takedown':
         return [
-          _calcRow('Total unfactored (G<sub>k</sub>)', 'Σ dead load', res.total_Gk, 'kN'),
-          _calcRow('Total unfactored (Q<sub>k</sub>)', 'Σ imposed load', res.total_Qk, 'kN'),
-          _calcRow('ULS design load', 'N<sub>Ed</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.NEd, 'kN'),
-          _calcRow('SLS service load', 'N<sub>SLS</sub> = G<sub>k</sub> + Q<sub>k</sub>', res.N_SLS, 'kN'),
+          _calcRow('EN1991-1-1', 'Total unfactored (G<sub>k</sub>)', 'Σ dead load', res.total_Gk, 'kN'),
+          _calcRow('EN1991-1-1', 'Total unfactored (Q<sub>k</sub>)', 'Σ imposed load', res.total_Qk, 'kN'),
+          _calcRow('EN1990 (6.10)', 'ULS design load', 'N<sub>Ed</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.NEd, 'kN'),
+          _calcRow('EN1990 (6.14)', 'SLS service load', 'N<sub>SLS</sub> = G<sub>k</sub> + Q<sub>k</sub>', res.N_SLS, 'kN'),
         ].filter(r => r).join('');
       default:
         // Generic: first 5 numeric results
         return Object.entries(res)
           .filter(([k, v]) => k !== '_ran' && typeof v === 'number')
           .slice(0, 5)
-          .map(([k, v]) => _calcRow(k, '—', v, ''))
+          .map(([k, v]) => _calcRow('', k, '—', v, ''))
           .join('');
     }
   }
@@ -856,8 +858,9 @@ body { font-family:'Times New Roman',Times,serif; font-size:10pt; color:#000; ba
 .rp-val { width:60pt; font-family:'Courier New',monospace; text-align:right; }
 .rp-unit { width:35pt; color:#555; font-size:8pt; }
 .rp-ref { color:#777; font-size:8pt; font-style:italic; }
-.rp-step-desc { width:40%; }
-.rp-formula { font-style:italic; }
+.rp-clause { width:13%; color:#555; font-size:8pt; font-style:italic; white-space:nowrap; background:#fafafa; }
+.rp-step-desc { width:31%; }
+.rp-formula { font-style:italic; font-family:'Courier New',monospace; font-size:8.5pt; color:#333; }
 .rp-calc-val { font-family:'Courier New',monospace; text-align:right; font-weight:bold; }
 .rp-pass { color:#006600; font-weight:bold; }
 .rp-fail { color:#cc0000; font-weight:bold; }
