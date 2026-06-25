@@ -199,7 +199,7 @@ curl_setopt_array($ch, [
 ]);
 $res    = curl_exec($ch);
 $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
+// curl_close() removed — deprecated in PHP 8.0+, emits a warning before JSON output
 
 if ($status >= 200 && $status < 300) {
     echo json_encode(['success' => true, 'id' => json_decode($res, true)['id'] ?? null]);
