@@ -99,6 +99,15 @@ const PreviewRenderer = (() => {
       <div class="mv" style="color:${status === 'FINAL' ? '#006600' : '#cc6600'}">${status}</div>
     </div>
   </div>
+
+  <div class="rp-tb-statusbar">
+    <span><b>Project:</b> ${projectName}</span>
+    <span><b>Client:</b> ${clientName}</span>
+    <span><b>Ref:</b> ${reportRef}</span>
+    <span><b>Rev:</b> ${revision}</span>
+    <span><b>Code:</b> ${designCode}</span>
+    <span class="rp-tb-statusbar-status"><b>${status}</b></span>
+  </div>
 </div>`;
   }
 
@@ -164,6 +173,7 @@ const PreviewRenderer = (() => {
     return `<div class="rp-calc-section">
   <div class="rp-calc-header">
     <span class="rp-calc-title">Design Basis &amp; Assumptions</span>
+    <span class="rp-calc-headright"><span class="rp-calc-tag">BASIS</span></span>
   </div>
   <div style="padding:8pt 10pt;">
     <div class="rp-prose">${text}</div>
@@ -183,6 +193,7 @@ const PreviewRenderer = (() => {
     return `<div class="rp-calc-section">
   <div class="rp-calc-header">
     <span class="rp-calc-title">Codes &amp; Standards Referenced</span>
+    <span class="rp-calc-headright"><span class="rp-calc-tag">STANDARDS</span></span>
   </div>
   <table class="rp-inputs-table" style="margin:8pt 0 0;">
     <thead><tr>
@@ -304,7 +315,7 @@ const PreviewRenderer = (() => {
     return `<div class="rp-calc-section">
   <div class="rp-calc-header">
     <span class="rp-calc-title">Design Checks Summary</span>
-    <span class="rp-calc-code" style="color:${allPass ? '#90ee90' : '#ffaaaa'}">${allPass ? '✓ ALL PASS' : '✗ FAILURES PRESENT'}</span>
+    <span class="rp-calc-headright"><span class="rp-calc-code" style="color:${allPass ? '#90ee90' : '#ffaaaa'}">${allPass ? '✓ ALL PASS' : '✗ FAILURES PRESENT'}</span><span class="rp-calc-tag">OUTPUT</span></span>
   </div>
   <table class="rp-checks-table" style="margin:0;">
     <thead><tr><th>Element</th><th>Check</th><th style="text-align:right">η</th><th>Status</th></tr></thead>
@@ -343,7 +354,7 @@ const PreviewRenderer = (() => {
     return `<div class="rp-calc-section">
   <div class="rp-calc-header">
     <span class="rp-calc-title">${label}</span>
-    <span class="rp-calc-code">${esc(code)}</span>
+    <span class="rp-calc-headright">${code ? `<span class="rp-calc-code">${esc(code)}</span>` : ''}<span class="rp-calc-tag">CALCULATED</span></span>
   </div>
 
   <div class="rp-subsection-title">Design Inputs</div>
@@ -831,6 +842,10 @@ body { font-family:'Times New Roman',Times,serif; font-size:10pt; color:#000; ba
 .rp-tb-meta-cell:last-child { border-right:none; }
 .rp-tb-meta-cell .mk { font-size:7pt; text-transform:uppercase; letter-spacing:.5pt; color:#555; }
 .rp-tb-meta-cell .mv { font-size:10pt; font-weight:bold; margin-top:2pt; }
+.rp-tb-statusbar { display:flex; flex-wrap:wrap; gap:0 16pt; background:#1a1a1a; color:#ddd; padding:5pt 12pt; font-family:Arial,sans-serif; font-size:8pt; border-top:1pt solid #000; }
+.rp-tb-statusbar span { white-space:nowrap; }
+.rp-tb-statusbar b { color:#fff; font-weight:bold; }
+.rp-tb-statusbar-status { margin-left:auto; letter-spacing:.5pt; }
 
 /* ── TOC ── */
 .rp-toc { margin-bottom:20pt; border:1pt solid #000; page-break-after:avoid; }
@@ -848,12 +863,14 @@ body { font-family:'Times New Roman',Times,serif; font-size:10pt; color:#000; ba
 .rp-calc-section { margin-bottom:18pt; border:1pt solid #bbb; }
 .rp-calc-header { display:flex; justify-content:space-between; align-items:center; background:#000; color:white; padding:5pt 10pt; }
 .rp-calc-title { font-weight:bold; font-size:10pt; font-family:'Times New Roman',serif; }
+.rp-calc-headright { display:flex; align-items:center; gap:8pt; }
 .rp-calc-code { font-size:8pt; opacity:.8; }
+.rp-calc-tag { font-size:7pt; font-weight:bold; letter-spacing:.6pt; background:#fff; color:#000; padding:1pt 6pt; border-radius:2pt; font-family:Arial,sans-serif; }
 
 /* ── Tables ── */
-.rp-inputs-table, .rp-calc-table, .rp-checks-table { width:100%; border-collapse:collapse; font-size:9pt; }
-.rp-inputs-table td, .rp-calc-table td, .rp-checks-table td, .rp-checks-table th { padding:3pt 6pt; border:.5pt solid #ccc; vertical-align:middle; }
-.rp-checks-table th { background:#f0f0f0; font-weight:bold; text-align:left; font-size:8.5pt; }
+.rp-inputs-table, .rp-calc-table, .rp-checks-table { width:100%; border-collapse:collapse; font-size:9pt; table-layout:fixed; }
+.rp-inputs-table td, .rp-calc-table td, .rp-checks-table td, .rp-checks-table th { padding:2.5pt 6pt; border:.5pt solid #ddd; vertical-align:middle; overflow:hidden; text-overflow:ellipsis; }
+.rp-calc-table th, .rp-checks-table th { background:#ececec; font-weight:bold; text-align:left; font-size:8pt; text-transform:uppercase; letter-spacing:.3pt; color:#333; }
 .rp-param { width:130pt; font-weight:bold; background:#fafafa; }
 .rp-val { width:60pt; font-family:'Courier New',monospace; text-align:right; }
 .rp-unit { width:35pt; color:#555; font-size:8pt; }
@@ -932,6 +949,10 @@ body { font-family:'Times New Roman',Times,serif; font-size:10pt; color:#000; ba
   .rp-page-break { page-break-after:always; }
   .rp-calc-section { page-break-inside:avoid; }
   .rp-title-block { page-break-after:always; }
+  .rp-tb-header, .rp-calc-header, .rp-tb-statusbar, .rp-calc-tag,
+  .rp-calc-table th, .rp-checks-table th, .rp-clause, .rp-param, .rp-subsection-title,
+  .rp-pass, .rp-fail { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .rp-calc-section { page-break-inside:avoid; }
   .rp-diagram-section { page-break-inside:avoid; filter:grayscale(100%) contrast(1.15); }
   .rp-diagram-body svg { max-width:55%; max-height:100pt; }
   .rp-beam-elevation-grid { grid-template-columns:1fr 1fr; gap:5pt; }
