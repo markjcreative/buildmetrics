@@ -535,6 +535,27 @@ const PreviewRenderer = (() => {
           _inputRow('Floor live load LL', cfg.LL, 'kPa', ''),
           _inputRow('Roof dead load', cfg.roofDL, 'kPa', ''),
         ].join('');
+      case 'calc_hoarding':
+        return [
+          _inputRow('Hoarding height H', cfg.H, 'm', 'Geometry'),
+          _inputRow('Basic wind speed v<sub>b,0</sub>', cfg.vb0, 'm/s', 'NA Fig NA.1'),
+          _inputRow('Altitude above sea level', cfg.altitude, 'm', 'NA §4.2'),
+          _inputRow('Terrain category', cfg.terrainCat, '', 'Table NA.1'),
+          _inputRow('Wind return period', cfg.returnPeriod, 'yr', '§4.2(1)'),
+          _inputRow('Cladding solidity ratio φ', cfg.phi, '', ''),
+          _inputRow('Normal bay L<sub>N</sub>', cfg.Ln, 'm', ''),
+          _inputRow('Next-to-end bay L<sub>NE</sub>', cfg.Lne, 'm', ''),
+          _inputRow('End bay L<sub>E</sub>', cfg.Le, 'm', ''),
+          _inputRow('Post section', cfg.postSection, 'mm', ''),
+          _inputRow('Post grade', cfg.postGrade, '', 'Table C.1'),
+          _inputRow('Rail section', cfg.railSection, 'mm', ''),
+          _inputRow('No. of rails', cfg.nRails, '', ''),
+          _inputRow('Fixing type', cfg.fixType, '', '§8'),
+          _inputRow('Plywood thickness', cfg.plyT, 'mm', ''),
+          _inputRow('Foundation dia/side', cfg.foundationDia, 'm', 'TwF2012'),
+          _inputRow('Trial embedment P', cfg.foundationDepth, 'm', 'TwF2012'),
+          _inputRow('Soil factor G', cfg.soilG, '', 'TwF2012 Table 1'),
+        ].join('');
       default:
         return Object.entries(cfg).slice(0, 8).map(([k, v]) => _inputRow(k, v, '', '')).join('');
     }
@@ -645,6 +666,29 @@ const PreviewRenderer = (() => {
           _calcRow('EN1991-1-1', 'Total unfactored (Q<sub>k</sub>)', 'Σ imposed load', res.total_Qk, 'kN'),
           _calcRow('EN1990 (6.10)', 'ULS design load', 'N<sub>Ed</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.NEd, 'kN'),
           _calcRow('EN1990 (6.14)', 'SLS service load', 'N<sub>SLS</sub> = G<sub>k</sub> + Q<sub>k</sub>', res.N_SLS, 'kN'),
+        ].filter(r => r).join('');
+      case 'calc_hoarding':
+        return [
+          _calcRow('NA §4.2', 'Altitude factor', 'c<sub>alt</sub> = 1 + 0.001·A', res.calt, ''),
+          _calcRow('§4.2(1)', 'Probability factor', 'c<sub>prob</sub>', res.cprob, ''),
+          _calcRow('§4.2', 'Basic wind velocity', 'v<sub>b</sub> = v<sub>b,0</sub>·c<sub>alt</sub>·c<sub>prob</sub>', res.vb, 'm/s'),
+          _calcRow('§4.5(1)', 'Basic velocity pressure', 'q<sub>b</sub> = ½·ρ·v<sub>b</sub>²', res.qb, 'N/m²'),
+          _calcRow('NA Fig NA.7', 'Exposure factor', 'c<sub>e</sub>(z)', res.cez, ''),
+          _calcRow('§4.5', 'Peak velocity pressure', 'q<sub>p</sub> = c<sub>e</sub>(z)·q<sub>b</sub>', res.qp, 'kN/m²'),
+          _calcRow('§7.4 NA', 'Force coeff. — Normal', 'c<sub>f,N</sub> (φ≥0.9 → 1.30)', res.cfN, ''),
+          _calcRow('§5.2', 'Wind pressure — Normal', 'w<sub>e,N</sub> = c<sub>f,N</sub>·q<sub>p</sub>', res.weN, 'kN/m²'),
+          _calcRow('EN1990', 'Governing ULS moment (' + (res.govName || '—') + ')', 'M<sub>Ed</sub> = 1.5·w<sub>k</sub>·H²/2', res.govMuls, 'kN·m'),
+          _calcRow('EN1990', 'Governing ULS shear', 'V<sub>Ed</sub> = 1.5·w<sub>k</sub>·H', res.govVuls, 'kN'),
+          _calcRow('EC5 §6.1.6', 'Post bending stress', 'σ<sub>m,d</sub> = M<sub>Ed</sub>/W<sub>el</sub>', res.postSig, 'N/mm²'),
+          _calcRow('EC5 §2.4.3', 'Post bending strength', 'f<sub>m,d</sub> = k<sub>mod</sub>·f<sub>m,k</sub>/γ<sub>M</sub>', res.postFmd, 'N/mm²'),
+          _calcRow('EC5 §2.2.3', 'Post tip deflection', 'δ = w<sub>k</sub>·L<sub>eff</sub>⁴/(8EI)', res.postDefl, 'mm'),
+          _calcRow('EC5 §8', 'Rail bending utilisation', 'σ<sub>m,d</sub>/f<sub>m,d</sub>', res.railUC, ''),
+          _calcRow('EC5 Eq.8.6/8.7', 'Fixing design capacity', 'F<sub>v,Rd</sub> = k<sub>mod</sub>·F<sub>v,Rk</sub>/γ<sub>M</sub>', res.FvRd, 'kN/fix'),
+          _calcRow('EC5 §6.1.6', 'Facing bending utilisation', 'σ<sub>m,d</sub>/f<sub>m,d</sub>', res.facingUC, ''),
+          _calcRow('TwF2012', 'Foundation restoring moment', 'M<sub>g</sub> = G·d·P³', res.Mg, 'kN·m'),
+          _calcRow('TwF2012', 'Overturning resistance', 'M<sub>go</sub> = M<sub>g</sub>·(P+2t)/(fulc+t)', res.Mgo, 'kN·m'),
+          _calcRow('TwF2012', 'Factor of safety', 'FOS = M<sub>go</sub>/M<sub>k</sub> (≥1.5)', res.FOS, ''),
+          _calcRow('TwF2012', 'Min. embedment (FOS=1.5)', 'P<sub>min</sub>', res.minP, 'm'),
         ].filter(r => r).join('');
       default:
         // Generic: first 5 numeric results

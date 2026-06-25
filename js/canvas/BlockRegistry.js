@@ -42,6 +42,7 @@ const BlockRegistry = (() => {
     { type: 'calc_section',      label: 'Section Properties',     icon: '📐', category: 'Calculations', calcType: 'section-properties' },
     { type: 'calc_wind',         label: 'Wind Loading (EC1)',      icon: '🌬', category: 'Calculations', calcType: 'wind-loading' },
     { type: 'calc_load_takedown',label: 'Load Takedown',           icon: '⬇️',  category: 'Calculations', calcType: 'load-takedown' },
+    { type: 'calc_hoarding',     label: 'Temp. Works Hoarding (TwF2012)', icon: '🚧', category: 'Calculations', calcType: 'hoarding' },
     // Results
     { type: 'checks_summary',    label: 'Design Checks Summary',  icon: '✅', category: 'Results' },
     { type: 'utilisation_chart', label: 'Utilisation Chart',      icon: '📊', category: 'Results' },
@@ -67,6 +68,7 @@ const BlockRegistry = (() => {
     'calc_section':      { src: '/js/engine/sectionSolver.js',      global: 'SectionSolver' },
     'calc_wind':         { src: '/js/engine/windSolver.js',         global: 'WindSolver' },
     'calc_load_takedown':{ src: '/js/engine/loadTakedownSolver.js', global: 'LoadTakedownSolver' },
+    'calc_hoarding':     { src: '/js/engine/hoardingSolver.js',     global: 'HoardingSolver' },
   };
 
   // ── Calc field definitions (inputs shown in edit mode) ─────────────────
@@ -180,6 +182,32 @@ const BlockRegistry = (() => {
       { key: 'roofDL',    label: 'Roof DL (kPa)',    type: 'number', default: 3 },
       { key: 'roofLL',    label: 'Roof LL (kPa)',    type: 'number', default: 0.6 },
     ],
+    'calc_hoarding': [
+      { key: 'H',           label: 'Hoarding height H (m)',   type: 'number', default: 2.4 },
+      { key: 'vb0',         label: 'Basic wind speed vb0 (m/s)', type: 'number', default: 23 },
+      { key: 'altitude',    label: 'Altitude (m)',            type: 'number', default: 50 },
+      { key: 'terrainCat',  label: 'Terrain (0 Sea–4 Urban)', type: 'select', options: ['0','1','2','3','4'], default: '1' },
+      { key: 'returnPeriod',label: 'Return period (yr)',      type: 'select', options: ['1','5','50'], default: '50' },
+      { key: 'phi',         label: 'Cladding solidity φ',     type: 'number', default: 1.0 },
+      { key: 'Ln',          label: 'Normal bay Ln (m)',       type: 'number', default: 2.4 },
+      { key: 'Lne',         label: 'Next-to-end bay Lne (m)', type: 'number', default: 1.8 },
+      { key: 'Le',          label: 'End bay Le (m)',          type: 'number', default: 1.2 },
+      { key: 'postSection', label: 'Post section b×h',        type: 'select', options: ['75x225','100x150','150x150','200x200'], default: '150x150' },
+      { key: 'postGrade',   label: 'Post timber grade',       type: 'select', options: ['C16','C24','C32'], default: 'C24' },
+      { key: 'railSection', label: 'Rail section b×h',        type: 'select', options: ['50x150','75x100','75x150','100x150','75x225'], default: '75x150' },
+      { key: 'railGrade',   label: 'Rail timber grade',       type: 'select', options: ['C16','C24','C32'], default: 'C24' },
+      { key: 'nRails',      label: 'No. of rails',            type: 'number', default: 3 },
+      { key: 'fixType',     label: 'Fixing type',             type: 'select', options: ['bolt','nail'], default: 'bolt' },
+      { key: 'boltD',       label: 'Bolt dia (mm)',           type: 'select', options: ['10','12','16','20'], default: '12' },
+      { key: 'nFasteners',  label: 'Fasteners per connection',type: 'number', default: 2 },
+      { key: 'plyT',        label: 'Plywood thickness (mm)',  type: 'select', options: ['12','18','22'], default: '18' },
+      { key: 'plyGrade',    label: 'Plywood grade',           type: 'select', options: ['ext','str'], default: 'ext' },
+      { key: 'foundationDia',  label: 'Foundation dia/side (m)', type: 'number', default: 0.45 },
+      { key: 'topsoil',     label: 'Topsoil depth (m)',       type: 'number', default: 0.10 },
+      { key: 'foundationDepth',label: 'Trial embedment P (m)', type: 'number', default: 0.90 },
+      { key: 'soilG',       label: 'Soil factor G (TwF2012)', type: 'select', options: ['130','230','450','700','1000'], default: '230' },
+      { key: 'nearSlope',   label: 'Near slope?',             type: 'select', options: ['flat','slope'], default: 'flat' },
+    ],
   };
 
   // Code references per calc type
@@ -198,6 +226,7 @@ const BlockRegistry = (() => {
     'calc_section':      'Engineering Mathematics',
     'calc_wind':         'EN 1991-1-4',
     'calc_load_takedown':'EN 1991-1-1',
+    'calc_hoarding':     'TwF2012 / EN 1991-1-4 / EN 1995-1-1 / EN 1997',
   };
 
   // ── Helpers ─────────────────────────────────────────────────────────────
@@ -831,6 +860,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
       calc_steel_member:'Steel Member Diagram',
       calc_wind:        'Wind Pressure Diagram',
       calc_load_takedown:'Load Takedown Diagram',
+      calc_hoarding:    'Post Cantilever & Foundation',
     };
     return labels[type] || 'Engineering Diagram';
   }
@@ -1129,6 +1159,8 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
         return _svgWind(cfg, r);
       case 'calc_load_takedown':
         return _svgLoadTakedown(cfg, r);
+      case 'calc_hoarding':
+        return _svgHoarding(cfg, r);
       default:
         return _svgGeneric(cfg, r);
     }
@@ -1753,6 +1785,88 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <!-- Resultant load arrow -->
   <line x1="${cvx}" y1="${foundY+18}" x2="${cvx}" y2="${foundY+38}" stroke="#DC2626" stroke-width="2.5" marker-end="url(#aRed${id})"/>
   <text x="${cvx+8}" y="${foundY+32}" font-size="9" fill="#DC2626" font-weight="700" font-family="'JetBrains Mono',monospace">N = ${totalLabel} kN</text>
+</svg>`;
+  }
+
+  // ── Temporary Works Hoarding: post cantilever + foundation overturning ────
+
+  function _svgHoarding(cfg, r) {
+    const id   = _nextDiagId();
+    const H    = +(r.H || cfg.H || 2.4);
+    const P    = +(r.P || cfg.foundationDepth || 0.9);
+    const tops = +(r.topsoil || cfg.topsoil || 0.1);
+    const minP = +(r.minP || P);
+    const fulc = +(r.fulcrum || 0.707 * P);
+    const MEd  = r.govMuls != null ? (+r.govMuls).toFixed(1) : '—';
+    const VEd  = r.govVuls != null ? (+r.govVuls).toFixed(1) : '—';
+    const FOS  = r.FOS != null ? (+r.FOS).toFixed(2) : '—';
+    const fndPass = (r.FOS == null) || r.FOS >= 1.5;
+    const postUC  = r.postUC != null ? r.postUC : 0;
+    const postPass = postUC <= 1.0;
+    const pCol = postPass ? '#16A34A' : '#DC2626';
+
+    // ── Left panel: post cantilever (above ground) ──────────────────────────
+    const px = 70, py = 16, ph = 120, pw = 12, gly = py + ph;
+    const windArrows = Array.from({ length: 5 }, (_, i) => {
+      const ay = py + 8 + i * (ph - 16) / 4;
+      // longer arrows toward the top (wind profile)
+      const len = 24 - i * 3;
+      return `<line x1="${px - len}" y1="${ay}" x2="${px - 2}" y2="${ay}" stroke="#DC2626" stroke-width="1.4" marker-end="url(#aRed${id})"/>`;
+    }).join('');
+    // deflected shape (parabolic, exaggerated)
+    const defl = Array.from({ length: 8 }, (_, i) => {
+      const t = i / 7;
+      const x = px + pw / 2 + 12 * t * t;
+      const y = py + t * ph;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+
+    const leftPanel = `
+  <text x="80" y="11" text-anchor="middle" font-size="7.5" fill="#6B7280" font-weight="700" letter-spacing=".04em">POST CANTILEVER</text>
+  <rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="#2d6a42" rx="2"/>
+  <line x1="${px - 30}" y1="${gly}" x2="${px + pw + 26}" y2="${gly}" stroke="#1F2937" stroke-width="1" opacity="0.35"/>
+  ${Array.from({length:5},(_,i)=>`<line x1="${px-22-i*9}" y1="${gly+6+i*4}" x2="${px-14-i*9}" y2="${gly+i*4}" stroke="#1F2937" stroke-width="0.6" opacity="0.25"/>`).join('')}
+  ${windArrows}
+  <text x="${px - 30}" y="${py + ph/2}" text-anchor="middle" font-size="8" fill="#DC2626" font-weight="600" transform="rotate(-90,${px-30},${py+ph/2})">Wind &#8594;</text>
+  <polyline points="${defl}" fill="none" stroke="#5a9ed4" stroke-width="1" stroke-dasharray="3,2" opacity="0.8"/>
+  <line x1="${px}" y1="${gly}" x2="${px - 22}" y2="${gly - 10}" stroke="#c8a94a" stroke-width="1"/>
+  <text x="${px - 24}" y="${gly - 12}" text-anchor="end" font-size="7" fill="#b45309" font-weight="600">M&#8337;&#8332;=${MEd}</text>
+  <line x1="${px + pw/2}" y1="${gly}" x2="${px + pw/2 + 26}" y2="${gly + 16}" stroke="#c8a94a" stroke-width="1"/>
+  <text x="${px + pw/2 + 28}" y="${gly + 18}" font-size="7" fill="#b45309" font-weight="600">V&#8337;&#8332;=${VEd}</text>
+  <text x="${px + pw + 16}" y="${py + ph/2}" font-size="7.5" fill="#374151" transform="rotate(90,${px+pw+16},${py+ph/2})">H = ${H.toFixed(1)} m</text>`;
+
+    // ── Right panel: foundation overturning ─────────────────────────────────
+    const glx = 210, fgly = 60, fpw = 12;
+    const sc = 70 / (Math.max(P, minP) + 0.2);
+    const pH = 44, fH = Math.round(P * sc), fY = fgly;
+    const minFH = Math.round(minP * sc);
+    const topH = Math.round(tops * sc);
+    const fulcY = fY + Math.round(fulc * sc);
+    const fndCol = fndPass ? '#16A34A' : '#DC2626';
+
+    const rightPanel = `
+  <text x="${glx + 4}" y="11" text-anchor="middle" font-size="7.5" fill="#6B7280" font-weight="700" letter-spacing=".04em">FOUNDATION (TwF2012)</text>
+  <rect x="${glx}" y="${fgly - pH}" width="${fpw}" height="${pH}" fill="#2d6a42" rx="2"/>
+  <rect x="${glx - 7}" y="${fY}" width="${fpw + 14}" height="${fH}" fill="#2d6a42" opacity="0.55" rx="2"/>
+  <line x1="${glx - 16}" y1="${fY}" x2="${glx + fpw + 18}" y2="${fY}" stroke="#1F2937" stroke-width="0.7" opacity="0.3" stroke-dasharray="3,2"/>
+  <rect x="${glx - 8}" y="${fY}" width="${fpw + 16}" height="${topH}" fill="#1F2937" opacity="0.07"/>
+  <line x1="${glx - 12}" y1="${fulcY}" x2="${glx + fpw + 12}" y2="${fulcY}" stroke="#c8a94a" stroke-width="1" stroke-dasharray="3,2"/>
+  <circle cx="${glx - 12}" cy="${fulcY}" r="2.5" fill="#c8a94a"/>
+  <text x="${glx + fpw + 14}" y="${fulcY + 3}" font-size="6.5" fill="#b45309">fulcrum</text>
+  <line x1="${glx - 7}" y1="${fY + minFH}" x2="${glx + fpw + 7}" y2="${fY + minFH}" stroke="#e07030" stroke-width="1.3" stroke-dasharray="4,2"/>
+  <text x="${glx + fpw + 9}" y="${fY + minFH + 3}" font-size="6.5" fill="#e07030" font-weight="600">P&#8344;&#8336;&#8345;=${minP.toFixed(2)}m</text>
+  ${Array.from({length:4},(_,i)=>{const ay=fgly-pH+6+i*(pH-10)/3;return `<line x1="${glx-3}" y1="${ay}" x2="${glx-15}" y2="${ay}" stroke="#4a9e65" stroke-width="1" marker-end="url(#aRed${id})"/>`;}).join('')}
+  <rect x="${glx - 7}" y="${fY + fH + 8}" width="96" height="24" fill="${fndCol}" opacity="0.1" rx="3"/>
+  <text x="${glx + 40}" y="${fY + fH + 19}" text-anchor="middle" font-size="8" fill="${fndCol}" font-weight="700">FOS = ${FOS} ${fndPass ? '✓' : '✗'}</text>
+  <text x="${glx + 40}" y="${fY + fH + 28}" text-anchor="middle" font-size="6.5" fill="${fndCol}">P = ${P.toFixed(2)}m, t = ${tops.toFixed(2)}m</text>`;
+
+    return `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+  ${_svgDefs(id)}
+  ${leftPanel}
+  <line x1="160" y1="20" x2="160" y2="180" stroke="#E5E7EB" stroke-width="1"/>
+  ${rightPanel}
+  <rect x="6" y="170" width="150" height="24" rx="4" fill="${postPass?'#F0FDF4':'#FEF2F2'}" stroke="${postPass?'#86EFAC':'#FCA5A5'}" stroke-width="1"/>
+  <text x="81" y="185" text-anchor="middle" font-size="8" fill="${pCol}" font-weight="700">Post UC = ${(postUC*100).toFixed(0)}% ${postPass?'✓ PASS':'✗ FAIL'}</text>
 </svg>`;
   }
 
