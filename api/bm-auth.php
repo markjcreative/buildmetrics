@@ -162,4 +162,70 @@ if ($action === 'update') {
     json_out($stmt->fetch());
 }
 
+// ── PASSWORD RESET: REQUEST ─────────────────────────────────────────────────
+// POST { email } — always returns success (no account enumeration).
+if ($action === 'reset-request') {
+    $b     = body();
+    $email = strtolower(trim($b['email'] ?? ''));
+    $generic = ['success' => true, 'message' => 'If that email is registered, a reset link has been sent.'];
+
+    if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) json_out($generic);
+
+    $stmt = db()->prepare('SELECT id, name, provider FROM users WHERE email = ?');
+    $stmt->execute([$email]);
+    $row = $stmt->fetch();
+
+    // Only email-provider accounts can reset a password (Google users sign in via Google)
+    if ($row && ($row['provider'] ?? 'email') !== 'google') {
+        $token   = bin2hex(random_bytes(32));
+        $expires = date('Y-m-d H:i:s', time() + 3600); // 1 hour
+        db()->prepare('INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, ?)')
+            ->execute([$row['id'], hash('sha256', $token), $expires]);
+        $resetLink = 'https://app.buildmetrics.uk/reset-password.html?token=' . $token;
+        _send_reset_email($email, $row['name'] ?? 'there', $resetLink);
+    }
+    json_out($generic);
+}
+
+// ── PASSWORD RESET: CONFIRM ─────────────────────────────────────────────────
+// POST { token, password }
+if ($action === 'reset-confirm') {
+    $b        = body();
+    $token    = trim($b['token'] ?? '');
+    $password = $b['password'] ?? '';
+
+    if (!$token) json_err('Invalid reset link');
+    if (strlen($password) < 8) json_err('Password must be at least 8 characters');
+
+    $stmt = db()->prepare(
+        'SELECT id, user_id FROM password_resets
+         WHERE token_hash = ? AND used = 0 AND expires_at > NOW()'
+    );
+    $stmt->execute([hash('sha256', $token)]);
+    $pr = $stmt->fetch();
+    if (!$pr) json_err('This reset link is invalid or has expired. Please request a new one.');
+
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    db()->prepare('UPDATE users SET password_hash = ?, salt = ? WHERE id = ?')->execute([$hash, '', $pr['user_id']]);
+    db()->prepare('UPDATE password_resets SET used = 1 WHERE id = ?')->execute([$pr['id']]);
+    // Invalidate every existing session for this user — force re-login everywhere
+    db()->prepare('DELETE FROM sessions WHERE user_id = ?')->execute([$pr['user_id']]);
+
+    json_out(['success' => true, 'message' => 'Password updated. You can now sign in.']);
+}
+
+// Internal helper — sends the reset email via the existing send-email endpoint
+function _send_reset_email(string $to, string $name, string $resetLink): void {
+    $payload = json_encode(['type' => 'reset', 'to' => $to, 'name' => $name, 'resetLink' => $resetLink]);
+    $ch = curl_init('https://app.buildmetrics.uk/api/send-email.php');
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 8,
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json', 'X-Internal-Call: ' . INTERNAL_SECRET],
+    ]);
+    curl_exec($ch);
+}
+
 json_err('Unknown action', 404);

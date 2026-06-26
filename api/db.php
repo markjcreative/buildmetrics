@@ -59,6 +59,8 @@ function body(): array {
 // ── Auth token helpers ─────────────────────────────────────────────────────
 define('TOKEN_SECRET', 'bm_s3cr3t_' . DB_PASS);
 define('TOKEN_TTL', 60 * 60 * 24 * 30); // 30 days
+// Shared secret for server-to-server (internal) API calls, e.g. auth → send-email
+define('INTERNAL_SECRET', hash('sha256', 'bm_internal_' . DB_PASS));
 
 // Store only a hash of the session token in the DB — a DB leak then cannot be
 // replayed as a live session. The raw token is returned to the client once.

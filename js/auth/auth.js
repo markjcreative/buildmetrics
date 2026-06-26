@@ -111,9 +111,20 @@ const Auth = (() => {
         }).then(r => r.json());
     }
 
+    /* ── Password reset ──────────────────────────────────────── */
+    // Request a reset link. Always resolves success (no account enumeration).
+    async function requestPasswordReset(email) {
+        return apiPost('reset-request', { email });
+    }
+    // Set a new password using the emailed token.
+    async function confirmPasswordReset(token, password) {
+        return apiPost('reset-confirm', { token, password });
+    }
+
     return {
         register, login, loginWithGoogle, logout, guard,
         currentUser, updateProfile, refreshUser, sendEmail,
+        requestPasswordReset, confirmPasswordReset,
         getToken, authHeaders,
     };
 })();
