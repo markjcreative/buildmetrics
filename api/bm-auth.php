@@ -106,7 +106,7 @@ if ($action === 'login') {
 
 // ── GOOGLE AUTH ────────────────────────────────────────────────────────────
 if ($action === 'google') {
-    $GOOGLE_CLIENT_ID = '440038191618-he1pm3lglml6r6trivqce2q6u8sjbon8.apps.googleusercontent.com';
+    $GOOGLE_CLIENT_ID = defined('GOOGLE_CLIENT_ID') ? GOOGLE_CLIENT_ID : '';
     $b = body();
     $credential = trim($b['credential'] ?? '');
     if (!$credential) json_err('Missing Google credential');
@@ -328,18 +328,10 @@ if ($action === 'reset-confirm') {
     json_out(['success' => true, 'message' => 'Password updated. You can now sign in.']);
 }
 
-// Internal helper — sends the reset email via the existing send-email endpoint
+// Sends the reset email directly via the shared mailer (no self-HTTP loopback).
 function _send_reset_email(string $to, string $name, string $resetLink): void {
-    $payload = json_encode(['type' => 'reset', 'to' => $to, 'name' => $name, 'resetLink' => $resetLink]);
-    $ch = curl_init('https://app.buildmetrics.uk/api/send-email.php');
-    curl_setopt_array($ch, [
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 8,
-        CURLOPT_HTTPHEADER     => ['Content-Type: application/json', 'X-Internal-Call: ' . INTERNAL_SECRET],
-    ]);
-    curl_exec($ch);
+    require_once __DIR__ . '/mailer.php';
+    mail_send_templated('reset', $to, $name, ['resetLink' => $resetLink]);
 }
 
 json_err('Unknown action', 404);

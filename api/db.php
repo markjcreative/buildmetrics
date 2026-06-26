@@ -4,15 +4,24 @@
  * db.php — MySQL connection for BuildMetrics
  */
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'u668627379_buildmetrics');
-define('DB_USER', 'u668627379_buildmetrics');
-define('DB_PASS', 'DB_PASS_ROTATED_PURGED');
-define('DB_CHARSET', 'utf8mb4');
+// Secrets live in the gitignored config.php (uploaded to the server manually).
+require_once __DIR__ . '/config.php';
+
+// Non-secret connection params fall back to sensible defaults; the password
+// MUST come from config.php (no value is hardcoded in version control).
+if (!defined('DB_HOST'))    define('DB_HOST', 'localhost');
+if (!defined('DB_NAME'))    define('DB_NAME', 'u668627379_buildmetrics');
+if (!defined('DB_USER'))    define('DB_USER', 'u668627379_buildmetrics');
+if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
 
 function db(): PDO {
     static $pdo = null;
     if ($pdo) return $pdo;
+    if (!defined('DB_PASS')) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Server configuration error']);
+        exit;
+    }
     try {
         $pdo = new PDO(
             'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET,
@@ -74,10 +83,13 @@ function client_ip(): string {
 }
 
 // ── Auth token helpers ─────────────────────────────────────────────────────
-define('TOKEN_SECRET', 'bm_s3cr3t_' . DB_PASS);
+// Derive secrets from DB_PASS for entropy; guard so an incomplete config never
+// triggers a fatal "undefined constant" before the graceful checks run.
+define('_SECRET_SEED', defined('DB_PASS') ? DB_PASS : 'unconfigured');
+define('TOKEN_SECRET', 'bm_s3cr3t_' . _SECRET_SEED);
 define('TOKEN_TTL', 60 * 60 * 24 * 30); // 30 days
 // Shared secret for server-to-server (internal) API calls, e.g. auth → send-email
-define('INTERNAL_SECRET', hash('sha256', 'bm_internal_' . DB_PASS));
+define('INTERNAL_SECRET', hash('sha256', 'bm_internal_' . _SECRET_SEED));
 
 // Store only a hash of the session token in the DB — a DB leak then cannot be
 // replayed as a live session. The raw token is returned to the client once.
