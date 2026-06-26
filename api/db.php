@@ -43,17 +43,34 @@ function json_err(string $msg, int $code = 400): void {
 }
 
 function cors(): void {
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
+    // Allowlist of trusted front-end origins (Bearer-token auth, so no cookies/credentials)
+    $allowed = [
+        'https://app.buildmetrics.uk',
+        'https://buildmetrics.uk',
+        'https://www.buildmetrics.uk',
+    ];
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
     header('Content-Type: application/json');
-    header('Access-Control-Allow-Origin: ' . $origin);
+    if (in_array($origin, $allowed, true)) {
+        header('Access-Control-Allow-Origin: ' . $origin);
+        header('Vary: Origin');
+    } else {
+        header('Access-Control-Allow-Origin: https://app.buildmetrics.uk');
+    }
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');
-    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Internal-Call');
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 }
 
 function body(): array {
     return json_decode(file_get_contents('php://input'), true) ?? [];
+}
+
+// Best-effort client IP (honours Hostinger's forwarding proxy)
+function client_ip(): string {
+    $fwd = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
+    if ($fwd) { $parts = explode(',', $fwd); return trim($parts[0]); }
+    return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 }
 
 // ── Auth token helpers ─────────────────────────────────────────────────────

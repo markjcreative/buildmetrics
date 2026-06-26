@@ -48,6 +48,17 @@ if ($action === 'login') {
 
     if (!$email || !$password) json_err('Email and password are required');
 
+    // Brute-force protection: block after 10 failed attempts from an IP in 15 min.
+    // Degrades gracefully if the login_attempts table hasn't been created yet.
+    $ip = client_ip();
+    try {
+        $att = db()->prepare('SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND created_at > (NOW() - INTERVAL 15 MINUTE)');
+        $att->execute([$ip]);
+        if ((int)$att->fetchColumn() >= 10) {
+            json_err('Too many failed attempts. Please wait 15 minutes and try again.', 429);
+        }
+    } catch (PDOException $e) { /* table not migrated yet — skip rate limiting */ }
+
     $stmt = db()->prepare('SELECT * FROM users WHERE email = ?');
     $stmt->execute([$email]);
     $row = $stmt->fetch();
@@ -78,7 +89,15 @@ if ($action === 'login') {
         }
     }
 
-    if (!$ok) json_err('Incorrect password. Please try again.');
+    if (!$ok) {
+        try { db()->prepare('INSERT INTO login_attempts (ip, email) VALUES (?, ?)')->execute([$ip, $email]); }
+        catch (PDOException $e) { /* table not migrated yet */ }
+        json_err('Incorrect password. Please try again.');
+    }
+
+    // Success — clear this IP's failed-attempt history
+    try { db()->prepare('DELETE FROM login_attempts WHERE ip = ?')->execute([$ip]); }
+    catch (PDOException $e) { /* table not migrated yet */ }
 
     $token = generate_token((int)$row['id']);
     unset($row['password_hash'], $row['salt']);

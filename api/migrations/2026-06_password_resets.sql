@@ -12,3 +12,12 @@ CREATE TABLE IF NOT EXISTS password_resets (
   INDEX idx_token_hash (token_hash),
   INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Failed-login tracking for rate limiting / brute-force protection
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  ip          VARCHAR(45) NOT NULL,
+  email       VARCHAR(255) NULL,
+  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_ip_time (ip, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

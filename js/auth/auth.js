@@ -39,9 +39,9 @@ const Auth = (() => {
         const data = await apiPost('register', { email, password, name });
         setToken(data.token);
         setUser(data.user);
-        // Welcome email (non-blocking)
+        // Welcome email (non-blocking) — token is set above, so send it
         fetch('/api/send-email.php', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: authHeaders(),
             body: JSON.stringify({ type: 'welcome', to: data.user.email, name: data.user.name }),
         }).catch(() => {});
         return data.user;
@@ -62,7 +62,7 @@ const Auth = (() => {
         setUser(data.user);
         if (data.is_new) {
             fetch('/api/send-email.php', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: authHeaders(),
                 body: JSON.stringify({ type: 'welcome', to: data.user.email, name: data.user.name }),
             }).catch(() => {});
         }
@@ -106,7 +106,7 @@ const Auth = (() => {
     /* ── Email helper ────────────────────────────────────────── */
     async function sendEmail(type, to, name, extras = {}) {
         return fetch('/api/send-email.php', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: authHeaders(),
             body: JSON.stringify({ type, to, name, ...extras }),
         }).then(r => r.json());
     }

@@ -19,6 +19,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// ── Access control ───────────────────────────────────────────────────────────
+// Allow only (a) authenticated users, or (b) trusted server-to-server callers
+// (e.g. the password-reset flow) presenting the shared internal secret.
+// Prevents anonymous abuse of the mail relay.
+require_once __DIR__ . '/db.php';
+$internal = $_SERVER['HTTP_X_INTERNAL_CALL'] ?? '';
+if (!hash_equals(INTERNAL_SECRET, $internal) && !auth_user()) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorised']);
+    exit;
+}
+
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 $RESEND_API_KEY = 're_REVOKED_KEY_PURGED';      // ← paste your Resend API key
 $FROM_NAME      = 'BuildMetrics';
