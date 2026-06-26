@@ -162,6 +162,101 @@ if ($action === 'update') {
     json_out($stmt->fetch());
 }
 
+// ── CHANGE PASSWORD (authenticated) ─────────────────────────────────────────
+if ($action === 'change-password') {
+    $u = require_auth();
+    $b = body();
+    $current = $b['current'] ?? '';
+    $newPw   = $b['password'] ?? '';
+
+    if ($u['provider'] === 'google') json_err('Google accounts manage their password with Google.');
+    if (strlen($newPw) < 8) json_err('New password must be at least 8 characters');
+
+    // Re-fetch full row (require_auth returns the user but we need the hash)
+    $stmt = db()->prepare('SELECT password_hash, salt FROM users WHERE id=?');
+    $stmt->execute([$u['id']]);
+    $row = $stmt->fetch();
+
+    $info = password_get_info($row['password_hash']);
+    $ok = !empty($info['algo'])
+        ? password_verify($current, $row['password_hash'])
+        : hash_equals($row['password_hash'], hash('sha256', $current . ($row['salt'] ?? '')));
+    if (!$ok) json_err('Current password is incorrect');
+
+    $hash = password_hash($newPw, PASSWORD_DEFAULT);
+    db()->prepare('UPDATE users SET password_hash=?, salt=? WHERE id=?')->execute([$hash, '', $u['id']]);
+    json_out(['success' => true, 'message' => 'Password changed successfully.']);
+}
+
+// ── EXPORT MY DATA (GDPR Art. 20 — portability) ─────────────────────────────
+if ($action === 'export') {
+    $u = require_auth();
+    $uid = $u['id'];
+
+    $profile = db()->prepare('SELECT id,email,name,picture,designation,company,plan,provider,created_at FROM users WHERE id=?');
+    $profile->execute([$uid]);
+
+    $projects = db()->prepare('SELECT * FROM projects WHERE user_id=?');
+    $projects->execute([$uid]);
+
+    $reports = db()->prepare('SELECT * FROM reports WHERE user_id=?');
+    $reports->execute([$uid]);
+    $reportRows = $reports->fetchAll();
+
+    // attach blocks to each report
+    $blkStmt = db()->prepare('SELECT * FROM report_blocks WHERE report_id=? ORDER BY order_index ASC');
+    foreach ($reportRows as &$r) {
+        $blkStmt->execute([$r['id']]);
+        $r['blocks'] = $blkStmt->fetchAll();
+    }
+    unset($r);
+
+    $calcs = db()->prepare('SELECT c.* FROM calculations c JOIN projects p ON p.id = c.project_id WHERE p.user_id=?');
+    $calcs->execute([$uid]);
+
+    header('Content-Disposition: attachment; filename="buildmetrics-data-export.json"');
+    json_out([
+        'exported_at' => date('c'),
+        'profile'     => $profile->fetch(),
+        'projects'    => $projects->fetchAll(),
+        'reports'     => $reportRows,
+        'calculations'=> $calcs->fetchAll(),
+    ]);
+}
+
+// ── DELETE ACCOUNT (GDPR Art. 17 — erasure) ─────────────────────────────────
+// POST { confirm: true } — irreversibly deletes the user and all their data.
+if ($action === 'delete-account') {
+    $u = require_auth();
+    $b = body();
+    if (($b['confirm'] ?? false) !== true) json_err('Account deletion must be explicitly confirmed');
+    $uid = $u['id'];
+
+    $pdo = db();
+    try {
+        $pdo->beginTransaction();
+        // Children of reports
+        $pdo->prepare('DELETE FROM report_blocks   WHERE report_id IN (SELECT id FROM reports WHERE user_id=?)')->execute([$uid]);
+        $pdo->prepare('DELETE FROM report_versions WHERE report_id IN (SELECT id FROM reports WHERE user_id=?)')->execute([$uid]);
+        $pdo->prepare('DELETE FROM report_activity WHERE report_id IN (SELECT id FROM reports WHERE user_id=?)')->execute([$uid]);
+        $pdo->prepare('DELETE FROM report_shares   WHERE user_id=?')->execute([$uid]);
+        $pdo->prepare('DELETE FROM reports          WHERE user_id=?')->execute([$uid]);
+        // Children of projects
+        $pdo->prepare('DELETE FROM calculations     WHERE project_id IN (SELECT id FROM projects WHERE user_id=?)')->execute([$uid]);
+        $pdo->prepare('DELETE FROM projects         WHERE user_id=?')->execute([$uid]);
+        // Auth artefacts
+        $pdo->prepare('DELETE FROM password_resets  WHERE user_id=?')->execute([$uid]);
+        $pdo->prepare('DELETE FROM sessions         WHERE user_id=?')->execute([$uid]);
+        // The user
+        $pdo->prepare('DELETE FROM users            WHERE id=?')->execute([$uid]);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        json_err('Could not delete account. Please try again.', 500);
+    }
+    json_out(['success' => true, 'message' => 'Your account and all associated data have been permanently deleted.']);
+}
+
 // ── PASSWORD RESET: REQUEST ─────────────────────────────────────────────────
 // POST { email } — always returns success (no account enumeration).
 if ($action === 'reset-request') {

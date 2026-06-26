@@ -121,10 +121,36 @@ const Auth = (() => {
         return apiPost('reset-confirm', { token, password });
     }
 
+    /* ── Change password (authenticated) ─────────────────────── */
+    async function changePassword(current, newPassword) {
+        return apiPost('change-password', { current, password: newPassword });
+    }
+
+    /* ── GDPR: export my data (Art. 20) ──────────────────────── */
+    async function exportData() {
+        const data = await apiPost('export', {});
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url  = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'buildmetrics-data-export.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+        return data;
+    }
+
+    /* ── GDPR: delete my account (Art. 17) ───────────────────── */
+    async function deleteAccount() {
+        const res = await apiPost('delete-account', { confirm: true });
+        clearSession();
+        return res;
+    }
+
     return {
         register, login, loginWithGoogle, logout, guard,
         currentUser, updateProfile, refreshUser, sendEmail,
-        requestPasswordReset, confirmPasswordReset,
+        requestPasswordReset, confirmPasswordReset, changePassword,
+        exportData, deleteAccount,
         getToken, authHeaders,
     };
 })();
