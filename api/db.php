@@ -60,11 +60,17 @@ function body(): array {
 define('TOKEN_SECRET', 'bm_s3cr3t_' . DB_PASS);
 define('TOKEN_TTL', 60 * 60 * 24 * 30); // 30 days
 
+// Store only a hash of the session token in the DB — a DB leak then cannot be
+// replayed as a live session. The raw token is returned to the client once.
+function _hash_token(string $token): string {
+    return hash('sha256', $token);
+}
+
 function generate_token(int $user_id): string {
     $token = bin2hex(random_bytes(32));
     $expires = date('Y-m-d H:i:s', time() + TOKEN_TTL);
     db()->prepare('INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)')
-        ->execute([$user_id, $token, $expires]);
+        ->execute([$user_id, _hash_token($token), $expires]);
     return $token;
 }
 
@@ -72,12 +78,14 @@ function auth_user(): ?array {
     $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     if (!preg_match('/^Bearer\s+(\S+)$/i', $header, $m)) return null;
     $token = $m[1];
+    // Match the hashed token (new sessions) OR the raw token (legacy sessions
+    // created before token hashing — they keep working until they expire).
     $stmt = db()->prepare(
         'SELECT u.* FROM users u
          JOIN sessions s ON s.user_id = u.id
-         WHERE s.token = ? AND s.expires_at > NOW()'
+         WHERE (s.token = ? OR s.token = ?) AND s.expires_at > NOW()'
     );
-    $stmt->execute([$token]);
+    $stmt->execute([_hash_token($token), $token]);
     return $stmt->fetch() ?: null;
 }
 

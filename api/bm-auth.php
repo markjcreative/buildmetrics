@@ -18,14 +18,16 @@ if ($action === 'register') {
 
     if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) json_err('Invalid email address');
     if (!$name)     json_err('Name is required');
-    if (strlen($password) < 6) json_err('Password must be at least 6 characters');
+    if (strlen($password) < 8) json_err('Password must be at least 8 characters');
 
     $exists = db()->prepare('SELECT id FROM users WHERE email = ?');
     $exists->execute([$email]);
     if ($exists->fetch()) json_err('An account with this email already exists');
 
-    $salt = bin2hex(random_bytes(16));
-    $hash = hash('sha256', $password . $salt);
+    // bcrypt — embeds its own per-password salt. The legacy `salt` column is
+    // kept (empty) only for schema compatibility with older rows.
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $salt = '';
 
     db()->prepare('INSERT INTO users (email, name, password_hash, salt, provider) VALUES (?, ?, ?, ?, ?)')
         ->execute([$email, $name, $hash, $salt, 'email']);
@@ -53,8 +55,30 @@ if ($action === 'login') {
     if (!$row) json_err('No account found with this email address');
     if ($row['provider'] === 'google') json_err('This account uses Google Sign-In. Please use the Google button.');
 
-    $hash = hash('sha256', $password . $row['salt']);
-    if ($hash !== $row['password_hash']) json_err('Incorrect password. Please try again.');
+    // Verify password. Supports both modern bcrypt hashes and legacy
+    // salted-SHA-256 hashes, transparently upgrading the latter on success.
+    $stored = $row['password_hash'];
+    $info   = password_get_info($stored);
+    $ok     = false;
+
+    if (!empty($info['algo'])) {
+        // Modern hash (bcrypt/argon2)
+        $ok = password_verify($password, $stored);
+        if ($ok && password_needs_rehash($stored, PASSWORD_DEFAULT)) {
+            $new = password_hash($password, PASSWORD_DEFAULT);
+            db()->prepare('UPDATE users SET password_hash = ? WHERE id = ?')->execute([$new, $row['id']]);
+        }
+    } else {
+        // Legacy salted SHA-256 — constant-time compare, then upgrade to bcrypt
+        $legacy = hash('sha256', $password . ($row['salt'] ?? ''));
+        $ok = hash_equals($stored, $legacy);
+        if ($ok) {
+            $new = password_hash($password, PASSWORD_DEFAULT);
+            db()->prepare('UPDATE users SET password_hash = ?, salt = ? WHERE id = ?')->execute([$new, '', $row['id']]);
+        }
+    }
+
+    if (!$ok) json_err('Incorrect password. Please try again.');
 
     $token = generate_token((int)$row['id']);
     unset($row['password_hash'], $row['salt']);
@@ -106,7 +130,9 @@ if ($action === 'google') {
 if ($action === 'logout') {
     $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     if (preg_match('/^Bearer\s+(\S+)$/i', $header, $m)) {
-        db()->prepare('DELETE FROM sessions WHERE token = ?')->execute([$m[1]]);
+        // Delete by hashed token (new sessions) or raw token (legacy sessions)
+        db()->prepare('DELETE FROM sessions WHERE token = ? OR token = ?')
+            ->execute([_hash_token($m[1]), $m[1]]);
     }
     json_out(['success' => true]);
 }
