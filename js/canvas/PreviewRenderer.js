@@ -159,13 +159,14 @@ const PreviewRenderer = (() => {
   }
 
   function _renderProse(block) {
-    const text = (block.config.text || '').replace(/\n/g, '<br>');
+    // Escape first (prevents stored XSS), then convert newlines to <br> we control
+    const text = esc(block.config.text || '').replace(/\n/g, '<br>');
     const label = block.config.label ? `<div class="rp-prose-label">${esc(block.config.label)}</div>` : '';
     return `${label}<div class="rp-prose">${text}</div>`;
   }
 
   function _renderDesignBasis(block) {
-    const text  = (block.config.text || '').replace(/\n/g, '<br>');
+    const text  = esc(block.config.text || '').replace(/\n/g, '<br>');
     const items = block.config.assumptions || [];
     const listHTML = items.length
       ? `<ul class="rp-assumption-list">${items.map(a => `<li>${esc(a)}</li>`).join('')}</ul>`

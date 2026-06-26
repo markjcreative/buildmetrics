@@ -148,7 +148,9 @@
   </div>
   <div id="sr-content" style="display:none">
     <div class="sr-frame-wrap">
-      <iframe id="sr-frame" class="sr-frame" sandbox="allow-same-origin allow-scripts" scrolling="yes"></iframe>
+      <!-- Static report HTML only — no scripts needed. Dropping allow-scripts
+           prevents any injected markup from executing (defence-in-depth with escaping). -->
+      <iframe id="sr-frame" class="sr-frame" sandbox="allow-same-origin" scrolling="yes"></iframe>
     </div>
   </div>
 </div>
