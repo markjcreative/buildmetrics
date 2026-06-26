@@ -160,26 +160,8 @@
     <!-- ── Canvas area ─────────────────────────────────────── -->
     <main class="cb-canvas" id="cb-canvas">
       <div class="cb-canvas-inner" id="cb-canvas-inner">
-
-        <!-- Empty state shown when no blocks present -->
-        <div class="canvas-empty-state" id="canvas-empty-state">
-          <div class="canvas-empty-icon">📋</div>
-          <div class="canvas-empty-title">Start building your report</div>
-          <p class="canvas-empty-sub">Drag blocks from the left panel onto the canvas, or click the button below to add your first block.</p>
-          <button class="cb-btn primary" onclick="RB.showBlockPicker()">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-            Add First Block
-          </button>
-        </div>
-
-        <!-- Blocks render here (managed by Canvas.js / RB.renderBlock) -->
+        <!-- Canvas.js owns rendering: empty state, blocks, and the add-block button -->
         <div id="canvas-blocks-list"></div>
-
-        <!-- Add block button at bottom -->
-        <button class="canvas-add-btn" id="canvas-add-btn" style="display:none;" onclick="RB.showBlockPicker()">
-          <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-          Add block
-        </button>
       </div>
     </main>
   </div>
@@ -390,6 +372,9 @@ const RB = (() => {
       window.location.href = '/projects.html';
       return;
     }
+
+    // Canvas.js dispatches this when its add-block buttons (empty-state or bottom) are clicked
+    document.addEventListener('canvas:add-block-request', () => showBlockPicker());
 
     _wireTopBar();
     _wireSidebar();
@@ -696,32 +681,9 @@ const RB = (() => {
       if (type) addBlock(type);
     });
 
-    // Empty state drop
-    const empty = document.getElementById('canvas-empty-state');
-    empty.addEventListener('dragover', e => { e.preventDefault(); empty.classList.add('drag-over'); });
-    empty.addEventListener('dragleave', () => empty.classList.remove('drag-over'));
-    empty.addEventListener('drop', e => {
-      e.preventDefault();
-      empty.classList.remove('drag-over');
-      const type = e.dataTransfer.getData('text/plain');
-      if (type) addBlock(type);
-    });
-
-    // Init SortableJS on canvas blocks list (for reordering)
-    _initSortable();
-  }
-
-  function _initSortable() {
-    const list = document.getElementById('canvas-blocks-list');
-    if (!window.Sortable) return;
-    sortable = Sortable.create(list, {
-      animation: 160,
-      handle: '.canvas-block-drag',
-      ghostClass: 'sortable-ghost',
-      chosenClass: 'sortable-chosen',
-      dragClass: 'is-dragging',
-      onEnd() { _scheduleSave(); }
-    });
+    // Note: the #cb-canvas drop handler above covers the whole canvas (including
+    // the empty state, which Canvas.js now renders). Block reordering/sortable is
+    // owned by Canvas.js — RB no longer creates a second Sortable on the same list.
   }
 
   /* ── Block Picker modal ───────────────────────────────────── */
@@ -916,9 +878,12 @@ const RB = (() => {
   }
 
   function _updateEmptyState() {
-    const list   = document.getElementById('canvas-blocks-list');
+    // Legacy fallback only (when Canvas.js is absent). Canvas.js owns the empty
+    // state and add button; guard against the removed static elements.
     const empty  = document.getElementById('canvas-empty-state');
     const addBtn = document.getElementById('canvas-add-btn');
+    const list   = document.getElementById('canvas-blocks-list');
+    if (!empty || !addBtn || !list) return;
     const hasBlocks = list.children.length > 0;
     empty.style.display  = hasBlocks ? 'none' : 'block';
     addBtn.style.display = hasBlocks ? 'flex' : 'none';

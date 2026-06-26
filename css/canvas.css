@@ -395,7 +395,8 @@
 }
 
 /* Drop zones */
-.canvas-empty-state {
+.canvas-empty-state,
+.canvas-empty {
   border: 2px dashed var(--border);
   border-radius: 16px;
   padding: 56px 40px;
@@ -404,6 +405,38 @@
   background: white;
   margin-bottom: 16px;
   transition: border-color 0.15s, background 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* "Add First Block" button inside the empty state — centered pill */
+.canvas-add-first-btn {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: filter 0.14s;
+}
+.canvas-add-first-btn:hover { filter: brightness(1.08); }
+
+/* Bottom add-block button wrapper — centers the full-width button block */
+.canvas-add-btn-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
 }
 
 .canvas-empty-state.drag-over {

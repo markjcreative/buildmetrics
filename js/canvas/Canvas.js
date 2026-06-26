@@ -117,10 +117,24 @@ const Canvas = (() => {
 
     _containerEl.innerHTML = '';
 
+    const _requestAdd = (index) => document.dispatchEvent(
+      new CustomEvent('canvas:add-block-request', { detail: { insertAfterIndex: index } })
+    );
+
     if (_blocks.length === 0) {
+      // Centered empty state — single source of truth (host page no longer renders one)
       const empty = document.createElement('div');
       empty.className = 'canvas-empty';
-      empty.innerHTML = '<p>No blocks yet. Drag blocks from the sidebar or click <strong>+ Add Block</strong>.</p>';
+      empty.innerHTML =
+        '<div class="canvas-empty-icon">📋</div>' +
+        '<div class="canvas-empty-title">Start building your report</div>' +
+        '<p class="canvas-empty-sub">Drag blocks from the left panel, or click below to add your first block.</p>';
+      const firstBtn = document.createElement('button');
+      firstBtn.className = 'canvas-add-first-btn';
+      firstBtn.innerHTML =
+        '<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg> Add First Block';
+      firstBtn.addEventListener('click', () => _requestAdd(-1));
+      empty.appendChild(firstBtn);
       _containerEl.appendChild(empty);
     }
 
@@ -128,18 +142,18 @@ const Canvas = (() => {
       _containerEl.appendChild(_buildBlockShell(block));
     });
 
-    // Add block button
-    const addBtnWrap = document.createElement('div');
-    addBtnWrap.className = 'canvas-add-btn-wrap';
-    const addBtn = document.createElement('button');
-    addBtn.className = 'canvas-add-btn';
-    addBtn.textContent = '+ Add Block';
-    addBtn.addEventListener('click', () => {
-      // Dispatch event — report-builder.html opens the sidebar or a picker
-      document.dispatchEvent(new CustomEvent('canvas:add-block-request', { detail: { insertAfterIndex: _blocks.length - 1 } }));
-    });
-    addBtnWrap.appendChild(addBtn);
-    _containerEl.appendChild(addBtnWrap);
+    // Bottom add-block button (only when blocks exist — empty state has its own)
+    if (_blocks.length > 0) {
+      const addBtnWrap = document.createElement('div');
+      addBtnWrap.className = 'canvas-add-btn-wrap';
+      const addBtn = document.createElement('button');
+      addBtn.className = 'canvas-add-btn';
+      addBtn.innerHTML =
+        '<svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg> Add block';
+      addBtn.addEventListener('click', () => _requestAdd(_blocks.length - 1));
+      addBtnWrap.appendChild(addBtn);
+      _containerEl.appendChild(addBtnWrap);
+    }
 
     // Restore scroll
     _containerEl.scrollTop = scrollTop;
