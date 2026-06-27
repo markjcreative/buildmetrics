@@ -1471,11 +1471,14 @@
 
     .pricing-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 20px;
-      margin-top: 48px;
+      margin: 48px auto 0;
+      max-width: 760px;
       text-align: left;
     }
+    .pricing-annual-note { font-size: 0.78rem; color: rgba(255,255,255,0.45); margin: 2px 0 18px; }
+    .pricing-annual-note b { color: #34D399; }
 
     .pricing-card {
       background: rgba(255,255,255,0.04);
@@ -3416,58 +3419,43 @@
 <section id="pricing">
   <div class="pricing-inner">
     <div class="section-eyebrow reveal" style="justify-content:center">Pricing</div>
-    <h2 class="section-title reveal reveal-delay-1" style="text-align:center">Simple, transparent pricing.<br>Free for all of 2026.</h2>
-    <p class="section-sub reveal reveal-delay-2" style="text-align:center;margin:0 auto;">We're giving every engineer full access while we build and refine. No credit card needed.</p>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center">Simple, transparent pricing.<br>Start free, pay as you go.</h2>
+    <p class="section-sub reveal reveal-delay-2" style="text-align:center;margin:0 auto;">Sign up free and generate as many reports as you like. Pay only when you download — or go unlimited with Pro.</p>
 
     <div class="pricing-grid reveal reveal-delay-1">
 
       <div class="pricing-card">
-        <div class="pricing-plan">Starter</div>
-        <div class="pricing-price">Free<span class="period"> / mo</span></div>
-        <div class="pricing-tagline">For individuals getting started</div>
+        <div class="pricing-plan">Lite</div>
+        <div class="pricing-price"><sup>£</sup>10<span class="period"> / report download</span></div>
+        <div class="pricing-tagline">Free to sign up and generate. Pay only when you download a finished report.</div>
         <div class="pricing-divider"></div>
         <div class="pricing-features">
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 15+ calculators</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> PDF & Excel reports</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> 3 active projects</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Design register</div>
-          <div class="pf-item dim"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Team sharing</div>
-          <div class="pf-item dim"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Priority support</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Free account — generate unlimited reports</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> £10 per report download (PDF)</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited revisions per report</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 15+ calculators &amp; report builder</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Professional clause-referenced reports</div>
+          <div class="pf-item dim"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h16.9a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg> Project details are fixed once created</div>
         </div>
         <a href="#" onclick="openWaitlist();return false;" class="pricing-btn outline">Join the waitlist</a>
       </div>
 
       <div class="pricing-card featured">
-        <div class="pricing-featured-badge">⭐ Free for 2026</div>
-        <div class="pricing-plan">Professional</div>
-        <div class="pricing-price"><sup>£</sup>0<span class="period"> / mo in 2026</span></div>
-        <div class="pricing-tagline">Full access, no limits — all year</div>
+        <div class="pricing-featured-badge">⭐ Best value</div>
+        <div class="pricing-plan">Pro</div>
+        <div class="pricing-price"><sup>£</sup>59<span class="period"> / mo</span></div>
+        <div class="pricing-annual-note">or pay annually — <b>save 20%</b> (≈ £47/mo, billed £566/yr)</div>
+        <div class="pricing-tagline">Unlimited generating and downloading for full-time engineers.</div>
         <div class="pricing-divider"></div>
         <div class="pricing-features">
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 15+ calculators</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> PDF & Excel reports</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited projects</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Design register + search</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Cost estimation tool</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited report downloads — no per-report fee</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited projects — fully editable</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 15+ calculators &amp; report builder</div>
           <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> AI engineering assistant</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Design register + search</div>
+          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Priority support</div>
         </div>
         <a href="#" onclick="openWaitlist();return false;" class="pricing-btn primary">Join the waitlist</a>
-      </div>
-
-      <div class="pricing-card">
-        <div class="pricing-plan">Team</div>
-        <div class="pricing-price"><sup>£</sup>?<span class="period"> / mo</span></div>
-        <div class="pricing-tagline">Coming in 2027 — join the waitlist</div>
-        <div class="pricing-divider"></div>
-        <div class="pricing-features">
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Everything in Professional</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Team workspace</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Shared project registers</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Admin dashboard</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Priority support</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Custom templates</div>
-        </div>
-        <a href="#" onclick="openWaitlist();return false;" class="pricing-btn outline">Join the waitlist</a>
       </div>
 
     </div>
