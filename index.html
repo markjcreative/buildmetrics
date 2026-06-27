@@ -429,6 +429,18 @@
       );
     }
 
+    /* three.js structural wireframe canvas — sits above the photo, below content */
+    #hero-three {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+    @media (prefers-reduced-motion: reduce) { #hero-three { opacity: 0.5; } }
+
     .hero-content {
       position: relative;
       z-index: 2;
@@ -2510,6 +2522,8 @@
 ════════════════════════════════════════ -->
 <section id="hero">
   <div class="hero-bg" id="hero-bg"></div>
+  <!-- three.js structural-frame animation -->
+  <canvas id="hero-three" aria-hidden="true"></canvas>
 
   <div class="hero-content">
     <div class="hero-left">
@@ -2779,46 +2793,58 @@
       <div class="app-frame">
         <div class="app-titlebar">
           <div class="app-dot red"></div><div class="app-dot amber"></div><div class="app-dot green"></div>
-          <span class="app-titlebar-label">PDF Report Preview</span>
+          <span class="app-titlebar-label">Report Builder — Clause-Referenced</span>
         </div>
         <div class="app-body">
           <div class="mock-topbar">
             <div class="mock-logo"></div>
             <span class="mock-logo-text">BuildMetrics</span>
           </div>
-          <div class="mock-page-title">Calculation Report</div>
-          <div class="mock-report-header">
-            <div class="mock-report-icon"></div>
-            <div style="flex:1">
-              <div class="mock-line" style="width:70%"></div>
-              <div class="mock-line" style="width:45%;margin-top:6px"></div>
+          <div class="mock-page-title">Report Builder — Calc Block</div>
+          <!-- Accurate mirror of the real report calc section (clause-referenced) -->
+          <div style="border:1px solid #E5E7EB;border-radius:7px;overflow:hidden;margin-bottom:12px;background:#fff">
+            <div style="background:#0F172A;color:#fff;padding:7px 10px;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-weight:700;font-family:Georgia,'Times New Roman',serif;font-size:11px">Steel Beam — B1</span>
+              <span style="display:flex;gap:7px;align-items:center">
+                <span style="font-size:8px;opacity:.65">EN 1993-1-1</span>
+                <span style="background:#fff;color:#000;font-size:7px;font-weight:700;padding:1.5px 5px;border-radius:2px;letter-spacing:.5px">CALCULATED</span>
+              </span>
             </div>
-            <div class="mock-badge blue">PDF</div>
-          </div>
-          <div class="mock-card">
-            <div class="mock-section-label" style="margin-bottom:8px">Project Information</div>
-            <div class="mock-line" style="width:80%"></div>
-            <div class="mock-line" style="width:60%"></div>
-            <div class="mock-line" style="width:50%"></div>
-          </div>
-          <div class="mock-card">
-            <div class="mock-section-label" style="margin-bottom:8px">Results Summary</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <div class="mock-line" style="width:55%;margin:0"></div>
-              <span class="mock-badge pass">PASS</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <div class="mock-line" style="width:50%;margin:0"></div>
-              <span class="mock-badge pass">PASS</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div class="mock-line" style="width:45%;margin:0"></div>
-              <span class="mock-badge pass">PASS</span>
-            </div>
+            <div style="background:#ececec;color:#333;font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 9px">Calculations</div>
+            <table style="width:100%;border-collapse:collapse;font-size:9.5px;color:#1f2937">
+              <tr>
+                <td style="padding:3px 9px;color:#555;font-style:italic;background:#fafafa;width:28%;border-bottom:.5px solid #eee">EN1990 (6.10)</td>
+                <td style="padding:3px 9px;border-bottom:.5px solid #eee">ULS design load</td>
+                <td style="padding:3px 9px;text-align:right;font-family:'Courier New',monospace;font-weight:700;border-bottom:.5px solid #eee">42.0</td>
+              </tr>
+              <tr>
+                <td style="padding:3px 9px;color:#555;font-style:italic;background:#fafafa;border-bottom:.5px solid #eee">EC3 §6.2.5</td>
+                <td style="padding:3px 9px;border-bottom:.5px solid #eee">Moment resistance</td>
+                <td style="padding:3px 9px;text-align:right;font-family:'Courier New',monospace;font-weight:700;border-bottom:.5px solid #eee">211</td>
+              </tr>
+              <tr>
+                <td style="padding:3px 9px;color:#555;font-style:italic;background:#fafafa">EC3 §6.2.6</td>
+                <td style="padding:3px 9px">Shear resistance</td>
+                <td style="padding:3px 9px;text-align:right;font-family:'Courier New',monospace;font-weight:700">285</td>
+              </tr>
+            </table>
+            <div style="background:#ececec;color:#333;font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 9px">Design Checks</div>
+            <table style="width:100%;border-collapse:collapse;font-size:9.5px;color:#1f2937">
+              <tr>
+                <td style="padding:4px 9px">Bending η = E<sub>d</sub>/R<sub>d</sub></td>
+                <td style="padding:4px 9px;text-align:right;font-family:'Courier New',monospace">0.76</td>
+                <td style="padding:4px 9px;text-align:right;color:#16a34a;font-weight:700">✓ PASS</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 9px;border-top:.5px solid #eee">Shear η = E<sub>d</sub>/R<sub>d</sub></td>
+                <td style="padding:4px 9px;text-align:right;font-family:'Courier New',monospace;border-top:.5px solid #eee">0.13</td>
+                <td style="padding:4px 9px;text-align:right;color:#16a34a;font-weight:700;border-top:.5px solid #eee">✓ PASS</td>
+              </tr>
+            </table>
           </div>
           <div class="mock-btn-row">
-            <div class="mock-btn primary">↓ Download PDF</div>
-            <div class="mock-btn ghost">↓ Excel</div>
+            <div class="mock-btn primary">↓ Export PDF</div>
+            <div class="mock-btn ghost">Share link</div>
           </div>
         </div>
       </div>
@@ -3782,6 +3808,93 @@
       btn.innerHTML = '<svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Join the Waitlist';
     }
   }
+</script>
+
+<!-- ── three.js structural-frame hero animation ── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script defer>
+(function () {
+  function start() {
+    var canvas = document.getElementById('hero-three');
+    if (!canvas || typeof THREE === 'undefined') return;
+
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    var scene  = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+    camera.position.set(0, 1.5, 16);
+    camera.lookAt(0, 0.5, 0);
+
+    var group = new THREE.Group();
+    scene.add(group);
+
+    // ── Build a multi-storey structural building frame (columns + floor beams + bracing) ──
+    var BAYS_X = 3, BAYS_Z = 2, FLOORS = 5;
+    var SX = 2.2, SZ = 2.2, H = 1.7;
+    var nx = BAYS_X + 1, nz = BAYS_Z + 1;
+    var ox = (BAYS_X * SX) / 2, oz = (BAYS_Z * SZ) / 2, oy = (FLOORS * H) / 2;
+    var P = function (i, f, k) { return new THREE.Vector3(i * SX - ox, f * H - oy, k * SZ - oz); };
+
+    var verts = [];
+    var push = function (a, b) { verts.push(a.x, a.y, a.z, b.x, b.y, b.z); };
+
+    // Columns
+    for (var i = 0; i < nx; i++) for (var k = 0; k < nz; k++)
+      for (var f = 0; f < FLOORS; f++) push(P(i, f, k), P(i, f + 1, k));
+    // Floor beams (x and z directions) at every level above ground
+    for (var f2 = 1; f2 <= FLOORS; f2++) {
+      for (var i2 = 0; i2 < nx; i2++) for (var k2 = 0; k2 < BAYS_Z; k2++) push(P(i2, f2, k2), P(i2, f2, k2 + 1));
+      for (var k3 = 0; k3 < nz; k3++) for (var i3 = 0; i3 < BAYS_X; i3++) push(P(i3, f2, k3), P(i3 + 1, f2, k3));
+    }
+    // Perimeter cross-bracing on alternating bays (the "engineering" detail)
+    for (var f3 = 0; f3 < FLOORS; f3++) {
+      if (f3 % 2 === 0) { push(P(0, f3, 0), P(1, f3 + 1, 0)); push(P(BAYS_X, f3, BAYS_Z), P(BAYS_X - 1, f3 + 1, BAYS_Z)); }
+      else { push(P(1, f3, 0), P(0, f3 + 1, 0)); push(P(BAYS_X - 1, f3, BAYS_Z), P(BAYS_X, f3 + 1, BAYS_Z)); }
+    }
+
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+    var lines = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.55 }));
+    group.add(lines);
+
+    // Nodes at every grid intersection
+    var nodeVerts = [];
+    for (var ni = 0; ni < nx; ni++) for (var nk = 0; nk < nz; nk++) for (var nf = 0; nf <= FLOORS; nf++) {
+      var p = P(ni, nf, nk); nodeVerts.push(p.x, p.y, p.z);
+    }
+    var ngeo = new THREE.BufferGeometry();
+    ngeo.setAttribute('position', new THREE.Float32BufferAttribute(nodeVerts, 3));
+    var nodes = new THREE.Points(ngeo, new THREE.PointsMaterial({ color: 0x93c5fd, size: 0.09, transparent: true, opacity: 0.9 }));
+    group.add(nodes);
+
+    group.rotation.x = 0.12;
+
+    function resize() {
+      var w = canvas.clientWidth || window.innerWidth;
+      var h = canvas.clientHeight || window.innerHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    var t = 0;
+    function frame() {
+      t += 0.0035;
+      group.rotation.y = t;                    // slow turntable
+      group.position.y = Math.sin(t * 1.6) * 0.15; // subtle vertical breathing
+      renderer.render(scene, camera);
+      if (!reduced) requestAnimationFrame(frame);
+    }
+    frame();           // renders at least one frame; animates unless reduced-motion
+  }
+
+  if (window.THREE) start();
+  else window.addEventListener('load', start);   // wait for the deferred three.js to load
+})();
 </script>
 </body>
 </html>
