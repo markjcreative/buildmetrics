@@ -186,7 +186,16 @@ const PreviewRenderer = (() => {
   function _renderCodeRef(block) {
     const codes = block.config.codes || [];
     if (codes.length === 0) return '';
-    const rows = codes.map(c => `<tr>
+    // Codes may be plain strings ("TwF2012 — guide…") or {name, description,
+    // edition} objects — normalise strings the same way the canvas does.
+    const norm = codes.map(c => {
+      if (typeof c !== 'string') return c || {};
+      const dash = c.indexOf('—');
+      return dash > -1
+        ? { name: c.slice(0, dash).trim(), description: c.slice(dash + 1).trim(), edition: '' }
+        : { name: c, description: '', edition: '' };
+    });
+    const rows = norm.map(c => `<tr>
       <td style="font-weight:bold">${esc(c.name)}</td>
       <td>${esc(c.description)}</td>
       <td style="text-align:center">${esc(c.edition)}</td>

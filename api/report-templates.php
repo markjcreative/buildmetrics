@@ -189,6 +189,35 @@ $templates = [
         ],
     ],
 
+    // 9 ── Temporary Works Hoarding (TwF2012) ────────────────────────────────
+    // Mirrors the TwF2012 reference calculation structure: project details →
+    // wind / post / rail / fixing / facing / foundation → results summary →
+    // design basis & references → sign-off.
+    [
+        'id'          => 'tpl-hoarding-twf2012',
+        'name'        => 'Temporary Works Hoarding (TwF2012)',
+        'category'    => 'Temporary Works',
+        'description' => 'Timber-post hoarding to TwF2012: 3-case wind (EN 1991-1-4), post cantilever & rail (EN 1995-1-1), Johansen fixings, ply facing and dug-in foundation overturning.',
+        'icon'        => '🚧',
+        'sort_order'  => 9,
+        'blocks'      => [
+            ['type' => 'title',             'label' => 'Report Title',                 'default_config' => ['title' => 'Temporary Works — Hoarding Design Calculation (Timber Posts)']],
+            ['type' => 'section_header',    'label' => '1.0 Project Details',          'default_config' => ['number' => '1.0', 'title' => 'Project Details']],
+            ['type' => 'project_info',      'label' => 'Project Information',          'default_config' => null],
+            ['type' => 'section_header',    'label' => '2.0 Hoarding Design',          'default_config' => ['number' => '2.0', 'title' => 'Hoarding Design — Wind, Post, Rail, Fixing, Facing & Foundation']],
+            ['type' => 'calc_hoarding',     'label' => 'Hoarding Design (TwF2012)',    'default_config' => null],
+            ['type' => 'section_header',    'label' => '3.0 Results Summary',          'default_config' => ['number' => '3.0', 'title' => 'Results Summary']],
+            ['type' => 'checks_summary',    'label' => 'Design Checks Summary',        'default_config' => null],
+            ['type' => 'utilisation_chart', 'label' => 'Utilisation Chart',            'default_config' => null],
+            ['type' => 'section_header',    'label' => '4.0 Design Basis & References','default_config' => ['number' => '4.0', 'title' => 'Design Basis & References']],
+            ['type' => 'design_basis',      'label' => 'Design Basis & Assumptions',   'default_config' => ['text' => 'Hoarding designed as a vertical cantilever per TwF2012 "Hoardings: a guide to good practice" (dug-in post method, Table 1 soil factors). Wind actions per BS EN 1991-1-4 + UK NA with three detail cases (Normal ×1.00, Next-to-end ×1.25, End ×1.50); governing case carried through all member checks. Timber design per BS EN 1995-1-1 (γM = 1.30); fixings by Johansen yield theory (Eq. 8.6 bolts / Eq. 8.7 nails). Deflection limits: post δ = wL⁴/8EI ≤ Leff/40; rail & facing δ = 5wL⁴/384EI ≤ L/40, on characteristic loads. Foundation FOS ≥ 1.5 on overturning.']],
+            ['type' => 'code_ref',          'label' => 'Code References',              'default_config' => ['codes' => ['TwF2012 — Hoardings: a guide to good practice', 'BS EN 1990:2002 + UK NA (γQ = 1.5)', 'BS EN 1991-1-4:2005 + UK NA', 'BS EN 1995-1-1:2004 + UK NA', 'BS EN 1997-1:2004 + UK NA']]],
+            ['type' => 'engineer_notes',    'label' => 'Engineer Notes & Conclusions', 'default_config' => null],
+            ['type' => 'signoff',           'label' => 'Engineer Sign-off',            'default_config' => null],
+            ['type' => 'revision_history',  'label' => 'Revision History',             'default_config' => null],
+        ],
+    ],
+
 ];
 
 json_out($templates);
