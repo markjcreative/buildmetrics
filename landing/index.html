@@ -2947,6 +2947,176 @@
 </section>
 
 <!-- ═══════════════════════════════════════
+     INSIDE THE REPORT BUILDER
+════════════════════════════════════════ -->
+<style>
+  #inside-app { padding: 110px 24px; position: relative; }
+  .rbm-wrap { max-width: 1080px; margin: 0 auto; }
+  .rbm-frame { margin-top: 48px; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.09); box-shadow: 0 32px 80px rgba(0,0,0,0.5); background: #0B1220; }
+  .rbm-titlebar { display: flex; align-items: center; gap: 8px; padding: 11px 16px; background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .rbm-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .rbm-url { flex: 1; text-align: center; font-size: 0.72rem; color: rgba(255,255,255,0.35); font-family: monospace; }
+  .rbm-layout { display: grid; grid-template-columns: 195px 1fr 250px; background: #EEF1F5; }
+  /* Palette */
+  .rbm-palette { background: #FFFFFF; border-right: 1px solid #E5E7EB; padding: 12px 10px; }
+  .rbm-search { background: #F3F4F6; border-radius: 7px; padding: 6px 10px; font-size: 0.7rem; color: #9CA3AF; margin-bottom: 12px; }
+  .rbm-cat { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em; color: #9CA3AF; text-transform: uppercase; margin: 10px 4px 6px; }
+  .rbm-chip { display: flex; align-items: center; gap: 7px; padding: 7px 9px; border-radius: 7px; font-size: 0.72rem; color: #374151; font-weight: 500; }
+  .rbm-chip:hover { background: #F3F4F6; }
+  .rbm-chip.drag { background: #EFF6FF; border: 1.5px dashed #2563EB; color: #1D4ED8; box-shadow: 0 6px 18px rgba(37,99,235,0.18); }
+  /* Canvas */
+  .rbm-canvas { padding: 16px 14px 56px; position: relative; }
+  .rbm-block { background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(15,23,42,0.05); margin-bottom: 12px; }
+  .rbm-block-head { display: flex; align-items: center; gap: 8px; background: #FAFBFC; border-bottom: 1px solid #F0F1F3; padding: 8px 12px; }
+  .rbm-grip { color: #C4C9D4; font-size: 0.75rem; letter-spacing: -1px; }
+  .rbm-block-title { font-size: 0.76rem; font-weight: 700; color: #1F2937; flex: 1; }
+  .rbm-code-chip { font-size: 0.58rem; font-weight: 600; color: #6B7280; background: #F3F4F6; padding: 2px 7px; border-radius: 99px; }
+  .rbm-block-body { padding: 12px; }
+  .rbm-inputs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 10px; }
+  .rbm-input { background: #fff; border: 1px solid #E5E7EB; border-radius: 6px; padding: 5px 8px; }
+  .rbm-input .l { font-size: 0.54rem; color: #6B7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .rbm-input .v { font-size: 0.72rem; color: #1F2937; font-weight: 600; margin-top: 1px; }
+  .rbm-calc-btn { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); color: #fff; font-size: 0.7rem; font-weight: 700; border-radius: 8px; padding: 7px 16px; box-shadow: 0 4px 12px rgba(37,99,235,0.3); margin-bottom: 10px; }
+  .rbm-result { display: flex; align-items: center; gap: 14px; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; }
+  .rbm-kv .k { font-size: 0.54rem; color: #6B7280; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  .rbm-kv .n { font-size: 0.8rem; font-weight: 800; color: #111827; font-family: 'JetBrains Mono', monospace; }
+  .rbm-pass { margin-left: auto; font-size: 0.62rem; font-weight: 800; color: #15803D; background: #DCFCE7; border: 1px solid #BBF7D0; padding: 3px 9px; border-radius: 99px; }
+  .rbm-block.mini { display: flex; align-items: center; gap: 9px; padding: 10px 12px; }
+  .rbm-block.mini .t { font-size: 0.74rem; font-weight: 600; color: #374151; flex: 1; }
+  /* Preview */
+  .rbm-preview { background: #E2E6EC; border-left: 1px solid #D7DBE2; padding: 14px 12px; }
+  .rbm-preview-label { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em; color: #6B7280; text-transform: uppercase; margin-bottom: 8px; text-align: center; }
+  .rbm-a4 { background: #fff; border-radius: 3px; box-shadow: 0 6px 20px rgba(15,23,42,0.18); padding: 12px 11px; font-size: 0.5rem; color: #374151; }
+  .rbm-a4-strip { background: #0F172A; color: #fff; font-size: 0.5rem; font-weight: 700; letter-spacing: 0.06em; padding: 5px 7px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .rbm-a4-strip span:last-child { background: #fff; color: #000; font-size: 0.42rem; padding: 1px 4px; border-radius: 2px; }
+  .rbm-a4 table { width: 100%; border-collapse: collapse; margin-bottom: 7px; }
+  .rbm-a4 td { border: 0.5px solid #E5E7EB; padding: 2.5px 4px; font-size: 0.48rem; }
+  .rbm-a4 td.cl { color: #6B7280; font-style: italic; background: #FAFAFA; white-space: nowrap; }
+  .rbm-a4 td.vl { text-align: right; font-family: monospace; font-weight: 700; }
+  .rbm-a4 .ok { color: #15803D; font-weight: 800; }
+  .rbm-a4-svg { display: block; margin: 0 auto 4px; }
+  /* Workflow bar */
+  .rbm-workflow { position: absolute; left: 14px; right: 14px; bottom: 10px; display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #E5E7EB; border-radius: 9px; padding: 7px 12px; box-shadow: 0 4px 14px rgba(15,23,42,0.08); }
+  .rbm-wf-label { font-size: 0.6rem; color: #6B7280; font-weight: 600; margin-right: 4px; }
+  .rbm-stage { font-size: 0.58rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; color: #9CA3AF; background: #F3F4F6; }
+  .rbm-stage.active { color: #fff; background: #2563EB; }
+  .rbm-stage.done { color: #15803D; background: #DCFCE7; }
+  .rbm-wf-save { margin-left: auto; font-size: 0.6rem; font-weight: 700; color: #fff; background: #111827; border-radius: 7px; padding: 4px 12px; }
+  .rbm-points { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 34px; }
+  .rbm-point { text-align: center; }
+  .rbm-point .n { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(37,99,235,0.18); border: 1px solid rgba(37,99,235,0.4); color: #93C5FD; font-size: 0.72rem; font-weight: 800; margin-bottom: 8px; }
+  .rbm-point .t { font-size: 0.86rem; font-weight: 700; color: #fff; margin-bottom: 3px; }
+  .rbm-point .s { font-size: 0.76rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+  @media (max-width: 900px) {
+    .rbm-layout { grid-template-columns: 1fr; }
+    .rbm-palette, .rbm-preview { display: none; }
+    .rbm-points { grid-template-columns: 1fr; }
+  }
+</style>
+<section id="inside-app">
+  <div class="rbm-wrap">
+    <div class="section-head" style="text-align:center">
+      <div class="section-eyebrow reveal" style="justify-content:center">Inside BuildMetrics</div>
+      <h2 class="section-title reveal reveal-delay-1">The report builder, up close.</h2>
+      <p class="section-sub reveal reveal-delay-2" style="margin:0 auto;">Drag calculation blocks onto the canvas, hit Calculate, and watch a clause-referenced, submission-ready report assemble itself in real time.</p>
+    </div>
+
+    <div class="rbm-frame reveal reveal-delay-2">
+      <div class="rbm-titlebar">
+        <div class="rbm-dot" style="background:#FF5F57"></div><div class="rbm-dot" style="background:#FEBC2E"></div><div class="rbm-dot" style="background:#28C840"></div>
+        <span class="rbm-url">app.buildmetrics.uk/report-builder</span>
+      </div>
+      <div class="rbm-layout">
+        <!-- Block palette -->
+        <div class="rbm-palette">
+          <div class="rbm-search">🔍 Search blocks…</div>
+          <div class="rbm-cat">Calculations</div>
+          <div class="rbm-chip">🏗 Steel Beam</div>
+          <div class="rbm-chip">🧱 RC Beam</div>
+          <div class="rbm-chip">🌬 Wind Loading</div>
+          <div class="rbm-chip drag">🚧 Hoarding (TwF2012)</div>
+          <div class="rbm-cat">Results</div>
+          <div class="rbm-chip">✅ Checks Summary</div>
+          <div class="rbm-chip">📊 Utilisation Chart</div>
+          <div class="rbm-cat">Workflow</div>
+          <div class="rbm-chip">🖊 Engineer Sign-off</div>
+        </div>
+        <!-- Canvas -->
+        <div class="rbm-canvas">
+          <div class="rbm-block">
+            <div class="rbm-block-head">
+              <span class="rbm-grip">⠿</span>
+              <span class="rbm-block-title">Steel Beam — B1</span>
+              <span class="rbm-code-chip">EN 1993-1-1</span>
+            </div>
+            <div class="rbm-block-body">
+              <div class="rbm-inputs">
+                <div class="rbm-input"><div class="l">Span</div><div class="v">6.0 m</div></div>
+                <div class="rbm-input"><div class="l">Gk</div><div class="v">5.0 kN/m</div></div>
+                <div class="rbm-input"><div class="l">Qk</div><div class="v">3.0 kN/m</div></div>
+                <div class="rbm-input"><div class="l">Grade</div><div class="v">S275</div></div>
+              </div>
+              <div class="rbm-calc-btn">▶ Calculate</div>
+              <div class="rbm-result">
+                <div class="rbm-kv"><div class="k">M<sub>Ed</sub></div><div class="n">54.0 kNm</div></div>
+                <div class="rbm-kv"><div class="k">V<sub>Ed</sub></div><div class="n">36.0 kN</div></div>
+                <div class="rbm-kv"><div class="k">Utilisation</div><div class="n">76%</div></div>
+                <span class="rbm-pass">✓ PASS</span>
+              </div>
+            </div>
+          </div>
+          <div class="rbm-block mini">
+            <span class="rbm-grip">⠿</span>
+            <span class="t">🚧 Hoarding TwF2012 — TW-01</span>
+            <span class="rbm-code-chip">TwF2012</span>
+            <span class="rbm-pass">✓ PASS</span>
+          </div>
+          <!-- Workflow status bar (real app feature) -->
+          <div class="rbm-workflow">
+            <span class="rbm-wf-label">Workflow:</span>
+            <span class="rbm-stage done">Draft</span>
+            <span class="rbm-stage active">Review</span>
+            <span class="rbm-stage">Checked</span>
+            <span class="rbm-stage">Approved</span>
+            <span class="rbm-wf-save">💾 Save</span>
+          </div>
+        </div>
+        <!-- Live preview -->
+        <div class="rbm-preview">
+          <div class="rbm-preview-label">Live A4 Preview</div>
+          <div class="rbm-a4">
+            <div class="rbm-a4-strip"><span>Steel Beam — B1</span><span>CALCULATED</span></div>
+            <svg class="rbm-a4-svg" width="120" height="30" viewBox="0 0 120 30" fill="none">
+              <line x1="15" y1="18" x2="105" y2="18" stroke="#374151" stroke-width="2.5"/>
+              <path d="M20 18 L15 25 L25 25 Z" fill="none" stroke="#374151"/>
+              <circle cx="103" cy="23" r="2.5" fill="none" stroke="#374151"/>
+              <path d="M25 6 L95 6" stroke="#DC2626" stroke-width="1"/>
+              <path d="M30 6 v8 M45 6 v8 M60 6 v8 M75 6 v8 M90 6 v8" stroke="#DC2626" stroke-width="0.8"/>
+            </svg>
+            <table>
+              <tr><td class="cl">EN1990 (6.10)</td><td>ULS load</td><td class="vl">12.0</td></tr>
+              <tr><td class="cl">EC3 §6.2.5</td><td>M<sub>c,Rd</sub></td><td class="vl">211.4</td></tr>
+              <tr><td class="cl">EC3 §6.2.6</td><td>V<sub>c,Rd</sub></td><td class="vl">284.6</td></tr>
+            </table>
+            <table>
+              <tr><td>Bending η</td><td class="vl">0.76</td><td class="ok">✓ PASS</td></tr>
+              <tr><td>Shear η</td><td class="vl">0.13</td><td class="ok">✓ PASS</td></tr>
+              <tr><td>Deflection</td><td class="vl">0.42</td><td class="ok">✓ PASS</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rbm-points">
+      <div class="rbm-point reveal"><div class="n">1</div><div class="t">Drag &amp; drop blocks</div><div class="s">15+ calculators plus title, basis, notes and sign-off blocks — arranged your way.</div></div>
+      <div class="rbm-point reveal reveal-delay-1"><div class="n">2</div><div class="t">Calculate in place</div><div class="s">Live Eurocode checks with diagrams, utilisations and PASS/FAIL as you type.</div></div>
+      <div class="rbm-point reveal reveal-delay-2"><div class="n">3</div><div class="t">Export a real report</div><div class="s">Clause-referenced, A4-formatted output your checker can verify line by line.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
      FEATURES
 ════════════════════════════════════════ -->
 <section id="features">
@@ -3860,6 +4030,41 @@
 
     group.rotation.x = 0.12;
 
+    // ── Ground grid beneath the frame (engineering-paper feel) ──
+    var grid = new THREE.GridHelper(46, 30, 0x2563eb, 0x1e3a8a);
+    grid.material.transparent = true;
+    grid.material.opacity = 0.12;
+    grid.position.y = -oy - 0.6;
+    scene.add(grid);
+
+    // ── Ambient particle field (drifting dust / site atmosphere) ──
+    var P_COUNT = 220;
+    var pPos = new Float32Array(P_COUNT * 3);
+    var pSpeed = new Float32Array(P_COUNT);
+    for (var pi = 0; pi < P_COUNT; pi++) {
+      pPos[pi * 3]     = (Math.random() - 0.5) * 34;
+      pPos[pi * 3 + 1] = (Math.random() - 0.5) * 18;
+      pPos[pi * 3 + 2] = (Math.random() - 0.5) * 20 - 2;
+      pSpeed[pi] = 0.004 + Math.random() * 0.01;
+    }
+    var pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+    var particles = new THREE.Points(pGeo, new THREE.PointsMaterial({
+      color: 0x60a5fa, size: 0.055, transparent: true, opacity: 0.5, depthWrite: false
+    }));
+    scene.add(particles);
+
+    // ── Mouse parallax (gentle, lerped) ──
+    var targetRX = 0.12, targetRZ = 0;
+    if (!reduced) {
+      window.addEventListener('pointermove', function (e) {
+        var nxp = (e.clientX / window.innerWidth) - 0.5;   // -0.5..0.5
+        var nyp = (e.clientY / window.innerHeight) - 0.5;
+        targetRX = 0.12 + nyp * 0.10;
+        targetRZ = -nxp * 0.05;
+      }, { passive: true });
+    }
+
     function resize() {
       var w = canvas.clientWidth || window.innerWidth;
       var h = canvas.clientHeight || window.innerHeight;
@@ -3874,6 +4079,17 @@
       t += 0.0035;
       group.rotation.y = t;                    // slow turntable
       group.position.y = Math.sin(t * 1.6) * 0.15; // subtle vertical breathing
+      // lerp toward pointer-driven tilt
+      group.rotation.x += (targetRX - group.rotation.x) * 0.04;
+      group.rotation.z += (targetRZ - group.rotation.z) * 0.04;
+      grid.rotation.y = t * 0.25;
+      // drift particles upward, wrap at the top
+      var pa = pGeo.attributes.position.array;
+      for (var di = 0; di < P_COUNT; di++) {
+        pa[di * 3 + 1] += pSpeed[di];
+        if (pa[di * 3 + 1] > 9) pa[di * 3 + 1] = -9;
+      }
+      pGeo.attributes.position.needsUpdate = true;
       renderer.render(scene, camera);
       if (!reduced) requestAnimationFrame(frame);
     }
