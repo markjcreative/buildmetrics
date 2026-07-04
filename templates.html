@@ -242,6 +242,27 @@ const TEMPLATES = [
       {type:'checks_summary'},{type:'engineer_notes'},{type:'signoff'}
     ]
   },
+  {
+    id: 'tpl-hoarding-twf2012',
+    name: 'Temporary Works Hoarding (TwF2012)',
+    category: 'Temporary Works',
+    icon: '🚧',
+    description: 'Timber-post hoarding to TwF2012: 3-case wind (EN 1991-1-4), post cantilever & rail (EN 1995-1-1), Johansen fixings, ply facing and dug-in foundation overturning.',
+    blockCount: 14,
+    blocks: [
+      {type:'title',default_config:{title:'Temporary Works — Hoarding Design Calculation (Timber Posts)'}},
+      {type:'section_header',default_config:{number:'1.0',title:'Project Details'}},
+      {type:'project_info'},
+      {type:'section_header',default_config:{number:'2.0',title:'Hoarding Design — Wind, Post, Rail, Fixing, Facing & Foundation'}},
+      {type:'calc_hoarding'},
+      {type:'section_header',default_config:{number:'3.0',title:'Results Summary'}},
+      {type:'checks_summary'},{type:'utilisation_chart'},
+      {type:'section_header',default_config:{number:'4.0',title:'Design Basis & References'}},
+      {type:'design_basis',default_config:{text:'Hoarding designed as a vertical cantilever per TwF2012 "Hoardings: a guide to good practice" (dug-in post method, Table 1 soil factors). Wind actions per BS EN 1991-1-4 + UK NA with three detail cases (Normal ×1.00, Next-to-end ×1.25, End ×1.50); governing case carried through all member checks. Timber design per BS EN 1995-1-1 (γM = 1.30); fixings by Johansen yield theory (Eq. 8.6 bolts / Eq. 8.7 nails). Deflection limits: post δ = wL⁴/8EI ≤ Leff/40; rail & facing δ = 5wL⁴/384EI ≤ L/40, on characteristic loads. Foundation FOS ≥ 1.5 on overturning.'}},
+      {type:'code_ref',default_config:{codes:['TwF2012 — Hoardings: a guide to good practice','BS EN 1990:2002 + UK NA (γQ = 1.5)','BS EN 1991-1-4:2005 + UK NA','BS EN 1995-1-1:2004 + UK NA','BS EN 1997-1:2004 + UK NA']}},
+      {type:'engineer_notes'},{type:'signoff'},{type:'revision_history'}
+    ]
+  },
 ];
 
 const MAX_BLOCKS = Math.max.apply(null, TEMPLATES.map(function(t){ return t.blockCount; }));

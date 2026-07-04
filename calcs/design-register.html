@@ -354,20 +354,26 @@ const DR = (() => {
   /* ── Load data ──────────────────────────────────────── */
   async function load() {
     try {
-      // Load projects and calcs in parallel; reports separately (may fail if API not ready)
+      // Load projects and calcs independently — one failing must not blank the page
       const [projectsArr, calcs] = await Promise.all([
-        Projects.getAll(),
-        CalcHistory.getAll(),
+        Promise.resolve().then(() => Projects.getAll()).catch(e => { console.warn('projects load failed', e); return []; }),
+        Promise.resolve().then(() => CalcHistory.getAll()).catch(e => { console.warn('calcs load failed', e); return []; }),
       ]);
 
-      // Build lookup
-      projectsArr.forEach(p => { _projects[p.id] = p; });
+      // Build lookup (guard non-array responses)
+      const projs = Array.isArray(projectsArr) ? projectsArr : [];
+      const calcList = Array.isArray(calcs) ? calcs : [];
+      projs.forEach(p => { if (p && p.id != null) _projects[p.id] = p; });
 
       // Reset ref counters before building rows
       _counters = {};
 
-      // Normalise calc history rows
-      _allRows = calcs.map(c => _normaliseCalc(c, _projects[c.project_id]));
+      // Normalise calc history rows — skip any single malformed row
+      _allRows = [];
+      calcList.forEach(c => {
+        try { _allRows.push(_normaliseCalc(c, _projects[c.project_id])); }
+        catch (e) { console.warn('skipped bad calc row', c && c.id, e); }
+      });
 
       // Load report-builder reports (a report-only user has all their data here)
       try {
@@ -376,14 +382,17 @@ const DR = (() => {
         if (resp.ok) {
           const data = await resp.json();
           const reports = Array.isArray(data) ? data : (data.reports || data.data || []);
-          reports.forEach(r => { _allRows.push(_normaliseReport(r)); });
+          reports.forEach(r => {
+            try { _allRows.push(_normaliseReport(r)); }
+            catch (e) { console.warn('skipped bad report row', r && r.id, e); }
+          });
         } else {
           console.warn('Design Register: reports list failed', resp.status);
         }
       } catch (err) { console.warn('Design Register: reports fetch error', err); }
 
       // Populate project filter dropdown
-      _populateProjectFilter(projectsArr);
+      _populateProjectFilter(projs);
 
       // Update stats
       _renderStats();
