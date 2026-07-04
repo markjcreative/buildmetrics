@@ -287,7 +287,7 @@ const DR = (() => {
       projectId: proj ? proj.id : null,
       projectName: projName,
       engineer:  c.engineer || (proj && proj.lead) || null,
-      date:      new Date(c.created_at || c.updated_at || Date.now()),
+      date:      _parseDate(c.created_at || c.updated_at),
       pass,
       summary:   res.summary || null,
       url:       (CALC_META[type] || {}).url || '/dashboard.html',
@@ -307,7 +307,7 @@ const DR = (() => {
       projectId: r.project_id || null,
       projectName: projName,
       engineer:  r.created_by || null,
-      date:      new Date(r.created_at || Date.now()),
+      date:      _parseDate(r.created_at || r.updated_at),
       pass:      undefined,
       summary:   null,
       url:       '/report-builder.html?report_id=' + r.id,
@@ -316,7 +316,16 @@ const DR = (() => {
   }
 
   /* ── Date helpers ───────────────────────────────────── */
+  // MySQL returns "YYYY-MM-DD HH:MM:SS" (space) which Safari parses as Invalid
+  // Date. Normalise to ISO so dates render across all browsers.
+  function _parseDate(s) {
+    if (!s) return new Date();
+    if (s instanceof Date) return s;
+    const d = new Date(String(s).replace(' ', 'T'));
+    return isNaN(d.getTime()) ? new Date() : d;
+  }
   function _fmtDate(d) {
+    if (!(d instanceof Date) || isNaN(d.getTime())) return '—';
     return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
   }
   function _timeAgo(d) {
@@ -360,15 +369,18 @@ const DR = (() => {
       // Normalise calc history rows
       _allRows = calcs.map(c => _normaliseCalc(c, _projects[c.project_id]));
 
-      // Attempt to load canvas reports
+      // Load report-builder reports (a report-only user has all their data here)
       try {
         const resp = await fetch('/api/reports.php?action=list', { headers: Auth.authHeaders() });
+        if (resp.status === 401) { Auth.logout(); return; }   // session expired → re-login
         if (resp.ok) {
           const data = await resp.json();
           const reports = Array.isArray(data) ? data : (data.reports || data.data || []);
           reports.forEach(r => { _allRows.push(_normaliseReport(r)); });
+        } else {
+          console.warn('Design Register: reports list failed', resp.status);
         }
-      } catch (_) { /* reports API optional */ }
+      } catch (err) { console.warn('Design Register: reports fetch error', err); }
 
       // Populate project filter dropdown
       _populateProjectFilter(projectsArr);
@@ -457,10 +469,10 @@ const DR = (() => {
       wrap.innerHTML =
         '<div class="dr-empty">' +
         '<div class="dr-empty-icon"><svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path stroke="#A1A1AA" stroke-width="1.8" stroke-linecap="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5l2 2h5a2 2 0 012 2v12a2 2 0 01-2 2z"/></svg></div>' +
-        '<h3>' + (_allRows.length ? 'No matching calculations' : 'No calculations yet') + '</h3>' +
+        '<h3>' + (_allRows.length ? 'No matching entries' : 'No calculations or reports yet') + '</h3>' +
         '<p>' + (_allRows.length
           ? 'Try adjusting your filters or search term.'
-          : 'Run a calculation and click Save to add it here. Or <a href="/projects.html">create a project</a> to get started.') +
+          : 'Build a report in the <a href="/report-builder.html">Report Builder</a>, or run and save a calculation, and it will appear here.') +
         '</p></div>';
       return;
     }
@@ -588,9 +600,13 @@ const DR = (() => {
 })();
 
 /* ── Bootstrap ──────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   TopNav.init();
   if (!Auth.guard()) return;
+  // Validate the token server-side — a stale/expired token would otherwise make
+  // every API call 401 and the register look empty with no explanation.
+  // refreshUser() clears the session and redirects to /login if it's invalid.
+  if (Auth.refreshUser) { try { const u = await Auth.refreshUser(); if (!u) return; } catch (_) {} }
   DR.load();
 });
 </script>
