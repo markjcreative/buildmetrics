@@ -106,7 +106,10 @@ if ($action === 'login') {
 
 // ── GOOGLE AUTH ────────────────────────────────────────────────────────────
 if ($action === 'google') {
-    $GOOGLE_CLIENT_ID = defined('GOOGLE_CLIENT_ID') ? GOOGLE_CLIENT_ID : '';
+    // Public value (also embedded in the client HTML) — config override optional
+    $GOOGLE_CLIENT_ID = (defined('GOOGLE_CLIENT_ID') && GOOGLE_CLIENT_ID)
+        ? GOOGLE_CLIENT_ID
+        : '440038191618-he1pm3lglml6r6trivqce2q6u8sjbon8.apps.googleusercontent.com';
     $b = body();
     $credential = trim($b['credential'] ?? '');
     if (!$credential) json_err('Missing Google credential');
