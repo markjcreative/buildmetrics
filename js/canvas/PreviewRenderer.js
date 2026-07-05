@@ -45,68 +45,48 @@ const PreviewRenderer = (() => {
     const designCode    = esc(projCfg.designCode || 'Eurocode (EC2/EC3/EC5)');
     const status        = esc((reportMeta.status || 'DRAFT').toUpperCase());
 
+    const statusClass = /FINAL|APPROVED|ISSUED/.test(status) ? 'ok'
+                      : /DRAFT|REVIEW/.test(status) ? 'draft' : 'blue';
+
     return `
-<div class="rp-title-block">
-  <div class="rp-tb-header">
-    <div class="rp-tb-logo">
-      <div style="font-weight:bold;font-size:11pt;letter-spacing:1pt;">BUILDMETRICS</div>
-      <div style="font-size:7pt;color:#666;margin-top:2pt;">Structural Analysis Platform</div>
+<div class="rp-cover">
+  <div class="rp-cover-band">
+    <div>
+      <div class="rp-cover-company">${companyName}</div>
+      <div class="rp-cover-company-sub">Structural Engineering Calculations</div>
     </div>
-    <div class="rp-tb-company">
-      <div class="rp-tb-company-name">${companyName}</div>
-      <div style="font-size:8pt;color:#555;margin-top:3pt;">Structural Engineering Calculations</div>
+    <div class="rp-cover-band-badge">Calculation Report</div>
+  </div>
+
+  <div class="rp-cover-body">
+    <div class="rp-cover-eyebrow">Structural Calculation Report</div>
+    <div class="rp-cover-title">${reportTitle}</div>
+    <div class="rp-cover-rule"></div>
+
+    <div class="rp-cover-grid">
+      <div class="rp-cg-cell"><div class="rp-cg-k">Project</div><div class="rp-cg-v">${projectName}</div></div>
+      <div class="rp-cg-cell"><div class="rp-cg-k">Client</div><div class="rp-cg-v">${clientName}</div></div>
+      <div class="rp-cg-cell"><div class="rp-cg-k">Location</div><div class="rp-cg-v">${location}</div></div>
+      <div class="rp-cg-cell"><div class="rp-cg-k">Design Code</div><div class="rp-cg-v">${designCode}</div></div>
+    </div>
+
+    <div class="rp-cover-meta">
+      <div class="rp-cm-cell"><div class="rp-cm-k">Reference</div><div class="rp-cm-v">${reportRef}</div></div>
+      <div class="rp-cm-cell"><div class="rp-cm-k">Date</div><div class="rp-cm-v">${reportDate}</div></div>
+      <div class="rp-cm-cell"><div class="rp-cm-k">Revision</div><div class="rp-cm-v">${revision}</div></div>
+      <div class="rp-cm-cell"><div class="rp-cm-k">Status</div><div class="rp-cm-v"><span class="rp-status ${statusClass}">${status}</span></div></div>
+    </div>
+
+    <div class="rp-cover-signoff">
+      <div class="rp-cs-cell"><div class="rp-cs-k">Prepared By</div><div class="rp-cs-name">${engineerName}</div><div class="rp-cs-line">Signature &amp; date</div></div>
+      <div class="rp-cs-cell"><div class="rp-cs-k">Checked By</div><div class="rp-cs-name">&nbsp;</div><div class="rp-cs-line">Signature &amp; date</div></div>
+      <div class="rp-cs-cell"><div class="rp-cs-k">Approved By</div><div class="rp-cs-name">&nbsp;</div><div class="rp-cs-line">Signature &amp; date</div></div>
     </div>
   </div>
 
-  <div class="rp-tb-main">
-    <div class="rp-tb-report-type">Structural Calculation Report</div>
-    <div class="rp-tb-project-title">${reportTitle}</div>
-    <div class="rp-tb-project-grid">
-      <span class="key">Project:</span>    <span>${projectName}</span>
-      <span class="key">Client:</span>     <span>${clientName}</span>
-      <span class="key">Location:</span>   <span>${location}</span>
-      <span class="key">Engineer:</span>   <span>${engineerName}</span>
-      <span class="key">Design Code:</span><span>${designCode}</span>
-    </div>
-  </div>
-
-  <div class="rp-tb-meta">
-    <div class="rp-tb-meta-cell">
-      <div class="mk">Report Reference</div>
-      <div class="mv">${reportRef}</div>
-    </div>
-    <div class="rp-tb-meta-cell">
-      <div class="mk">Date</div>
-      <div class="mv">${reportDate}</div>
-    </div>
-    <div class="rp-tb-meta-cell">
-      <div class="mk">Revision</div>
-      <div class="mv">${revision}</div>
-    </div>
-  </div>
-
-  <div class="rp-tb-meta" style="border-top:1pt solid #000;">
-    <div class="rp-tb-meta-cell">
-      <div class="mk">Prepared By</div>
-      <div class="mv">${engineerName}</div>
-    </div>
-    <div class="rp-tb-meta-cell">
-      <div class="mk">Checked By</div>
-      <div class="mv" style="border-bottom:0.5pt solid #000;min-height:16pt;">&nbsp;</div>
-    </div>
-    <div class="rp-tb-meta-cell" style="border-right:none;">
-      <div class="mk">Status</div>
-      <div class="mv" style="color:${status === 'FINAL' ? '#006600' : '#cc6600'}">${status}</div>
-    </div>
-  </div>
-
-  <div class="rp-tb-statusbar">
-    <span><b>Project:</b> ${projectName}</span>
-    <span><b>Client:</b> ${clientName}</span>
-    <span><b>Ref:</b> ${reportRef}</span>
-    <span><b>Rev:</b> ${revision}</span>
-    <span><b>Code:</b> ${designCode}</span>
-    <span class="rp-tb-statusbar-status"><b>${status}</b></span>
+  <div class="rp-cover-foot">
+    <div class="rp-cover-foot-brand">Generated with <b>BuildMetrics</b> · buildmetrics.uk</div>
+    <div class="rp-cover-foot-note">This report has been produced using BuildMetrics software. All calculations must be independently checked and verified by a qualified engineer before use for construction.</div>
   </div>
 </div>`;
   }
@@ -123,12 +103,13 @@ const PreviewRenderer = (() => {
       return `<div class="rp-toc-item">
         <span class="rp-toc-num">${num}</span>
         <span class="rp-toc-title-text">${title}</span>
+        <span class="rp-toc-dots"></span>
       </div>`;
     }).join('');
 
     return `<div class="rp-toc">
-  <div class="rp-toc-title">Table of Contents</div>
-  ${rows}
+  <div class="rp-toc-head">Contents</div>
+  <div class="rp-toc-list">${rows}</div>
 </div>`;
   }
 
@@ -140,9 +121,9 @@ const PreviewRenderer = (() => {
     const proj = esc(projCfg.projectName || 'BuildMetrics');
     return `
 <div class="rp-running-footer">
-  <span>${proj}</span>
-  <span>${ref}${ref ? ' · ' : ''}${rev}</span>
-  <span>BuildMetrics — buildmetrics.io</span>
+  <span>${proj}${ref ? ' · ' + ref : ''}${rev ? ' · ' + rev : ''}</span>
+  <span class="rp-rf-note">Verify all calculations with a qualified engineer before use.</span>
+  <span>Generated with <b>BuildMetrics</b> · buildmetrics.uk</span>
 </div>`;
   }
 
@@ -870,149 +851,143 @@ const PreviewRenderer = (() => {
 
   function _getPreviewCSS() {
     return `
+:root {
+  --bm-navy:#0F172A; --bm-blue:#2563EB; --bm-blue-dark:#1D4ED8;
+  --bm-blue-light:#EFF6FF; --bm-blue-mid:#DBEAFE;
+  --bm-text:#1F2937; --bm-muted:#64748B; --bm-border:#E2E8F0; --bm-line:#EEF2F7;
+  --bm-green:#15803D; --bm-green-bg:#DCFCE7; --bm-green-bd:#BBF7D0;
+  --bm-red:#B91C1C; --bm-red-bg:#FEE2E2; --bm-red-bd:#FECACA;
+  --bm-amber:#B45309; --bm-amber-bg:#FEF3C7;
+}
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:'Times New Roman',Times,serif; font-size:10pt; color:#000; background:#d0d0d0; }
+body { font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-size:10pt; color:var(--bm-text); background:#E2E8F0; }
 
 .rp-page {
-  width:210mm; min-height:297mm; background:white;
-  margin:16px auto; padding:18mm 18mm 24mm 22mm;
-  box-shadow:0 0 24px rgba(0,0,0,.25);
+  width:210mm; min-height:297mm; background:#fff;
+  margin:16px auto; padding:16mm 16mm 22mm 16mm;
+  box-shadow:0 6px 30px rgba(15,23,42,.18);
   position:relative;
 }
 
-/* ── Title block ── */
-.rp-title-block { border:1.5pt solid #000; margin-bottom:18pt; font-family:'Times New Roman',serif; }
-.rp-tb-header { display:flex; border-bottom:1pt solid #000; background:#000; color:#fff; }
-.rp-tb-logo { width:46mm; padding:8pt 10pt; border-right:1pt solid #666; }
-.rp-tb-company { flex:1; padding:8pt 10pt; }
-.rp-tb-company-name { font-size:13pt; font-weight:bold; letter-spacing:2pt; font-family:'Times New Roman',serif; }
-.rp-tb-main { padding:12pt 14pt; border-bottom:1pt solid #000; }
-.rp-tb-report-type { font-size:8pt; font-weight:bold; text-transform:uppercase; letter-spacing:2.5pt; color:#555; margin-bottom:4pt; }
-.rp-tb-project-title { font-size:14pt; font-weight:bold; margin-bottom:10pt; }
-.rp-tb-project-grid { display:grid; grid-template-columns:80pt 1fr; gap:3pt 0; font-size:10pt; }
-.rp-tb-project-grid .key { font-weight:bold; }
-.rp-tb-meta { display:grid; grid-template-columns:1fr 1fr 1fr; }
-.rp-tb-meta-cell { padding:6pt 10pt; border-right:1pt solid #000; }
-.rp-tb-meta-cell:last-child { border-right:none; }
-.rp-tb-meta-cell .mk { font-size:7pt; text-transform:uppercase; letter-spacing:.5pt; color:#555; }
-.rp-tb-meta-cell .mv { font-size:10pt; font-weight:bold; margin-top:2pt; }
-.rp-tb-statusbar { display:flex; flex-wrap:wrap; gap:0 16pt; background:#1a1a1a; color:#ddd; padding:5pt 12pt; font-family:Arial,sans-serif; font-size:8pt; border-top:1pt solid #000; }
-.rp-tb-statusbar span { white-space:nowrap; }
-.rp-tb-statusbar b { color:#fff; font-weight:bold; }
-.rp-tb-statusbar-status { margin-left:auto; letter-spacing:.5pt; }
+/* ── Cover page ── */
+.rp-cover { display:flex; flex-direction:column; min-height:262mm; page-break-after:always; }
+.rp-cover-band {
+  background:linear-gradient(135deg,var(--bm-navy) 0%,var(--bm-blue-dark) 100%);
+  color:#fff; padding:20pt 22pt; border-radius:8pt; display:flex;
+  justify-content:space-between; align-items:center;
+}
+.rp-cover-company { font-size:20pt; font-weight:800; letter-spacing:-.3pt; }
+.rp-cover-company-sub { font-size:8.5pt; color:rgba(255,255,255,.7); margin-top:3pt; letter-spacing:.4pt; }
+.rp-cover-band-badge { font-size:8pt; font-weight:700; text-transform:uppercase; letter-spacing:1pt; background:rgba(255,255,255,.15); border:1pt solid rgba(255,255,255,.3); padding:5pt 12pt; border-radius:99pt; }
+.rp-cover-body { flex:1; padding:34pt 4pt 0; }
+.rp-cover-eyebrow { font-size:9pt; font-weight:700; text-transform:uppercase; letter-spacing:2.5pt; color:var(--bm-blue); margin-bottom:8pt; }
+.rp-cover-title { font-size:26pt; font-weight:800; color:var(--bm-navy); line-height:1.15; letter-spacing:-.5pt; }
+.rp-cover-rule { height:3pt; width:70pt; background:var(--bm-blue); border-radius:2pt; margin:14pt 0 26pt; }
+.rp-cover-grid { display:grid; grid-template-columns:1fr 1fr; gap:0; border:1pt solid var(--bm-border); border-radius:8pt; overflow:hidden; }
+.rp-cg-cell { padding:12pt 16pt; border-right:1pt solid var(--bm-border); border-bottom:1pt solid var(--bm-border); }
+.rp-cg-cell:nth-child(2n) { border-right:none; }
+.rp-cg-cell:nth-last-child(-n+2) { border-bottom:none; }
+.rp-cg-k { font-size:7.5pt; font-weight:700; text-transform:uppercase; letter-spacing:.6pt; color:var(--bm-muted); margin-bottom:3pt; }
+.rp-cg-v { font-size:11.5pt; font-weight:600; color:var(--bm-navy); }
+.rp-cover-meta { display:grid; grid-template-columns:repeat(4,1fr); gap:8pt; margin-top:14pt; }
+.rp-cm-cell { background:var(--bm-blue-light); border:1pt solid var(--bm-blue-mid); border-radius:7pt; padding:9pt 12pt; }
+.rp-cm-k { font-size:7pt; font-weight:700; text-transform:uppercase; letter-spacing:.5pt; color:var(--bm-blue-dark); margin-bottom:3pt; }
+.rp-cm-v { font-size:11pt; font-weight:700; color:var(--bm-navy); }
+.rp-status { display:inline-block; font-size:8.5pt; font-weight:800; letter-spacing:.5pt; padding:2pt 9pt; border-radius:99pt; }
+.rp-status.ok { color:var(--bm-green); background:var(--bm-green-bg); border:1pt solid var(--bm-green-bd); }
+.rp-status.draft { color:var(--bm-amber); background:var(--bm-amber-bg); border:1pt solid #FDE68A; }
+.rp-status.blue { color:var(--bm-blue-dark); background:var(--bm-blue-mid); border:1pt solid #BFDBFE; }
+.rp-cover-signoff { display:grid; grid-template-columns:repeat(3,1fr); gap:12pt; margin-top:34pt; }
+.rp-cs-cell { border:1pt solid var(--bm-border); border-top:3pt solid var(--bm-blue); border-radius:6pt; padding:11pt 13pt; }
+.rp-cs-k { font-size:7.5pt; font-weight:700; text-transform:uppercase; letter-spacing:.5pt; color:var(--bm-muted); }
+.rp-cs-name { font-size:11pt; font-weight:600; color:var(--bm-navy); min-height:15pt; margin-top:4pt; }
+.rp-cs-line { border-top:.7pt solid var(--bm-border); margin-top:24pt; padding-top:4pt; font-size:7.5pt; color:var(--bm-muted); }
+.rp-cover-foot { margin-top:auto; padding-top:16pt; border-top:1pt solid var(--bm-border); }
+.rp-cover-foot-brand { font-size:8.5pt; color:var(--bm-navy); }
+.rp-cover-foot-brand b { color:var(--bm-blue-dark); }
+.rp-cover-foot-note { font-size:7.5pt; color:var(--bm-muted); line-height:1.5; margin-top:4pt; }
 
 /* ── TOC ── */
-.rp-toc { margin-bottom:20pt; border:1pt solid #000; page-break-after:avoid; }
-.rp-toc-title { background:#000; color:white; padding:4pt 8pt; font-weight:bold; font-size:9pt; text-transform:uppercase; letter-spacing:1pt; }
-.rp-toc-item { display:flex; border-bottom:.5pt dotted #ccc; padding:3pt 8pt; font-size:9pt; }
-.rp-toc-num { width:30pt; font-weight:bold; }
-.rp-toc-title-text { flex:1; }
+.rp-toc { margin-bottom:22pt; page-break-after:always; }
+.rp-toc-head { font-size:16pt; font-weight:800; color:var(--bm-navy); border-bottom:2.5pt solid var(--bm-blue); padding-bottom:6pt; margin-bottom:12pt; letter-spacing:-.3pt; }
+.rp-toc-list { }
+.rp-toc-item { display:flex; align-items:baseline; padding:6pt 4pt; font-size:10.5pt; border-bottom:.6pt solid var(--bm-line); }
+.rp-toc-num { width:34pt; font-weight:700; color:var(--bm-blue); }
+.rp-toc-title-text { color:var(--bm-navy); font-weight:600; }
+.rp-toc-dots { flex:1; }
 
 /* ── Section headers ── */
-.rp-section-header { font-size:11pt; font-weight:bold; text-transform:uppercase; letter-spacing:1pt; border-bottom:2pt solid #000; margin:20pt 0 10pt; padding-bottom:4pt; }
-.rp-section-num { margin-right:8pt; }
-.rp-subsection-title { font-size:8.5pt; font-weight:bold; text-transform:uppercase; letter-spacing:.5pt; background:#f0f0f0; padding:3pt 6pt; border-left:3pt solid #000; margin:10pt 0 4pt; }
+.rp-section-header { font-size:13pt; font-weight:800; color:var(--bm-navy); border-bottom:2pt solid var(--bm-blue); margin:20pt 0 12pt; padding-bottom:5pt; letter-spacing:-.2pt; }
+.rp-section-num { margin-right:8pt; color:var(--bm-blue); }
+.rp-subsection-title { font-size:8.5pt; font-weight:700; text-transform:uppercase; letter-spacing:.6pt; color:var(--bm-blue-dark); background:var(--bm-blue-light); padding:4pt 8pt; border-left:3pt solid var(--bm-blue); margin:12pt 0 5pt; border-radius:0 4pt 4pt 0; }
 
 /* ── Calc section ── */
-.rp-calc-section { margin-bottom:18pt; border:1pt solid #bbb; }
-.rp-calc-header { display:flex; justify-content:space-between; align-items:center; background:#000; color:white; padding:5pt 10pt; }
-.rp-calc-title { font-weight:bold; font-size:10pt; font-family:'Times New Roman',serif; }
+.rp-calc-section { margin-bottom:18pt; border:1pt solid var(--bm-border); border-radius:8pt; overflow:hidden; }
+.rp-calc-header { display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg,var(--bm-navy) 0%,var(--bm-blue-dark) 100%); color:#fff; padding:7pt 12pt; }
+.rp-calc-title { font-weight:700; font-size:10.5pt; }
 .rp-calc-headright { display:flex; align-items:center; gap:8pt; }
-.rp-calc-code { font-size:8pt; opacity:.8; }
-.rp-calc-tag { font-size:7pt; font-weight:bold; letter-spacing:.6pt; background:#fff; color:#000; padding:1pt 6pt; border-radius:2pt; font-family:Arial,sans-serif; }
+.rp-calc-code { font-size:8pt; opacity:.75; }
+.rp-calc-tag { font-size:7pt; font-weight:800; letter-spacing:.6pt; background:#fff; color:var(--bm-blue-dark); padding:2pt 7pt; border-radius:99pt; }
 
 /* ── Tables ── */
 .rp-inputs-table, .rp-calc-table, .rp-checks-table { width:100%; border-collapse:collapse; font-size:9pt; table-layout:fixed; }
-.rp-inputs-table td, .rp-calc-table td, .rp-checks-table td, .rp-checks-table th { padding:2.5pt 6pt; border:.5pt solid #ddd; vertical-align:middle; overflow:hidden; text-overflow:ellipsis; }
-.rp-calc-table th, .rp-checks-table th { background:#ececec; font-weight:bold; text-align:left; font-size:8pt; text-transform:uppercase; letter-spacing:.3pt; color:#333; }
-.rp-param { width:130pt; font-weight:bold; background:#fafafa; }
-.rp-val { width:60pt; font-family:'Courier New',monospace; text-align:right; }
-.rp-unit { width:35pt; color:#555; font-size:8pt; }
-.rp-ref { color:#777; font-size:8pt; font-style:italic; }
-.rp-clause { width:13%; color:#555; font-size:8pt; font-style:italic; white-space:nowrap; background:#fafafa; }
+.rp-inputs-table td, .rp-calc-table td, .rp-checks-table td, .rp-checks-table th { padding:3pt 8pt; border:.6pt solid var(--bm-border); vertical-align:middle; overflow:hidden; text-overflow:ellipsis; }
+.rp-calc-table th, .rp-checks-table th { background:var(--bm-blue-light); font-weight:700; text-align:left; font-size:8pt; text-transform:uppercase; letter-spacing:.3pt; color:var(--bm-blue-dark); }
+.rp-inputs-table tr:nth-child(even) td { background:#FBFCFE; }
+.rp-param { width:130pt; font-weight:600; background:var(--bm-blue-light); color:var(--bm-navy); }
+.rp-val { width:60pt; font-family:'SF Mono','Courier New',monospace; text-align:right; }
+.rp-unit { width:35pt; color:var(--bm-muted); font-size:8pt; }
+.rp-ref { color:var(--bm-muted); font-size:8pt; font-style:italic; }
+.rp-clause { width:13%; color:var(--bm-blue-dark); font-size:8pt; font-style:italic; white-space:nowrap; background:var(--bm-blue-light); font-weight:600; }
 .rp-step-desc { width:31%; }
-.rp-formula { font-style:italic; font-family:'Courier New',monospace; font-size:8.5pt; color:#333; }
-.rp-calc-val { font-family:'Courier New',monospace; text-align:right; font-weight:bold; }
-.rp-pass { color:#006600; font-weight:bold; }
-.rp-fail { color:#cc0000; font-weight:bold; }
+.rp-formula { font-style:italic; font-family:'SF Mono','Courier New',monospace; font-size:8.5pt; color:#334155; }
+.rp-calc-val { font-family:'SF Mono','Courier New',monospace; text-align:right; font-weight:700; color:var(--bm-navy); }
+.rp-pass { color:var(--bm-green); font-weight:800; }
+.rp-fail { color:var(--bm-red); font-weight:800; }
 
-/* ── Engineering Diagrams ── */
-.rp-diagram-section {
-  margin:8pt 0 6pt;
-  /* Force entire diagram section to greyscale for professional B&W printing */
-  filter: grayscale(100%) contrast(1.15);
-}
-.rp-diagram-label {
-  font-size:7.5pt; font-weight:bold; text-transform:uppercase;
-  letter-spacing:.5pt; color:#000; margin-bottom:4pt;
-  padding:2pt 6pt; background:#eee; border-left:2.5pt solid #000;
-}
-.rp-diagram-body {
-  padding:6pt 4pt; text-align:center; background:#fff;
-}
-/* Constrain SVG height — diagrams should be compact in a report */
-.rp-diagram-body svg {
-  max-width:60%; max-height:110pt; height:auto; display:inline-block;
-}
-/* For beam type: two panels side by side, tighter */
-.rp-beam-elevation-grid {
-  display:grid; grid-template-columns:1fr 1fr; gap:6pt; margin-bottom:6pt;
-}
-.rp-beam-elevation-grid svg { max-width:100%; max-height:100pt; height:auto; }
-/* Tabbed beam diagrams: 2×2 grid, small */
-.rp-beam-diagrams {
-  display:grid; grid-template-columns:1fr 1fr; gap:5pt; margin-top:4pt;
-}
-.rp-beam-diagram-panel {
-  border:0.5pt solid #bbb; padding:3pt; background:#fafafa;
-}
-.rp-beam-diagram-label {
-  font-size:6.5pt; font-weight:bold; text-align:center;
-  color:#000; margin-bottom:2pt; text-transform:uppercase; letter-spacing:.2pt;
-}
-.rp-beam-diagram-panel svg { max-width:100%; max-height:80pt; height:auto; display:block; margin:0 auto; }
+/* ── Engineering Diagrams (full colour) ── */
+.rp-diagram-section { margin:10pt 0 6pt; page-break-inside:avoid; }
+.rp-diagram-label { font-size:7.5pt; font-weight:700; text-transform:uppercase; letter-spacing:.5pt; color:var(--bm-blue-dark); margin-bottom:5pt; padding:3pt 8pt; background:var(--bm-blue-light); border-left:2.5pt solid var(--bm-blue); border-radius:0 4pt 4pt 0; }
+.rp-diagram-body { padding:6pt 4pt; text-align:center; background:#fff; }
+.rp-diagram-body svg { max-width:62%; max-height:120pt; height:auto; display:inline-block; }
+.rp-beam-elevation-grid { display:grid; grid-template-columns:1fr 1fr; gap:6pt; margin-bottom:6pt; }
+.rp-beam-elevation-grid svg { max-width:100%; max-height:105pt; height:auto; }
+.rp-beam-diagrams { display:grid; grid-template-columns:1fr 1fr; gap:5pt; margin-top:4pt; }
+.rp-beam-diagram-panel { border:.6pt solid var(--bm-border); border-radius:5pt; padding:4pt; background:#FBFCFE; }
+.rp-beam-diagram-label { font-size:6.5pt; font-weight:700; text-align:center; color:var(--bm-muted); margin-bottom:2pt; text-transform:uppercase; letter-spacing:.2pt; }
+.rp-beam-diagram-panel svg { max-width:100%; max-height:85pt; height:auto; display:block; margin:0 auto; }
 
 /* ── Prose ── */
 .rp-prose { font-size:10pt; line-height:1.6; margin-bottom:10pt; }
-.rp-prose-label { font-weight:bold; font-size:10pt; margin-bottom:4pt; }
+.rp-prose-label { font-weight:700; font-size:10pt; margin-bottom:4pt; color:var(--bm-navy); }
 .rp-assumption-list { margin:8pt 0 8pt 20pt; font-size:9pt; line-height:1.7; }
 
 /* ── Figure ── */
 .rp-figure { margin:10pt 0; text-align:center; }
-.rp-figure figcaption { font-size:8pt; font-style:italic; color:#555; margin-top:4pt; }
+.rp-figure figcaption { font-size:8pt; font-style:italic; color:var(--bm-muted); margin-top:4pt; }
 
 /* ── Sign-off ── */
 .rp-signoff-table { width:100%; border-collapse:collapse; margin:8pt 0; }
-.rp-signoff-table td { border:1pt solid #000; padding:8pt 10pt; width:33.3%; vertical-align:top; height:55pt; }
-.rp-signoff-label { font-size:7pt; text-transform:uppercase; letter-spacing:.5pt; font-weight:bold; color:#555; margin-bottom:4pt; }
-.rp-signoff-line { border-top:.5pt solid #000; margin-top:24pt; padding-top:3pt; font-size:8pt; color:#555; font-style:italic; }
+.rp-signoff-table td { border:1pt solid var(--bm-border); padding:8pt 10pt; width:33.3%; vertical-align:top; height:55pt; }
+.rp-signoff-label { font-size:7pt; text-transform:uppercase; letter-spacing:.5pt; font-weight:700; color:var(--bm-muted); margin-bottom:4pt; }
+.rp-signoff-line { border-top:.6pt solid var(--bm-border); margin-top:24pt; padding-top:3pt; font-size:8pt; color:var(--bm-muted); font-style:italic; }
 
 /* ── Page break ── */
-.rp-page-break { page-break-after:always; border-top:1pt dashed #ccc; margin:20pt 0; }
+.rp-page-break { page-break-after:always; }
 
 /* ── Running footer ── */
-.rp-running-footer {
-  border-top:.5pt solid #ccc; padding-top:4pt; margin-top:20pt;
-  display:flex; justify-content:space-between; font-size:7pt; color:#777;
-}
+.rp-running-footer { border-top:1pt solid var(--bm-border); padding-top:6pt; margin-top:22pt; display:flex; justify-content:space-between; align-items:center; gap:10pt; font-size:7.5pt; color:var(--bm-muted); }
+.rp-running-footer b { color:var(--bm-blue-dark); }
+.rp-rf-note { font-style:italic; }
 
 /* ── Print ── */
 @media print {
-  body { background:white; }
-  .rp-page { box-shadow:none; margin:0; padding:15mm 15mm 20mm 20mm; width:100%; }
+  body { background:#fff; }
+  .rp-page { box-shadow:none; margin:0; padding:14mm 14mm 18mm 14mm; width:100%; }
   .rp-page-break { page-break-after:always; }
-  .rp-calc-section { page-break-inside:avoid; }
-  .rp-title-block { page-break-after:always; }
-  .rp-tb-header, .rp-calc-header, .rp-tb-statusbar, .rp-calc-tag,
-  .rp-calc-table th, .rp-checks-table th, .rp-clause, .rp-param, .rp-subsection-title,
-  .rp-pass, .rp-fail { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .rp-calc-section { page-break-inside:avoid; }
-  .rp-diagram-section { page-break-inside:avoid; filter:grayscale(100%) contrast(1.15); }
-  .rp-diagram-body svg { max-width:55%; max-height:100pt; }
-  .rp-beam-elevation-grid { grid-template-columns:1fr 1fr; gap:5pt; }
-  .rp-beam-elevation-grid svg { max-height:90pt; }
-  .rp-beam-diagrams { grid-template-columns:1fr 1fr; gap:4pt; }
-  .rp-beam-diagram-panel svg { max-height:72pt; }
+  .rp-cover, .rp-toc { page-break-after:always; }
+  .rp-calc-section, .rp-diagram-section { page-break-inside:avoid; }
+  * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 }`;
   }
 
