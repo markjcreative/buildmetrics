@@ -489,8 +489,7 @@ function renderLoads(searchTerm) {
    INIT
 ════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  TopNav.init();
-  if (!Auth.guard()) return;
+  TopNav.init({ skipAuth: true });
 
   // Main tab switching
   document.getElementById('main-tabs').addEventListener('click', e => {

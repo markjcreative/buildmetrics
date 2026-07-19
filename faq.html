@@ -114,7 +114,7 @@
           <a href="#eurocodes"   class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#FFFBEB">📐</div>Eurocodes</a>
           <a href="#projects"    class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#F0FDF4">📁</div>Projects</a>
           <a href="#account"     class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#FFF7ED">👤</div>Account</a>
-          <a href="#billing"     class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#F0FDF4">💳</div>Billing</a>
+          <a href="#billing"     class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#F0FDF4">💳</div>Cost</a>
           <a href="#technical"   class="faq-sidebar-item"><div class="faq-sidebar-icon" style="background:#EFF6FF">⚙️</div>Technical</a>
         </aside>
 
@@ -270,19 +270,19 @@
 
           <!-- Billing -->
           <div class="faq-section" id="billing">
-            <div class="faq-section-title">💳 Billing <span class="faq-section-badge">3 questions</span></div>
+            <div class="faq-section-title">💳 Cost <span class="faq-section-badge">3 questions</span></div>
 
             <div class="faq-item">
-              <div class="faq-q">When will paid plans launch?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
-              <div class="faq-a"><p>BuildMetrics is free for all engineers throughout 2026. We plan to introduce paid plans in early 2027. Early access users will receive a discounted rate.</p></div>
+              <div class="faq-q">How much does BuildMetrics cost?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Nothing. BuildMetrics is completely free for every engineer — all calculators, the full report builder, unlimited projects and unlimited PDF and Word exports. There is no subscription, no per-report fee and no credit card required.</p></div>
             </div>
             <div class="faq-item">
-              <div class="faq-q">Will there always be a free tier?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
-              <div class="faq-a"><p>Yes. We intend to maintain a free tier with access to core calculators indefinitely. Advanced features (team collaboration, custom branding, priority support) will be part of paid plans.</p></div>
+              <div class="faq-q">Are any features locked or limited?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>No. There are no tiers, usage caps or paywalled features — every registered user gets the same full version of the app, including your own company letterhead on every report.</p></div>
             </div>
             <div class="faq-item">
-              <div class="faq-q">Do you offer discounts for students or small practices?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
-              <div class="faq-a"><p>We plan to offer academic and sole-trader pricing when paid plans launch. Email <a href="mailto:support@buildmetrics.uk">support@buildmetrics.uk</a> to register your interest.</p></div>
+              <div class="faq-q">Do I need to enter payment details to sign up?<svg class="faq-chevron" width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></div>
+              <div class="faq-a"><p>Never. Signing up needs only an email address and a password. We do not collect or store payment details. If you have any questions, email <a href="mailto:support@buildmetrics.uk">support@buildmetrics.uk</a>.</p></div>
             </div>
           </div>
 
@@ -326,7 +326,7 @@
 <script src="/js/ui/topNav.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  TopNav.init();
+  TopNav.init({ skipAuth: true });
 
   // Accordion
   document.querySelectorAll('.faq-q').forEach(function(q) {

@@ -52,14 +52,17 @@ const TopNav = (() => {
       });
     }
 
-    // Load and init notification bell
-    if (window.Notifications) {
-      Notifications.init();
-    } else {
-      var s = document.createElement('script');
-      s.src = '/js/ui/notifications.js';
-      s.onload = function() { Notifications.init(); };
-      document.head.appendChild(s);
+    // Load and init notification bell — only for a signed-in user; on public
+    // pages a signed-out visitor has no notifications to show.
+    if (user) {
+      if (window.Notifications) {
+        Notifications.init();
+      } else {
+        var s = document.createElement('script');
+        s.src = '/js/ui/notifications.js';
+        s.onload = function() { Notifications.init(); };
+        document.head.appendChild(s);
+      }
     }
 
     // Load and init AI chat widget
@@ -119,13 +122,16 @@ const TopNav = (() => {
         '<a href="/projects.html" data-nav="projects">Projects</a>' +
         '<a href="/calcs/design-register.html" data-nav="register">Design Register</a>' +
       '</nav>' +
-      // Right
+      // Right — public pages (skipAuth) can be viewed signed out, so offer a
+      // way in rather than an avatar for a user who isn't there.
       '<div class="header-right">' +
-        '<a href="/profile.html" class="header-user">' +
-          '<div class="header-avatar">' + initials + '</div>' +
-          '<span class="header-user-name">' + firstName + '</span>' +
-        '</a>' +
-        '<button class="header-signout" onclick="Auth.logout()">Sign out</button>' +
+        (user
+          ? '<a href="/profile.html" class="header-user">' +
+              '<div class="header-avatar">' + initials + '</div>' +
+              '<span class="header-user-name">' + firstName + '</span>' +
+            '</a>' +
+            '<button class="header-signout" onclick="Auth.logout()">Sign out</button>'
+          : '<a href="/login" class="header-signout">Sign in</a>') +
         '<button class="header-menu-btn" id="hdr-menu-btn" aria-label="Open menu">' +
           '<svg width="20" height="20" fill="none" viewBox="0 0 24 24">' +
             '<path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>' +

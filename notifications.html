@@ -111,7 +111,6 @@
         <button class="nf-chip" data-filter="Projects">Projects</button>
         <button class="nf-chip" data-filter="Reports">Reports</button>
         <button class="nf-chip" data-filter="Collab">Collaboration</button>
-        <button class="nf-chip" data-filter="Billing">Billing</button>
         <button class="nf-chip" data-filter="System">System</button>
       </div>
 
@@ -151,9 +150,7 @@ const TYPE_META = {
   TEAM_INVITE:{icon:'📨',color:'#3B82F6',cat:'Collab'},TEAM_JOINED:{icon:'🤝',color:'#10B981',cat:'Collab'},
   TEAM_REMOVED:{icon:'👋',color:'#EF4444',cat:'Collab'},COMMENT_ADDED:{icon:'💬',color:'#6366F1',cat:'Collab'},
   MENTION:{icon:'@',color:'#F59E0B',cat:'Collab'},REVIEW_REQUESTED:{icon:'👁️',color:'#6366F1',cat:'Collab'},
-  PLAN_FREE:{icon:'🎉',color:'#10B981',cat:'Billing'},PLAN_UPGRADED:{icon:'⭐',color:'#F59E0B',cat:'Billing'},
-  PLAN_RENEWAL:{icon:'🔄',color:'#F59E0B',cat:'Billing'},PAYMENT_FAILED:{icon:'💳',color:'#EF4444',cat:'Billing'},
-  INVOICE_READY:{icon:'🧾',color:'#6366F1',cat:'Billing'},
+  // BuildMetrics is free — there are no plan, payment or invoice notifications.
   NEW_CALCULATOR:{icon:'🧮',color:'#3B82F6',cat:'System'},MAINTENANCE:{icon:'🔧',color:'#F59E0B',cat:'System'},
   FEATURE_UPDATE:{icon:'🚀',color:'#6366F1',cat:'System'},WEEKLY_DIGEST:{icon:'📊',color:'#3B82F6',cat:'System'},
   WAITLIST_CONFIRMED:{icon:'📋',color:'#3B82F6',cat:'System'},ACCESS_GRANTED:{icon:'🎉',color:'#10B981',cat:'System'},

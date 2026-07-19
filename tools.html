@@ -556,12 +556,11 @@
 
 <script>
 // ════════════════════════════════════════════════════════════════
-// Auth guard & bootstrap
+// Bootstrap — public page, linked from the marketing site. The tools run
+// entirely client-side, so there is nothing here to gate behind an account.
 // ════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  TopNav.init();
-  const user = Auth.currentUser();
-  if (!user) { window.location.href = '/login.html'; return; }
+  TopNav.init({ skipAuth: true });
   initTools();
   // Deep-link via URL hash: /tools.html#unit-converter etc.
   const hash = location.hash.replace('#', '');
