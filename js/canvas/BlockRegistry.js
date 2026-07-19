@@ -54,10 +54,13 @@ const BlockRegistry = (() => {
 
   // ── Solver map ─────────────────────────────────────────────────────────
   const SOLVER_MAP = {
-    // beamDesignSolver calls the bare global solveBeam() from solver.js, so
-    // solver.js must be in place before it runs.
+    // beamDesignSolver calls the bare global solveBeam() from solver.js, which
+    // in turn calls BeamUtils from utils.js. Both must load, in this order,
+    // before the beam solver runs — otherwise the very first beam calculation
+    // on a fresh page throws.
     'calc_beam':         { src: '/js/engine/beamDesignSolver.js',   global: 'BeamDesignSolver',
-                           deps: [{ src: '/js/engine/solver.js', global: 'BeamSolver' }] },
+                           deps: [{ src: '/js/engine/utils.js',  global: 'BeamUtils' },
+                                  { src: '/js/engine/solver.js', global: 'BeamSolver' }] },
     'calc_column':       { src: '/js/engine/columnSolver.js',       global: 'ColumnSolver' },
     'calc_rc_beam':      { src: '/js/engine/rcBeamSolver.js',       global: 'RCBeamSolver' },
     'calc_rc_column':    { src: '/js/engine/concreteColumnSolver.js',global: 'ConcreteColumnSolver' },
