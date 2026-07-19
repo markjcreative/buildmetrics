@@ -54,7 +54,10 @@ const BlockRegistry = (() => {
 
   // ── Solver map ─────────────────────────────────────────────────────────
   const SOLVER_MAP = {
-    'calc_beam':         { src: '/js/engine/beamDesignSolver.js',   global: 'BeamDesignSolver' },
+    // beamDesignSolver calls the bare global solveBeam() from solver.js, so
+    // solver.js must be in place before it runs.
+    'calc_beam':         { src: '/js/engine/beamDesignSolver.js',   global: 'BeamDesignSolver',
+                           deps: [{ src: '/js/engine/solver.js', global: 'BeamSolver' }] },
     'calc_column':       { src: '/js/engine/columnSolver.js',       global: 'ColumnSolver' },
     'calc_rc_beam':      { src: '/js/engine/rcBeamSolver.js',       global: 'RCBeamSolver' },
     'calc_rc_column':    { src: '/js/engine/concreteColumnSolver.js',global: 'ConcreteColumnSolver' },
@@ -248,7 +251,12 @@ const BlockRegistry = (() => {
     const el = document.createElement(tag);
     Object.entries(attrs).forEach(([k, v]) => {
       if (k === 'className') el.className = v;
-      else if (k === 'style') Object.assign(el.style, v);
+      // style accepts either a CSS string or a property object — Object.assign
+      // on a string would walk its character indices and throw.
+      else if (k === 'style') {
+        if (typeof v === 'string') el.style.cssText = v;
+        else Object.assign(el.style, v);
+      }
       else if (k === 'dataset') Object.entries(v).forEach(([dk, dv]) => el.dataset[dk] = dv);
       else if (k === 'innerHTML') el.innerHTML = v;
       else el.setAttribute(k, v);
@@ -338,20 +346,29 @@ const BlockRegistry = (() => {
 
   // ── Solver loading & running ─────────────────────────────────────────────
 
-  function _loadSolver(type) {
+  // Note: distinct from the plain _loadScript(src) further down — this one
+  // resolves to the global the script defines, and no-ops if already present.
+  function _loadScriptFor(src, global) {
     return new Promise((resolve, reject) => {
-      const info = SOLVER_MAP[type];
-      if (!info) { reject(new Error('No solver for ' + type)); return; }
-      if (window[info.global]) { resolve(window[info.global]); return; }
+      if (window[global]) { resolve(window[global]); return; }
       const s = document.createElement('script');
-      s.src = info.src;
+      s.src = src;
       s.onload = () => {
-        if (window[info.global]) resolve(window[info.global]);
-        else reject(new Error('Solver loaded but global not found: ' + info.global));
+        if (window[global]) resolve(window[global]);
+        else reject(new Error('Loaded but global not found: ' + global));
       };
-      s.onerror = () => reject(new Error('Failed to load solver: ' + info.src));
+      s.onerror = () => reject(new Error('Failed to load: ' + src));
       document.head.appendChild(s);
     });
+  }
+
+  async function _loadSolver(type) {
+    const info = SOLVER_MAP[type];
+    if (!info) throw new Error('No solver for ' + type);
+    // Prerequisites first — a solver that calls another file's globals will
+    // throw a bare ReferenceError if we skip these.
+    for (const dep of info.deps || []) await _loadScriptFor(dep.src, dep.global);
+    return _loadScriptFor(info.src, info.global);
   }
 
   /**
@@ -1031,7 +1048,29 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
         if (!block.results) block.results = {};
         block.results._beamTabSVGs = {};
         Object.keys(svgEls).forEach(k => {
-          try { block.results._beamTabSVGs[k] = svgEls[k].outerHTML; } catch (_) {}
+          try {
+            const el = svgEls[k];
+            // diagrams.js draws into a fixed user-unit space (it falls back to
+            // 600x200 when the element is laid out at zero size, which is the
+            // case for the inactive tabs). Without a viewBox those coordinates
+            // don't scale, so the panel prints blank — stamp one on before
+            // capturing, and let it fill the panel width.
+            if (!el.getAttribute('viewBox')) {
+              const w = el.clientWidth  || 600;
+              const h = el.clientHeight || 200;
+              el.setAttribute('viewBox', `0 0 ${w} ${h}`);
+              el.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            }
+            el.setAttribute('width', '100%');
+            el.removeAttribute('height');
+            // Capture a clone so we can strip the canvas's tab styling — the
+            // inactive tabs carry display:none, which would otherwise be baked
+            // into the report and print the panel blank.
+            const clone = el.cloneNode(true);
+            clone.style.removeProperty('display');
+            clone.style.removeProperty('height');
+            block.results._beamTabSVGs[k] = clone.outerHTML;
+          } catch (_) {}
         });
 
       } catch (err) {
@@ -1150,12 +1189,15 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     // Build xs/M/V/deflection arrays from solver output if present,
     // otherwise synthesise a parabolic UDL distribution for display.
     const n = 51;
-    const xs = Array.from({ length: n }, (_, i) => (i / (n - 1)) * span);
+    let xs = Array.from({ length: n }, (_, i) => (i / (n - 1)) * span);
 
     let M, V, deflection;
 
     if (r.xs && r.M && r.xs.length > 0) {
-      // Solver returned diagram data — use directly
+      // Solver returned diagram data — use it, including its own station list.
+      // These arrays must stay index-aligned: the diagram code locates the peak
+      // by index in M/V and then reads xs at that index.
+      xs         = r.xs;
       M          = r.M;
       V          = r.V || r.shears || xs.map(() => 0);
       deflection = r.deflection || xs.map(() => 0);
@@ -1271,11 +1313,19 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     const span = cfg.span || 5;
     const wEd  = cfg.wEd || +(1.35 * (cfg.Gk || 5) + 1.5 * (cfg.Qk || 3)).toFixed(2);
     const MEd  = r && r.MEd  != null ? (+r.MEd).toFixed(1)  : '—';
-    const RA   = r && r.RA   != null ? (+r.RA).toFixed(1)
-               : r && r.reactions && r.reactions[0] != null ? (+r.reactions[0]).toFixed(1)
+    // The solver returns reactions as support objects ({ type, position, Fy … }),
+    // but older callers passed plain numbers — accept either.
+    const reactionAt = (i) => {
+      const v = r && r.reactions && r.reactions[i];
+      if (v == null) return null;
+      const n = typeof v === 'object' ? +v.Fy : +v;
+      return isFinite(n) ? n : null;
+    };
+    const RA   = r && isFinite(+r.RA) ? (+r.RA).toFixed(1)
+               : reactionAt(0) != null ? reactionAt(0).toFixed(1)
                : (wEd * span / 2).toFixed(1);
-    const RB   = r && r.RB   != null ? (+r.RB).toFixed(1)
-               : r && r.reactions && r.reactions[1] != null ? (+r.reactions[1]).toFixed(1)
+    const RB   = r && isFinite(+r.RB) ? (+r.RB).toFixed(1)
+               : reactionAt(1) != null ? reactionAt(1).toFixed(1)
                : (wEd * span / 2).toFixed(1);
 
     const numArrows = 9;

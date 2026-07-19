@@ -41,7 +41,10 @@ const PreviewRenderer = (() => {
     const clientName    = esc(projCfg.clientName || '—');
     const location      = esc(projCfg.location || '—');
     const engineerName  = esc(projCfg.engineerName || '—');
-    const companyName   = esc(projCfg.companyName || 'BuildMetrics');
+    // This is the letterhead on a document the engineer submits to a client —
+    // never fall back to our own brand here. A visible placeholder prompts them
+    // to fill it in; silently printing "BuildMetrics" would ship out the door.
+    const companyName   = esc(projCfg.companyName || '[ Company Name ]');
     const designCode    = esc(projCfg.designCode || 'Eurocode (EC2/EC3/EC5)');
     const status        = esc((reportMeta.status || 'DRAFT').toUpperCase());
 
@@ -333,7 +336,11 @@ const PreviewRenderer = (() => {
     const code = (typeof BlockRegistry !== 'undefined' && BlockRegistry.CALC_CODES)
       ? BlockRegistry.CALC_CODES[block.type] || ''
       : '';
-    const label = esc(block.label || block.type);
+    // Fall back to the registry's human label before ever printing the raw
+    // block type ("calc_column") into a client-facing document.
+    const def = (window.BlockRegistry && window.BlockRegistry.getDefinition)
+      ? window.BlockRegistry.getDefinition(block.type) : null;
+    const label = esc(block.label || (def && def.label) || block.type);
 
     // Build inputs table rows
     const inputRows = _buildInputRows(block.type, cfg);
@@ -376,7 +383,7 @@ const PreviewRenderer = (() => {
     <tbody>${calcRows || noCalcMsg}</tbody>
   </table>
 
-  <div class="rp-subsection-title">Design Checks</div>
+  ${checkRows ? `<div class="rp-subsection-title">Design Checks</div>
   <table class="rp-checks-table">
     <thead><tr>
       <th>Check</th>
@@ -385,8 +392,8 @@ const PreviewRenderer = (() => {
       <th>η = E<sub>d</sub>/R<sub>d</sub></th>
       <th>Status</th>
     </tr></thead>
-    <tbody>${checkRows || noCalcMsg}</tbody>
-  </table>
+    <tbody>${checkRows}</tbody>
+  </table>` : ''}
 
   ${diagramHTML ? `
   <div class="rp-subsection-title">Engineering Diagram</div>
@@ -566,21 +573,25 @@ const PreviewRenderer = (() => {
 
   function _buildCalcRows(type, cfg, res) {
     if (!res || !res._ran) return '';
+    // Solvers group some outputs in sub-objects; alias them so the rows below
+    // can read either a top-level key or its nested equivalent.
+    const cap = res.capacities || {};
+    const tot = res.totals || {};
     switch (type) {
       case 'calc_beam':
         return [
           _calcRow('EN1990 (6.10)', 'ULS design load', 'w = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', (1.35*(cfg.Gk||0) + 1.5*(cfg.Qk||0)), 'kN/m'),
           _calcRow('EN1990', 'Design bending moment', 'M<sub>Ed</sub> = w·L²/8', res.MEd, 'kNm'),
-          _calcRow('EC3 §6.2.5', 'Moment resistance', 'M<sub>Rd</sub> = f<sub>y</sub>·S<sub>xx</sub>/γ<sub>M0</sub>', res.MRd, 'kNm'),
+          _calcRow('EC3 §6.2.5', 'Moment resistance', 'M<sub>Rd</sub> = f<sub>y</sub>·S<sub>xx</sub>/γ<sub>M0</sub>', res.MRd ?? cap.Mc_Rd, 'kNm'),
           _calcRow('EN1990', 'Design shear force', 'V<sub>Ed</sub> = w·L/2', res.VEd, 'kN'),
-          _calcRow('EC3 §6.2.6', 'Shear resistance', 'V<sub>Rd</sub> = A<sub>v</sub>·f<sub>y</sub>/(√3·γ<sub>M0</sub>)', res.VRd, 'kN'),
+          _calcRow('EC3 §6.2.6', 'Shear resistance', 'V<sub>Rd</sub> = A<sub>v</sub>·f<sub>y</sub>/(√3·γ<sub>M0</sub>)', res.VRd ?? cap.Vc_Rd, 'kN'),
         ].join('');
       case 'calc_column':
         return [
           _calcRow('EC3 §6.3.1.3', 'Slenderness ratio', 'λ = L<sub>cr</sub>/i', res.lambdaZ || res.lambda_z, ''),
           _calcRow('EC3 §6.3.1.2', 'Non-dimensional slenderness', 'λ̄ = λ/λ<sub>1</sub>', res.lambdaBarZ || res.lambdaBar_z, ''),
           _calcRow('EC3 §6.3.1.2', 'Buckling reduction factor', 'χ (from buckling curve)', res.chiZ || res.chi_z, ''),
-          _calcRow('EC3 §6.3.1.1', 'Buckling resistance', 'N<sub>b,Rd</sub> = χ·A·f<sub>y</sub>/γ<sub>M1</sub>', res.NbRd, 'kN'),
+          _calcRow('EC3 §6.3.1.1', 'Buckling resistance', 'N<sub>b,Rd</sub> = χ·A·f<sub>y</sub>/γ<sub>M1</sub>', res.NbRd ?? res.Nb_Rd, 'kN'),
         ].join('');
       case 'calc_rc_beam':
         return [
@@ -593,80 +604,88 @@ const PreviewRenderer = (() => {
         return [
           _calcRow('EN1990', 'Service load', 'N<sub>SLS</sub> = G<sub>k</sub> + Q<sub>k</sub>', (cfg.Gk||0)+(cfg.Qk||0), 'kN'),
           _calcRow('EC7 §6.5', 'Required footing size', 'B = √(N/q<sub>a</sub>)', res.B, 'm'),
-          _calcRow('EC7 §6.5.2', 'Net bearing pressure', 'q<sub>net</sub> = N/A<sub>ftg</sub>', res.q_net, 'kPa'),
-          _calcRow('EN1990 (6.10)', 'ULS load', 'N<sub>ULS</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.N_ULS, 'kN'),
+          _calcRow('EC7 §6.5.2', 'Net bearing pressure', 'q<sub>net</sub> = N/A<sub>ftg</sub>', res.q_net ?? res.netBearingPressure, 'kPa'),
+          _calcRow('EN1990 (6.10)', 'ULS load', 'N<sub>ULS</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.N_ULS ?? res.NEd, 'kN'),
         ].join('');
       case 'calc_wind':
         return [
           _calcRow('EN1991-1-4 §4.2', 'Basic wind velocity', 'v<sub>b</sub> = c<sub>dir</sub>·c<sub>season</sub>·v<sub>b0</sub>', res.vb, 'm/s'),
           _calcRow('EN1991-1-4 §4.3', 'Mean wind velocity', 'v<sub>m</sub> = c<sub>r</sub>·c<sub>o</sub>·v<sub>b</sub>', res.vm, 'm/s'),
-          _calcRow('EN1991-1-4 §4.5', 'Peak velocity pressure', 'q<sub>p</sub> = [1+7·I<sub>v</sub>]·½·ρ·v<sub>m</sub>²', res.qp, 'kN/m²'),
-          _calcRow('EN1991-1-4 §5.3', 'Wind force per unit height', 'F<sub>w</sub> = c<sub>s</sub>c<sub>d</sub>·c<sub>f</sub>·q<sub>p</sub>·A<sub>ref</sub>', res.Fw_total, 'kN'),
+          _calcRow('EN1991-1-4 §4.5', 'Peak velocity pressure', 'q<sub>p</sub> = [1+7·I<sub>v</sub>]·½·ρ·v<sub>m</sub>²', res.qp ?? res.qp_kPa, 'kN/m²'),
+          _calcRow('EN1991-1-4 §5.3', 'Overall wind force', 'F<sub>w</sub> = c<sub>s</sub>c<sub>d</sub>·c<sub>f</sub>·q<sub>p</sub>·A<sub>ref</sub>', res.Fw_total ?? res.Fw_kN, 'kN'),
         ].join('');
       case 'calc_rc_column':
         return [
-          _calcRow('EC2 §5.8.3.2', 'Effective length', 'l₀ = β·l', res.lo_eff || (cfg.lo||0), 'm'),
+          _calcRow('EC2 §5.8.3.2', 'Effective length', 'l₀ = β·l', res.lo_eff ?? res.Leff_m ?? (cfg.lo||0), 'm'),
           _calcRow('EC2 §5.8.3', 'Slenderness ratio', 'λ = l₀/i', res.lambda, ''),
-          _calcRow('EC2 §6.1(4)', 'Min. eccentricity', 'e₀ = max(h/30, 20mm)', res.e0, 'mm'),
+          _calcRow('EC2 §5.8.3.1', 'Limiting slenderness', 'λ<sub>lim</sub>', res.lambda_lim, ''),
           _calcRow('EC2 §5.8.8', 'Total moment (incl. 2nd order)', 'M<sub>Ed,tot</sub>', res.MEd_tot || res.MEd, 'kNm'),
-          _calcRow('EC2 §6.1', 'Required rebar area', 'A<sub>s,req</sub>', res.As_req, 'mm²'),
+          _calcRow('EC2 §6.1', 'Provided rebar area', 'A<sub>s</sub>', res.As_req ?? res.As_tot, 'mm²'),
         ].filter(r => r).join('');
       case 'calc_slab':
         return [
-          _calcRow('EN1990 (6.10)', 'ULS applied load', 'n = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.n_uls || (1.35*(cfg.gk||0)+1.5*(cfg.qk||0)), 'kN/m²'),
+          _calcRow('EN1990 (6.10)', 'ULS applied load', 'n = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.n_uls ?? res.wEd ?? (1.35*(cfg.gk||0)+1.5*(cfg.qk||0)), 'kN/m²'),
           _calcRow('EC2 §5.4', 'Design moment', 'M<sub>Ed</sub> = n·l²/8', res.MEd, 'kNm/m'),
-          _calcRow('EC2 §4.4.1', 'Effective depth', 'd = h – c<sub>nom</sub> – φ/2', res.d_eff || ((cfg.thickness||200)-35), 'mm'),
+          _calcRow('EC2 §4.4.1', 'Effective depth', 'd = h – c<sub>nom</sub> – φ/2', res.d_eff ?? res.d ?? ((cfg.thickness||200)-35), 'mm'),
           _calcRow('EC2 §9.3', 'Required reinforcement', 'A<sub>s,req</sub> per metre', res.As_req, 'mm²/m'),
-          _calcRow('EC2 §7.4.2', 'Deflection check (span/d)', 'l/d = ' + (res.span_d_ratio ? res.span_d_ratio.toFixed(1) : '—'), res.span_d_ratio, ''),
+          _calcRow('EC2 §7.4.2', 'Actual span/depth ratio', 'l/d', res.span_d_ratio ?? res.actualRatio, ''),
+          _calcRow('EC2 §7.4.2', 'Permissible span/depth ratio', '(l/d)<sub>perm</sub>', res.allowedRatio, ''),
         ].filter(r => r).join('');
       case 'calc_retaining':
         return [
           _calcRow('Rankine', 'Active earth pressure coefficient', 'K<sub>a</sub> = tan²(45°–φ/2)', res.Ka, ''),
-          _calcRow('EC7 §9.3', 'Active force', 'P<sub>a</sub> = ½·K<sub>a</sub>·γ·H²', res.Pa, 'kN/m'),
-          _calcRow('EC7 §6.5.4', 'Overturning moment', 'M<sub>ov</sub>', res.Mov, 'kNm/m'),
-          _calcRow('EC7 §6.5.4', 'Stabilising moment', 'M<sub>stab</sub>', res.Mstab, 'kNm/m'),
-          _calcRow('EC7 §6.5.3', 'Sliding resistance', 'H<sub>Rd</sub> = N<sub>Ed</sub>·tan δ', res.Hrd, 'kN/m'),
+          _calcRow('EC7 §9.3', 'Active force', 'P<sub>a</sub> = ½·K<sub>a</sub>·γ·H²', res.Pa ?? res.Pa_total, 'kN/m'),
+          _calcRow('EC7 §6.5.4', 'Overturning moment', 'M<sub>ov</sub>', res.Mov ?? res.Mo, 'kNm/m'),
+          _calcRow('EC7 §6.5.4', 'Stabilising moment', 'M<sub>stab</sub>', res.Mstab ?? res.Ms, 'kNm/m'),
+          _calcRow('EC7 §6.5.3', 'Sliding resistance', 'H<sub>Rd</sub> = N<sub>Ed</sub>·tan δ', res.Hrd ?? res.Fr, 'kN/m'),
         ].filter(r => r).join('');
       case 'calc_connection':
         return [
-          _calcRow('EC3 §3.6.1', 'Bolt shear resistance', 'F<sub>v,Rd</sub>/bolt', res.Fv_Rd, 'kN'),
-          _calcRow('EC3 §3.6.1', 'Bolt bearing resistance', 'F<sub>b,Rd</sub>/bolt', res.Fb_Rd, 'kN'),
-          _calcRow('EC3 §3.7', 'Total connection resistance', 'V<sub>Rd</sub> = n·min(F<sub>v</sub>,F<sub>b</sub>)', res.VRd, 'kN'),
-          _calcRow('EN1990', 'Applied force', 'V<sub>Ed</sub>', res.VEd || cfg.VEd, 'kN'),
+          // The solver runs an elastic bolt-group analysis, so report the group
+          // properties and the worst-loaded bolt rather than a simple n·Fv,Rd.
+          _calcRow('EC3 §3.6.1', 'Number of bolts in group', 'n', res.n, ''),
+          _calcRow('EC3 §3.12', 'Polar moment of bolt group', 'I<sub>p</sub> = Σ(x²+y²)', res.Ip, 'mm²'),
+          _calcRow('EC3 §3.12', 'Force on worst-loaded bolt', 'F<sub>Ed,max</sub>', res.maxBoltForce, 'kN'),
+          _calcRow('EC3 §3.6.1', 'Bolt shear resistance', 'F<sub>v,Rd</sub> = α<sub>v</sub>·f<sub>ub</sub>·A<sub>s</sub>/γ<sub>M2</sub>', res.Fv_Rd ?? res.boltCapacity, 'kN'),
         ].filter(r => r).join('');
       case 'calc_timber_col':
         return [
-          _calcRow('EC5 §2.4.1', 'Design compressive strength', 'f<sub>c,0,d</sub> = k<sub>mod</sub>·f<sub>c,0,k</sub>/γ<sub>M</sub>', res.fc0d, 'MPa'),
-          _calcRow('EC5 §6.3.2', 'Relative slenderness', 'λ<sub>rel,c</sub>', res.lambdaRel, ''),
-          _calcRow('EC5 §6.3.2', 'Instability factor', 'k<sub>c</sub>', res.kc, ''),
+          _calcRow('EC5 §2.4.1', 'Design compressive strength', 'f<sub>c,0,d</sub> = k<sub>mod</sub>·f<sub>c,0,k</sub>/γ<sub>M</sub>', res.fc0d ?? res.fc_0_d, 'MPa'),
+          _calcRow('EC5 §6.3.2', 'Relative slenderness', 'λ<sub>rel,c</sub>', res.lambdaRel ?? res.lambda_rel_y, ''),
+          _calcRow('EC5 §6.3.2', 'Instability factor', 'k<sub>c</sub>', res.kc ?? res.kc_gov, ''),
           _calcRow('EC5 §6.3.2', 'Design resistance', 'N<sub>Rd</sub> = k<sub>c</sub>·A·f<sub>c,0,d</sub>', res.NRd, 'kN'),
         ].filter(r => r).join('');
       case 'calc_steel_member':
         return [
-          _calcRow('EC3 §6.2.5', 'Plastic moment resistance', 'M<sub>c,Rd</sub> = W<sub>pl</sub>·f<sub>y</sub>/γ<sub>M0</sub>', res.McRd, 'kNm'),
-          _calcRow('EC3 §6.2.6', 'Shear resistance', 'V<sub>c,Rd</sub> = A<sub>v</sub>·f<sub>y</sub>/(√3·γ<sub>M0</sub>)', res.VcRd, 'kN'),
-          _calcRow('EC3 §6.3.1', 'Compression resistance', 'N<sub>b,Rd</sub>', res.NbRd, 'kN'),
-          _calcRow('EC3 §6.3.3', 'Interaction check (y-y axis)', 'N<sub>Ed</sub>/(χ<sub>y</sub>·N<sub>Rk</sub>) + k<sub>yy</sub>·M<sub>y,Ed</sub>/(M<sub>y,Rk</sub>)', res.interactionY, ''),
+          _calcRow('EC3 §5.5', 'Section classification', 'Class', res.sectionClass, ''),
+          _calcRow('EC3 §6.2.5', 'Plastic moment resistance', 'M<sub>c,Rd</sub> = W<sub>pl</sub>·f<sub>y</sub>/γ<sub>M0</sub>', res.McRd ?? res.Mc_Rd, 'kNm'),
+          _calcRow('EC3 §6.2.6', 'Shear resistance', 'V<sub>c,Rd</sub> = A<sub>v</sub>·f<sub>y</sub>/(√3·γ<sub>M0</sub>)', res.VcRd ?? res.Vc_Rd, 'kN'),
+          _calcRow('EC3 §6.3.1', 'Compression resistance (minor axis)', 'N<sub>b,Rd,z</sub>', res.NbRd ?? res.Nb_Rd_z, 'kN'),
+          _calcRow('EC3 §6.3.3', 'Combined interaction', 'η = N<sub>Ed</sub>/N<sub>b,Rd</sub> + M<sub>y,Ed</sub>/M<sub>c,Rd</sub>', res.interactionY ?? res.eta_combined, ''),
         ].filter(r => r).join('');
       case 'calc_bbs':
         return [
-          _calcRow('BS 8666', 'Total bar count', '', res.bar_count || cfg.bar_count, 'bars'),
-          _calcRow('BS 8666', 'Total steel weight', '', res.total_weight || cfg.total_weight, 'kg'),
-          _calcRow('BS 8666', 'Primary bar diameter', '', res.primary_dia || cfg.primary_dia, 'mm'),
+          _calcRow('BS 8666', 'Total bar count', '', res.bar_count ?? tot.total_bars ?? cfg.bar_count, 'bars'),
+          _calcRow('BS 8666', 'Total steel weight', '', res.total_weight ?? tot.total_weight_kg ?? cfg.total_weight, 'kg'),
+          _calcRow('BS 8666', 'Primary bar diameter', '', res.primary_dia ?? (res.bars && res.bars[0] && res.bars[0].dia) ?? cfg.primary_dia, 'mm'),
         ].filter(r => r).join('');
       case 'calc_section':
         return [
-          _calcRow('Geometry', 'Cross-sectional area', 'A', res.A, 'mm²'),
-          _calcRow('Geometry', 'Second moment of area (xx)', 'I<sub>xx</sub>', res.Ixx, 'mm⁴'),
-          _calcRow('Geometry', 'Elastic modulus (xx)', 'W<sub>el,xx</sub> = I<sub>xx</sub>/y<sub>max</sub>', res.Wel_xx, 'mm³'),
-          _calcRow('Geometry', 'Radius of gyration', 'i<sub>xx</sub> = √(I<sub>xx</sub>/A)', res.i_xx, 'mm'),
+          // The solver returns pre-scaled properties (Ixx in 10⁶mm⁴, Z in 10³mm³);
+          // label the units to match rather than silently mis-stating magnitude.
+          _calcRow('Geometry', 'Cross-sectional area', 'A', res.A ?? res.A_mm2, 'mm²'),
+          _calcRow('Geometry', 'Second moment of area (xx)', 'I<sub>xx</sub>', res.Ixx ?? res.Ixx_e6, '×10⁶ mm⁴'),
+          _calcRow('Geometry', 'Second moment of area (yy)', 'I<sub>yy</sub>', res.Iyy ?? res.Iyy_e6, '×10⁶ mm⁴'),
+          _calcRow('Geometry', 'Elastic modulus (xx)', 'W<sub>el,xx</sub> = I<sub>xx</sub>/y<sub>max</sub>', res.Wel_xx ?? res.Zxx_e3, '×10³ mm³'),
+          _calcRow('Geometry', 'Plastic modulus (xx)', 'W<sub>pl,xx</sub>', res.Wpl_xx_e3, '×10³ mm³'),
+          _calcRow('Geometry', 'Radius of gyration (xx)', 'i<sub>xx</sub> = √(I<sub>xx</sub>/A)', res.i_xx ?? res.rxx_mm, 'mm'),
         ].filter(r => r).join('');
       case 'calc_load_takedown':
         return [
-          _calcRow('EN1991-1-1', 'Total unfactored (G<sub>k</sub>)', 'Σ dead load', res.total_Gk, 'kN'),
-          _calcRow('EN1991-1-1', 'Total unfactored (Q<sub>k</sub>)', 'Σ imposed load', res.total_Qk, 'kN'),
-          _calcRow('EN1990 (6.10)', 'ULS design load', 'N<sub>Ed</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.NEd, 'kN'),
-          _calcRow('EN1990 (6.14)', 'SLS service load', 'N<sub>SLS</sub> = G<sub>k</sub> + Q<sub>k</sub>', res.N_SLS, 'kN'),
+          _calcRow('EN1991-1-1', 'Total unfactored (G<sub>k</sub>)', 'Σ dead load', res.total_Gk ?? res.totalGk, 'kN'),
+          _calcRow('EN1991-1-1', 'Total unfactored (Q<sub>k</sub>)', 'Σ imposed load', res.total_Qk ?? res.totalQk, 'kN'),
+          _calcRow('EN1990 (6.10)', 'ULS design load', 'N<sub>Ed</sub> = 1.35·G<sub>k</sub> + 1.5·Q<sub>k</sub>', res.NEd ?? res.totalULS, 'kN'),
+          _calcRow('EN1990 (6.14)', 'SLS service load', 'N<sub>SLS</sub> = G<sub>k</sub> + Q<sub>k</sub>', res.N_SLS ?? res.totalSLS, 'kN'),
         ].filter(r => r).join('');
       case 'calc_hoarding':
         return [
@@ -705,6 +724,20 @@ const PreviewRenderer = (() => {
 
   function _buildCheckRows(type, res) {
     if (!res || !res._ran) return '';
+
+    // A solver-supplied checks[] is authoritative: it already carries Ed, Rd,
+    // the utilisation, the clause reference and the formula. Use it in
+    // preference to the per-type rows below, which exist for solvers that
+    // don't publish one.
+    if (Array.isArray(res.checks) && res.checks.length) {
+      return res.checks.map(c => _checkRow(
+        c.name || c.checkName || c.label || 'Check',
+        c.Ed != null ? c.Ed : '—', c.EdUnit || c.unit || '',
+        c.Rd != null ? c.Rd : '—', c.RdUnit || c.unit || '',
+        c.util, c.pass
+      )).join('');
+    }
+
     const rows = [];
 
     switch (type) {
@@ -716,22 +749,30 @@ const PreviewRenderer = (() => {
         if (res.delta_actual !== undefined && res.delta_limit !== undefined)
           rows.push(_checkRow('Deflection (δ/δ<sub>lim</sub>)', res.delta_actual, 'mm', res.delta_limit, 'mm', res.deflectionUtil || res.delta_actual/res.delta_limit, res.deflectionPass !== false));
         break;
-      case 'calc_column':
-        if (res.NbRd !== undefined)
-          rows.push(_checkRow('Axial buckling (N<sub>Ed</sub>/N<sub>b,Rd</sub>)', res.NEd_check || res.NEd, 'kN', res.NbRd, 'kN', res.utilisation, res.bucklingPass !== false && res.utilisation <= 1.0));
+      case 'calc_column': {
+        const NbRd = res.NbRd ?? res.Nb_Rd;
+        if (NbRd !== undefined)
+          rows.push(_checkRow('Axial buckling (N<sub>Ed</sub>/N<sub>b,Rd</sub>)', res.NEd_check || res.NEd, 'kN', NbRd, 'kN', res.utilisation, res.bucklingPass !== false && res.utilisation <= 1.0));
+        if (res.Npl_Rd !== undefined)
+          rows.push(_checkRow('Cross-section squash (N<sub>Ed</sub>/N<sub>pl,Rd</sub>)', res.NEd, 'kN', res.Npl_Rd, 'kN', res.utilisationSquash, (res.utilisationSquash ?? 0) <= 1.0));
         break;
+      }
       case 'calc_rc_beam':
         if (res.As_req !== undefined && res.As_prov !== undefined)
           rows.push(_checkRow('Flexure (A<sub>s,req</sub>/A<sub>s,prov</sub>)', res.As_req, 'mm²', res.As_prov, 'mm²', res.flexureUtil || res.As_req/res.As_prov, res.flexurePass !== false));
         if (res.VRdc !== undefined)
           rows.push(_checkRow('Shear capacity', res.VEd_check || 0, 'kN', res.VRdc, 'kN', res.shearUtil, res.shearPass !== false));
         break;
-      case 'calc_footing':
-        if (res.q_net !== undefined && res.soilBearing !== undefined)
-          rows.push(_checkRow('Bearing pressure', res.q_net, 'kPa', res.soilBearing, 'kPa', res.bearingUtil || res.q_net/res.soilBearing, res.bearingPass !== false));
-        if (res.Vc !== undefined)
-          rows.push(_checkRow('Punching shear', res.vEd_punching, 'kPa', res.vRdc, 'kPa', res.punchingUtil, res.punchingPass !== false));
+      case 'calc_footing': {
+        const qNet = res.q_net ?? res.netBearingPressure;
+        if (qNet !== undefined && res.soilBearing !== undefined)
+          rows.push(_checkRow('Bearing pressure', qNet, 'kPa', res.soilBearing, 'kPa', res.bearingUtil || qNet/res.soilBearing, res.bearingPass !== false));
+        if (res.VRd_punch !== undefined)
+          rows.push(_checkRow('Punching shear', Math.abs(res.VEd_punch ?? 0), 'kN', res.VRd_punch, 'kN', Math.abs(res.VEd_punch ?? 0)/res.VRd_punch, res.punchPass !== false));
+        if (res.VRd_shear !== undefined)
+          rows.push(_checkRow('Transverse shear', res.VEd_shear, 'kN', res.VRd_shear, 'kN', (res.VEd_shear ?? 0)/res.VRd_shear, res.shearPass !== false));
         break;
+      }
       case 'calc_rc_column':
         if (res.NRd !== undefined)
           rows.push(_checkRow('Axial capacity', res.NEd || 0, 'kN', res.NRd, 'kN', res.utilisation || (res.NEd||0)/res.NRd, res.pass !== false));
@@ -741,45 +782,57 @@ const PreviewRenderer = (() => {
       case 'calc_slab':
         if (res.As_req !== undefined && res.As_prov !== undefined)
           rows.push(_checkRow('Flexure', res.As_req, 'mm²/m', res.As_prov, 'mm²/m', res.flexureUtil || res.As_req/res.As_prov, res.flexurePass !== false));
-        if (res.span_d_ratio !== undefined)
+        if (res.actualRatio !== undefined && res.allowedRatio !== undefined)
+          rows.push(_checkRow('Deflection (span/d)', res.actualRatio, '', res.allowedRatio, '', res.actualRatio/res.allowedRatio, res.deflPass !== false));
+        else if (res.span_d_ratio !== undefined)
           rows.push(_checkRow('Deflection (span/d)', res.span_d_ratio, '', res.span_d_limit || 30, '', (res.span_d_ratio)/(res.span_d_limit||30), res.deflPass !== false));
+        if (res.VRd_c !== undefined)
+          rows.push(_checkRow('Shear (V<sub>Ed</sub>/V<sub>Rd,c</sub>)', res.VEd, 'kN/m', res.VRd_c, 'kN/m', (res.VEd ?? 0)/res.VRd_c, res.shearPass !== false));
         break;
-      case 'calc_retaining':
-        if (res.FoS_overturning !== undefined)
-          rows.push(_checkRow('Overturning', 1, '', res.FoS_overturning, '', 1/res.FoS_overturning, res.overturningPass !== false));
-        if (res.FoS_sliding !== undefined)
-          rows.push(_checkRow('Sliding', 1, '', res.FoS_sliding, '', 1/res.FoS_sliding, res.slidingPass !== false));
+      case 'calc_retaining': {
+        // FOS checks are inverted: utilisation is required/achieved.
+        const fosOt = res.FoS_overturning ?? res.FOS_overturning;
+        const fosSl = res.FoS_sliding ?? res.FOS_sliding;
+        if (fosOt !== undefined)
+          rows.push(_checkRow('Overturning (FOS ≥ 1.5)', 1.5, '', fosOt, '', 1.5/fosOt, res.overturningPass !== false));
+        if (fosSl !== undefined)
+          rows.push(_checkRow('Sliding (FOS ≥ 1.5)', 1.5, '', fosSl, '', 1.5/fosSl, res.slidingPass !== false));
         if (res.q_max !== undefined)
-          rows.push(_checkRow('Bearing pressure', res.q_max, 'kPa', res.qa || 150, 'kPa', res.bearingUtil, res.bearingPass !== false));
+          rows.push(_checkRow('Bearing pressure', res.q_max, 'kPa', res.qa || res.soilBearing || 150, 'kPa', res.q_max/(res.qa || res.soilBearing || 150), res.bearingPass !== false));
+        if (res.eccentricity !== undefined && res.e_limit !== undefined)
+          rows.push(_checkRow('Eccentricity (middle third)', res.eccentricity, 'm', res.e_limit, 'm', res.eccentricity/res.e_limit, res.tensionPass !== false));
         break;
-      case 'calc_connection':
-        if (res.VRd !== undefined && (res.VEd || 0) > 0)
-          rows.push(_checkRow('Bolt group shear', res.VEd, 'kN', res.VRd, 'kN', res.utilisation || (res.VEd||0)/res.VRd, res.pass !== false));
+      }
+      case 'calc_connection': {
+        const cap = res.VRd ?? res.boltCapacity;
+        const dem = res.VEd ?? res.maxBoltForce;
+        if (cap !== undefined && (dem || 0) > 0)
+          rows.push(_checkRow('Bolt group shear (worst bolt)', dem, 'kN', cap, 'kN', res.utilisation || dem/cap, res.pass !== false));
         break;
+      }
       case 'calc_timber_col':
         if (res.NRd !== undefined)
           rows.push(_checkRow('Compression (with instability)', res.NEd || 0, 'kN', res.NRd, 'kN', res.utilisation || (res.NEd||0)/res.NRd, res.pass !== false));
         break;
-      case 'calc_steel_member':
-        if (res.interactionY !== undefined)
-          rows.push(_checkRow('Combined (N+M, y-y)', res.interactionY, '', 1, '', res.interactionY, (res.interactionY||0) <= 1.0));
-        if (res.interactionZ !== undefined)
-          rows.push(_checkRow('Combined (N+M, z-z)', res.interactionZ, '', 1, '', res.interactionZ, (res.interactionZ||0) <= 1.0));
-        if (res.VEd !== undefined && res.VcRd !== undefined)
-          rows.push(_checkRow('Shear', res.VEd, 'kN', res.VcRd, 'kN', (res.VEd||0)/res.VcRd, res.shearPass !== false));
+      case 'calc_steel_member': {
+        const McRd = res.McRd ?? res.Mc_Rd, VcRd = res.VcRd ?? res.Vc_Rd;
+        if (res.My_Ed !== undefined && McRd !== undefined)
+          rows.push(_checkRow('Bending (M<sub>y,Ed</sub>/M<sub>c,Rd</sub>)', res.My_Ed, 'kNm', McRd, 'kNm', res.eta_M ?? res.My_Ed/McRd, (res.eta_M ?? res.My_Ed/McRd) <= 1.0));
+        if (res.Vz_Ed !== undefined && VcRd !== undefined)
+          rows.push(_checkRow('Shear (V<sub>Ed</sub>/V<sub>c,Rd</sub>)', res.Vz_Ed, 'kN', VcRd, 'kN', res.Vz_Ed/VcRd, res.pass_shear !== false));
+        if (res.Nb_Rd_z !== undefined)
+          rows.push(_checkRow('Flexural buckling (z-z)', res.NEd ?? 0, 'kN', res.Nb_Rd_z, 'kN', (res.NEd ?? 0)/res.Nb_Rd_z, res.pass_buckling !== false));
+        const eta = res.interactionY ?? res.eta_combined;
+        if (eta !== undefined)
+          rows.push(_checkRow('Combined (N+M)', eta, '', 1, '', eta, (eta||0) <= 1.0));
         break;
+      }
+      // BBS, section properties and load take-downs are schedules/derivations,
+      // not capacity checks — they have no pass/fail to report.
       case 'calc_bbs':
-        if (res.total_weight !== undefined)
-          rows.push(_checkRow('BBS Quantity', res.total_weight, 'kg', res.total_weight, 'kg', 1.0, true));
-        break;
       case 'calc_section':
-        if (res.A !== undefined)
-          rows.push(_checkRow('Section properties computed', res.A, 'mm²', res.A, 'mm²', 1.0, true));
-        break;
       case 'calc_load_takedown':
-        if (res.NEd !== undefined)
-          rows.push(_checkRow('Column ULS design load', res.NEd, 'kN', res.NEd, 'kN', 1.0, true));
-        break;
+        return '';
       default:
         // Generic pass/fail from results
         if (res.overallPass !== undefined)
@@ -788,10 +841,54 @@ const PreviewRenderer = (() => {
           rows.push(_checkRow('Bending', res.MEd, 'kNm', res.MRd, 'kNm', res.bendingUtil, res.bendingPass));
     }
 
-    if (rows.length === 0 && res.checks && Array.isArray(res.checks)) {
-      return res.checks.map(c => _checkRow(c.checkName || c.label, c.Ed || 0, c.EdUnit || '', c.Rd || 0, c.RdUnit || '', c.util, c.pass)).join('');
-    }
+    // Last resort: derive rows from the solver's own pass flags so the Design
+    // Checks table is never printed empty.
+    if (rows.length === 0) return _deriveCheckRows(res);
 
+    return rows.join('');
+  }
+
+  // Pass flags appear as `somethingPass` or `pass_something` depending on the
+  // solver. Turn whichever are present into check rows, pairing each with its
+  // utilisation if the solver exposes one under a matching name.
+  const _CHECK_LABELS = {
+    punch: 'Punching shear', defl: 'Deflection', overturning: 'Overturning',
+    sliding: 'Sliding', tension: 'Bearing (no tension)', bearing: 'Bearing',
+    section: 'Cross-section capacity', buckling: 'Buckling',
+    combined: 'Combined (N+M)', shear: 'Shear', bending: 'Bending',
+  };
+
+  function _deriveCheckRows(res) {
+    const rows = [];
+    const seen = new Set();
+
+    Object.keys(res).forEach(key => {
+      let stem = null;
+      const m1 = key.match(/^(.+)Pass$/);          // e.g. punchPass
+      const m2 = key.match(/^pass_(.+)$/);         // e.g. pass_combined
+      if (m1) stem = m1[1];
+      else if (m2) stem = m2[1];
+      if (!stem || typeof res[key] !== 'boolean') return;
+
+      const norm = stem.toLowerCase();
+      if (seen.has(norm)) return;
+      seen.add(norm);
+
+      const util = res[stem + 'Util'] ?? res[stem + 'Utilisation'] ??
+                   res['util_' + stem] ?? res[norm + 'UC'];
+      const label = _CHECK_LABELS[norm] ||
+                    stem.replace(/[_-]/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
+                        .replace(/^./, s => s.toUpperCase());
+      // util_* values in some solvers are percentages, not ratios
+      const ratio = typeof util === 'number' && util > 3 ? util / 100 : util;
+      rows.push(_checkRow(label, '—', '', '—', '', ratio, res[key]));
+    });
+
+    if (rows.length === 0 && res.pass !== undefined) {
+      const u = res.utilisation ?? res.governingUtil ??
+                (res.utilisationPct != null ? res.utilisationPct / 100 : undefined);
+      rows.push(_checkRow('Overall', '—', '', '—', '', u, res.pass));
+    }
     return rows.join('');
   }
 
@@ -940,7 +1037,11 @@ body { font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-siz
 
 /* ── Tables ── */
 .rp-inputs-table, .rp-calc-table, .rp-checks-table { width:100%; border-collapse:collapse; font-size:9pt; table-layout:fixed; }
-.rp-inputs-table td, .rp-calc-table td, .rp-checks-table td, .rp-checks-table th { padding:3pt 8pt; border:.6pt solid var(--bm-border); vertical-align:middle; overflow:hidden; text-overflow:ellipsis; }
+/* Every header and cell gets the same padding — without it the right-aligned
+   Value header butts straight into the Unit header. Values wrap rather than
+   truncate: a clipped number in a calculation sheet is a defect, not a style. */
+.rp-inputs-table td, .rp-calc-table td, .rp-checks-table td,
+.rp-inputs-table th, .rp-calc-table th, .rp-checks-table th { padding:3pt 8pt; border:.6pt solid var(--bm-border); vertical-align:middle; overflow-wrap:anywhere; }
 .rp-calc-table th, .rp-checks-table th { background:var(--bm-blue-light); font-weight:700; text-align:left; font-size:8pt; text-transform:uppercase; letter-spacing:.3pt; color:var(--bm-blue-dark); }
 .rp-inputs-table tr:nth-child(even) td { background:#FBFCFE; }
 .rp-param { width:130pt; font-weight:600; background:var(--bm-blue-light); color:var(--bm-navy); }
