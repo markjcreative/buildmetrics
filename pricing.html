@@ -1,505 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pricing — BuildMetrics</title>
-    <meta name="description"
-        content="Compare BuildMetrics plans. Free for individuals, Pro at $59/month for unlimited projects and calculations." />
-    <link rel="canonical" href="https://beam-calculator-red.vercel.app/pricing.html" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet" />
-    <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/app.css" />
-    <style>
-        /* ── Hero ── */
-        .pricing-hero {
-            text-align: center;
-            padding: 72px 24px 56px;
-        }
-
-        .hero-eyebrow {
-            display: inline-block;
-            background: var(--accent-light);
-            color: var(--accent);
-            border: 1px solid var(--accent-mid);
-            border-radius: 20px;
-            padding: 4px 14px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-        }
-
-        .hero-title {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            letter-spacing: -1.2px;
-            line-height: 1.1;
-            margin-bottom: 16px;
-        }
-
-        .hero-title span {
-            background: linear-gradient(135deg, #4F46E5, #7C3AED);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero-sub {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            max-width: 480px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        /* ── Plan Cards ── */
-        .plans-section {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 24px 80px;
-        }
-
-        .plans-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            align-items: start;
-        }
-
-        .plan-card {
-            background: white;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius);
-            padding: 36px;
-            box-shadow: var(--shadow);
-            position: relative;
-        }
-
-        .plan-card.featured {
-            border-color: var(--accent);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .popular-badge {
-            position: absolute;
-            top: -13px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #4F46E5, #7C3AED);
-            color: white;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            padding: 4px 14px;
-            border-radius: 20px;
-            white-space: nowrap;
-        }
-
-        .plan-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            margin-bottom: 16px;
-        }
-
-        .plan-icon.free {
-            background: #F5F5F5;
-        }
-
-        .plan-icon.pro {
-            background: linear-gradient(135deg, #4F46E5, #7C3AED);
-        }
-
-        .plan-label {
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 0.6px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-
-        .plan-label.pro {
-            color: var(--accent);
-        }
-
-        .plan-price {
-            font-size: 3.2rem;
-            font-weight: 800;
-            letter-spacing: -1.5px;
-            color: var(--text-primary);
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-
-        .plan-price sup {
-            font-size: 1.4rem;
-            font-weight: 700;
-            vertical-align: super;
-            letter-spacing: 0;
-        }
-
-        .plan-price.pro {
-            color: var(--accent);
-        }
-
-        .plan-period {
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            margin-bottom: 28px;
-        }
-
-        .plan-divider {
-            height: 1px;
-            background: var(--border);
-            margin-bottom: 22px;
-        }
-
-        .plan-features {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 28px;
-        }
-
-        .plan-features li {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            line-height: 1.4;
-        }
-
-        .feat-icon {
-            font-size: 0.875rem;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
-        .feat-icon.yes {
-            color: var(--green);
-        }
-
-        .feat-icon.no {
-            color: #D1D5DB;
-        }
-
-        .feat-text-muted {
-            color: var(--text-muted);
-            text-decoration: line-through;
-        }
-
-        .btn-plan-free {
-            width: 100%;
-            padding: 13px;
-            background: white;
-            color: var(--accent);
-            border: 1.5px solid var(--accent-mid);
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.92rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-            display: block;
-            transition: all 0.15s;
-        }
-
-        .btn-plan-free:hover {
-            background: var(--accent-light);
-            border-color: var(--accent);
-        }
-
-        .btn-plan-pro {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #4F46E5, #7C3AED);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-            display: block;
-            transition: all 0.2s;
-            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.30);
-            letter-spacing: -0.1px;
-        }
-
-        .btn-plan-pro:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.40);
-        }
-
-        /* ── Pro Already Active State ── */
-        .plan-active-msg {
-            width: 100%;
-            padding: 12px;
-            background: var(--green-tint);
-            color: var(--green);
-            border: 1.5px solid #BBF7D0;
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 700;
-            text-align: center;
-            display: none;
-        }
-
-        /* ── FAQ ── */
-        .faq-section {
-            max-width: 680px;
-            margin: 0 auto;
-            padding: 0 24px 80px;
-        }
-
-        .faq-title {
-            font-size: 1.6rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            text-align: center;
-            margin-bottom: 36px;
-        }
-
-        .faq-list {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .faq-item {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .faq-q {
-            width: 100%;
-            background: none;
-            border: none;
-            text-align: left;
-            padding: 18px 22px;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            transition: background 0.15s;
-        }
-
-        .faq-q:hover {
-            background: #FAFAFA;
-        }
-
-        .faq-arrow {
-            font-size: 0.75rem;
-            transition: transform 0.2s;
-            color: var(--text-muted);
-            flex-shrink: 0;
-        }
-
-        .faq-item.open .faq-arrow {
-            transform: rotate(180deg);
-        }
-
-        .faq-a {
-            display: none;
-            padding: 0 22px 18px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 1.65;
-            border-top: 1px solid var(--border);
-            padding-top: 14px;
-        }
-
-        .faq-item.open .faq-a {
-            display: block;
-        }
-
-        @media (max-width: 640px) {
-            .hero-title {
-                font-size: 2rem;
-            }
-
-            .plans-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pricing — BuildMetrics is free for every engineer</title>
+  <meta name="description" content="BuildMetrics is completely free. All 15+ Eurocode calculators, the full report builder and unlimited exports — no subscription, no per-report fees." />
+  <link rel="canonical" href="https://buildmetrics.uk/pricing.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 100%);min-height:100vh;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;text-align:center}
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:34px}
+    .brand .logo{width:34px;height:34px;background:#2563EB;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px}
+    .brand .name{font-size:18px;font-weight:800;letter-spacing:-.3px}
+    .badge{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#93C5FD;background:rgba(37,99,235,.18);border:1px solid rgba(37,99,235,.4);padding:5px 14px;border-radius:99px;margin-bottom:20px}
+    h1{font-size:2.6rem;font-weight:800;letter-spacing:-1.2px;line-height:1.12;margin-bottom:14px}
+    h1 .accent{color:#60A5FA}
+    p.sub{font-size:1rem;color:rgba(255,255,255,.62);max-width:520px;line-height:1.6;margin:0 auto 34px}
+    .panel{background:rgba(255,255,255,.035);border:1.5px solid rgba(37,99,235,.35);border-radius:20px;padding:38px 36px 30px;max-width:620px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+    .price{font-size:4rem;font-weight:800;line-height:1;letter-spacing:-2px}
+    .price-sub{font-size:.9rem;color:rgba(255,255,255,.5);margin-top:8px}
+    .divider{height:1px;background:rgba(255,255,255,.1);margin:26px 0}
+    .features{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;text-align:left}
+    .f{display:flex;align-items:flex-start;gap:9px;font-size:.87rem;color:rgba(255,255,255,.78);line-height:1.45}
+    .f svg{color:#34D399;flex-shrink:0;margin-top:2px}
+    .cta{display:inline-block;margin-top:30px;background:#2563EB;color:#fff;font-size:.95rem;font-weight:700;padding:13px 34px;border-radius:10px;text-decoration:none;transition:filter .14s}
+    .cta:hover{filter:brightness(1.1)}
+    .note{font-size:.78rem;color:rgba(255,255,255,.4);margin-top:18px}
+    .back{margin-top:28px;font-size:.85rem}
+    .back a{color:rgba(255,255,255,.55);text-decoration:none}
+    .back a:hover{color:#fff}
+    @media(max-width:640px){h1{font-size:2rem}.features{grid-template-columns:1fr}.panel{padding:28px 22px 24px}.price{font-size:3.2rem}}
+  </style>
 </head>
-
 <body>
-    <div id="app-wrap">
-        <header id="app-header"></header>
-        <!-- topNav.js injects #mobile-drawer -->
-        <main id="app-main">
-            <div class="app-container">
+  <div class="brand"><div class="logo">⬛</div><div class="name">BuildMetrics</div></div>
 
-                <!-- Hero -->
-                <div class="pricing-hero">
-                    <div class="hero-eyebrow">Simple, transparent pricing</div>
-                    <h1 class="hero-title">Start free.<br /><span>Scale when you're ready.</span></h1>
-                    <p class="hero-sub">Get started with no credit card required. Upgrade to Pro when you need more power.</p>
-                </div>
+  <div class="badge">✦ Free &amp; open access</div>
+  <h1>Free for every engineer.<br><span class="accent">No plans, no limits.</span></h1>
+  <p class="sub">We don't do subscriptions or per-report fees. Every calculator, the full report builder and unlimited exports — free, for everyone.</p>
 
-                <!-- Plans -->
-                <div class="plans-section">
-                    <div class="plans-grid">
-
-                        <!-- Free Plan -->
-                        <div class="plan-card">
-                            <div class="plan-icon free">🔧</div>
-                            <div class="plan-label">Free</div>
-                            <div class="plan-price">$0</div>
-                            <div class="plan-period">forever, no credit card required</div>
-                            <div class="plan-divider"></div>
-                            <ul class="plan-features">
-                                <li><span class="feat-icon yes">✓</span> 1 project</li>
-                                <li><span class="feat-icon yes">✓</span> 5 saved calculations</li>
-                                <li><span class="feat-icon yes">✓</span> Full beam analysis engine</li>
-                                <li><span class="feat-icon yes">✓</span> Shear force &amp; bending moment diagrams</li>
-                                <li><span class="feat-icon yes">✓</span> PDF &amp; CSV export</li>
-                                <li><span class="feat-icon yes">✓</span> Multiple load types &amp; supports</li>
-                                <li><span class="feat-icon no">✕</span> <span class="feat-text-muted">Unlimited projects</span></li>
-                                <li><span class="feat-icon no">✕</span> <span class="feat-text-muted">Unlimited calculations</span></li>
-                                <li><span class="feat-icon no">✕</span> <span class="feat-text-muted">Priority support</span></li>
-                            </ul>
-                            <a href="/projects.html" class="btn-plan-free" id="btn-free">Continue with Free →</a>
-                        </div>
-
-                        <!-- Pro Plan -->
-                        <div class="plan-card featured">
-                            <div class="popular-badge">⚡ Most Popular</div>
-                            <div class="plan-icon pro">⚡</div>
-                            <div class="plan-label pro">Pro</div>
-                            <div class="plan-price pro"><sup>$</sup>59</div>
-                            <div class="plan-period">per month · cancel anytime</div>
-                            <div class="plan-divider"></div>
-                            <ul class="plan-features">
-                                <li><span class="feat-icon yes">✓</span> <strong>Unlimited projects</strong></li>
-                                <li><span class="feat-icon yes">✓</span> <strong>Unlimited calculations</strong></li>
-                                <li><span class="feat-icon yes">✓</span> Full beam analysis engine</li>
-                                <li><span class="feat-icon yes">✓</span> Shear force &amp; bending moment diagrams</li>
-                                <li><span class="feat-icon yes">✓</span> PDF &amp; CSV export</li>
-                                <li><span class="feat-icon yes">✓</span> Multiple load types &amp; supports</li>
-                                <li><span class="feat-icon yes">✓</span> Priority email support</li>
-                                <li><span class="feat-icon yes">✓</span> Early access to new features</li>
-                                <li><span class="feat-icon yes">✓</span> Cancel anytime, no lock-in</li>
-                            </ul>
-                            <button class="btn-plan-pro" id="btn-subscribe" onclick="handleUpgrade()">
-                                ⚡ Get Started with Pro
-                            </button>
-                            <div class="plan-active-msg" id="plan-active-msg">✓ You're already on Pro!</div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- FAQ -->
-                <div class="faq-section">
-                    <h2 class="faq-title">Frequently asked questions</h2>
-                    <div class="faq-list">
-                        <div class="faq-item open">
-                            <button class="faq-q" onclick="toggleFaq(this)">
-                                Can I cancel my Pro subscription at any time?
-                                <span class="faq-arrow">▼</span>
-                            </button>
-                            <div class="faq-a">Yes — you can cancel anytime. Your Pro plan remains active until the end of the
-                                billing period and then reverts to Free. No questions asked.</div>
-                        </div>
-                        <div class="faq-item">
-                            <button class="faq-q" onclick="toggleFaq(this)">
-                                Where is my data stored?
-                                <span class="faq-arrow">▼</span>
-                            </button>
-                            <div class="faq-a">All your projects and calculations are stored locally in your browser (localStorage).
-                                No data is sent to any server — BuildMetrics is fully client-side.</div>
-                        </div>
-                        <div class="faq-item">
-                            <button class="faq-q" onclick="toggleFaq(this)">
-                                What happens to my calculations if I downgrade to Free?
-                                <span class="faq-arrow">▼</span>
-                            </button>
-                            <div class="faq-a">Your existing data is safe — you can still view all your calculations. You just won't
-                                be able to save new ones beyond the 5-calculation limit until you upgrade again.</div>
-                        </div>
-                        <div class="faq-item">
-                            <button class="faq-q" onclick="toggleFaq(this)">
-                                Is there a yearly billing option?
-                                <span class="faq-arrow">▼</span>
-                            </button>
-                            <div class="faq-a">Currently we offer monthly billing only. A yearly discounted plan is on our roadmap —
-                                stay tuned!</div>
-                        </div>
-                        <div class="faq-item">
-                            <button class="faq-q" onclick="toggleFaq(this)">
-                                What payment methods are accepted?
-                                <span class="faq-arrow">▼</span>
-                            </button>
-                            <div class="faq-a">Payments are processed securely through Stripe. All major credit and debit cards are
-                                accepted (Visa, Mastercard, Amex).</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </main>
+  <div class="panel">
+    <div class="price">£0</div>
+    <div class="price-sub">Everything included, forever free</div>
+    <div class="divider"></div>
+    <div class="features">
+      <div class="f"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 15+ Eurocode calculators</div>
+      <div class="f"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Drag-and-drop report builder</div>
+      <div class="f"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited projects &amp; reports</div>
+      <div class="f"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited PDF &amp; Word exports</div>
+      <div class="f"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Clause-referenced, submission-ready reports</div>
+      <div class="f"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Your company letterhead on every report</div>
+      <div class="f"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> AI engineering assistant</div>
+      <div class="f"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Design register &amp; project management</div>
     </div>
+    <a href="/dashboard.html" class="cta">Open BuildMetrics →</a>
+    <p class="note">Built by engineers, for engineers. We'll always keep the core free.</p>
+  </div>
 
-    <script src="/js/auth/auth.js"></script>
-    <script src="/js/projects/projects.js"></script>
-    <script src="/js/projects/history.js"></script>
-    <script src="/js/subscription/plans.js"></script>
-    <script src="/js/ui/topNav.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            TopNav.init();
-
-            Auth.guard();
-            const user = Auth.currentUser();
-
-            // Show Pro active state if already subscribed
-            if (user && Subscription.isPro(user.id)) {
-                document.getElementById('btn-subscribe').style.display = 'none';
-                document.getElementById('plan-active-msg').style.display = 'block';
-                document.getElementById('btn-free').textContent = '← Back to Projects';
-            }
-        });
-
-        function handleUpgrade() {
-            // TODO: Replace with Stripe Checkout session initialization
-            // e.g. window.location.href = '/api/create-checkout-session';
-            alert('Stripe integration coming soon! Your plan will be upgraded automatically after payment.');
-        }
-
-        function toggleFaq(btn) {
-            const item = btn.closest('.faq-item');
-            item.classList.toggle('open');
-        }
-    </script>
+  <div class="back"><a href="https://buildmetrics.uk">← Back to buildmetrics.uk</a></div>
 </body>
-
 </html>

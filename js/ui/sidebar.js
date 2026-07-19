@@ -187,7 +187,7 @@ const Sidebar = (() => {
             '<div class="sb-user-plan">' + (isPro ? '\u2B50 Pro Plan' : 'Free Plan') + '</div>' +
           '</div>' +
         '</a>' +
-        (isPro ? '' : '<a href="/pricing.html" class="sb-upgrade">Upgrade to Pro \u2192</a>') +
+        '' +
       '</div>' +
     '</div>';
   }

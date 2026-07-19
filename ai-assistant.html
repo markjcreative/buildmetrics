@@ -839,32 +839,6 @@ I can help you with:
         }
 
         // ── Pro gate ──────────────────────────────────────────────────
-        function showProGate() {
-            const appMain = document.getElementById('app-main');
-            appMain.innerHTML = `
-                <div class="pro-gate-overlay">
-                    <div class="pro-gate-card">
-                        <div class="pro-gate-icon">\uD83D\uDD12</div>
-                        <div class="pro-gate-title">AI Assistant &mdash; Pro Feature</div>
-                        <div class="pro-gate-desc">
-                            The BuildMetrics AI Assistant gives you instant access to code-compliant structural
-                            engineering calculations, Eurocode workings, and expert guidance &mdash; powered by GPT-4o.<br><br>
-                            Upgrade to <strong>BuildMetrics Pro</strong> to unlock unlimited AI conversations.
-                        </div>
-                        <button class="btn-upgrade-ai" id="pro-gate-upgrade-btn">
-                            \u2728 Upgrade to Pro &rarr;
-                        </button>
-                    </div>
-                </div>
-            `;
-            document.getElementById('pro-gate-upgrade-btn').addEventListener('click', function () {
-                if (window.UpgradeModal) {
-                    UpgradeModal.show('generic');
-                } else {
-                    window.location.href = '/pricing.html';
-                }
-            });
-        }
 
         // ── Init ──────────────────────────────────────────────────────
         function initAiAssistant() {

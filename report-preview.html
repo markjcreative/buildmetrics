@@ -285,14 +285,11 @@
       <span class="preview-status-chip" id="preview-status-chip">Draft</span>
     </div>
     <div class="preview-toolbar-right">
-      <button class="btn-toolbar" onclick="doPrint()" title="Print to PDF via browser print dialog">
-        🖨 Print
+      <button class="btn-toolbar" onclick="doPrint()" title="Opens the print dialog — choose 'Save as PDF'">
+        🖨 Print / Save as PDF
       </button>
-      <button class="btn-toolbar premium" onclick="showUpgradeModal('pdf')" title="PDF Export — Pro feature">
-        ⬇ Export PDF <span style="font-size:0.7rem;opacity:.7">(Pro)</span>
-      </button>
-      <button class="btn-toolbar premium" onclick="showUpgradeModal('word')" title="Word Export — Pro feature">
-        ⬇ Export Word <span style="font-size:0.7rem;opacity:.7">(Pro)</span>
+      <button class="btn-toolbar" onclick="doExportWord()" title="Download as an editable Word document">
+        ⬇ Export Word
       </button>
     </div>
   </div>
@@ -313,21 +310,6 @@
     </div>
   </div>
 
-</div>
-
-<!-- Upgrade modal -->
-<div class="modal-backdrop" id="upgrade-modal">
-  <div class="modal-box">
-    <div class="modal-icon">⭐</div>
-    <div class="modal-title" id="upgrade-modal-title">Upgrade to Pro</div>
-    <div class="modal-desc" id="upgrade-modal-desc">
-      PDF Export is a premium feature. Upgrade to Pro to export professional, print-ready PDF reports complete with your company branding, full calculations, and design checks.
-    </div>
-    <div class="modal-actions">
-      <a href="/pricing.html" class="btn-upgrade">View Pro Plans</a>
-      <button class="btn-modal-cancel" onclick="closeUpgradeModal()">Maybe later</button>
-    </div>
-  </div>
 </div>
 
 <!-- Scripts -->
@@ -405,6 +387,16 @@
     // Show
     document.getElementById('preview-loading').style.display = 'none';
     document.getElementById('report-render-wrap').style.display = 'block';
+
+    // Auto-run an export if the builder asked for one (?action=print|word)
+    const action = new URLSearchParams(location.search).get('action');
+    if (action === 'print' || action === 'word') {
+      // wait for the iframe to finish laying out before printing/serialising
+      setTimeout(() => {
+        if (action === 'print') window.doPrint();
+        else window.doExportWord();
+      }, 700);
+    }
   }
 
   function _autosizeFrame() {
@@ -435,36 +427,31 @@
     }
   };
 
-  // ── Upgrade modal ────────────────────────────────────────────────────
-  window.showUpgradeModal = function (type) {
-    const modal    = document.getElementById('upgrade-modal');
-    const titleEl  = document.getElementById('upgrade-modal-title');
-    const descEl   = document.getElementById('upgrade-modal-desc');
+  // ── Word export ──────────────────────────────────────────────────────
+  // The rendered report is self-contained HTML, which Word opens natively.
+  // Wrapping it as a .doc gives an editable document with formatting intact.
+  window.doExportWord = function () {
+    const frame = document.getElementById('report-frame');
+    let html = '';
+    try { html = frame.contentDocument.documentElement.outerHTML; } catch (_) {}
+    if (!html) { alert('Report is still loading — please try again in a moment.'); return; }
 
-    if (type === 'word') {
-      titleEl.textContent = 'Word Export — Pro Feature';
-      descEl.textContent  = 'Word Export is a premium feature. Upgrade to Pro to export your calculations as a fully formatted .docx document, ready for submission and review.';
-    } else {
-      titleEl.textContent = 'PDF Export — Pro Feature';
-      descEl.textContent  = 'PDF Export is a premium feature. Upgrade to Pro to export professional, print-ready PDF reports complete with your company branding, full calculations, and design checks.';
-    }
+    const wordDoc =
+      '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+      'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+      '<head><meta charset="utf-8"><!--[if gte mso 9]><xml><w:WordDocument>' +
+      '<w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->' +
+      '</head>' + html.replace(/^[\s\S]*?<body/i, '<body').replace(/<\/html>\s*$/i, '') + '</html>';
 
-    modal.classList.add('open');
-
-    // Close on backdrop click
-    modal.addEventListener('click', function onBackdrop(e) {
-      if (e.target === modal) { closeUpgradeModal(); modal.removeEventListener('click', onBackdrop); }
-    });
+    const blob = new Blob(['﻿', wordDoc], { type: 'application/msword' });
+    const name = (document.getElementById('preview-report-name')?.textContent || 'calculation-report')
+      .trim().replace(/[^\w\-]+/g, '-').replace(/-+/g, '-').toLowerCase() || 'calculation-report';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name + '.doc';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
-
-  window.closeUpgradeModal = function () {
-    document.getElementById('upgrade-modal').classList.remove('open');
-  };
-
-  // Close modal on Escape
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeUpgradeModal();
-  });
 
   // ── Boot ─────────────────────────────────────────────────────────────
   // Auth guard: TopNav.init() checks session and redirects to /login if not authenticated

@@ -227,18 +227,6 @@
 </div>
 
 <!-- ══ Upgrade Modal ═════════════════════════════════════════════ -->
-<div class="upgrade-modal-overlay" id="upgrade-modal-overlay">
-  <div class="upgrade-modal">
-    <div class="upgrade-modal-icon">⭐</div>
-    <h3>Premium Feature</h3>
-    <p>PDF and Word export are available on the Professional plan. Upgrade to unlock high-quality exports with your company branding.</p>
-    <div class="upgrade-modal-actions">
-      <button onclick="document.getElementById('upgrade-modal-overlay').classList.remove('open')">Maybe later</button>
-      <button class="upgrade-cta" onclick="window.location.href='/subscription.html'">Upgrade to Pro</button>
-    </div>
-  </div>
-</div>
-
 <!-- ══ Version History Panel ══════════════════════════════════════ -->
 <div class="vh-overlay" id="vh-overlay" style="display:none"></div>
 <div class="vh-panel" id="vh-panel">
@@ -567,25 +555,28 @@ const RB = (() => {
 
     document.addEventListener('click', () => exportMenu.classList.remove('open'));
 
+    // Exports open the preview, which renders the final report and performs
+    // the requested action (all exports are free).
     document.getElementById('exp-pdf').addEventListener('click', () => {
       exportMenu.classList.remove('open');
-      document.getElementById('upgrade-modal-overlay').classList.add('open');
+      _openPreview('print');
     });
 
     document.getElementById('exp-word').addEventListener('click', () => {
       exportMenu.classList.remove('open');
-      document.getElementById('upgrade-modal-overlay').classList.add('open');
+      _openPreview('word');
     });
 
     document.getElementById('exp-html').addEventListener('click', () => {
       exportMenu.classList.remove('open');
       _exportHTML();
     });
+  }
 
-    // Close upgrade modal on overlay click
-    document.getElementById('upgrade-modal-overlay').addEventListener('click', function(e) {
-      if (e.target === this) this.classList.remove('open');
-    });
+  function _openPreview(action) {
+    if (!reportId) { alert('Save the report first, then export.'); return; }
+    window.open('/report-preview.html?report_id=' + encodeURIComponent(reportId) +
+                (action ? '&action=' + action : ''), '_blank');
   }
 
   function _saveStatus(status) {

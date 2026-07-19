@@ -22,7 +22,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="BuildMetrics" />
   <meta property="og:title" content="BuildMetrics | Structural Engineering Software for UK Engineers" />
-  <meta property="og:description" content="Eurocode-compliant beam, column, slab, footing & retaining wall calculations — straight from your browser. Professional PDF reports in one click. Free in 2026." />
+  <meta property="og:description" content="Eurocode-compliant beam, column, slab, footing & retaining wall calculations — straight from your browser. Professional PDF reports in one click. Free for every engineer." />
   <meta property="og:url" content="https://buildmetrics.uk/" />
   <meta property="og:image" content="https://buildmetrics.uk/og-image.jpg" />
   <meta property="og:image:width" content="1200" />
@@ -33,7 +33,7 @@
   <!-- Twitter / X Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="BuildMetrics | Structural Engineering Software for UK Engineers" />
-  <meta name="twitter:description" content="Eurocode-compliant structural calculations in your browser. Beam, column, slab, footing & retaining wall design. Professional PDF reports. Free in 2026." />
+  <meta name="twitter:description" content="Eurocode-compliant structural calculations in your browser. Beam, column, slab, footing & retaining wall design. Professional PDF reports. Completely free." />
   <meta name="twitter:image" content="https://buildmetrics.uk/og-image.jpg" />
 
   <!-- Structured Data — SoftwareApplication -->
@@ -51,7 +51,7 @@
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "GBP",
-      "description": "Free for all engineers in 2026"
+      "description": "Free for every engineer — no subscription"
     },
     "aggregateRating": {
       "@type": "AggregateRating",
@@ -1480,6 +1480,38 @@
     .pricing-annual-note { font-size: 0.78rem; color: rgba(255,255,255,0.45); margin: 2px 0 18px; }
     .pricing-annual-note b { color: #34D399; }
 
+    /* ── Free (no-plan) panel ── */
+    .free-panel {
+      max-width: 640px; margin: 48px auto 0; padding: 40px 40px 34px;
+      background: rgba(255,255,255,0.035);
+      border: 1.5px solid rgba(37,99,235,0.35);
+      border-radius: 20px; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .free-badge {
+      display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: #93C5FD; background: rgba(37,99,235,0.18);
+      border: 1px solid rgba(37,99,235,0.4); padding: 5px 14px; border-radius: 99px; margin-bottom: 20px;
+    }
+    .free-price { font-size: 4rem; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -2px; }
+    .free-price-sub { font-size: 0.9rem; color: rgba(255,255,255,0.5); margin-top: 8px; }
+    .free-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 26px 0; }
+    .free-features {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px 22px;
+      text-align: left; margin-bottom: 28px;
+    }
+    .ff-item {
+      display: flex; align-items: flex-start; gap: 9px;
+      font-size: 0.87rem; color: rgba(255,255,255,0.78); line-height: 1.45;
+    }
+    .ff-item svg { color: #34D399; flex-shrink: 0; margin-top: 2px; }
+    .free-note { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-top: 16px; }
+    @media (max-width: 640px) {
+      .free-panel { padding: 30px 22px 26px; }
+      .free-features { grid-template-columns: 1fr; }
+      .free-price { font-size: 3.2rem; }
+    }
+
     .pricing-card {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
@@ -2509,7 +2541,7 @@
       </div>
       <div class="mn-link-text">
         <span class="mn-link-label">Pricing</span>
-        <span class="mn-link-sub">Free for all engineers in 2026</span>
+        <span class="mn-link-sub">Free for every engineer — no subscription</span>
       </div>
     </a>
   </nav>
@@ -3589,45 +3621,26 @@
 <section id="pricing">
   <div class="pricing-inner">
     <div class="section-eyebrow reveal" style="justify-content:center">Pricing</div>
-    <h2 class="section-title reveal reveal-delay-1" style="text-align:center">Simple, transparent pricing.<br>Start free, pay as you go.</h2>
-    <p class="section-sub reveal reveal-delay-2" style="text-align:center;margin:0 auto;">Sign up free and generate as many reports as you like. Pay only when you download — or go unlimited with Pro.</p>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center">Free for every engineer.<br>No plans, no limits.</h2>
+    <p class="section-sub reveal reveal-delay-2" style="text-align:center;margin:0 auto;">BuildMetrics is completely free to use — every calculator, the full report builder, and unlimited exports. No credit card, no subscription, no per-report fees.</p>
 
-    <div class="pricing-grid reveal reveal-delay-1">
-
-      <div class="pricing-card">
-        <div class="pricing-plan">Lite</div>
-        <div class="pricing-price"><sup>£</sup>10<span class="period"> / report download</span></div>
-        <div class="pricing-tagline">Free to sign up and generate. Pay only when you download a finished report.</div>
-        <div class="pricing-divider"></div>
-        <div class="pricing-features">
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Free account — generate unlimited reports</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> £10 per report download (PDF)</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited revisions per report</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 15+ calculators &amp; report builder</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Professional clause-referenced reports</div>
-          <div class="pf-item dim"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h16.9a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg> Project details are fixed once created</div>
-        </div>
-        <a href="#" onclick="openWaitlist();return false;" class="pricing-btn outline">Join the waitlist</a>
+    <div class="free-panel reveal reveal-delay-1">
+      <div class="free-badge">✦ Free &amp; open access</div>
+      <div class="free-price">£0</div>
+      <div class="free-price-sub">Everything included, forever free</div>
+      <div class="free-divider"></div>
+      <div class="free-features">
+        <div class="ff-item"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 15+ Eurocode calculators</div>
+        <div class="ff-item"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Drag-and-drop report builder</div>
+        <div class="ff-item"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited projects &amp; reports</div>
+        <div class="ff-item"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited PDF &amp; Word exports</div>
+        <div class="ff-item"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Clause-referenced, submission-ready reports</div>
+        <div class="ff-item"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Your company letterhead on every report</div>
+        <div class="ff-item"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> AI engineering assistant</div>
+        <div class="ff-item"><svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Design register &amp; project management</div>
       </div>
-
-      <div class="pricing-card featured">
-        <div class="pricing-featured-badge">⭐ Best value</div>
-        <div class="pricing-plan">Pro</div>
-        <div class="pricing-price"><sup>£</sup>59<span class="period"> / mo</span></div>
-        <div class="pricing-annual-note">or pay annually — <b>save 20%</b> (≈ £47/mo, billed £566/yr)</div>
-        <div class="pricing-tagline">Unlimited generating and downloading for full-time engineers.</div>
-        <div class="pricing-divider"></div>
-        <div class="pricing-features">
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited report downloads — no per-report fee</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Unlimited projects — fully editable</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> All 15+ calculators &amp; report builder</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> AI engineering assistant</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Design register + search</div>
-          <div class="pf-item"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Priority support</div>
-        </div>
-        <a href="#" onclick="openWaitlist();return false;" class="pricing-btn primary">Join the waitlist</a>
-      </div>
-
+      <a href="#" onclick="openWaitlist();return false;" class="pricing-btn primary" style="max-width:280px;margin:0 auto">Join the waitlist</a>
+      <p class="free-note">Built by engineers, for engineers. We&rsquo;ll always keep the core free.</p>
     </div>
   </div>
 </section>
@@ -3644,7 +3657,7 @@
         Launching October 2026
       </div>
       <h2 class="section-title">Be first in line at launch</h2>
-      <p class="section-sub" style="margin:0 auto 36px;">BuildMetrics opens to engineers in October 2026, free for all of 2026. Join the waitlist and we'll email you the moment your access is ready — no credit card, no commitment.</p>
+      <p class="section-sub" style="margin:0 auto 36px;">BuildMetrics opens to engineers in October 2026 — completely free, with no subscription. Join the waitlist and we'll email you the moment your access is ready — no credit card, no commitment.</p>
       <div class="cta-actions">
         <a href="#" onclick="openWaitlist();return false;" class="btn btn-primary-lg">
           Join the Waitlist →
@@ -3673,7 +3686,7 @@
           </div>
           <span class="footer-logo-name">BuildMetrics</span>
         </a>
-        <p class="footer-tagline">Professional Eurocode-compliant structural engineering calculations — free for all of 2026.</p>
+        <p class="footer-tagline">Professional Eurocode-compliant structural engineering calculations — completely free.</p>
         <div class="footer-standards" style="flex-wrap:wrap;gap:6px;">
           <span class="std-chip">EC2</span>
           <span class="std-chip">EC3</span>
