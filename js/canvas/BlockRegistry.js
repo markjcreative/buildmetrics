@@ -354,6 +354,24 @@ const BlockRegistry = (() => {
     });
   }
 
+  /**
+   * Find a steel section's real dimensions by designation, e.g.
+   * "254x102x22 UB" → { h, b, tw, tf }. Returns null if unavailable so
+   * callers can fall back to sensible defaults.
+   */
+  function _lookupSteelSection(name) {
+    const db = (typeof window !== 'undefined') && window.SteelSections;
+    if (!db || !name) return null;
+    const key = String(name).replace(/\s*(UB|UC|CHS|RHS|SHS)\s*$/i, '').trim().toLowerCase();
+    for (const family of Object.keys(db)) {
+      const list = db[family];
+      if (!Array.isArray(list)) continue;
+      const hit = list.find(s => String(s.designation || '').trim().toLowerCase() === key);
+      if (hit) return hit;
+    }
+    return null;
+  }
+
   function _mapInputs(type, config) {
     switch (type) {
       case 'calc_beam':
@@ -406,31 +424,39 @@ const BlockRegistry = (() => {
           cover: 35,
         };
       case 'calc_rc_column':
+        // ConcreteColumnSolver expects: shape, b, h, diameter, height,
+        // endCondition, fck, fyk, NEd, MEd, n_bars, bar_dia, cover, link_dia
         return {
-          b: config.b || 300,
-          h: config.h || 300,
-          fck: config.fck || 30,
+          shape: 'rectangular',
+          b: +config.b || 300,
+          h: +config.h || 300,
+          diameter: 0,
+          height: +config.lo || 3.0,
+          endCondition: 'pinned_pinned',
+          fck: +config.fck || 30,
           fyk: 500,
-          NEd: config.NEd || 800,
-          MEd_top: config.MEd || 60,
-          MEd_bot: config.MEd || 60,
-          lo: config.lo || 3.0,
+          NEd: +config.NEd || 800,
+          MEd: +config.MEd || 60,
+          n_bars: 8,
+          bar_dia: 20,
           cover: 35,
-          barDia: 20,
-          linkDia: 8,
-          nBarsTotal: 8,
+          link_dia: 8,
         };
       case 'calc_slab':
+        // SlabSolver expects: span, thickness, width, fck, fyk, cover,
+        // barDia, gk, qk, supportType, selfWeight
         return {
-          lx: config.lx || 4,
-          ly: config.ly || 5,
-          h: config.h || 175,
-          fck: config.fck || 30,
+          span: +config.span || +config.lx || 4,
+          thickness: +config.thickness || +config.h || 175,
+          width: 1000,                       // design a 1 m strip
+          fck: +config.fck || 30,
           fyk: 500,
-          n_uls: config.n_uls || 14,
-          supportCondition: 'four_edges',
           cover: 25,
           barDia: 12,
+          gk: +config.gk || 1.5,             // superimposed dead (kN/m²)
+          qk: +config.qk || 2.5,             // imposed (kN/m²)
+          supportType: config.supportType || 'simply_supported',
+          selfWeight: true,
         };
       case 'calc_footing':
         return {
@@ -446,73 +472,119 @@ const BlockRegistry = (() => {
           footingType: 'square',
           aspectRatio: 1.0,
         };
-      case 'calc_retaining':
+      case 'calc_retaining': {
+        // RetainingWallSolver expects: H, surcharge, soilDensity, phi,
+        // wallDensity, baseWidth, stemThick, toeLength, heelLength,
+        // baseThick, soilBearing, mu
+        const H = +config.H || 3;
+        const baseWidth = +config.baseWidth || +(H * 0.6).toFixed(2);
+        const stemThick = +config.stemThick || 0.3;
+        const toeLength = +config.toeLength || +(H * 0.2).toFixed(2);
         return {
-          H: config.H || 3,
-          gamma_soil: config.gamma_soil || 18,
-          phi: config.phi || 30,
-          surcharge: config.surcharge || 5,
-          fck: config.fck || 30,
-          fyk: 500,
-          cover: 50,
-          wallThick: 300,
-          baseThick: 400,
-          baseWidth: config.H ? config.H * 0.6 : 1.8,
-          toeSlab: config.H ? config.H * 0.2 : 0.6,
+          H,
+          surcharge: +config.surcharge || 5,
+          soilDensity: +config.gamma_soil || 18,
+          phi: +config.phi || 30,
+          wallDensity: 25,
+          baseWidth,
+          stemThick,
+          toeLength,
+          heelLength: Math.max(0.2, +(baseWidth - toeLength - stemThick).toFixed(2)),
+          baseThick: +config.baseThick || 0.4,
+          soilBearing: +config.soilBearing || 150,
+          mu: 0.5,
         };
-      case 'calc_connection':
+      }
+      case 'calc_connection': {
+        // ConnectionSolver expects a bolt group: Vx, Vy, M_in_plane,
+        // boltLayout [{x,y} mm], boltSize ('M20'), boltGrade, shearPlanes
+        const n = Math.max(1, +config.nBolts || 4);
+        const pitch = 70;                                   // mm vertical pitch
+        const y0 = -((n - 1) * pitch) / 2;
+        const boltLayout = Array.from({ length: n }, (_, i) => ({ x: 0, y: y0 + i * pitch }));
         return {
-          connectionType: config.connectionType || 'bolted',
-          VEd: config.VEd || 150,
+          mode: config.connectionType === 'welded' ? 'weld' : 'bolt',
+          Vx: 0,
+          Vy: +config.VEd || 150,
+          M_in_plane: 0,
+          boltLayout,
+          boltSize: 'M' + (+config.boltDia || 20),
           boltGrade: config.boltGrade || '8.8',
-          boltDia: config.boltDia || 20,
-          nBolts: config.nBolts || 4,
+          shearPlanes: 1,
           plateThk: 10,
           fy: 275,
           fu: 430,
         };
+      }
       case 'calc_timber_col':
+        // TimberColumnSolver expects: grade, shape, b, h, diameter, height,
+        // endCondition, serviceClass, loadDuration, NEd, MEd_y, MEd_z
         return {
-          height: config.span || 3.0,
-          b: config.b || 90,
-          h_sec: config.h || 90,
-          NEd: config.NEd || 50,
-          timberClass: config.timberClass || 'C24',
-          kDef: config.kDef || 0.8,
+          grade: config.timberClass || 'C24',
+          shape: 'rectangular',
+          b: +config.b || 90,
+          h: +config.h || 90,
+          diameter: 0,
+          height: +config.span || 3.0,
+          endCondition: 'pinned_pinned',
           serviceClass: 1,
-          loadDurationClass: 'medium_term',
-          kmod: 0.8,
+          loadDuration: 'medium_term',
+          NEd: +config.NEd || 50,
+          MEd_y: 0,
+          MEd_z: 0,
         };
-      case 'calc_steel_member':
+      case 'calc_steel_member': {
+        // SteelMemberSolver needs the full section record (dimensions AND
+        // properties: A cm², Iy cm⁴, Wel_y/Wpl_y cm³, iz cm, r fillet) —
+        // not just a designation string.
+        const sec = _lookupSteelSection(config.section) || {
+          h: 254, b: 101.6, tw: 5.7, tf: 6.8, r: 7.6,
+          A: 28, Ixx: 2840, Iyy: 119, Zxx: 224, Sxx: 256, ryy: 2.06,
+        };
+        const L = +config.Lcr || 4.0;
         return {
-          section: config.section || '254x102x22 UB',
+          h: sec.h, b: sec.b, tw: sec.tw, tf: sec.tf, r: sec.r,
+          A: sec.A,                 // cm²
+          Iy: sec.Ixx,              // cm⁴
+          Wel_y: sec.Zxx,           // cm³ (elastic)
+          Wpl_y: sec.Sxx,           // cm³ (plastic)
+          iz: sec.ryy,              // cm
+          gammaM: 1.0,
           fy: config.grade === 'S355' ? 355 : 275,
-          Lcr: config.Lcr || 4.0,
-          NEd: config.NEd || 0,
-          MEd: config.MEd || 80,
-          VEd: config.VEd || 40,
+          fu: config.grade === 'S355' ? 470 : 430,
+          L, Lcr_y: L, Lcr_z: L,
+          NEd: +config.NEd || 0,
+          My_Ed: +config.MEd || 80,
+          Vz_Ed: +config.VEd || 40,
         };
+      }
       case 'calc_bbs':
-        return {
-          element: config.element || 'Beam B1',
-          length: config.length || 6,
-          barDia: config.barDia || 16,
-          nBars: config.nBars || 4,
-          fyk: config.fyk || 500,
-          shape: '00',
-          cover: 35,
-          nLinks: Math.ceil(config.length / 0.2) || 30,
-          linkDia: 8,
-          linkSpacing: 200,
-        };
-      case 'calc_section':
-        return {
-          sectionType: config.sectionType || 'rectangle',
-          b: config.b || 200,
-          h: config.h || 400,
-          tf: config.tf || 12,
-          tw: config.tw || 7,
-        };
+        // BBSSolver takes an ARRAY of bar rows: {dia, qty, shape, A…E}
+        return [
+          {
+            ref: config.element || 'Beam B1',
+            shape: '00',                                  // straight bar
+            dia: +config.barDia || 16,
+            qty: +config.nBars || 4,
+            A: Math.round((+config.length || 6) * 1000),  // cut length (mm)
+          },
+        ];
+      case 'calc_section': {
+        // SectionSolver dispatches on config.type with shape-specific dims
+        const t = ({
+          'rectangle': 'rectangle', 'circle': 'circle', 'box': 'box',
+          'I-section': 'isection', 'isection': 'isection',
+          'T-section': 'tsection', 'tsection': 'tsection', 'angle': 'angle',
+        })[config.sectionType] || 'rectangle';
+        const b = +config.b || 200, h = +config.h || 400;
+        const tf = +config.tf || 12, tw = +config.tw || 7;
+        const base = { type: t, b, h, tf, tw };
+        if (t === 'circle')  return { ...base, dia: b };
+        if (t === 'box')     return { ...base, B: b, H: h, b: Math.max(1, b - 2 * tw), h: Math.max(1, h - 2 * tf) };
+        if (t === 'isection' || t === 'tsection') return { ...base, B: b, tf, hw: Math.max(1, h - 2 * tf), tw };
+        if (t === 'angle')   return { ...base, bA: b, tA: tw, bB: h, tB: tf };
+        return base;
+      }
       case 'calc_wind':
         return {
           vb0: config.vb0 || 23,
