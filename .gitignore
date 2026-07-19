@@ -19,3 +19,6 @@ markjcreative-landing.html
 
 # Node (if ever used locally)
 node_modules/
+
+# Local-only report preview harness (never deploy)
+_local-preview.html

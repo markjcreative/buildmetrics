@@ -34,7 +34,10 @@ const PreviewRenderer = (() => {
 
   function _renderTitleBlock(titleCfg, projCfg, reportMeta) {
     const reportTitle   = esc(titleCfg.title || reportMeta.title || 'Structural Calculation Report');
-    const reportRef     = esc(titleCfg.ref || '—');
+    // Two blocks collect a reference — "Report Reference" on the title block and
+    // "Project Reference" on project info. Engineers fill in one or the other,
+    // so accept either rather than printing a dash next to a filled-in field.
+    const reportRef     = esc(titleCfg.ref || projCfg.projectRef || '—');
     const reportDate    = fmtDate(titleCfg.date);
     const revision      = esc(titleCfg.revision || 'Rev A');
     const projectName   = esc(projCfg.projectName || '—');
