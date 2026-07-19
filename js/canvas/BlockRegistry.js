@@ -2004,6 +2004,10 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
       { key: 'projectRef',   label: 'Project Reference', ph: 'e.g. BM-2026-001' },
       { key: 'engineerName', label: 'Engineer Name', ph: 'Full name' },
       { key: 'companyName',  label: 'Company',       ph: 'Engineering firm' },
+      // Optional letterhead details — printed on the report cover if filled in
+      { key: 'companyAddress', label: 'Company Address', ph: 'e.g. 12 High St, London EC1A 1BB' },
+      { key: 'companyPhone',   label: 'Company Phone',   ph: 'e.g. 020 7123 4567' },
+      { key: 'companyEmail',   label: 'Company Email',   ph: 'e.g. info@yourfirm.co.uk' },
     ];
 
     textFields.forEach(f => {

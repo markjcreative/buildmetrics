@@ -48,12 +48,20 @@ const PreviewRenderer = (() => {
     const statusClass = /FINAL|APPROVED|ISSUED/.test(status) ? 'ok'
                       : /DRAFT|REVIEW/.test(status) ? 'draft' : 'blue';
 
+    // Optional letterhead contact details — only rendered when provided
+    const cAddress = esc(projCfg.companyAddress || '');
+    const cPhone   = esc(projCfg.companyPhone   || '');
+    const cEmail   = esc(projCfg.companyEmail   || '');
+    const contactBits = [cAddress, cPhone, cEmail].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+
     return `
 <div class="rp-cover">
   <div class="rp-cover-band">
     <div>
       <div class="rp-cover-company">${companyName}</div>
-      <div class="rp-cover-company-sub">Structural Engineering Calculations</div>
+      ${contactBits
+        ? `<div class="rp-cover-company-contact">${contactBits}</div>`
+        : `<div class="rp-cover-company-sub">Structural Engineering Calculations</div>`}
     </div>
     <div class="rp-cover-band-badge">Calculation Report</div>
   </div>
@@ -85,8 +93,7 @@ const PreviewRenderer = (() => {
   </div>
 
   <div class="rp-cover-foot">
-    <div class="rp-cover-foot-brand">Generated with <b>BuildMetrics</b> · buildmetrics.uk</div>
-    <div class="rp-cover-foot-note">This report has been produced using BuildMetrics software. All calculations must be independently checked and verified by a qualified engineer before use for construction.</div>
+    <div class="rp-cover-foot-note">This document contains structural design calculations prepared for the project named above. All calculations must be independently checked and verified by a qualified engineer before use for construction.</div>
   </div>
 </div>`;
   }
@@ -118,13 +125,16 @@ const PreviewRenderer = (() => {
   function _renderFooter(titleCfg, projCfg) {
     const ref  = esc(titleCfg.ref || '');
     const rev  = esc(titleCfg.revision || 'Rev A');
-    const proj = esc(projCfg.projectName || 'BuildMetrics');
+    // Never fall back to the BuildMetrics name here — this line is the client's
+    // project identifier on a submitted document.
+    const proj = esc(projCfg.projectName || projCfg.companyName || '');
+    const bits = [proj, ref, rev].filter(Boolean).join(' · ');
     return `
 <div class="rp-running-footer">
-  <span>${proj}${ref ? ' · ' + ref : ''}${rev ? ' · ' + rev : ''}</span>
-  <span class="rp-rf-note">Verify all calculations with a qualified engineer before use.</span>
-  <span>Generated with <b>BuildMetrics</b> · buildmetrics.uk</span>
-</div>`;
+  <span>${bits}</span>
+  <span class="rp-rf-note">All calculations to be checked and verified by a qualified engineer prior to construction.</span>
+</div>
+<div class="rp-finalprint">Prepared using BuildMetrics · buildmetrics.uk</div>`;
   }
 
   // ── Block renderers ──────────────────────────────────────────────────────
@@ -878,6 +888,7 @@ body { font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-siz
 }
 .rp-cover-company { font-size:20pt; font-weight:800; letter-spacing:-.3pt; }
 .rp-cover-company-sub { font-size:8.5pt; color:rgba(255,255,255,.7); margin-top:3pt; letter-spacing:.4pt; }
+.rp-cover-company-contact { font-size:8pt; color:rgba(255,255,255,.75); margin-top:5pt; line-height:1.5; }
 .rp-cover-band-badge { font-size:8pt; font-weight:700; text-transform:uppercase; letter-spacing:1pt; background:rgba(255,255,255,.15); border:1pt solid rgba(255,255,255,.3); padding:5pt 12pt; border-radius:99pt; }
 .rp-cover-body { flex:1; padding:34pt 4pt 0; }
 .rp-cover-eyebrow { font-size:9pt; font-weight:700; text-transform:uppercase; letter-spacing:2.5pt; color:var(--bm-blue); margin-bottom:8pt; }
@@ -903,9 +914,7 @@ body { font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-siz
 .rp-cs-name { font-size:11pt; font-weight:600; color:var(--bm-navy); min-height:15pt; margin-top:4pt; }
 .rp-cs-line { border-top:.7pt solid var(--bm-border); margin-top:24pt; padding-top:4pt; font-size:7.5pt; color:var(--bm-muted); }
 .rp-cover-foot { margin-top:auto; padding-top:16pt; border-top:1pt solid var(--bm-border); }
-.rp-cover-foot-brand { font-size:8.5pt; color:var(--bm-navy); }
-.rp-cover-foot-brand b { color:var(--bm-blue-dark); }
-.rp-cover-foot-note { font-size:7.5pt; color:var(--bm-muted); line-height:1.5; margin-top:4pt; }
+.rp-cover-foot-note { font-size:7.5pt; color:var(--bm-muted); line-height:1.5; }
 
 /* ── TOC ── */
 .rp-toc { margin-bottom:22pt; page-break-after:always; }
@@ -979,6 +988,7 @@ body { font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-siz
 .rp-running-footer { border-top:1pt solid var(--bm-border); padding-top:6pt; margin-top:22pt; display:flex; justify-content:space-between; align-items:center; gap:10pt; font-size:7.5pt; color:var(--bm-muted); }
 .rp-running-footer b { color:var(--bm-blue-dark); }
 .rp-rf-note { font-style:italic; }
+.rp-finalprint { text-align:center; font-size:6.5pt; color:#B0B8C4; margin-top:8pt; letter-spacing:.2pt; }
 
 /* ── Print ── */
 @media print {
@@ -1011,7 +1021,7 @@ body { font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-siz
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${esc(titleBlock.title || reportMeta.title || 'Calculation Report')} — BuildMetrics</title>
+  <title>${esc(titleBlock.title || reportMeta.title || 'Calculation Report')}${projectBlock.companyName ? ' — ' + esc(projectBlock.companyName) : ''}</title>
   <style>${_getPreviewCSS()}</style>
 </head>
 <body>
