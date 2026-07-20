@@ -1,0 +1,3 @@
+# Internal due-diligence documentation — not for public serving.
+# The repo auto-deploys to the web root, so this folder must be blocked.
+Require all denied
