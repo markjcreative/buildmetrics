@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /docs/
 
-Sitemap: https://beam-calculator-red.vercel.app/sitemap.xml
+Sitemap: https://app.buildmetrics.uk/sitemap.xml
