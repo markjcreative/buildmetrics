@@ -32,6 +32,12 @@
     .form-group input{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-family:'Inter',sans-serif;font-size:0.9rem;padding:11px 14px;transition:border-color .15s,box-shadow .15s;outline:none}
     .form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
     .form-group input::placeholder{color:var(--text-muted)}
+    .pw-wrap{position:relative;display:block}
+    .pw-wrap>input{width:100%;padding-right:44px}
+    .pw-toggle{position:absolute;top:0;height:100%;right:4px;width:36px;display:flex;align-items:center;justify-content:center;padding:0;background:none;border:none;color:var(--text-muted);cursor:pointer;border-radius:6px;transition:color .15s}
+    .pw-toggle:hover{color:var(--text-secondary)}
+    .pw-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    .pw-toggle svg{width:18px;height:18px;display:block}
 
     .forgot-link{text-align:right;margin-top:-8px}
     .forgot-link a{font-size:0.75rem;color:var(--accent);text-decoration:none;font-weight:500}
@@ -88,7 +94,13 @@
       </div>
       <div class="form-group">
         <label for="login-password">Password</label>
-        <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+        <div class="pw-wrap">
+          <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+          <button type="button" class="pw-toggle" aria-label="Show password" aria-pressed="false" onclick="togglePw(this)">
+            <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-off" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
       </div>
       <div class="forgot-link"><a href="/reset-password.html">Forgot password?</a></div>
       <button class="btn-auth" id="btn-login" onclick="doLogin()">Sign In →</button>
@@ -159,6 +171,18 @@
     initGsi();
 
     document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+    // Reveal/hide password. Anchored to the input beside the button, so it
+    // works for any number of password fields on the page.
+    function togglePw(btn) {
+      const input = btn.parentNode.querySelector('input');
+      const reveal = input.type === 'password';
+      input.type = reveal ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', String(reveal));
+      btn.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+      btn.querySelector('.eye-on').style.display  = reveal ? 'none' : '';
+      btn.querySelector('.eye-off').style.display = reveal ? '' : 'none';
+    }
   </script>
 </body>
 </html>
