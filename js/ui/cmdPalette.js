@@ -17,7 +17,7 @@ const CmdPalette = (() => {
     { group: 'Workspace',   name: 'Quick Tools',     href: '/tools.html',                  icon: '🔧', color: '#F4F4F5' },
     { group: 'Workspace',   name: 'Standards Library', href: '/standards.html',            icon: '📚', color: '#F4F4F5' },
     { group: 'Workspace',   name: 'Templates',       href: '/templates.html',              icon: '📋', color: '#F4F4F5' },
-    { group: 'Workspace',   name: 'AI Assistant',    href: '/ai-assistant.html',           icon: '✨', color: '#F5F3FF' },
+    { group: 'Workspace',   name: 'Help & Support',  href: '/support.html',                icon: '💬', color: '#EFF6FF' },
     // NAVIGATE
     { group: 'Navigate',    name: 'Dashboard',       href: '/dashboard.html',              icon: '🏠', color: '#F4F4F5' },
     { group: 'Navigate',    name: 'Projects',        href: '/projects.html',               icon: '📁', color: '#F4F4F5' },

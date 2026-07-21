@@ -7,7 +7,7 @@ const NavDropdown = (() => {
         { label: 'Tools', href: '/tools.html', icon: '🔧' },
         { label: 'Standards', href: '/standards.html', icon: '📐' },
         { label: 'Templates', href: '/templates.html', icon: '📋' },
-        { label: 'AI Assistant', href: '/ai-assistant.html', icon: '🤖' },
+        { label: 'Help & Support', href: '/support.html', icon: '💬' },
     ];
 
     function _injectStyles() {

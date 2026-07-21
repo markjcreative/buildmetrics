@@ -89,16 +89,20 @@ HTML;
 /**
  * Send an email via Resend. Returns ['ok'=>bool, 'status'=>int, 'body'=>mixed].
  */
-function mail_send(string $to, string $subject, string $html): array {
+function mail_send(string $to, string $subject, string $html, ?string $replyTo = null): array {
     $key = defined('RESEND_API_KEY') ? RESEND_API_KEY : '';
     if (!$key) return ['ok' => false, 'status' => 0, 'body' => 'RESEND_API_KEY not configured'];
 
-    $payload = json_encode([
+    $fields = [
         'from'    => MAIL_FROM_NAME . ' <' . MAIL_FROM_EMAIL . '>',
         'to'      => [$to],
         'subject' => $subject,
         'html'    => $html,
-    ]);
+    ];
+    // Lets the recipient hit Reply and reach the original sender (used by the
+    // support form so replies go to the user, not the noreply address).
+    if ($replyTo) $fields['reply_to'] = $replyTo;
+    $payload = json_encode($fields);
     $ch = curl_init('https://api.resend.com/emails');
     curl_setopt_array($ch, [
         CURLOPT_POST           => true,

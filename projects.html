@@ -100,10 +100,16 @@
           <h1>&#128193; My Projects</h1>
           <div class="proj-topbar-sub">All your engineering projects in one place</div>
         </div>
-        <button class="btn btn-primary" id="btn-new-project" style="font-size:0.85rem;padding:9px 18px;gap:6px;white-space:nowrap">
-          <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-          New Project
-        </button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-ghost" id="btn-take-tour" style="font-size:0.82rem;padding:9px 14px;gap:6px;white-space:nowrap" title="Show the quick tour again">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.8"/><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M9.4 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.4 2.2-2.4 3.9"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+            Take a tour
+          </button>
+          <button class="btn btn-primary" id="btn-new-project" style="font-size:0.85rem;padding:9px 18px;gap:6px;white-space:nowrap">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+            New Project
+          </button>
+        </div>
       </div>
 
       <!-- Stats bar -->
@@ -300,6 +306,7 @@
 <script src="/js/projects/projects.js"></script>
 <script src="/js/subscription/plans.js"></script>
 <script src="/js/ui/topNav.js"></script>
+<script src="/js/ui/tutorial.js"></script>
 
 <script>
 // ── State ────────────────────────────────────────────────────────
@@ -346,6 +353,46 @@ document.addEventListener('DOMContentLoaded', function() {
   // Search + sort
   document.getElementById('proj-search').addEventListener('input', applyFilter);
   document.getElementById('proj-sort').addEventListener('change', applyFilter);
+
+  // ── First-run dashboard tour ─────────────────────────────────────
+  // Shows once per browser; the "Take a tour" button replays it anytime.
+  const TOUR_KEY = 'bm_tour_projects_v1';
+  const dashboardTour = [
+    { title: '👋 Welcome to BuildMetrics',
+      text: 'This is your dashboard. Here\'s a quick 60-second tour of how everything fits together — you can skip it anytime.' },
+    { title: 'Create a project',
+      text: 'Everything starts with a <strong>project</strong> — usually one per job or building. Click here to make your first one.',
+      target: '#btn-new-project' },
+    { title: 'Track your work',
+      text: 'These tiles show how many projects and reports you have, and how many are approved — an at-a-glance summary.',
+      target: '#proj-stats' },
+    { title: 'Find anything fast',
+      text: 'As your work grows, search by project name or client, and sort to bring recent work to the top.',
+      target: '#proj-search' },
+    { title: 'Your design register',
+      text: 'Every calculation across all projects is indexed here, so you can find and audit past work in one place.',
+      target: '[data-nav="register"]' },
+    { title: 'Help whenever you need it',
+      text: 'Stuck, found a bug, or have an idea? The <strong>Help</strong> button is always here — quick FAQs, guides, and a way to message us directly.',
+      target: '#bm-support-launch' },
+    { title: 'You\'re all set 🎉',
+      text: 'Create your first project to get started. You can replay this tour anytime with <strong>Take a tour</strong> at the top.' },
+  ];
+
+  function startTour() {
+    if (window.Tutorial) Tutorial.start(dashboardTour);
+  }
+
+  document.getElementById('btn-take-tour').addEventListener('click', startTour);
+
+  // Auto-run once for first-time users. Delay so the top-nav and the Help
+  // widget (both injected asynchronously) exist before we point at them.
+  if (!localStorage.getItem(TOUR_KEY)) {
+    setTimeout(function () {
+      startTour();
+      try { localStorage.setItem(TOUR_KEY, '1'); } catch (e) {}
+    }, 900);
+  }
 
   // Escape key
   document.addEventListener('keydown', function(e){

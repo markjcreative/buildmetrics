@@ -65,14 +65,14 @@ const TopNav = (() => {
       }
     }
 
-    // Load and init AI chat widget
-    if (window.AIChat) {
-      AIChat.init();
+    // Load and init the Help & Support widget (replaced the AI chat widget).
+    if (window.Support) {
+      Support.init();
     } else {
-      var ac = document.createElement('script');
-      ac.src = '/js/ui/aiChat.js';
-      ac.onload = function() { AIChat.init(); };
-      document.head.appendChild(ac);
+      var sc = document.createElement('script');
+      sc.src = '/js/ui/support.js';
+      sc.onload = function() { Support.init(); };
+      document.head.appendChild(sc);
     }
 
     // Wire mobile menu open/close

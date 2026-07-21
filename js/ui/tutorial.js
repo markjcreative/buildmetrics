@@ -151,6 +151,8 @@ const Tutorial = (() => {
     };
 })();
 
+window.Tutorial = Tutorial;
+
 // ── Per-page tutorial definitions ─────────────────────────────────────────────
 window.TUTORIALS = {
     beam: [
