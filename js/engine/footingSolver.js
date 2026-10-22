@@ -6,7 +6,7 @@ const FootingSolver = (() => {
     const GAMMA_S = 1.15;
     const GAMMA_G = 1.35;
     const GAMMA_Q = 1.5;
-    const CONCRETE_DENSITY = 24; // kN/m³
+    const CONCRETE_DENSITY = 25; // kN/m³ — reinforced (EN 1991-1-1 Table A.1: 24 + 1)
 
     function solve(config) {
         const {
@@ -29,20 +29,24 @@ const FootingSolver = (() => {
         const h = footThick || 500; // mm
         const d = h - cover - (barDia || 16) / 2; // mm
 
-        const fcd = fck / GAMMA_C;
+        const fcd = 0.85 * fck / GAMMA_C;   // αcc = 0.85 (UK NA), consistent with beams/slabs
         const fyd = fyk / GAMMA_S;
 
         // SLS: size footing for service load + footing self-weight (iterative once)
         const N_SLS = Gk + Qk; // kN (unfactored)
 
-        // First estimate of area
-        let B = Math.sqrt(N_SLS / soilBearing);
-        // Add 10% for self-weight
-        B = Math.sqrt((N_SLS + B * B * (h / 1000) * CONCRETE_DENSITY) / soilBearing);
-        // Round up to nearest 50mm
-        B = Math.ceil(B / 0.05) * 0.05; // m
+        // Exact size including self-weight: A·qa = N + A·t·γc  →  A = N / (qa − t·γc).
+        // (The old single fixed-point pass always under-sized, so the footing it
+        // chose then failed its own gross bearing check.)
+        const netCapacity = soilBearing - (h / 1000) * CONCRETE_DENSITY; // kN/m² left for N
+        if (!(netCapacity > 0)) {
+            return { error: 'Footing self-weight alone exceeds the allowable bearing pressure — reduce thickness or check qa' };
+        }
+        const ratio = footingType === 'rectangular' ? (aspectRatio || 1.5) : 1;
+        let B = Math.sqrt(N_SLS / (netCapacity * ratio));
+        B = Math.ceil(B / 0.05 - 1e-9) * 0.05;                   // round up to 50 mm
 
-        const L = footingType === 'rectangular' ? +(B * (aspectRatio || 1.5)).toFixed(2) : B;
+        const L = footingType === 'rectangular' ? Math.ceil(B * ratio / 0.05 - 1e-9) * 0.05 : B;
         const area = B * L; // m²
 
         // Actual footing self-weight
@@ -69,7 +73,7 @@ const FootingSolver = (() => {
 
         // Main reinforcement (both ways)
         function designRebar(Med_per_m) {
-            const K = Med_per_m * 1e6 / (1000 * d * d * fcd);
+            const K = Med_per_m * 1e6 / (1000 * d * d * fck);   // on fck — matches the z expression and K' = 0.167
             const z = Math.min(0.95 * d, d * (0.5 + Math.sqrt(Math.max(0, 0.25 - K / 1.134))));
             const As = Med_per_m * 1e6 / (fyd * z); // mm²/m
             const As_min = Math.max(0.26 * 0.30 * Math.pow(fck, 2/3) / fyk * 1000 * d, 0.0013 * 1000 * d);
@@ -94,7 +98,13 @@ const FootingSolver = (() => {
             0.18 / GAMMA_C * k_punch * Math.pow(100 * rho_avg * fck, 1/3),
             0.035 * Math.pow(k_punch, 1.5) * Math.sqrt(fck)
         );
-        const VEd_punch = NEd - q_Ed * (cw / 1000 + 4 * d / 1000) * (ch / 1000 + 4 * d / 1000);
+        // Ground pressure inside the basic control perimeter (EC2 §6.4.2, rounded
+        // corners at 2d) relieves the punching force. The old square (c + 4d)²
+        // over-stated that area — and so under-stated VEd. When the perimeter
+        // falls outside the footing there is no punching demand at 2d: report 0.
+        const A_cp = (cw * ch + 2 * (cw + ch) * 2 * d + Math.PI * (2 * d) ** 2) / 1e6; // m²
+        const perimeterOutside = (cw / 2 + 2 * d) / 1000 >= Math.min(B, L) / 2;
+        const VEd_punch = perimeterOutside ? 0 : Math.max(0, NEd - q_Ed * Math.min(A_cp, area));
         const VRd_punch = vRd_c * u1 * d / 1000; // kN
         const punchPass = VEd_punch <= VRd_punch;
 
@@ -127,6 +137,7 @@ const FootingSolver = (() => {
 
             // Shear
             VEd_punch: +VEd_punch.toFixed(1), VRd_punch: +VRd_punch.toFixed(1), punchPass,
+            punchNote: perimeterOutside ? 'Control perimeter at 2d lies outside the footing — punching not critical at 2d' : '',
             VEd_shear: +VEd_shear.toFixed(1), VRd_shear: +VRd_shear.toFixed(1), shearPass,
 
             pass,

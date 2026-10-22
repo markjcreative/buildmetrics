@@ -1,0 +1,8 @@
+{
+  "name": "buildmetrics",
+  "private": true,
+  "description": "BuildMetrics — structural engineering calculation & reporting. Node is used for testing only; production runs on PHP/Hostinger.",
+  "scripts": {
+    "test": "node --test tests/engine/*.test.js"
+  }
+}

@@ -21,23 +21,55 @@ by a qualified engineer before use for construction").
 **Status: all 15 at L1 (automated, July 2026). L2 references selected below —
 completing L2/L3 is the single highest-value task before approaching buyers.**
 
-| # | Calculator | L1 | L2 | L3 | Suggested L2 reference |
-|---|---|---|---|---|---|
-| 1 | Steel/timber beam | ✅ 2026-07-20 | ☐ | ☐ | SCI P365 worked examples; Blue Book bending tables |
-| 2 | Steel column | ✅ 2026-07-20 | ☐ | ☐ | SCI P362 Ex. 6; Blue Book compression tables |
-| 3 | Steel member | ✅ 2026-07-20 | ☐ | ☐ | SCI P362 combined N+M examples |
-| 4 | RC beam | ✅ 2026-07-20 | ☐ | ☐ | Mosley, Bungey & Hulse (7th ed) Ch.4 examples |
-| 5 | RC column | ✅ 2026-07-20 | ☐ | ☐ | Mosley Ch.9; The Concrete Centre "How to" guides |
-| 6 | RC slab | ✅ 2026-07-20 | ☐ | ☐ | The Concrete Centre worked examples (one-way slab) |
-| 7 | Pad footing | ✅ 2026-07-20 | ☐ | ☐ | The Concrete Centre foundations guide |
-| 8 | Retaining wall | ✅ 2026-07-20 | ☐ | ☐ | Craig's Soil Mechanics gravity-wall example |
-| 9 | Bolted connection | ✅ 2026-07-20 | ☐ | ☐ | SCI P398 (Green Book) bolt-group examples |
-| 10 | Timber column | ✅ 2026-07-20 | ☐ | ☐ | TRADA Eurocode 5 span/design examples |
-| 11 | Wind loading | ✅ 2026-07-20 | ☐ | ☐ | EN 1991-1-4 UK NA worked example (e.g. SCI P394) |
-| 12 | Hoarding (TWf2012) | ✅ 2026-07-20 | ☐ | ☐ | TWf2012:01 Appendix worked example |
-| 13 | Section properties | ✅ 2026-07-20 | ☐ | ☐ | Blue Book values for standard sections (exact) |
-| 14 | Bar bending schedule | ✅ 2026-07-20 | ☐ | ☐ | BS 8666 shape-code length formulae (exact) |
-| 15 | Load take-down | ✅ 2026-07-20 | ☐ | ☐ | Hand calculation (arithmetic aggregation) |
+| # | Calculator | L1 | L2a | L2b | L3 | Suggested L2b reference |
+|---|---|---|---|---|---|---|
+| 1 | Steel/timber beam | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | SCI P365 worked examples; Blue Book bending tables |
+| 2 | Steel column | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | SCI P362 Ex. 6; Blue Book compression tables |
+| 3 | Steel member | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | SCI P362 combined N+M examples |
+| 4 | RC beam | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | Mosley, Bungey & Hulse (7th ed) Ch.4 examples |
+| 5 | RC column | ✅ 2026-07-20 | ◐ app path only | ☐ | ☐ | Mosley Ch.9; The Concrete Centre "How to" guides |
+| 6 | RC slab | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | The Concrete Centre worked examples (one-way slab) |
+| 7 | Pad footing | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | The Concrete Centre foundations guide |
+| 8 | Retaining wall | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | Craig's Soil Mechanics gravity-wall example |
+| 9 | Bolted connection | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | SCI P398 (Green Book) bolt-group examples |
+| 10 | Timber column | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | TRADA Eurocode 5 span/design examples |
+| 11 | Wind loading | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | EN 1991-1-4 UK NA worked example (e.g. SCI P394) |
+| 12 | Hoarding (TWf2012) | ✅ 2026-07-20 | ◐ app path only | ☐ | ☐ | TWf2012:01 Appendix worked example |
+| 13 | Section properties | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | Blue Book values for standard sections (exact) |
+| 14 | Bar bending schedule | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | BS 8666 shape-code length formulae (exact) |
+| 15 | Load take-down | ✅ 2026-07-20 | ✅ 2026-10-22 | ☐ | ☐ | Hand calculation (arithmetic aggregation) |
+
+**L2a — automated hand-calculation suite (`npm test`, Phase 0, 22 Oct 2026).**
+`tests/engine/solvers.test.js` checks each solver against an *independent* hand
+calculation from the cited clause (not against the solver's own output), and
+`tests/engine/app-path.test.js` runs the report builder's real defaults through
+its real input mapping into each solver. 33/33 pass. This is short of L2b
+(agreement with a *published* worked example) and L3 (independent engineer),
+which remain open below.
+
+Building the suite exposed nine defects, all fixed and now under test:
+
+| Calculator | Defect | Direction |
+|---|---|---|
+| Retaining wall | Soil density read as kg/m³ when the builder sent kN/m³ → every soil force ~100× too small; failing walls reported as safe (default wall: FOS sliding 4.03 shown, true 1.31) | **Unsafe** |
+| RC beam | MRd used the lever arm of As,req, not of the steel provided — over-states capacity whenever As,prov > As,req | **Unsafe** (exposed once K was fixed) |
+| Footing | Punching deduction used a square (c+4d)² instead of the rounded §6.4.2 perimeter → VEd under-stated | **Unsafe** |
+| Load take-down | Builder sent flat fields; solver expects `floors[]` → every take-down 0 kN | Wrong (silent) |
+| RC beam / slab / footing | K computed on fcd but used with the fck-based z expression and K′ = 0.167 → As over-stated, compression steel flagged early | Conservative |
+| Steel beam | Deflection checked under ULS load; UK NA NA.2.23 uses imposed load → beams falsely failing | Conservative |
+| Steel beam | §6.2.6 Av used (tw + r) and 0.9·h·tw instead of (tw + 2r) and η·hw·tw | Conservative |
+| Steel member | Root radius hard-coded at 12 mm for every section (affects Av and c/t class) | Mixed |
+| Footing | Auto-size lagged its own self-weight → sized footing failed its own bearing check | Wrong |
+
+Also aligned: αcc = 0.85 (UK NA) in slab and footing as in beams; reinforced
+concrete 25 kN/m³ (EN 1991-1-1 Table A.1).
+
+**Known gaps (not defects in what is computed, but checks not yet performed):**
+lateral-torsional buckling is not checked in the steel beam/member solvers
+(results assume full lateral restraint); bolt bearing (Fb,Rd) is not checked in
+the connection solver; footing punching is checked at 2d only (§6.4.4 a < 2d
+iteration not yet implemented). These are Phase 2 items and must be stated as
+assumptions on reports until then.
 
 **L1 evidence.** Automated regression run 2026-07-20: 15/15 solvers produce
 finite results through the real render→calculate→report path; 31/31 block

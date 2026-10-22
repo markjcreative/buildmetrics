@@ -31,15 +31,23 @@ window.RCBeamSolver = {
         const fctm = 0.30 * Math.pow(fck, 2/3); // N/mm² — mean tensile strength (EC2 Table 3.1)
 
         // ── Flexural check ────────────────────────────────────────────────────
-        // Lever arm: z = d[0.5 + √(0.25 - K/1.134)] where K = MEd/(b·d²·fcd)
+        // K = MEd/(b·d²·fck). The lever-arm expression z = d[0.5 + √(0.25 − K/1.134)]
+        // and the singly-reinforced limit K' = 0.167 are both derived for K on
+        // fck (UK NA, αcc = 0.85, rectangular block). Using fcd here previously
+        // inflated K by fck/fcd ≈ 1.76, over-stating As,req and flagging
+        // compression steel far too early.
         const MEd_Nmm = MEd * 1e6;
-        const K = MEd_Nmm / (b * d * d * fcd);
-        const Kbal = 0.167; // balanced K for Class C concrete (EC2)
+        const K = MEd_Nmm / (b * d * d * fck);
+        const Kbal = 0.167; // K' — singly reinforced, no redistribution
         const z    = Math.min(d * (0.5 + Math.sqrt(Math.max(0.25 - K / 1.134, 0))), 0.95 * d);
         const As_req = MEd_Nmm / (fyd * z);    // mm²
 
-        // Capacity of provided steel
-        const MRd = (As_prov * fyd * z) / 1e6; // kNm
+        // Capacity of the steel actually PROVIDED: its own neutral axis and lever
+        // arm (rectangular block, λ = 0.8, η = 1), not the lever arm of As,req —
+        // that would over-state MRd whenever more steel is provided than needed.
+        const x_prov = (As_prov * fyd) / (0.8 * b * fcd);
+        const z_prov = Math.min(d - 0.4 * x_prov, 0.95 * d);
+        const MRd = (As_prov * fyd * z_prov) / 1e6; // kNm
 
         // ── Minimum reinforcement ─────────────────────────────────────────────
         const As_min = Math.max(0.26 * (fctm / fyk) * b * d, 0.0013 * b * d);

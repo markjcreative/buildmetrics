@@ -64,7 +64,10 @@ window.SteelMemberSolver = (() => {
 
         // Flange: outstand of compression flange (both sides — use one side)
         // Assuming 12 mm root fillet radius
-        const r_fillet = 12;
+        // Use the section's actual root radius (Blue Book r). A fixed 12 mm was
+        // previously used for every section, skewing both c/t classification
+        // and the §6.2.6 shear area for anything but the largest rolled sizes.
+        const r_fillet = +cfg.r > 0 ? +cfg.r : 12;
         const c_f = (b - tw - 2 * r_fillet) / 2;
         const ct_flange = c_f / tf;
 

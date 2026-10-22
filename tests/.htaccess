@@ -1,0 +1,2 @@
+# Test suite — not for public serving (repo deploys to the web root).
+Require all denied

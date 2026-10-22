@@ -409,6 +409,8 @@ const BlockRegistry = (() => {
           tf_mm: config.tf_mm || 7.8,
           A_cm2: config.A_cm2 || 32.0,
           r_mm: config.r_mm || 7.6,
+          // Characteristic loads too, so the solver can check deflection at SLS.
+          Gk: +(config.Gk ?? 5), Qk: +(config.Qk ?? 3),
           loads: [{ type: 'udl', magnitude: (1.35 * (config.Gk || 5) + 1.5 * (config.Qk || 3)), start: 0, end: config.span || 5 }],
         };
       case 'calc_column':
@@ -619,15 +621,20 @@ const BlockRegistry = (() => {
           calt: 1 + 0.001 * (config.altitude || 50),
           orography: false,
         };
-      case 'calc_load_takedown':
-        return {
-          nFloors: config.nFloors || 3,
-          floorArea: config.floorArea || 20,
-          DL: config.DL || 4,
-          LL: config.LL || 2.5,
-          roofDL: config.roofDL || 3,
-          roofLL: config.roofLL || 0.6,
-        };
+      case 'calc_load_takedown': {
+        // The solver takes a floors[] array (roof first, accumulating down to
+        // the foundation). Sending the block's flat fields directly gave it no
+        // floors at all, so every take-down reported 0 kN.
+        const n    = Math.max(0, Math.round(+config.nFloors || 3));
+        const area = +config.floorArea || 20;
+        const floors = [{ label: 'Roof', area,
+          gk_slab: +config.roofDL || 3, qk_slab: +config.roofLL || 0.6 }];
+        for (let i = n; i >= 1; i--) {
+          floors.push({ label: 'Level ' + i, area,
+            gk_slab: +config.DL || 4, qk_slab: +config.LL || 2.5 });
+        }
+        return { floors };
+      }
       default:
         return config;
     }

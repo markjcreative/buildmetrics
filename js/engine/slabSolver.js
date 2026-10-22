@@ -28,7 +28,8 @@ const SlabSolver = (() => {
         const d = h - cover - (barDia || 12) / 2; // mm effective depth
 
         // Self-weight
-        const sw_kPa = selfWeight !== false ? (h / 1000) * 24 : 0; // kN/m²
+        // Reinforced concrete 25 kN/m³ (EN 1991-1-1 Table A.1: 24 + 1 for reinforcement)
+        const sw_kPa = selfWeight !== false ? (h / 1000) * 25 : 0; // kN/m²
 
         // Total loads
         const Gk_total = gk + sw_kPa; // kN/m²
@@ -54,13 +55,12 @@ const SlabSolver = (() => {
         const MEd_Nmm = MEd * 1e6 / b; // N·mm per mm
 
         // Design moment capacity
-        const fcd = fck / GAMMA_C; // N/mm²
+        const fcd = 0.85 * fck / GAMMA_C; // N/mm² — αcc = 0.85 (UK NA), same as beams
         const fyd = fyk / GAMMA_S; // N/mm²
 
-        // K factor (EC2 Eq 6.4)
-        const K = MEd * 1e6 / (b * d * d * fcd); // dimensionless (all mm)
-        // Actually per unit width b=1000mm:
-        const K_check = MEd * 1e6 / (1000 * d * d * fcd);
+        // K = M/(b·d²·fck) per metre width — the form the lever-arm expression
+        // and K' = 0.167 are derived for (previously used fcd, inflating K).
+        const K_check = MEd * 1e6 / (1000 * d * d * fck);
         const K_limit = 0.167; // Singly reinforced limit (no redistribution)
 
         let doublyReinforced = K_check > K_limit;

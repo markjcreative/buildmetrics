@@ -34,8 +34,22 @@ window.BeamDesignSolver = {
 
         const MEd = Math.max(...statics.M.map(Math.abs));
         const VEd = Math.max(...statics.V.map(Math.abs));
-        const delta_max_m = Math.max(...statics.deflection.map(Math.abs));
-        const delta_max_mm = delta_max_m * 1000;
+
+        // Deflection is a serviceability check on CHARACTERISTIC loads, not the
+        // ULS combination. When the characteristic loads are supplied:
+        //   steel  — UK NA to EN 1993-1-1 NA.2.23: span/360 under imposed load Qk
+        //   timber — EN 1995-1-1 §7.2: characteristic combination Gk + Qk
+        // Without them (e.g. a hand-entered ULS load list) fall back to the loads
+        // given, which is conservative.
+        const Gk = +config.Gk, Qk = +config.Qk;
+        let deflStatics = statics, deflBasis = 'applied loads';
+        const wSLS = material === 'steel' ? Qk : Gk + Qk;
+        if (Number.isFinite(wSLS) && wSLS >= 0 && Number.isFinite(Qk)) {
+            deflStatics = solveBeam({ span, supports, E: E_kNm2, I: I_m4,
+                loads: [{ type: 'udl', magnitude: wSLS, start: 0, end: span }] });
+            deflBasis = material === 'steel' ? 'SLS, imposed load Qk' : 'SLS, Gk + Qk';
+        }
+        const delta_max_mm = Math.max(...deflStatics.deflection.map(Math.abs)) * 1000;
 
         // Design checks
         let checks, capacities;
@@ -50,6 +64,8 @@ window.BeamDesignSolver = {
 
         return {
             ...statics,
+            deflection: deflStatics.deflection,
+            deflBasis,
             MEd, VEd, delta_max_mm,
             capacities,
             checks,
@@ -107,9 +123,12 @@ window.BeamDesignSolver = {
         const tf_mm = config.tf_mm || 8;
         const r_mm = config.r_mm || 8;
 
-        // Shear area (EC3 6.2.6): Av ≈ A - 2b·tf + (tw+r)·tf for I-sections
+        // Shear area, EC3 §6.2.6(3)(a) rolled I/H, load parallel to web:
+        //   Av = A − 2b·tf + (tw + 2r)·tf,  but not less than η·hw·tw  (η = 1.0, UK NA)
+        // Previously used (tw + r) and 0.9·h·tw, under-stating Av by ~5%.
         const A_mm2 = (config.A_cm2 || 50) * 100;
-        const Av_mm2 = Math.max(A_mm2 - 2 * b_mm * tf_mm + (tw_mm + r_mm) * tf_mm, 0.9 * h_mm * tw_mm);
+        const hw_mm = h_mm - 2 * tf_mm;
+        const Av_mm2 = Math.max(A_mm2 - 2 * b_mm * tf_mm + (tw_mm + 2 * r_mm) * tf_mm, 1.0 * hw_mm * tw_mm);
 
         const Mc_Rd = (Wply_mm3 * fy / gammaM0) / 1e6;  // kNm
         const Vc_Rd = (Av_mm2 * (fy / Math.sqrt(3)) / gammaM0) / 1e3;  // kN

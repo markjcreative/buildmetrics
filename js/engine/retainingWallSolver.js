@@ -6,9 +6,9 @@ const RetainingWallSolver = (() => {
 
     function solve(config) {
         const {
-            H,              // Retained height (m)
+            H,              // Total wall height from underside of base to top of retained soil (m)
             surcharge,      // Surcharge on retained soil (kN/m²)
-            soilDensity,    // Retained soil density (kg/m³), typically 1800
+            soilDensity,    // Soil unit weight kN/m³ (e.g. 18) or density kg/m³ (e.g. 1800)
             phi,            // Soil internal friction angle (degrees)
             wallDensity,    // Wall concrete density (kN/m³), typically 24
             baseWidth,      // Base width B (m)
@@ -20,7 +20,13 @@ const RetainingWallSolver = (() => {
             mu,             // Base friction coefficient (default 0.5)
         } = config;
 
-        const gamma_s = soilDensity * 9.81 / 1000; // kN/m³
+        // Accept soil density as a unit weight in kN/m³ (the report builder sends
+        // 18) or a mass density in kg/m³ (the standalone page sends 1800). No real
+        // soil is lighter than ~100 kN/m³ as a mass density or heavier than ~25
+        // kN/m³ as a unit weight, so the value itself tells us which was meant.
+        // Previously 18 was always read as kg/m³, making every soil force ~100×
+        // too small and reporting failing walls as safe.
+        const gamma_s = soilDensity > 100 ? soilDensity * 9.81 / 1000 : soilDensity; // kN/m³
         const mu_use = mu || 0.5;
         const phi_rad = phi * Math.PI / 180;
 
