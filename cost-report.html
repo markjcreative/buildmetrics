@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cost Report — BuildMetrics</title>
   <meta name="description" content="Structural material quantity and cost estimator for steel, concrete and timber">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/app.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
   <style>
     .cr-page { max-width: 960px; margin: 0 auto; padding: 24px 20px 48px; }
     .cr-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
@@ -25,14 +26,14 @@
     .form-row { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
     .form-row:last-child { margin-bottom:0; }
     .form-row label { font-size:0.78rem; font-weight:600; color:var(--text-secondary); }
-    .form-row input, .form-row select { border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:0.88rem; outline:none; background:var(--bg-page); color:var(--text-primary); font-family:'Inter',sans-serif; }
-    .form-row input:focus, .form-row select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+    .form-row input, .form-row select { border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:0.88rem; outline:none; background:var(--bg-page); color:var(--text-primary); font-family:'Hanken Grotesk',sans-serif; }
+    .form-row input:focus, .form-row select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(46,110,158,0.1); }
     .form-row-inline { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
 
     .cr-results { margin-top:24px; }
     .cr-summary { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
     .cr-stat { background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; padding:14px 18px; flex:1; min-width:140px; }
-    .cr-stat-val { font-size:1.6rem; font-weight:800; color:var(--accent); font-family:'JetBrains Mono',monospace; }
+    .cr-stat-val { font-size:1.6rem; font-weight:800; color:var(--accent); font-family:'Geist Mono',monospace; }
     .cr-stat-lbl { font-size:0.72rem; color:var(--text-muted); margin-top:2px; }
 
     .cr-table-wrap { background:var(--bg-surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
@@ -42,10 +43,10 @@
     .cr-table tr:last-child td { border-bottom:none; }
     .cr-table tr.subtotal td { background:var(--bg-subtle); font-weight:700; }
     .cr-table tr.total td { background:var(--accent-light); font-weight:800; color:var(--accent); }
-    .mono { font-family:'JetBrains Mono',monospace; }
+    .mono { font-family:'Geist Mono',monospace; }
 
     .material-chip { display:inline-block; font-size:0.72rem; font-weight:600; padding:2px 8px; border-radius:4px; }
-    .chip-steel   { background:#EFF6FF; color:#1D4ED8; }
+    .chip-steel   { background:#EAF3F8; color:#255A82; }
     .chip-concrete{ background:#F3F4F6; color:#374151; }
     .chip-timber  { background:#F0FDF4; color:#166534; }
     .chip-rebar   { background:#FFF7ED; color:#C2410C; }
@@ -54,11 +55,11 @@
     .breadcrumb a { color:var(--accent); text-decoration:none; }
     .bc-sep { color:var(--text-muted); }
 
-    .btn-add { display:flex; align-items:center; gap:6px; width:100%; padding:9px 14px; border-radius:8px; border:1.5px dashed var(--border); background:transparent; color:var(--text-muted); font-size:0.83rem; font-weight:600; cursor:pointer; transition:all .15s; font-family:'Inter',sans-serif; margin-top:8px; }
+    .btn-add { display:flex; align-items:center; gap:6px; width:100%; padding:9px 14px; border-radius:8px; border:1.5px dashed var(--border); background:transparent; color:var(--text-muted); font-size:0.83rem; font-weight:600; cursor:pointer; transition:all .15s; font-family:'Hanken Grotesk',sans-serif; margin-top:8px; }
     .btn-add:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
-    .btn-primary { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:10px 20px; font-size:0.88rem; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
-    .btn-primary:hover { background:#1D4ED8; }
-    .btn-ghost { background:none; border:1px solid var(--border); border-radius:8px; padding:8px 14px; font-size:0.83rem; font-weight:600; cursor:pointer; color:var(--text-secondary); font-family:'Inter',sans-serif; }
+    .btn-primary { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:10px 20px; font-size:0.88rem; font-weight:700; cursor:pointer; font-family:'Hanken Grotesk',sans-serif; }
+    .btn-primary:hover { background:#255A82; }
+    .btn-ghost { background:none; border:1px solid var(--border); border-radius:8px; padding:8px 14px; font-size:0.83rem; font-weight:600; cursor:pointer; color:var(--text-secondary); font-family:'Hanken Grotesk',sans-serif; }
     .btn-ghost:hover { background:var(--bg-subtle); }
     .btn-del { background:none; border:none; cursor:pointer; padding:4px 8px; border-radius:6px; color:var(--text-muted); font-size:0.85rem; }
     .btn-del:hover { background:#FEE2E2; color:#DC2626; }

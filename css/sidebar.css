@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════════
    BuildMetrics — Sidebar Navigation System
-   Dark slate sidebar (#0F172A) + light page content
+   Dark slate sidebar (#0B2639) + light page content
    ══════════════════════════════════════════════════════════════ */
 
 /* ─── App Shell ────────────────────────────────────────────── */
@@ -19,7 +19,7 @@ body {
   width: 240px;
   min-width: 240px;
   height: 100vh;
-  background: #0F172A;
+  background: #0B2639;
   border-right: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
   overflow-y: auto;
@@ -148,7 +148,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 9px 12px;
-  background: #2563EB;
+  background: #2E6E9E;
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -156,11 +156,11 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   letter-spacing: -0.1px;
 }
 
-.sb-new-calc:hover { background: #1D4ED8; }
+.sb-new-calc:hover { background: #255A82; }
 
 .sb-new-calc-menu {
   display: none;
@@ -246,12 +246,12 @@ body {
 }
 
 .sb-item.sb-active {
-  background: rgba(37,99,235,0.18);
-  color: #93C5FD;
+  background: rgba(46,110,158,0.18);
+  color: #AACFDF;
 }
 
-.sb-item.sb-active .sb-icon { color: #93C5FD; }
-.sb-item.sb-active .sb-dot { box-shadow: 0 0 0 3px rgba(37,99,235,0.25); }
+.sb-item.sb-active .sb-icon { color: #AACFDF; }
+.sb-item.sb-active .sb-dot { box-shadow: 0 0 0 3px rgba(46,110,158,0.25); }
 
 .sb-icon {
   flex-shrink: 0;
@@ -316,7 +316,7 @@ body {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  background: linear-gradient(135deg, #2E6E9E, #7C3AED);
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
@@ -354,9 +354,9 @@ body {
   margin: 6px 2px 4px;
   padding: 8px 10px;
   background: linear-gradient(135deg, rgba(30,58,138,0.5), rgba(30,41,59,0.6));
-  border: 1px solid rgba(37,99,235,0.25);
+  border: 1px solid rgba(46,110,158,0.25);
   border-radius: 8px;
-  color: #93C5FD;
+  color: #AACFDF;
   font-size: 0.74rem;
   font-weight: 600;
   text-decoration: none;
@@ -366,7 +366,7 @@ body {
 
 .sb-upgrade:hover {
   background: linear-gradient(135deg, rgba(30,64,175,0.6), rgba(30,58,138,0.5));
-  border-color: rgba(37,99,235,0.45);
+  border-color: rgba(46,110,158,0.45);
   color: #BAE6FD;
 }
 
@@ -522,7 +522,7 @@ body {
   border: none;
   outline: none;
   font-size: 0.95rem;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   color: var(--text-primary);
   background: transparent;
 }

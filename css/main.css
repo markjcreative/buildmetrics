@@ -24,10 +24,10 @@
   --text-disabled: #D4D4D8;
 
   /* Accent — professional blue */
-  --accent: #2563EB;
-  --accent-hover: #1D4ED8;
-  --accent-light: #EFF6FF;
-  --accent-mid: #BFDBFE;
+  --accent: #2E6E9E;
+  --accent-hover: #255A82;
+  --accent-light: #EAF3F8;
+  --accent-mid: #AACFDF;
 
   /* Status colours */
   --green: #16A34A;
@@ -67,7 +67,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-page);
   color: var(--text-primary);
   font-size: 13.5px;
@@ -208,7 +208,7 @@ h3 {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 0.77rem;
   font-weight: 500;
   padding: 5px 11px;
@@ -325,7 +325,7 @@ h3 {
   border: 1.5px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 0.85rem;
   color: var(--text-primary);
   background: #fff;
@@ -335,7 +335,7 @@ h3 {
 }
 #input-panel select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  box-shadow: 0 0 0 3px rgba(46,110,158,0.12);
 }
 
 .inp-num {
@@ -343,7 +343,7 @@ h3 {
   border: 1.5px solid var(--border);
   border-radius: 8px;
   color: var(--text-primary);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
   font-size: 0.85rem;
   padding: 8px 10px;
   width: 100%;
@@ -353,7 +353,7 @@ h3 {
 .inp-num:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 3px rgba(46,110,158, 0.12);
 }
 
 .inp-num[readonly] {
@@ -388,7 +388,7 @@ h3 {
   cursor: pointer;
   text-align: center;
   transition: all 0.15s;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
 }
 
 .material-btn:hover {
@@ -400,7 +400,7 @@ h3 {
   background: var(--accent);
   border-color: var(--accent);
   color: white;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 2px 8px rgba(46,110,158, 0.25);
 }
 
 .mat-icon {
@@ -437,7 +437,7 @@ h3 {
   border-radius: 4px;
   color: var(--text-primary);
   font-size: 0.79rem;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   padding: 5px 8px;
   margin-bottom: 8px;
   width: 100%;
@@ -500,7 +500,7 @@ h3 {
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   font-weight: 500;
   font-size: 0.82rem;
   padding: 8px 14px;
@@ -522,8 +522,8 @@ h3 {
 }
 
 .btn-primary:active {
-  background: #1E40AF;
-  border-color: #1E40AF;
+  background: #1C4663;
+  border-color: #1C4663;
 }
 
 .btn-secondary {
@@ -573,7 +573,7 @@ h3 {
   color: var(--text-muted);
   font-size: 0.8rem;
   font-weight: 500;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   padding: 7px 14px;
   cursor: pointer;
   width: 100%;
@@ -607,12 +607,12 @@ h3 {
   font-weight: 700;
   border-radius: 9px;
   letter-spacing: -0.01em;
-  box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+  box-shadow: 0 2px 8px rgba(46,110,158,0.3);
   transition: all 0.15s;
 }
 #btn-calculate:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(37,99,235,0.4);
+  box-shadow: 0 4px 14px rgba(46,110,158,0.4);
 }
 #btn-calculate:active { transform: translateY(0); box-shadow: none; }
 #btn-calculate:disabled {
@@ -662,7 +662,7 @@ h3 {
   border-radius: var(--radius-xl);
   padding: 36px 40px;
   text-align: center;
-  background: linear-gradient(145deg, #EFF6FF 0%, #DBEAFE 60%, #EFF6FF 100%);
+  background: linear-gradient(145deg, #EAF3F8 0%, #D6E8F1 60%, #EAF3F8 100%);
   opacity: 0;
   transform: translateY(8px);
   transition: all 0.35s ease;
@@ -791,7 +791,7 @@ h3 {
 .badge-value {
   font-size: 1.25rem;
   font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
   color: var(--text-primary);
   letter-spacing: -0.5px;
 }
@@ -955,7 +955,7 @@ h3 {
 }
 
 .res-value {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
   font-size: 0.8rem;
   color: var(--text-primary);
   font-weight: 500;
@@ -1033,7 +1033,7 @@ h3 {
   padding: 9px 16px;
   font-size: 0.83rem;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s;
@@ -1173,7 +1173,7 @@ h3 {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 0.87rem;
   padding: 9px 12px;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -1182,7 +1182,7 @@ h3 {
 .modal-field input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 3px rgba(46,110,158, 0.12);
 }
 
 .modal-actions {
@@ -1253,7 +1253,7 @@ h3 {
   max-width: 380px;
   padding: 13px 18px 13px 14px;
   border-radius: var(--radius);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 0.82rem;
   font-weight: 500;
   line-height: 1.45;
@@ -1367,7 +1367,7 @@ h3 {
   border: 1px solid #FECACA;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   font-weight: 500;
   font-size: 0.82rem;
   padding: 8px 14px;

@@ -7,14 +7,13 @@
   <meta name="description" content="Eurocode 1 (EN 1991-1-4) wind loading calculator with UK National Annex. Computes peak velocity pressure, pressure coefficients and net wind forces on rectangular buildings." />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-
-  <!-- Styles -->
+<!-- Styles -->
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/calcs.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
 </head>
 
 <body>
@@ -115,23 +114,23 @@
                 <!-- Wind arrow -->
                 <defs>
                   <marker id="wind-arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                    <path d="M0,0 L0,6 L8,3 z" fill="#2563EB"/>
+                    <path d="M0,0 L0,6 L8,3 z" fill="#2E6E9E"/>
                   </marker>
                 </defs>
-                <line x1="14" y1="65" x2="42" y2="65" stroke="#2563EB" stroke-width="2" marker-end="url(#wind-arr)"/>
-                <text x="5" y="58" font-size="9" fill="#2563EB" font-family="Inter,sans-serif" font-weight="700">WIND</text>
+                <line x1="14" y1="65" x2="42" y2="65" stroke="#2E6E9E" stroke-width="2" marker-end="url(#wind-arr)"/>
+                <text x="5" y="58" font-size="9" fill="#2E6E9E" font-family="Inter,sans-serif" font-weight="700">WIND</text>
                 <!-- Building plan -->
-                <rect x="50" y="25" width="120" height="80" fill="#EFF6FF" stroke="#2563EB" stroke-width="2" rx="2"/>
+                <rect x="50" y="25" width="120" height="80" fill="#EAF3F8" stroke="#2E6E9E" stroke-width="2" rx="2"/>
                 <!-- b dimension (crosswind = height of rect) -->
                 <line x1="178" y1="25" x2="178" y2="105" stroke="#64748B" stroke-width="1.5"/>
                 <line x1="174" y1="25" x2="182" y2="25" stroke="#64748B" stroke-width="1.5"/>
                 <line x1="174" y1="105" x2="182" y2="105" stroke="#64748B" stroke-width="1.5"/>
-                <text x="184" y="68" font-size="10" fill="#1E40AF" font-family="Inter,sans-serif" font-weight="700">b</text>
+                <text x="184" y="68" font-size="10" fill="#1C4663" font-family="Inter,sans-serif" font-weight="700">b</text>
                 <!-- d dimension (along-wind = width of rect) -->
                 <line x1="50" y1="114" x2="170" y2="114" stroke="#64748B" stroke-width="1.5"/>
                 <line x1="50" y1="110" x2="50" y2="118" stroke="#64748B" stroke-width="1.5"/>
                 <line x1="170" y1="110" x2="170" y2="118" stroke="#64748B" stroke-width="1.5"/>
-                <text x="104" y="128" font-size="10" fill="#1E40AF" text-anchor="middle" font-family="Inter,sans-serif" font-weight="700">d</text>
+                <text x="104" y="128" font-size="10" fill="#1C4663" text-anchor="middle" font-family="Inter,sans-serif" font-weight="700">d</text>
                 <!-- Labels -->
                 <text x="110" y="68" font-size="9" fill="#475569" text-anchor="middle" dominant-baseline="middle" font-family="Inter,sans-serif">PLAN</text>
               </svg>
@@ -461,7 +460,7 @@
       const y = bldTop + arrowSpacing * (i + 0.5);
       wArrows += `
         <line x1="${bldLeft - arrLen}" y1="${y}" x2="${bldLeft - 4}" y2="${y}"
-              stroke="#2563EB" stroke-width="2.5" marker-end="url(#arr-blue)"/>`;
+              stroke="#2E6E9E" stroke-width="2.5" marker-end="url(#arr-blue)"/>`;
     }
 
     // Build leeward arrows (pointing right AWAY from building face, i.e. suction)
@@ -487,7 +486,7 @@
     svg.innerHTML = `
       <defs>
         <marker id="arr-blue"  markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-          <path d="M0,0 L0,6 L8,3 z" fill="#2563EB"/>
+          <path d="M0,0 L0,6 L8,3 z" fill="#2E6E9E"/>
         </marker>
         <marker id="arr-red"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
           <path d="M0,0 L0,6 L8,3 z" fill="#EF4444"/>
@@ -503,7 +502,7 @@
 
       <!-- Building elevation -->
       <rect x="${bldLeft}" y="${bldTop}" width="${bldW}" height="${bldH}"
-            fill="#EFF6FF" stroke="#2563EB" stroke-width="2.5" rx="2"/>
+            fill="#EAF3F8" stroke="#2E6E9E" stroke-width="2.5" rx="2"/>
 
       <!-- Windward arrows (blue) -->
       ${wArrows}
@@ -515,25 +514,25 @@
       ${roofArrows}
 
       <!-- WIND label with big arrow -->
-      <text x="30" y="${bldTop + bldH/2 - 18}" text-anchor="middle" font-size="10" font-weight="700" fill="#2563EB" font-family="Inter,sans-serif">WIND</text>
-      <line x1="62" y1="${bldTop + bldH/2}" x2="${bldLeft - 56}" y2="${bldTop + bldH/2}" stroke="#2563EB" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+      <text x="30" y="${bldTop + bldH/2 - 18}" text-anchor="middle" font-size="10" font-weight="700" fill="#2E6E9E" font-family="Inter,sans-serif">WIND</text>
+      <line x1="62" y1="${bldTop + bldH/2}" x2="${bldLeft - 56}" y2="${bldTop + bldH/2}" stroke="#2E6E9E" stroke-width="2.5" marker-end="url(#arr-blue)"/>
 
       <!-- Labels: h dimension -->
       <line x1="${bldRight + arrLenE + 18}" y1="${bldTop}" x2="${bldRight + arrLenE + 18}" y2="${bldBot}" stroke="#64748B" stroke-width="1"/>
       <line x1="${bldRight + arrLenE + 14}" y1="${bldTop}" x2="${bldRight + arrLenE + 22}" y2="${bldTop}" stroke="#64748B" stroke-width="1"/>
       <line x1="${bldRight + arrLenE + 14}" y1="${bldBot}" x2="${bldRight + arrLenE + 22}" y2="${bldBot}" stroke="#64748B" stroke-width="1"/>
-      <text x="${bldRight + arrLenE + 30}" y="${bldTop + bldH/2 + 4}" font-size="11" fill="#1E40AF" font-weight="700" font-family="Inter,sans-serif">h=${c.h}m</text>
+      <text x="${bldRight + arrLenE + 30}" y="${bldTop + bldH/2 + 4}" font-size="11" fill="#1C4663" font-weight="700" font-family="Inter,sans-serif">h=${c.h}m</text>
 
       <!-- Labels: d dimension -->
       <line x1="${bldLeft}" y1="${bldBot + 30}" x2="${bldRight}" y2="${bldBot + 30}" stroke="#64748B" stroke-width="1"/>
       <line x1="${bldLeft}" y1="${bldBot + 26}" x2="${bldLeft}" y2="${bldBot + 34}" stroke="#64748B" stroke-width="1"/>
       <line x1="${bldRight}" y1="${bldBot + 26}" x2="${bldRight}" y2="${bldBot + 34}" stroke="#64748B" stroke-width="1"/>
-      <text x="${bldLeft + bldW/2}" y="${bldBot + 44}" font-size="11" fill="#1E40AF" font-weight="700" text-anchor="middle" font-family="Inter,sans-serif">d=${c.d}m</text>
+      <text x="${bldLeft + bldW/2}" y="${bldBot + 44}" font-size="11" fill="#1C4663" font-weight="700" text-anchor="middle" font-family="Inter,sans-serif">d=${c.d}m</text>
 
       <!-- Pressure labels -->
-      <text x="${bldLeft - arrLen - 4}" y="${bldTop + 16}" text-anchor="end" font-size="9.5" fill="#2563EB" font-weight="700" font-family="Inter,sans-serif">+${CalcShared.fmt(r.w_D,3)}</text>
-      <text x="${bldLeft - arrLen - 4}" y="${bldTop + 28}" text-anchor="end" font-size="8" fill="#2563EB" font-family="Inter,sans-serif">kN/m²</text>
-      <text x="${bldLeft - arrLen - 4}" y="${bldTop + 40}" text-anchor="end" font-size="8" fill="#2563EB" font-family="Inter,sans-serif">Zone D</text>
+      <text x="${bldLeft - arrLen - 4}" y="${bldTop + 16}" text-anchor="end" font-size="9.5" fill="#2E6E9E" font-weight="700" font-family="Inter,sans-serif">+${CalcShared.fmt(r.w_D,3)}</text>
+      <text x="${bldLeft - arrLen - 4}" y="${bldTop + 28}" text-anchor="end" font-size="8" fill="#2E6E9E" font-family="Inter,sans-serif">kN/m²</text>
+      <text x="${bldLeft - arrLen - 4}" y="${bldTop + 40}" text-anchor="end" font-size="8" fill="#2E6E9E" font-family="Inter,sans-serif">Zone D</text>
 
       <text x="${bldRight + arrLenE + 2}" y="${bldTop + 16}" font-size="9.5" fill="#EF4444" font-weight="700" font-family="Inter,sans-serif">${CalcShared.fmt(r.w_E,3)}</text>
       <text x="${bldRight + arrLenE + 2}" y="${bldTop + 28}" font-size="8" fill="#EF4444" font-family="Inter,sans-serif">kN/m²</text>
@@ -542,12 +541,12 @@
       <text x="${bldLeft + bldW/2}" y="${bldTop - arrLenR - 8}" text-anchor="middle" font-size="9.5" fill="#D97706" font-weight="700" font-family="Inter,sans-serif">Uplift ${CalcShared.fmt(Math.abs(r.w_roof),3)} kN/m² (zone H)</text>
 
       <!-- Total force label -->
-      <text x="${bldLeft + bldW/2}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#1E40AF" font-weight="700" font-family="Inter,sans-serif">
+      <text x="${bldLeft + bldW/2}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#1C4663" font-weight="700" font-family="Inter,sans-serif">
         F<tspan font-style="italic">w</tspan> = ${CalcShared.fmt(r.Fw_kN,1)} kN (total horizontal)
       </text>
 
       <!-- Legend -->
-      <line x1="8"  y1="${H - 52}" x2="24"  y2="${H - 52}" stroke="#2563EB" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+      <line x1="8"  y1="${H - 52}" x2="24"  y2="${H - 52}" stroke="#2E6E9E" stroke-width="2.5" marker-end="url(#arr-blue)"/>
       <text x="28"  y="${H - 48}" font-size="8.5" fill="#475569" font-family="Inter,sans-serif">Pressure</text>
       <line x1="8"  y1="${H - 36}" x2="24"  y2="${H - 36}" stroke="#EF4444" stroke-width="2.5" marker-end="url(#arr-red)"/>
       <text x="28"  y="${H - 32}" font-size="8.5" fill="#475569" font-family="Inter,sans-serif">Suction</text>

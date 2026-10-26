@@ -1255,10 +1255,10 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
         <path d="M0,0 L7,3.5 L0,7 Z" fill="#DC2626"/>
       </marker>
       <marker id="aBlue${id}" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
-        <path d="M0,0 L7,3.5 L0,7 Z" fill="#2563EB"/>
+        <path d="M0,0 L7,3.5 L0,7 Z" fill="#2E6E9E"/>
       </marker>
       <marker id="aBlueUp${id}" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto-start-reverse">
-        <path d="M0,0 L7,3.5 L0,7 Z" fill="#2563EB"/>
+        <path d="M0,0 L7,3.5 L0,7 Z" fill="#2E6E9E"/>
       </marker>
       <marker id="aGray${id}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
         <path d="M0,0 L6,3 L0,6 Z" fill="#6B7280"/>
@@ -1344,7 +1344,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
       return `<line x1="${x.toFixed(1)}" y1="24" x2="${x.toFixed(1)}" y2="50" stroke="#DC2626" stroke-width="1.3" marker-end="url(#aRed${id})"/>`;
     }).join('');
 
-    return `<svg viewBox="0 0 260 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 260 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <!-- UDL top line -->
   <line x1="40" y1="24" x2="220" y2="24" stroke="#DC2626" stroke-width="1.5"/>
@@ -1368,10 +1368,10 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <circle cx="225" cy="79" r="2.5" fill="none" stroke="#1F2937" stroke-width="1.2"/>
   <line x1="205" y1="83" x2="235" y2="83" stroke="#1F2937" stroke-width="1.5"/>
   <!-- Reaction arrows (upward, blue) -->
-  <line x1="40" y1="105" x2="40" y2="63" stroke="#2563EB" stroke-width="1.8" marker-end="url(#aBlueUp${id})"/>
-  <text x="40" y="115" text-anchor="middle" font-size="7.5" fill="#2563EB" font-weight="700">R&#8336;=${RA}kN</text>
-  <line x1="220" y1="105" x2="220" y2="63" stroke="#2563EB" stroke-width="1.8" marker-end="url(#aBlueUp${id})"/>
-  <text x="220" y="115" text-anchor="middle" font-size="7.5" fill="#2563EB" font-weight="700">R&#8347;=${RB}kN</text>
+  <line x1="40" y1="105" x2="40" y2="63" stroke="#2E6E9E" stroke-width="1.8" marker-end="url(#aBlueUp${id})"/>
+  <text x="40" y="115" text-anchor="middle" font-size="7.5" fill="#2E6E9E" font-weight="700">R&#8336;=${RA}kN</text>
+  <line x1="220" y1="105" x2="220" y2="63" stroke="#2E6E9E" stroke-width="1.8" marker-end="url(#aBlueUp${id})"/>
+  <text x="220" y="115" text-anchor="middle" font-size="7.5" fill="#2E6E9E" font-weight="700">R&#8347;=${RB}kN</text>
   <!-- Dimension line -->
   <line x1="40" y1="130" x2="220" y2="130" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
   <text x="130" y="142" text-anchor="middle" font-size="8.5" fill="#6B7280">L = ${span}m</text>
@@ -1386,24 +1386,24 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     const id  = _nextDiagId();
     const MEd = r && r.MEd != null ? (+r.MEd).toFixed(1) : '?';
     const span = cfg.span || 5;
-    return `<svg viewBox="0 0 240 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 240 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="8" y="14" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">BENDING MOMENT DIAGRAM</text>
   <!-- Baseline -->
   <line x1="20" y1="95" x2="220" y2="95" stroke="#1F2937" stroke-width="1.5"/>
   <!-- BMD parabolic curve -->
-  <path d="M 20 95 Q 120 30 220 95" fill="rgba(37,99,235,0.10)" stroke="#2563EB" stroke-width="2"/>
+  <path d="M 20 95 Q 120 30 220 95" fill="rgba(46,110,158,0.10)" stroke="#2E6E9E" stroke-width="2"/>
   <!-- Peak dashed line -->
-  <line x1="120" y1="30" x2="120" y2="95" stroke="#2563EB" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="120" y1="30" x2="120" y2="95" stroke="#2E6E9E" stroke-width="1" stroke-dasharray="3,3"/>
   <!-- Peak label -->
-  <text x="126" y="56" font-size="8.5" fill="#2563EB" font-weight="700">M&#8336;&#8337; = ${MEd} kNm</text>
+  <text x="126" y="56" font-size="8.5" fill="#2E6E9E" font-weight="700">M&#8336;&#8337; = ${MEd} kNm</text>
   <!-- Zero dot markers -->
-  <circle cx="20" cy="95" r="3" fill="#2563EB"/>
-  <circle cx="220" cy="95" r="3" fill="#2563EB"/>
+  <circle cx="20" cy="95" r="3" fill="#2E6E9E"/>
+  <circle cx="220" cy="95" r="3" fill="#2E6E9E"/>
   <!-- Span label -->
   <text x="120" y="115" text-anchor="middle" font-size="8" fill="#6B7280">Simply Supported — L = ${span}m</text>
   <!-- Tension zone label -->
-  <text x="120" y="80" text-anchor="middle" font-size="7" fill="#93C5FD">+ (sagging)</text>
+  <text x="120" y="80" text-anchor="middle" font-size="7" fill="#AACFDF">+ (sagging)</text>
 </svg>`;
   }
 
@@ -1444,7 +1444,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
       `<circle cx="${bx.toFixed(1)}" cy="${topBarY}" r="${barR}" fill="#059669" stroke="#065F46" stroke-width="0.8"/>`
     ).join('');
 
-    return `<svg viewBox="0 0 280 165" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 165" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="140" y="12" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">CROSS-SECTION — b=${b}×h=${h} mm</text>
   <!-- Concrete body with hatch -->
@@ -1490,7 +1490,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
       return `<line x1="${x1}" y1="165" x2="${x2}" y2="158" stroke="#6B7280" stroke-width="1"/>`;
     }).join('');
 
-    return `<svg viewBox="0 0 280 185" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 185" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">COLUMN ELEVATION — L = ${(+length).toFixed(1)}m</text>
   <!-- Fixed base double line -->
@@ -1512,7 +1512,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <text x="178" y="97" font-size="8" fill="#6B7280" transform="rotate(90,178,97)">L = ${(+length).toFixed(1)}m</text>
   <!-- Utilisation badge -->
   <rect x="8" y="70" width="72" height="44" rx="7" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
-  <text x="44" y="90" text-anchor="middle" font-size="17" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${utilPct}%</text>
+  <text x="44" y="90" text-anchor="middle" font-size="17" fill="${pCol}" font-weight="900" font-family="'Geist Mono',monospace">${utilPct}%</text>
   <text x="44" y="105" text-anchor="middle" font-size="9" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
 </svg>`;
   }
@@ -1553,7 +1553,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
       `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${barR}" fill="#059669" stroke="#065F46" stroke-width="0.8"/>`
     ).join('');
 
-    return `<svg viewBox="0 0 280 165" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 165" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="110" y="12" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">COLUMN CROSS-SECTION — ${b}×${h} mm</text>
   <!-- Concrete with hatch -->
@@ -1572,7 +1572,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <text x="${ox-22}" y="${oy+H/2+3}" text-anchor="middle" font-size="8" fill="#6B7280" transform="rotate(-90,${ox-22},${oy+H/2+3})">h = ${h}mm</text>
   <!-- Utilisation badge -->
   <rect x="206" y="62" width="66" height="44" rx="7" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
-  <text x="239" y="82" text-anchor="middle" font-size="16" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="239" y="82" text-anchor="middle" font-size="16" fill="${pCol}" font-weight="900" font-family="'Geist Mono',monospace">${(util*100).toFixed(0)}%</text>
   <text x="239" y="97" text-anchor="middle" font-size="9" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
 </svg>`;
   }
@@ -1600,7 +1600,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     const sx = +((280 - diagW) / 2).toFixed(0);
     const sy = +((175 - diagH) / 2).toFixed(0);
 
-    return `<svg viewBox="0 0 280 175" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 175" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">RC SLAB PLAN — ${lx}×${ly}m, h=${thick}mm</text>
   <!-- Slab outline -->
@@ -1625,7 +1625,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <text x="${sx-22}" y="${sy+diagH/2+3}" text-anchor="middle" font-size="8" fill="#6B7280" transform="rotate(-90,${sx-22},${sy+diagH/2+3})">L&#432; = ${ly}m</text>
   <!-- Utilisation badge -->
   <rect x="214" y="14" width="58" height="38" rx="6" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
-  <text x="243" y="29" text-anchor="middle" font-size="13" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="243" y="29" text-anchor="middle" font-size="13" fill="${pCol}" font-weight="900" font-family="'Geist Mono',monospace">${(util*100).toFixed(0)}%</text>
   <text x="243" y="43" text-anchor="middle" font-size="8.5" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
 </svg>`;
   }
@@ -1654,10 +1654,10 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     // Bearing pressure upward arrows (blue)
     const pressArrows = Array.from({ length: 8 }, (_, i) => {
       const ax = fx + (i / 7) * footW;
-      return `<line x1="${ax.toFixed(1)}" y1="${fy+footH+22}" x2="${ax.toFixed(1)}" y2="${fy+footH+4}" stroke="#2563EB" stroke-width="1.3" marker-end="url(#aBlueUp${id})"/>`;
+      return `<line x1="${ax.toFixed(1)}" y1="${fy+footH+22}" x2="${ax.toFixed(1)}" y2="${fy+footH+4}" stroke="#2E6E9E" stroke-width="1.3" marker-end="url(#aBlueUp${id})"/>`;
     }).join('');
 
-    return `<svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">PAD FOOTING — ${B.toFixed(2)}×${B.toFixed(2)}×${D}m</text>
   <!-- Column load arrow (red, down) -->
@@ -1673,15 +1673,15 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <!-- Bearing pressure arrows (upward, blue) -->
   ${pressArrows}
   <!-- Ground baseline -->
-  <line x1="${fx}" y1="${fy+footH+26}" x2="${fx+footW}" y2="${fy+footH+26}" stroke="#2563EB" stroke-width="1"/>
+  <line x1="${fx}" y1="${fy+footH+26}" x2="${fx+footW}" y2="${fy+footH+26}" stroke="#2E6E9E" stroke-width="1"/>
   <!-- Pressure label -->
-  <text x="${fx+footW/2}" y="${fy+footH+46}" text-anchor="middle" font-size="8" fill="#2563EB" font-weight="600">&#963; = ${sigma} kN/m² (allow. ${qa} kN/m²)</text>
+  <text x="${fx+footW/2}" y="${fy+footH+46}" text-anchor="middle" font-size="8" fill="#2E6E9E" font-weight="600">&#963; = ${sigma} kN/m² (allow. ${qa} kN/m²)</text>
   <!-- B dimension -->
   <line x1="${fx}" y1="${fy+footH+56}" x2="${fx+footW}" y2="${fy+footH+56}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
   <text x="${fx+footW/2}" y="${fy+footH+68}" text-anchor="middle" font-size="8" fill="#6B7280">B = ${B.toFixed(2)}m</text>
   <!-- Utilisation badge -->
   <rect x="8" y="70" width="48" height="38" rx="6" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
-  <text x="32" y="85" text-anchor="middle" font-size="12" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="32" y="85" text-anchor="middle" font-size="12" fill="${pCol}" font-weight="900" font-family="'Geist Mono',monospace">${(util*100).toFixed(0)}%</text>
   <text x="32" y="99" text-anchor="middle" font-size="8.5" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
 </svg>`;
   }
@@ -1717,7 +1717,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     // Triangle fill outline
     const triPts = `${earthX},${stemY} ${earthX+8+5*(nEP-1)*2},${baseY} ${earthX},${baseY}`;
 
-    return `<svg viewBox="0 0 280 185" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 185" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">RETAINING WALL — H = ${H}m</text>
   <!-- Retained earth fill -->
@@ -1740,7 +1740,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <text x="${stemX-22}" y="${stemY+stemH/2+3}" text-anchor="middle" font-size="8" fill="#6B7280" transform="rotate(-90,${stemX-22},${stemY+stemH/2+3})">H = ${H}m</text>
   <!-- Utilisation badge -->
   <rect x="8" y="68" width="48" height="38" rx="6" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
-  <text x="32" y="83" text-anchor="middle" font-size="12" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="32" y="83" text-anchor="middle" font-size="12" fill="${pCol}" font-weight="900" font-family="'Geist Mono',monospace">${(util*100).toFixed(0)}%</text>
   <text x="32" y="97" text-anchor="middle" font-size="8.5" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
 </svg>`;
   }
@@ -1771,7 +1771,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     }
 
     const midY = py + plateH/2;
-    return `<svg viewBox="0 0 280 ${py+plateH+50}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 ${py+plateH+50}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">BOLTED CONNECTION — ${nBolts} BOLTS</text>
   <!-- Left plate -->
@@ -1787,7 +1787,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <text x="${px+plateW+gap/2}" y="${py+plateH+18}" text-anchor="middle" font-size="8.5" fill="#374151">V&#8336;&#8337; = ${VEd} kN / ${nBolts} bolts</text>
   <!-- Utilisation badge -->
   <rect x="${px+2*plateW+gap+18}" y="${py+plateH/2-20}" width="52" height="38" rx="6" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
-  <text x="${px+2*plateW+gap+44}" y="${py+plateH/2-4}" text-anchor="middle" font-size="12" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="${px+2*plateW+gap+44}" y="${py+plateH/2-4}" text-anchor="middle" font-size="12" fill="${pCol}" font-weight="900" font-family="'Geist Mono',monospace">${(util*100).toFixed(0)}%</text>
   <text x="${px+2*plateW+gap+44}" y="${py+plateH/2+10}" text-anchor="middle" font-size="8.5" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
 </svg>`;
   }
@@ -1816,7 +1816,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     });
     const bmdPath = `M${mx},${baseY} L${bmdPts.join(' L')} L${mx+mw},${baseY} Z`;
 
-    return `<svg viewBox="0 0 280 145" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 145" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">STEEL MEMBER — L = ${span}m</text>
   <!-- Member (dark gray I-section representation) -->
@@ -1831,16 +1831,16 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <circle cx="${mx+mw-7}" cy="${baseY+20}" r="3" fill="none" stroke="#1F2937" stroke-width="1.2"/>
   <circle cx="${mx+mw+7}" cy="${baseY+20}" r="3" fill="none" stroke="#1F2937" stroke-width="1.2"/>
   <!-- BMD (blue fill) -->
-  <path d="${bmdPath}" fill="rgba(37,99,235,0.10)" stroke="#2563EB" stroke-width="1.8"/>
+  <path d="${bmdPath}" fill="rgba(46,110,158,0.10)" stroke="#2E6E9E" stroke-width="1.8"/>
   <!-- Peak annotation -->
-  <line x1="${mx+mw/2}" y1="${baseY+bmdH}" x2="${mx+mw/2}" y2="${baseY}" stroke="#2563EB" stroke-width="0.9" stroke-dasharray="3,3"/>
-  <text x="${mx+mw/2+6}" y="${baseY+bmdH/2+14}" font-size="8.5" fill="#2563EB" font-weight="700">M&#8336;&#8337; = ${(+MEd).toFixed(1)} kNm</text>
+  <line x1="${mx+mw/2}" y1="${baseY+bmdH}" x2="${mx+mw/2}" y2="${baseY}" stroke="#2E6E9E" stroke-width="0.9" stroke-dasharray="3,3"/>
+  <text x="${mx+mw/2+6}" y="${baseY+bmdH/2+14}" font-size="8.5" fill="#2E6E9E" font-weight="700">M&#8336;&#8337; = ${(+MEd).toFixed(1)} kNm</text>
   <!-- Span label -->
   <line x1="${mx}" y1="${baseY+bmdH+22}" x2="${mx+mw}" y2="${baseY+bmdH+22}" stroke="#6B7280" stroke-width="0.9" marker-start="url(#aGrayL${id})" marker-end="url(#aGray${id})"/>
   <text x="${mx+mw/2}" y="${baseY+bmdH+34}" text-anchor="middle" font-size="8" fill="#6B7280">L = ${span}m</text>
   <!-- Utilisation badge -->
   <rect x="8" y="24" width="56" height="38" rx="6" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
-  <text x="36" y="39" text-anchor="middle" font-size="13" fill="${pCol}" font-weight="900" font-family="'JetBrains Mono',monospace">${(util*100).toFixed(0)}%</text>
+  <text x="36" y="39" text-anchor="middle" font-size="13" fill="${pCol}" font-weight="900" font-family="'Geist Mono',monospace">${(util*100).toFixed(0)}%</text>
   <text x="36" y="53" text-anchor="middle" font-size="8.5" fill="${pCol}" font-weight="700">${pass ? '✓ PASS' : '✗ FAIL'}</text>
 </svg>`;
   }
@@ -1877,13 +1877,13 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     const weDisp = (typeof we === 'number') ? we.toFixed(2) : we;
     const qpDisp = (typeof qp === 'number') ? qp.toFixed(2) : qp;
 
-    return `<svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">WIND LOADING — q<tspan baseline-shift="sub" font-size="6">p</tspan>(z) PROFILE, h = ${h}m</text>
   <!-- Building body -->
-  <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" rx="1"/>
+  <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#D6E8F1" stroke="#2E6E9E" stroke-width="2" rx="1"/>
   <!-- Roof triangle -->
-  <polygon points="${bx-3},${by} ${bx+bw/2},${by-18} ${bx+bw+3},${by}" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.5"/>
+  <polygon points="${bx-3},${by} ${bx+bw/2},${by-18} ${bx+bw+3},${by}" fill="#AACFDF" stroke="#2E6E9E" stroke-width="1.5"/>
   <!-- Ground line + hatch -->
   <line x1="${bx-55}" y1="${by+bh+1}" x2="${bx+bw+25}" y2="${by+bh+1}" stroke="#374151" stroke-width="2" opacity="0.5"/>
   ${Array.from({length:6},(_,i)=>`<line x1="${bx-55+i*20}" y1="${by+bh+1}" x2="${bx-65+i*20}" y2="${by+bh+12}" stroke="#374151" stroke-width="1.2" opacity="0.3"/>`).join('')}
@@ -1899,7 +1899,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <!-- Peak pressure badge -->
   <rect x="${bx+bw+24}" y="${by+24}" width="74" height="68" rx="6" fill="#FFF7ED" stroke="#FED7AA" stroke-width="1.5"/>
   <text x="${bx+bw+61}" y="${by+40}" font-size="8" fill="#92400E" text-anchor="middle">q<tspan baseline-shift="sub" font-size="6">p</tspan>(z) peak</text>
-  <text x="${bx+bw+61}" y="${by+57}" font-size="15" font-weight="800" fill="#B45309" text-anchor="middle" font-family="'JetBrains Mono',monospace">${qpDisp}</text>
+  <text x="${bx+bw+61}" y="${by+57}" font-size="15" font-weight="800" fill="#B45309" text-anchor="middle" font-family="'Geist Mono',monospace">${qpDisp}</text>
   <text x="${bx+bw+61}" y="${by+69}" font-size="7.5" fill="#92400E" text-anchor="middle">kN/m²</text>
   <text x="${bx+bw+61}" y="${by+84}" font-size="8" fill="#92400E" text-anchor="middle">w<tspan baseline-shift="sub" font-size="6">e</tspan> = ${weDisp}</text>
 </svg>`;
@@ -1921,7 +1921,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     for (let i = 0; i < nFloors; i++) {
       const sy = startY + i * (slabH + gap);
       const isRoof = i === 0;
-      floors += `<rect x="${cvx-slabW/2}" y="${sy}" width="${slabW}" height="${slabH}" fill="${isRoof?'#A7F3D0':'#BFDBFE'}" stroke="${isRoof?'#059669':'#2563EB'}" stroke-width="1.5" rx="2"/>`;
+      floors += `<rect x="${cvx-slabW/2}" y="${sy}" width="${slabW}" height="${slabH}" fill="${isRoof?'#A7F3D0':'#AACFDF'}" stroke="${isRoof?'#059669':'#2E6E9E'}" stroke-width="1.5" rx="2"/>`;
       floors += `<text x="${cvx}" y="${sy+slabH/2+4}" text-anchor="middle" font-size="8" fill="#374151">${isRoof?'Roof':'Floor '+(nFloors-i)}</text>`;
       if (i < nFloors - 1) {
         floors += `<line x1="${cvx}" y1="${sy+slabH}" x2="${cvx}" y2="${sy+slabH+gap}" stroke="#374151" stroke-width="3"/>`;
@@ -1931,7 +1931,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     const foundY = startY + nFloors * (slabH + gap) - gap + slabH + 4;
     const totalLabel = totalN && totalN.toFixed ? totalN.toFixed(0) : String(totalN);
 
-    return `<svg viewBox="0 0 280 ${foundY+60}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 ${foundY+60}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <text x="140" y="13" text-anchor="middle" font-size="8" fill="#6B7280" font-weight="700" letter-spacing=".05em">LOAD TAKEDOWN — ${nFloors} FLOORS</text>
   ${floors}
@@ -1939,7 +1939,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <rect x="${cvx-72}" y="${foundY}" width="144" height="18" fill="url(#concreteHatch${id})" stroke="#374151" stroke-width="2" rx="2"/>
   <!-- Resultant load arrow -->
   <line x1="${cvx}" y1="${foundY+18}" x2="${cvx}" y2="${foundY+38}" stroke="#DC2626" stroke-width="2.5" marker-end="url(#aRed${id})"/>
-  <text x="${cvx+8}" y="${foundY+32}" font-size="9" fill="#DC2626" font-weight="700" font-family="'JetBrains Mono',monospace">N = ${totalLabel} kN</text>
+  <text x="${cvx+8}" y="${foundY+32}" font-size="9" fill="#DC2626" font-weight="700" font-family="'Geist Mono',monospace">N = ${totalLabel} kN</text>
 </svg>`;
   }
 
@@ -2015,7 +2015,7 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
   <text x="${glx + 40}" y="${fY + fH + 19}" text-anchor="middle" font-size="8" fill="${fndCol}" font-weight="700">FOS = ${FOS} ${fndPass ? '✓' : '✗'}</text>
   <text x="${glx + 40}" y="${fY + fH + 28}" text-anchor="middle" font-size="6.5" fill="${fndCol}">P = ${P.toFixed(2)}m, t = ${tops.toFixed(2)}m</text>`;
 
-    return `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   ${leftPanel}
   <line x1="160" y1="20" x2="160" y2="180" stroke="#E5E7EB" stroke-width="1"/>
@@ -2034,10 +2034,10 @@ Be direct and professional. Use engineering terminology but keep it concise.`;
     const pCol = pass ? '#16A34A' : '#DC2626';
     const pBg  = pass ? '#F0FDF4' : '#FEF2F2';
     const pBdr = pass ? '#86EFAC' : '#FCA5A5';
-    return `<svg viewBox="0 0 280 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:Inter,sans-serif">
+    return `<svg viewBox="0 0 280 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#FAFAFA;border:1px solid #F3F4F6;border-radius:8px;font-family:'Hanken Grotesk',sans-serif">
   ${_svgDefs(id)}
   <rect x="90" y="25" width="100" height="52" rx="8" fill="${pBg}" stroke="${pBdr}" stroke-width="1.5"/>
-  <text x="140" y="47" text-anchor="middle" font-size="15" font-weight="900" fill="${pCol}" font-family="'JetBrains Mono',monospace">${pass?'✓ PASS':'✗ FAIL'}</text>
+  <text x="140" y="47" text-anchor="middle" font-size="15" font-weight="900" fill="${pCol}" font-family="'Geist Mono',monospace">${pass?'✓ PASS':'✗ FAIL'}</text>
   <text x="140" y="65" text-anchor="middle" font-size="11" fill="#6B7280">&#951; = ${(util*100).toFixed(1)}%</text>
 </svg>`;
   }

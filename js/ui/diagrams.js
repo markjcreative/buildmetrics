@@ -4,7 +4,7 @@
 
 const DIAGRAM_PADDING = { top: 40, right: 30, bottom: 50, left: 70 };
 const COLORS = {
-    beam: '#4F46E5',
+    beam: '#2E6E9E',
     positive: 'rgba(22,163,74,0.30)',
     negative: 'rgba(220,38,38,0.30)',
     positiveLine: '#16A34A',
@@ -19,7 +19,7 @@ const COLORS = {
     grid: 'rgba(100,116,139,0.12)',
     axis: 'rgba(100,116,139,0.45)',
     text: '#475569',
-    beamBody: '#4F46E5'
+    beamBody: '#2E6E9E'
 };
 
 // ─── Coordinate Helpers ─────────────────────────────────────────────────────
@@ -206,7 +206,7 @@ function addTooltip(svgEl, xs, ys, span, yMin, yMax, area, unit) {
         x1: 0, y1: area.y0, x2: 0, y2: area.y0 + area.h,
         stroke: 'rgba(79,70,229,0.6)', 'stroke-width': '1.5', 'stroke-dasharray': '4,2'
     });
-    const dot = createSVGElement('circle', { cx: 0, cy: 0, r: '5', fill: '#4F46E5' });
+    const dot = createSVGElement('circle', { cx: 0, cy: 0, r: '5', fill: '#2E6E9E' });
     const bg = createSVGElement('rect', { rx: '6', ry: '6', fill: '#1E293B', opacity: '0.92' });
     const txt = createSVGElement('text', { fill: '#E0E7FF', 'font-size': '11', 'font-family': 'Inter, sans-serif' });
 
@@ -278,20 +278,20 @@ function renderBMD(svgEl, results, config) {
     const mMax = Math.max(BeamUtils.arrayAbsMax(M) * 1.25, 1);
     const yMin = -mMax, yMax = mMax;
 
-    addDiagramBackground(svgEl, area, 'bmd-bg', '#EFF6FF', '#EDE9FE');
+    addDiagramBackground(svgEl, area, 'bmd-bg', '#EAF3F8', '#EDE9FE');
     svgEl.appendChild(drawGrid(svgEl, area, yMin, yMax, span));
     svgEl.appendChild(drawZeroLine(area, yMin, yMax));
 
     const { posPath, negPath } = makeSplit(xs, M, span, yMin, yMax, area);
-    svgEl.appendChild(createSVGElement('path', { d: posPath, fill: 'rgba(79,70,229,0.30)', stroke: '#4F46E5', 'stroke-width': '1.5', opacity: '1' }));
+    svgEl.appendChild(createSVGElement('path', { d: posPath, fill: 'rgba(79,70,229,0.30)', stroke: '#2E6E9E', 'stroke-width': '1.5', opacity: '1' }));
     svgEl.appendChild(createSVGElement('path', { d: negPath, fill: 'rgba(217,70,239,0.30)', stroke: '#C026D3', 'stroke-width': '1.5', opacity: '1' }));
 
     svgEl.appendChild(createSVGElement('polyline', {
         points: makePolyline(xs, M, span, yMin, yMax, area),
-        fill: 'none', stroke: '#4338CA', 'stroke-width': '2.5'
+        fill: 'none', stroke: '#255A82', 'stroke-width': '2.5'
     }));
 
-    annotateExtreme(svgEl, area, xs, M, span, yMin, yMax, '#4338CA', 3);
+    annotateExtreme(svgEl, area, xs, M, span, yMin, yMax, '#255A82', 3);
     svgEl.appendChild(drawTitle(svgEl, area, 'Bending Moment Diagram', 'M (kNm)'));
     addTooltip(svgEl, xs, M, span, yMin, yMax, area, 'kNm');
 }
@@ -334,7 +334,7 @@ function renderReactions(svgEl, results, config) {
     const defs = svgEl.querySelector('defs') || createSVGElement('defs', {});
     const beamGrad = createSVGElement('linearGradient', { id: 'beam-grad', x1: '0', y1: '0', x2: '0', y2: '1' });
     beamGrad.appendChild(createSVGElement('stop', { offset: '0%', 'stop-color': '#818CF8' }));
-    beamGrad.appendChild(createSVGElement('stop', { offset: '100%', 'stop-color': '#4F46E5' }));
+    beamGrad.appendChild(createSVGElement('stop', { offset: '100%', 'stop-color': '#2E6E9E' }));
     defs.appendChild(beamGrad);
     if (!svgEl.querySelector('defs')) svgEl.appendChild(defs);
 

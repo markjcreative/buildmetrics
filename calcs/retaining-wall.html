@@ -7,14 +7,13 @@
   <meta name="description" content="Gravity retaining wall stability calculator. Check overturning, sliding, bearing pressure and eccentricity per EC7." />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-
-  <!-- Styles -->
+<!-- Styles -->
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/calcs.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
 </head>
 
 <body>
@@ -451,11 +450,11 @@
 
       <!-- Base slab -->
       <rect x="${baseX}" y="${baseY}" width="${baseW}" height="${basePx}"
-            fill="#BFDBFE" stroke="#2563EB" stroke-width="1.5"/>
+            fill="#AACFDF" stroke="#2E6E9E" stroke-width="1.5"/>
 
       <!-- Stem -->
       <rect x="${stemX}" y="${oy}" width="${stemW}" height="${stemPx}"
-            fill="#93C5FD" stroke="#2563EB" stroke-width="1.5"/>
+            fill="#AACFDF" stroke="#2E6E9E" stroke-width="1.5"/>
 
       <!-- Soil on heel (hatching) -->
       <rect x="${stemX + stemW}" y="${groundY}" width="${heel * scale}" height="${stemPx}"
@@ -467,13 +466,13 @@
       </defs>
 
       <!-- Toe label -->
-      <text x="${baseX + toe * scale / 2}" y="${baseY + basePx + 14}" text-anchor="middle" font-size="8" fill="#1E40AF" font-family="Inter,sans-serif">${c.toeLength}m</text>
+      <text x="${baseX + toe * scale / 2}" y="${baseY + basePx + 14}" text-anchor="middle" font-size="8" fill="#1C4663" font-family="Inter,sans-serif">${c.toeLength}m</text>
       <!-- Stem label -->
-      <text x="${stemX + stemW / 2}" y="${baseY + basePx + 14}" text-anchor="middle" font-size="8" fill="#1E40AF" font-family="Inter,sans-serif">${c.stemThick}m</text>
+      <text x="${stemX + stemW / 2}" y="${baseY + basePx + 14}" text-anchor="middle" font-size="8" fill="#1C4663" font-family="Inter,sans-serif">${c.stemThick}m</text>
       <!-- Heel label -->
-      <text x="${stemX + stemW + heel * scale / 2}" y="${baseY + basePx + 14}" text-anchor="middle" font-size="8" fill="#1E40AF" font-family="Inter,sans-serif">${c.heelLength}m</text>
+      <text x="${stemX + stemW + heel * scale / 2}" y="${baseY + basePx + 14}" text-anchor="middle" font-size="8" fill="#1C4663" font-family="Inter,sans-serif">${c.heelLength}m</text>
       <!-- B label -->
-      <text x="${baseX + baseW / 2}" y="${baseY + basePx + 26}" text-anchor="middle" font-size="9" font-weight="600" fill="#2563EB" font-family="Inter,sans-serif">B = ${B}m</text>
+      <text x="${baseX + baseW / 2}" y="${baseY + basePx + 26}" text-anchor="middle" font-size="9" font-weight="600" fill="#2E6E9E" font-family="Inter,sans-serif">B = ${B}m</text>
 
       <!-- H dimension arrow -->
       <line x1="${ox - 12}" y1="${groundY}" x2="${ox - 12}" y2="${baseY}" stroke="#64748B" stroke-width="1"/>
@@ -493,7 +492,7 @@
       </defs>
 
       <!-- Legend -->
-      <rect x="8" y="${H-22}" width="10" height="10" fill="#93C5FD" stroke="#2563EB" stroke-width="1"/>
+      <rect x="8" y="${H-22}" width="10" height="10" fill="#AACFDF" stroke="#2E6E9E" stroke-width="1"/>
       <text x="22" y="${H-14}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Concrete</text>
       <line x1="76" y1="${H-17}" x2="86" y2="${H-17}" stroke="#DC2626" stroke-width="2"/>
       <text x="90" y="${H-14}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Earth pressure</text>

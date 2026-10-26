@@ -1,0 +1,18 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BuildMetrics app icon">
+  <defs>
+    <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F8805E"/><stop offset="1" stop-color="#D23F18"/></linearGradient>
+    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EEF4F7"/><stop offset="1" stop-color="#B9D1DE"/></linearGradient>
+    <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2A557A"/><stop offset="1" stop-color="#15344E"/></linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#0B2639"/>
+  <g transform="translate(64,66) scale(1.18) translate(-48,-29)">
+    <path d="M36,4 L80,4 L80,15 L65,15 L65,37 L80,37 L80,48 L36,48 L36,37 L51,37 L51,15 L36,15 Z" fill="#081A29"/>
+    <path d="M60,16 L60,27 L80,15 L80,4 Z" fill="url(#sg)"/>
+    <path d="M45,27 L45,49 L65,37 L65,15 Z" fill="url(#sg)"/>
+    <path d="M60,49 L60,60 L80,48 L80,37 Z" fill="url(#sg)"/>
+    <path d="M16,16 L60,16 L80,4 L36,4 Z" fill="url(#tg)"/>
+    <path d="M16,49 L31,49 L51,37 L36,37 Z" fill="url(#tg)"/>
+    <path d="M45,49 L60,49 L80,37 L65,37 Z" fill="url(#tg)"/>
+    <path d="M16,16 L60,16 L60,27 L45,27 L45,49 L60,49 L60,60 L16,60 L16,49 L31,49 L31,27 L16,27 Z" fill="url(#fg)"/>
+  </g>
+</svg>

@@ -7,14 +7,13 @@
   <meta name="description" content="EC2/EC7 pad footing design calculator. Size the footing, check bearing, punching shear and wide-beam shear, design reinforcement." />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-
-  <!-- Styles -->
+<!-- Styles -->
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/calcs.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
 </head>
 
 <body>
@@ -435,23 +434,23 @@
     svg.innerHTML = `
       <!-- Footing outline -->
       <rect x="${ox}" y="${oy}" width="${fw}" height="${fl}"
-            fill="#EFF6FF" stroke="#2563EB" stroke-width="2" rx="2"/>
+            fill="#EAF3F8" stroke="#2E6E9E" stroke-width="2" rx="2"/>
 
       <!-- Rebar grid (x-direction) -->
       ${Array.from({length:6}, (_,i) => {
         const y = oy + fl * (i+1) / 7;
-        return `<line x1="${ox+4}" y1="${y}" x2="${ox+fw-4}" y2="${y}" stroke="#93C5FD" stroke-width="1" stroke-dasharray="4 3"/>`;
+        return `<line x1="${ox+4}" y1="${y}" x2="${ox+fw-4}" y2="${y}" stroke="#AACFDF" stroke-width="1" stroke-dasharray="4 3"/>`;
       }).join('')}
       <!-- Rebar grid (y-direction) -->
       ${Array.from({length:6}, (_,i) => {
         const x = ox + fw * (i+1) / 7;
-        return `<line x1="${x}" y1="${oy+4}" x2="${x}" y2="${oy+fl-4}" stroke="#BFDBFE" stroke-width="1" stroke-dasharray="4 3"/>`;
+        return `<line x1="${x}" y1="${oy+4}" x2="${x}" y2="${oy+fl-4}" stroke="#AACFDF" stroke-width="1" stroke-dasharray="4 3"/>`;
       }).join('')}
 
       <!-- Column footprint -->
       <rect x="${cx_px - colW_px/2}" y="${cy_px - colH_px/2}"
             width="${colW_px}" height="${colH_px}"
-            fill="#1E40AF" rx="2"/>
+            fill="#1C4663" rx="2"/>
       <text x="${cx_px}" y="${cy_px + 4}" text-anchor="middle"
             font-size="8" fill="white" font-family="Inter,sans-serif">${c.columnW}×${c.columnW}</text>
 
@@ -460,16 +459,16 @@
       <text x="${ox + ovhX/2}" y="${oy + fl + 28}" text-anchor="middle" font-size="9" fill="#64748B" font-family="Inter,sans-serif">${CalcShared.fmt(r.B/2 - c.columnW/2000, 3)}m</text>
 
       <!-- B dimension -->
-      <text x="${W/2}" y="${oy - 10}" text-anchor="middle" font-size="10" font-weight="600" fill="#1E40AF" font-family="Inter,sans-serif">B = ${r.B}m</text>
+      <text x="${W/2}" y="${oy - 10}" text-anchor="middle" font-size="10" font-weight="600" fill="#1C4663" font-family="Inter,sans-serif">B = ${r.B}m</text>
       <!-- L dimension -->
-      <text x="${ox - 4}" y="${oy + fl/2}" text-anchor="end" dominant-baseline="middle" font-size="10" font-weight="600" fill="#1E40AF" font-family="Inter,sans-serif">L=${r.L}m</text>
+      <text x="${ox - 4}" y="${oy + fl/2}" text-anchor="end" dominant-baseline="middle" font-size="10" font-weight="600" fill="#1C4663" font-family="Inter,sans-serif">L=${r.L}m</text>
 
       <!-- Legend -->
-      <rect x="8" y="${H-22}" width="10" height="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+      <rect x="8" y="${H-22}" width="10" height="10" fill="#EAF3F8" stroke="#2E6E9E" stroke-width="1.5"/>
       <text x="22" y="${H-14}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Footing</text>
-      <rect x="68" y="${H-22}" width="10" height="10" fill="#1E40AF"/>
+      <rect x="68" y="${H-22}" width="10" height="10" fill="#1C4663"/>
       <text x="82" y="${H-14}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Column</text>
-      <line x1="128" y1="${H-17}" x2="148" y2="${H-17}" stroke="#93C5FD" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <line x1="128" y1="${H-17}" x2="148" y2="${H-17}" stroke="#AACFDF" stroke-width="1.5" stroke-dasharray="4 3"/>
       <text x="152" y="${H-14}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Rebar</text>
     `;
   }

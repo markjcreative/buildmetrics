@@ -7,7 +7,7 @@ const CmdPalette = (() => {
   // ─── Static item definitions ─────────────────────────────
   const STATIC_ITEMS = [
     // CALCULATORS
-    { group: 'Calculators', name: 'Beam Analysis',   href: '/index.html',                 icon: '🔵', color: '#EFF6FF' },
+    { group: 'Calculators', name: 'Beam Analysis',   href: '/index.html',                 icon: '🔵', color: '#EAF3F8' },
     { group: 'Calculators', name: 'Column Design',   href: '/calcs/column.html',           icon: '🟠', color: '#FFFBEB' },
     { group: 'Calculators', name: 'RC Slab',         href: '/calcs/slab.html',             icon: '🟢', color: '#F0FDF4' },
     { group: 'Calculators', name: 'Pad Footing',     href: '/calcs/footing.html',          icon: '🟣', color: '#F5F3FF' },
@@ -17,7 +17,7 @@ const CmdPalette = (() => {
     { group: 'Workspace',   name: 'Quick Tools',     href: '/tools.html',                  icon: '🔧', color: '#F4F4F5' },
     { group: 'Workspace',   name: 'Standards Library', href: '/standards.html',            icon: '📚', color: '#F4F4F5' },
     { group: 'Workspace',   name: 'Templates',       href: '/templates.html',              icon: '📋', color: '#F4F4F5' },
-    { group: 'Workspace',   name: 'Help & Support',  href: '/support.html',                icon: '💬', color: '#EFF6FF' },
+    { group: 'Workspace',   name: 'Help & Support',  href: '/support.html',                icon: '💬', color: '#EAF3F8' },
     // NAVIGATE
     { group: 'Navigate',    name: 'Dashboard',       href: '/dashboard.html',              icon: '🏠', color: '#F4F4F5' },
     { group: 'Navigate',    name: 'Projects',        href: '/projects.html',               icon: '📁', color: '#F4F4F5' },

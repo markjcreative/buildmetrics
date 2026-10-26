@@ -1,0 +1,175 @@
+/* BuildMetrics v2.1 brand layer — load AFTER main.css / app.css.
+   Source of truth: ~/Projects/buildmetrics-brand (guidelines, UI kit, App UI).
+   1. Self-hosted variable fonts (no third-party font requests — UK GDPR)
+   2. v2.1 tokens (--bm-*)
+   3. Legacy token remap, so every existing screen inherits the brand
+   4. Global type, primary actions, and the browser surfaces themed
+   Contrast verified for WCAG 2.2 AA against white, stone and canvas grounds. */
+
+/* ── 1. Fonts ───────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/archivo-latin-var.woff2') format('woff2');
+  font-weight: 100 900; font-stretch: 62% 125%; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/hanken-grotesk-latin-var.woff2') format('woff2');
+  font-weight: 100 900; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/geist-mono-latin-var.woff2') format('woff2');
+  font-weight: 100 900; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ── 2. v2.1 tokens ─────────────────────────────────────────────────────── */
+:root {
+  /* Surfaces — stone is the page, white is the working panel */
+  --bm-canvas:   #EDEAE1;
+  --bm-canvas-2: #E6E2D7;
+  --bm-panel:    #FFFFFF;
+  --bm-panel-2:  #FBFAF6;
+  --bm-panel-3:  #F4F1EA;   /* stone-50 */
+  --bm-navy:     #0B2639;
+  --bm-navy-800: #12324A;
+  --bm-navy-700: #1C4663;
+  --bm-navy-300: #7E9AAE;
+
+  /* Ink — every text value here passes 4.5:1 on canvas, stone and white */
+  --bm-ink:   #0B2639;
+  --bm-body:  #46535E;
+  --bm-muted: #5E6A75;
+  --bm-faint: #AEB7BF;       /* decorative/disabled only — not for text */
+  --bm-line:   rgba(11, 38, 57, .10);
+  --bm-line-2: rgba(11, 38, 57, .06);
+  --bm-line-strong: rgba(11, 38, 57, .22);
+
+  /* Signal — the one thing to act on. Never a status. */
+  --bm-signal:      #F04E24;
+  --bm-signal-600:  #D23F18;
+  --bm-signal-ink:  #A92E0B;
+  --bm-signal-tint: #FCE9E2;
+  --bm-signal-grad: linear-gradient(135deg, #D23F18 0%, #A92E0B 100%);
+
+  /* Sky — interactive: links, selection, focus */
+  --bm-sky:     #2E6E9E;
+  --bm-sky-700: #255A82;
+  --bm-sky-400: #6DA3C0;
+  --bm-sky-200: #AACFDF;
+  --bm-sky-50:  #EAF3F8;
+
+  /* Status — always paired with a text label, never colour alone */
+  --bm-pass: #2E7D5B;  --bm-pass-ink: #256A4C;  --bm-pass-bg: #E6F1EC;
+  --bm-fail: #B3261E;  --bm-fail-ink: #B3261E;  --bm-fail-bg: #F7E6E3;
+  --bm-caution: #8A5A00; --bm-caution-bg: #FBF1DC;
+
+  /* Form */
+  --bm-r-sm: 6px; --bm-r: 10px; --bm-r-lg: 16px; --bm-r-xl: 22px;
+  --bm-shadow-sm: 0 1px 2px rgba(11,38,57,.05), 0 8px 20px -14px rgba(11,38,57,.22);
+  --bm-shadow:    0 2px 4px rgba(11,38,57,.04), 0 22px 44px -26px rgba(11,38,57,.30);
+  --bm-shadow-lg: 0 4px 10px rgba(11,38,57,.06), 0 36px 70px -34px rgba(11,38,57,.38);
+  --bm-ease: cubic-bezier(.32,.72,0,1);
+
+  /* Type */
+  --bm-font-display: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --bm-font-ui:      'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --bm-font-mono:    'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ── 3. Legacy remap (main.css / app.css names) ── */
+  --bg-page:    var(--bm-canvas);
+  --bg-surface: var(--bm-panel);
+  --bg-subtle:  var(--bm-panel-3);
+  --bg-muted:   var(--bm-canvas-2);
+  --border:        var(--bm-line);
+  --border-strong: var(--bm-line-strong);
+  --text-primary:   var(--bm-ink);
+  --text-secondary: var(--bm-body);
+  --text-muted:     var(--bm-muted);
+  --text-disabled:  var(--bm-faint);
+  /* The old single blue did buttons, links, focus and badges alike. It becomes
+     the interactive sky; only primary actions take signal (section 4). */
+  --accent:       var(--bm-sky);
+  --accent-hover: var(--bm-sky-700);
+  --accent-light: var(--bm-sky-50);
+  --accent-mid:   var(--bm-sky-200);
+  --green: var(--bm-pass);  --green-tint: var(--bm-pass-bg);
+  --red:   var(--bm-fail);  --red-tint:   var(--bm-fail-bg);
+  --amber: var(--bm-caution); --amber-tint: var(--bm-caution-bg);
+  --purple: var(--bm-navy-700); --purple-tint: var(--bm-sky-50);
+  --radius-sm: var(--bm-r-sm); --radius: var(--bm-r);
+  --radius-lg: var(--bm-r-lg); --radius-xl: var(--bm-r-xl);
+  --shadow-sm: var(--bm-shadow-sm); --shadow: var(--bm-shadow); --shadow-lg: var(--bm-shadow-lg);
+
+  color-scheme: light;
+  accent-color: var(--bm-sky);
+}
+
+/* ── 4. Global type & surfaces ──────────────────────────────────────────── */
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--bm-font-ui);
+  font-size: 14px;
+  color: var(--bm-ink);
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(170,207,223,.35), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(240,78,36,.06), transparent 60%),
+    var(--bm-canvas);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'ss01' 1;
+}
+button, input, select, textarea { font-family: inherit; }
+
+/* Page titles carry the architectural display voice; labels and data never do. */
+h1, .page-hero h1, .proj-topbar h1 {
+  font-family: var(--bm-font-display);
+  font-stretch: 112%;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--bm-ink);
+  text-wrap: balance;
+}
+h2, h3 { color: var(--bm-ink); text-wrap: balance; letter-spacing: -0.012em; }
+
+/* Numbers live in Geist Mono — a core brand tell. */
+code, kbd, samp, pre, .mono, .num, [class*="-val"], .stat-value, td.num {
+  font-family: var(--bm-font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+table { font-variant-numeric: tabular-nums; }
+
+/* Primary actions — the single signal per view */
+.btn-primary, .btn.btn-primary, .btn-auth, .sp-submit, .bm-btn-primary {
+  background: var(--bm-signal-grad) !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 8px 18px -10px rgba(169,46,11,.65);
+  transition: transform .18s var(--bm-ease), box-shadow .18s var(--bm-ease), filter .18s;
+}
+.btn-primary:hover, .btn.btn-primary:hover, .btn-auth:hover, .sp-submit:hover, .bm-btn-primary:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 12px 24px -12px rgba(169,46,11,.7);
+}
+.btn-primary:active, .btn-auth:active, .sp-submit:active, .bm-btn-primary:active { transform: translateY(1px); }
+.btn-primary:disabled, .btn-auth:disabled, .sp-submit:disabled { filter: saturate(.4); opacity: .7; }
+
+/* Links */
+a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+/* Browser surfaces — themed, not defaulted */
+::selection { background: rgba(46,110,158,.22); color: var(--bm-ink); }
+input, textarea { caret-color: var(--bm-signal-600); }
+:focus-visible { outline: 2px solid var(--bm-sky); outline-offset: 2px; border-radius: 4px; }
+* { scrollbar-width: thin; scrollbar-color: rgba(11,38,57,.22) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(11,38,57,.20); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: rgba(11,38,57,.34); }
+::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Beam Design — BuildMetrics</title>
   <meta name="description" content="Steel and timber beam design to Eurocode 3 and Eurocode 5">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css" />
+<link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/calcs.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
   <style>
     .mat-tabs { display:flex; gap:4px; margin-bottom:16px; }
     .mat-tab  { flex:1; padding:8px; border-radius:8px; border:1.5px solid var(--border); font-size:0.82rem; font-weight:600; cursor:pointer; text-align:center; background:var(--bg-surface); color:var(--text-secondary); transition:all .15s; }
@@ -277,7 +278,7 @@
               <div class="util-gauge-wrap">
                 <svg class="util-gauge-svg" width="90" height="90" viewBox="0 0 90 90">
                   <circle class="util-ring-track" cx="45" cy="45" r="36"/>
-                  <circle class="util-ring-fill" id="util-ring" cx="45" cy="45" r="36" stroke-dasharray="0 226" stroke="#2563EB"/>
+                  <circle class="util-ring-fill" id="util-ring" cx="45" cy="45" r="36" stroke-dasharray="0 226" stroke="#2E6E9E"/>
                 </svg>
                 <div class="util-gauge-info">
                   <div class="util-gauge-value" id="util-pct">—%</div>
@@ -819,7 +820,7 @@ function resetCalc() {
   document.getElementById('summary-body').innerHTML = '';
   const ring = document.getElementById('util-ring');
   ring.setAttribute('stroke-dasharray', '0 226');
-  ring.setAttribute('stroke', '#2563EB');
+  ring.setAttribute('stroke', '#2E6E9E');
   initLoads();
   autoCombo();
 }

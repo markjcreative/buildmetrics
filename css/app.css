@@ -22,7 +22,7 @@ body {
 /* ─── Header ─────────────────────────────────────────────── */
 #app-header {
   height: 56px;
-  background: #0F172A;
+  background: #0B2639;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   position: sticky;
   top: 0;
@@ -82,8 +82,8 @@ body {
 }
 
 .header-nav a.hn-active {
-  color: #60A5FA;
-  background: rgba(37,99,235,0.18);
+  color: #6DA3C0;
+  background: rgba(46,110,158,0.18);
 }
 
 /* Right section */
@@ -113,7 +113,7 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  background: linear-gradient(135deg, #2E6E9E, #7C3AED);
   color: #fff;
   font-size: 0.68rem;
   font-weight: 700;
@@ -135,7 +135,7 @@ body {
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 6px;
   color: rgba(255,255,255,0.5);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 0.75rem;
   font-weight: 500;
   padding: 5px 10px;
@@ -173,7 +173,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: #0F172A;
+  background: #0B2639;
   overflow-y: auto;
   opacity: 0;
   transform: translateY(-6px);
@@ -301,7 +301,7 @@ body {
 #mobile-drawer .mnd-footer-avatar {
   width: 36px; height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg,#2563EB,#7C3AED);
+  background: linear-gradient(135deg,#2E6E9E,#7C3AED);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
@@ -322,7 +322,7 @@ body {
   font-weight: 500;
   padding: 7px 12px;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   transition: background 0.15s;
   white-space: nowrap;
 }
@@ -477,8 +477,8 @@ body {
   box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
-.chip-beam      { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
-.chip-beam:hover { background: #DBEAFE; }
+.chip-beam      { background: #EAF3F8; color: #2E6E9E; border-color: #AACFDF; }
+.chip-beam:hover { background: #D6E8F1; }
 .chip-column    { background: #FFFBEB; color: #D97706; border-color: #FDE68A; }
 .chip-column:hover { background: #FEF3C7; }
 .chip-slab      { background: #F0FDF4; color: #16A34A; border-color: #BBF7D0; }

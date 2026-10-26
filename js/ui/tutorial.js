@@ -24,20 +24,20 @@ const Tutorial = (() => {
                 box-shadow:0 18px 50px rgba(15,23,42,0.24), 0 2px 6px rgba(15,23,42,0.08);
                 padding:22px 22px 16px;width:340px;max-width:calc(100vw - 28px);
                 transition:top .28s cubic-bezier(.4,0,.2,1),left .28s cubic-bezier(.4,0,.2,1);
-                font-family:'Inter',system-ui,sans-serif;
+                font-family:'Hanken Grotesk',system-ui,sans-serif;
             }
             #tut-bar-track{position:absolute;top:0;left:0;right:0;height:4px;
                 background:#EEF2F7;border-radius:16px 16px 0 0;overflow:hidden}
-            #tut-bar{height:100%;width:0;background:#2563EB;transition:width .3s ease}
+            #tut-bar{height:100%;width:0;background:#2E6E9E;transition:width .3s ease}
             #tut-arrow{position:absolute;width:14px;height:14px;background:#fff;
                 transform:rotate(45deg);border-radius:2px;display:none;z-index:-1}
             #tut-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:6px 0 8px}
-            #tut-title{font-size:1.02rem;font-weight:750;color:#0F172A;line-height:1.3;letter-spacing:-.01em}
+            #tut-title{font-size:1.02rem;font-weight:750;color:#0B2639;line-height:1.3;letter-spacing:-.01em}
             #tut-close{background:none;border:none;cursor:pointer;font-size:1rem;color:#94A3B8;
                 padding:4px;margin:-4px -4px 0 0;line-height:1;border-radius:6px;flex-shrink:0}
-            #tut-close:hover{color:#0F172A;background:#F1F5F9}
+            #tut-close:hover{color:#0B2639;background:#F1F5F9}
             #tut-body{font-size:0.875rem;color:#475569;line-height:1.62;margin-bottom:18px}
-            #tut-body strong{color:#0F172A;font-weight:650}
+            #tut-body strong{color:#0B2639;font-weight:650}
             #tut-footer{display:flex;align-items:center;justify-content:space-between;gap:12px}
             #tut-actions{display:flex;align-items:center;gap:8px}
             #tut-counter{font-size:0.75rem;font-weight:600;color:#94A3B8;white-space:nowrap;margin-right:2px;font-variant-numeric:tabular-nums}
@@ -50,13 +50,13 @@ const Tutorial = (() => {
             }
             #tut-prev{background:#F1F5F9;color:#334155}
             #tut-prev:hover{background:#E2E8F0}
-            #tut-next{background:#2563EB;color:#fff}
-            #tut-next:hover{background:#1D4ED8}
+            #tut-next{background:#2E6E9E;color:#fff}
+            #tut-next:hover{background:#255A82}
             .tut-highlight{
-                outline:3px solid #2563EB !important;
+                outline:3px solid #2E6E9E !important;
                 outline-offset:3px !important;
                 border-radius:8px !important;
-                box-shadow:0 0 0 6px rgba(37,99,235,0.18) !important;
+                box-shadow:0 0 0 6px rgba(46,110,158,0.18) !important;
                 position:relative;z-index:8002 !important;
                 transition:outline-offset .2s ease;
             }

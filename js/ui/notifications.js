@@ -10,7 +10,7 @@ const Notifications = (() => {
   /* ── Notification type catalogue ── */
   const TYPES = {
     // Auth & Account
-    WELCOME:           { icon: '👋', color: '#3B82F6', label: 'Welcome' },
+    WELCOME:           { icon: '👋', color: '#6DA3C0', label: 'Welcome' },
     EMAIL_VERIFY:      { icon: '✉️', color: '#F59E0B', label: 'Verify Email' },
     PASSWORD_RESET:    { icon: '🔑', color: '#F59E0B', label: 'Password Reset' },
     PASSWORD_CHANGED:  { icon: '🔒', color: '#10B981', label: 'Security' },
@@ -18,24 +18,24 @@ const Notifications = (() => {
     PROFILE_UPDATED:   { icon: '👤', color: '#6366F1', label: 'Profile' },
     // Projects
     PROJECT_CREATED:   { icon: '📁', color: '#10B981', label: 'Project' },
-    PROJECT_SHARED:    { icon: '🔗', color: '#3B82F6', label: 'Shared With You' },
+    PROJECT_SHARED:    { icon: '🔗', color: '#6DA3C0', label: 'Shared With You' },
     PROJECT_UPDATED:   { icon: '✏️', color: '#6366F1', label: 'Project Updated' },
     PROJECT_DEADLINE:  { icon: '⏰', color: '#F59E0B', label: 'Deadline' },
     PROJECT_COMPLETED: { icon: '✅', color: '#10B981', label: 'Completed' },
     PROJECT_DELETED:   { icon: '🗑️', color: '#EF4444', label: 'Project Deleted' },
     // Calculations
-    CALC_SAVED:        { icon: '💾', color: '#3B82F6', label: 'Saved' },
+    CALC_SAVED:        { icon: '💾', color: '#6DA3C0', label: 'Saved' },
     CALC_PASS:         { icon: '✅', color: '#10B981', label: 'Check Passed' },
     CALC_FAIL:         { icon: '⚠️', color: '#EF4444', label: 'Check Failed' },
-    CALC_SHARED:       { icon: '🔗', color: '#3B82F6', label: 'Calc Shared' },
+    CALC_SHARED:       { icon: '🔗', color: '#6DA3C0', label: 'Calc Shared' },
     CALC_ERROR:        { icon: '❌', color: '#EF4444', label: 'Error' },
     // Reports
     PDF_READY:         { icon: '📄', color: '#10B981', label: 'PDF Ready' },
     PDF_DOWNLOADED:    { icon: '⬇️', color: '#6366F1', label: 'Downloaded' },
-    REPORT_SHARED:     { icon: '📤', color: '#3B82F6', label: 'Report Shared' },
+    REPORT_SHARED:     { icon: '📤', color: '#6DA3C0', label: 'Report Shared' },
     WORD_READY:        { icon: '📝', color: '#10B981', label: 'Word Export' },
     // Collaboration
-    TEAM_INVITE:       { icon: '📨', color: '#3B82F6', label: 'Team Invite' },
+    TEAM_INVITE:       { icon: '📨', color: '#6DA3C0', label: 'Team Invite' },
     TEAM_JOINED:       { icon: '🤝', color: '#10B981', label: 'Team' },
     TEAM_REMOVED:      { icon: '👋', color: '#EF4444', label: 'Team' },
     COMMENT_ADDED:     { icon: '💬', color: '#6366F1', label: 'New Comment' },
@@ -48,12 +48,12 @@ const Notifications = (() => {
     PAYMENT_FAILED:    { icon: '💳', color: '#EF4444', label: 'Payment Failed' },
     INVOICE_READY:     { icon: '🧾', color: '#6366F1', label: 'Invoice' },
     // System
-    NEW_CALCULATOR:    { icon: '🧮', color: '#3B82F6', label: 'New Calculator' },
+    NEW_CALCULATOR:    { icon: '🧮', color: '#6DA3C0', label: 'New Calculator' },
     MAINTENANCE:       { icon: '🔧', color: '#F59E0B', label: 'Maintenance' },
     FEATURE_UPDATE:    { icon: '🚀', color: '#6366F1', label: 'New Feature' },
-    WEEKLY_DIGEST:     { icon: '📊', color: '#3B82F6', label: 'Weekly Summary' },
+    WEEKLY_DIGEST:     { icon: '📊', color: '#6DA3C0', label: 'Weekly Summary' },
     // Waitlist
-    WAITLIST_CONFIRMED:{ icon: '📋', color: '#3B82F6', label: 'Waitlist' },
+    WAITLIST_CONFIRMED:{ icon: '📋', color: '#6DA3C0', label: 'Waitlist' },
     ACCESS_GRANTED:    { icon: '🎉', color: '#10B981', label: 'Access Granted' },
   };
 
@@ -312,9 +312,9 @@ const Notifications = (() => {
         color: #fff;
       }
       .notif-btn.active {
-        background: rgba(37,99,235,0.25);
+        background: rgba(46,110,158,0.25);
         border-color: rgba(96,165,250,0.5);
-        color: #60A5FA;
+        color: #6DA3C0;
       }
       .notif-badge {
         position: absolute; top: -5px; right: -5px;
@@ -323,7 +323,7 @@ const Notifications = (() => {
         min-width: 16px; height: 16px;
         display: flex; align-items: center; justify-content: center;
         padding: 0 4px;
-        border: 2px solid #0F172A;
+        border: 2px solid #0B2639;
         line-height: 1;
       }
 
@@ -359,24 +359,24 @@ const Notifications = (() => {
         display: flex; align-items: center; gap: 8px;
       }
       .notif-panel-title {
-        font-size: 0.88rem; font-weight: 700; color: #0F172A;
-        font-family: 'Inter', sans-serif;
+        font-size: 0.88rem; font-weight: 700; color: #0B2639;
+        font-family: 'Hanken Grotesk', sans-serif;
       }
       .notif-panel-count {
         font-size: 0.68rem; font-weight: 700;
-        background: #EFF6FF; color: #2563EB;
+        background: #EAF3F8; color: #2E6E9E;
         border-radius: 100px; padding: 2px 7px;
         display: none;
       }
       .notif-mark-all {
         font-size: 0.75rem; font-weight: 500;
-        color: #2563EB; background: none; border: none;
-        cursor: pointer; font-family: 'Inter', sans-serif;
+        color: #2E6E9E; background: none; border: none;
+        cursor: pointer; font-family: 'Hanken Grotesk', sans-serif;
         padding: 4px 8px; border-radius: 6px;
         transition: background 0.12s;
         white-space: nowrap;
       }
-      .notif-mark-all:hover { background: #EFF6FF; }
+      .notif-mark-all:hover { background: #EAF3F8; }
 
       /* ── List ── */
       .notif-list {
@@ -404,7 +404,7 @@ const Notifications = (() => {
       .notif-item.unread::before {
         content: '';
         position: absolute; left: 0; top: 0; bottom: 0;
-        width: 3px; background: #2563EB;
+        width: 3px; background: #2E6E9E;
         border-radius: 0 2px 2px 0;
       }
       .notif-item-icon {
@@ -415,8 +415,8 @@ const Notifications = (() => {
       }
       .notif-item-body { flex: 1; min-width: 0; }
       .notif-item-title {
-        font-size: 0.8rem; font-weight: 600; color: #0F172A;
-        font-family: 'Inter', sans-serif;
+        font-size: 0.8rem; font-weight: 600; color: #0B2639;
+        font-family: 'Hanken Grotesk', sans-serif;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       .notif-item-msg {
@@ -424,15 +424,15 @@ const Notifications = (() => {
         margin-top: 2px; line-height: 1.45;
         display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
         overflow: hidden;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Hanken Grotesk', sans-serif;
       }
       .notif-item-age {
         font-size: 0.7rem; color: #94A3B8; margin-top: 4px;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Hanken Grotesk', sans-serif;
       }
       .notif-unread-dot {
         width: 7px; height: 7px; border-radius: 50%;
-        background: #2563EB; flex-shrink: 0; margin-top: 5px;
+        background: #2E6E9E; flex-shrink: 0; margin-top: 5px;
       }
 
       /* ── Empty state ── */
@@ -443,7 +443,7 @@ const Notifications = (() => {
       .notif-empty span { font-size: 2rem; }
       .notif-empty p {
         font-size: 0.82rem; color: #94A3B8; margin: 0;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Hanken Grotesk', sans-serif;
       }
 
       /* ── Footer ── */
@@ -456,20 +456,20 @@ const Notifications = (() => {
       .notif-clear-btn {
         font-size: 0.75rem; font-weight: 500;
         color: #94A3B8; background: none; border: none;
-        cursor: pointer; font-family: 'Inter', sans-serif;
+        cursor: pointer; font-family: 'Hanken Grotesk', sans-serif;
         padding: 4px 6px; border-radius: 5px;
         transition: color 0.12s, background 0.12s;
       }
       .notif-clear-btn:hover { color: #EF4444; background: #FEF2F2; }
       .notif-view-all {
         font-size: 0.78rem; font-weight: 600;
-        color: #2563EB; text-decoration: none;
+        color: #2E6E9E; text-decoration: none;
         padding: 4px 10px; border-radius: 6px;
-        background: #EFF6FF;
+        background: #EAF3F8;
         transition: background 0.12s;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Hanken Grotesk', sans-serif;
       }
-      .notif-view-all:hover { background: #DBEAFE; }
+      .notif-view-all:hover { background: #D6E8F1; }
 
       /* ── Toasts (keep dark — visible on any page) ── */
       #bm-notif-toasts {
@@ -496,12 +496,12 @@ const Notifications = (() => {
       .bm-notif-toast-body { flex: 1; min-width: 0; }
       .bm-notif-toast-title {
         font-size: 0.8rem; font-weight: 700; color: #fff;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Hanken Grotesk', sans-serif;
       }
       .bm-notif-toast-msg {
         font-size: 0.77rem; color: rgba(255,255,255,0.55);
         margin-top: 2px; line-height: 1.4;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Hanken Grotesk', sans-serif;
       }
       .bm-notif-toast-close {
         background: none; border: none;

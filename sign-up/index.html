@@ -4,20 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Account — BuildMetrics</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <script src="/js/auth/auth.js"></script>
+<script src="/js/auth/auth.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{--accent:#2563EB;--accent-hover:#1D4ED8;--border:#E4E4E7;--text-primary:#09090B;--text-secondary:#52525B;--text-muted:#A1A1AA;--red:#DC2626;--red-tint:#FEF2F2;--radius:10px}
-    body{font-family:'Inter',-apple-system,sans-serif;background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 50%,#0F172A 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;-webkit-font-smoothing:antialiased}
+    :root{--accent:#2E6E9E;--accent-hover:#255A82;--border:#E4E4E7;--text-primary:#09090B;--text-secondary:#52525B;--text-muted:#A1A1AA;--red:#DC2626;--red-tint:#FEF2F2;--radius:10px}
+    body{font-family:'Hanken Grotesk',-apple-system,sans-serif;background:linear-gradient(135deg,#0B2639 0%,#1C4663 50%,#0B2639 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;-webkit-font-smoothing:antialiased}
 
-    .auth-card{width:100%;max-width:440px;background:#fff;border-radius:16px;border-top:3px solid #2563EB;box-shadow:0 24px 80px rgba(0,0,0,0.4);padding:36px 40px 40px}
+    .auth-card{width:100%;max-width:440px;background:#fff;border-radius:16px;border-top:3px solid #2E6E9E;box-shadow:0 24px 80px rgba(0,0,0,0.4);padding:36px 40px 40px}
 
     .auth-brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:20px;text-align:center}
-    .auth-brand-logo{width:52px;height:52px;background:#2563EB;border-radius:14px;display:flex;align-items:center;justify-content:center}
+    .auth-brand-logo{width:52px;height:52px;background:#2E6E9E;border-radius:14px;display:flex;align-items:center;justify-content:center}
     .auth-brand-name{font-size:1.3rem;font-weight:800;color:var(--text-primary);letter-spacing:-0.5px}
     .auth-brand-sub{font-size:0.75rem;color:var(--text-muted);letter-spacing:0.4px;text-transform:uppercase;margin-top:2px}
 
@@ -29,16 +26,16 @@
     .auth-form{display:flex;flex-direction:column;gap:14px}
     .form-group{display:flex;flex-direction:column;gap:6px}
     .form-group label{font-size:0.78rem;font-weight:600;color:var(--text-secondary)}
-    .form-group input{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-family:'Inter',sans-serif;font-size:0.9rem;padding:11px 14px;transition:border-color .15s,box-shadow .15s;outline:none}
-    .form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+    .form-group input{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-family:'Hanken Grotesk',sans-serif;font-size:0.9rem;padding:11px 14px;transition:border-color .15s,box-shadow .15s;outline:none}
+    .form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(46,110,158,.12)}
     .form-group input::placeholder{color:var(--text-muted)}
     .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-    .btn-auth{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;transition:all .15s;margin-top:4px}
-    .btn-auth:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,.30)}
+    .btn-auth{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Hanken Grotesk',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;transition:all .15s;margin-top:4px}
+    .btn-auth:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 16px rgba(46,110,158,.30)}
     .btn-auth:disabled{opacity:.65;cursor:not-allowed;transform:none}
 
-    .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;color:var(--text-primary);cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s}
+    .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Hanken Grotesk',sans-serif;font-size:0.9rem;font-weight:600;color:var(--text-primary);cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s}
     .btn-google:hover{border-color:#CBD5E1;background:#F8FAFC;box-shadow:0 2px 8px rgba(0,0,0,.07)}
     .btn-google:disabled{opacity:.6;cursor:not-allowed}
 
@@ -56,6 +53,8 @@
     @media(max-width:480px){.auth-card{padding:28px 24px 32px}.form-row-2{grid-template-columns:1fr}}
     @keyframes spin{to{transform:rotate(360deg)}}
   </style>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
 </head>
 <body>
 

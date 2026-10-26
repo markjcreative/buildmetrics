@@ -32,11 +32,11 @@ const Support = (() => {
   function _injectStyles() {
     if (document.getElementById('bm-support-styles')) return;
     const css = `
-      #bm-support-root{position:fixed;right:20px;bottom:20px;z-index:9000;font-family:'Inter',system-ui,sans-serif}
-      #bm-support-launch{display:flex;align-items:center;gap:9px;background:#2563EB;color:#fff;border:none;
+      #bm-support-root{position:fixed;right:20px;bottom:20px;z-index:9000;font-family:'Hanken Grotesk',system-ui,sans-serif}
+      #bm-support-launch{display:flex;align-items:center;gap:9px;background:#2E6E9E;color:#fff;border:none;
         border-radius:999px;padding:12px 18px 12px 15px;font-size:14px;font-weight:600;cursor:pointer;
-        box-shadow:0 8px 26px rgba(37,99,235,.4);transition:transform .14s,box-shadow .14s,background .14s}
-      #bm-support-launch:hover{background:#1D4ED8;transform:translateY(-1px);box-shadow:0 12px 30px rgba(37,99,235,.5)}
+        box-shadow:0 8px 26px rgba(46,110,158,.4);transition:transform .14s,box-shadow .14s,background .14s}
+      #bm-support-launch:hover{background:#255A82;transform:translateY(-1px);box-shadow:0 12px 30px rgba(46,110,158,.5)}
       #bm-support-launch svg{width:19px;height:19px;flex-shrink:0}
       #bm-support-launch.hidden{display:none}
 
@@ -46,7 +46,7 @@ const Support = (() => {
       #bm-support-panel.open{display:flex;animation:bmSupIn .18s ease}
       @keyframes bmSupIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
-      .bm-sup-head{background:linear-gradient(135deg,#0F172A,#1E3A8A);color:#fff;padding:18px 18px 20px}
+      .bm-sup-head{background:linear-gradient(135deg,#0B2639,#1C4663);color:#fff;padding:18px 18px 20px}
       .bm-sup-head h3{margin:0;font-size:16px;font-weight:700}
       .bm-sup-head p{margin:4px 0 0;font-size:12.5px;color:rgba(255,255,255,.72)}
       .bm-sup-close{position:absolute;top:14px;right:14px;width:28px;height:28px;border:none;border-radius:8px;
@@ -60,17 +60,17 @@ const Support = (() => {
         color:#1D2939;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:inherit}
       .bm-faq-q:hover{background:#F9FAFB}
       .bm-faq-q .chev{transition:transform .18s;color:#98A2B3;flex-shrink:0}
-      .bm-faq.open .bm-faq-q{color:#2563EB}
-      .bm-faq.open .bm-faq-q .chev{transform:rotate(180deg);color:#2563EB}
+      .bm-faq.open .bm-faq-q{color:#2E6E9E}
+      .bm-faq.open .bm-faq-q .chev{transform:rotate(180deg);color:#2E6E9E}
       .bm-faq-a{display:none;padding:0 14px 13px;font-size:13px;line-height:1.6;color:#475467}
       .bm-faq.open .bm-faq-a{display:block}
-      .bm-faq-a a{color:#2563EB}
+      .bm-faq-a a{color:#2E6E9E}
 
       .bm-sup-foot{padding:12px 16px 16px;border-top:1px solid #F2F4F7;display:flex;flex-direction:column;gap:8px;background:#fff}
       .bm-sup-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:10px;
         font-size:13.5px;font-weight:600;text-decoration:none;cursor:pointer;font-family:inherit;border:none;transition:filter .14s,background .14s}
-      .bm-sup-btn.primary{background:#2563EB;color:#fff}
-      .bm-sup-btn.primary:hover{background:#1D4ED8}
+      .bm-sup-btn.primary{background:#2E6E9E;color:#fff}
+      .bm-sup-btn.primary:hover{background:#255A82}
       .bm-sup-btn.ghost{background:#F2F4F7;color:#344054}
       .bm-sup-btn.ghost:hover{background:#EAECF0}
       .bm-sup-btn svg{width:16px;height:16px}

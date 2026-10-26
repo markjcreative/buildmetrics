@@ -10,7 +10,13 @@ const Projects = (() => {
     /* ── Fetch all projects ──────────────────────────────────── */
     async function getAll() {
         const res = await fetch(API, { headers: headers() });
-        if (!res.ok) return [];
+        // Throw rather than return [] — an empty list would tell an engineer
+        // who HAS projects that they have none. Every caller catches this.
+        if (!res.ok) {
+            const err = new Error('Could not load projects (HTTP ' + res.status + ')');
+            err.status = res.status;
+            throw err;
+        }
         return res.json();
     }
 
@@ -21,7 +27,7 @@ const Projects = (() => {
     }
 
     /* ── Create project ──────────────────────────────────────── */
-    async function create(name, description = '', colour = '#2563EB') {
+    async function create(name, description = '', colour = '#2E6E9E') {
         const res  = await fetch(API, {
             method: 'POST', headers: headers(),
             body: JSON.stringify({ name, description, colour }),

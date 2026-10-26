@@ -70,7 +70,7 @@
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--text-primary);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Geist Mono', monospace;
     line-height: 1.1;
 }
 
@@ -125,7 +125,7 @@
 .calc-results-table tr:hover td { background: var(--bg-subtle); }
 
 .calc-results-table td.mono {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Geist Mono', monospace;
     font-size: 0.82rem;
     font-weight: 600;
 }
@@ -160,7 +160,7 @@
     position: absolute;
     bottom: 0; left: 0; right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #2563EB, #7C3AED);
+    background: linear-gradient(90deg, #2E6E9E, #7C3AED);
     border-radius: 0;
 }
 
@@ -224,12 +224,12 @@
     outline: none;
     width: 100%;
     box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
 }
 
 .form-row input:focus, .form-row select:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    box-shadow: 0 0 0 3px rgba(46,110,158,0.12);
 }
 
 .form-row .unit-tag {
@@ -266,7 +266,7 @@
     padding: 10px 16px;
     font-size: 0.875rem;
     font-weight: 600;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     cursor: pointer;
     border-radius: 9px;
     transition: all 0.15s;
@@ -275,18 +275,18 @@
 }
 
 .calc-action-bar .btn-primary {
-    background: #2563EB;
+    background: #2E6E9E;
     color: #fff;
-    border: 1.5px solid #2563EB;
+    border: 1.5px solid #2E6E9E;
     flex: 1;
     font-size: 0.9rem;
     padding: 11px 16px;
-    box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+    box-shadow: 0 2px 8px rgba(46,110,158,0.3);
 }
 .calc-action-bar .btn-primary:hover {
-    background: #1D4ED8;
-    border-color: #1D4ED8;
-    box-shadow: 0 4px 14px rgba(37,99,235,0.4);
+    background: #255A82;
+    border-color: #255A82;
+    box-shadow: 0 4px 14px rgba(46,110,158,0.4);
     transform: translateY(-1px);
 }
 .calc-action-bar .btn-primary:active {
@@ -397,7 +397,7 @@
 .util-gauge-value {
     font-size: 1.6rem;
     font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Geist Mono', monospace;
     line-height: 1;
 }
 

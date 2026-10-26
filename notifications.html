@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Notifications — BuildMetrics</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/main.css" />
+<link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
   <style>
     .notif-page-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -36,8 +36,8 @@
       cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
       position: relative;
     }
-    .nf-item:hover { border-color: #BFDBFE; box-shadow: var(--shadow); }
-    .nf-item.unread { background: #EFF6FF; border-color: #BFDBFE; }
+    .nf-item:hover { border-color: #AACFDF; box-shadow: var(--shadow); }
+    .nf-item.unread { background: #EAF3F8; border-color: #AACFDF; }
     .nf-item.unread::before {
       content: ''; position: absolute; left: 0; top: 0; bottom: 0;
       width: 3px; background: var(--accent); border-radius: 3px 0 0 3px;
@@ -97,7 +97,7 @@
 
       <!-- Summary bar -->
       <div class="notif-summary-bar" id="summary-bar">
-        <div class="nsb-stat"><div class="nsb-dot" style="background:#3B82F6"></div><span><strong id="cnt-all">0</strong> total</span></div>
+        <div class="nsb-stat"><div class="nsb-dot" style="background:#6DA3C0"></div><span><strong id="cnt-all">0</strong> total</span></div>
         <div class="nsb-stat"><div class="nsb-dot" style="background:#EF4444"></div><span><strong id="cnt-unread">0</strong> unread</span></div>
         <div class="nsb-stat"><div class="nsb-dot" style="background:#10B981"></div><span><strong id="cnt-calcs">0</strong> calculations</span></div>
         <div class="nsb-stat"><div class="nsb-dot" style="background:#6366F1"></div><span><strong id="cnt-projects">0</strong> projects</span></div>
@@ -136,24 +136,24 @@
 <script>
 const STORAGE_KEY = 'bm_notifications';
 const TYPE_META = {
-  WELCOME:{icon:'👋',color:'#3B82F6',cat:'Auth'},EMAIL_VERIFY:{icon:'✉️',color:'#F59E0B',cat:'Auth'},
+  WELCOME:{icon:'👋',color:'#6DA3C0',cat:'Auth'},EMAIL_VERIFY:{icon:'✉️',color:'#F59E0B',cat:'Auth'},
   PASSWORD_RESET:{icon:'🔑',color:'#F59E0B',cat:'Auth'},PASSWORD_CHANGED:{icon:'🔒',color:'#10B981',cat:'Auth'},
   LOGIN_NEW_DEVICE:{icon:'📱',color:'#EF4444',cat:'Auth'},PROFILE_UPDATED:{icon:'👤',color:'#6366F1',cat:'Auth'},
-  PROJECT_CREATED:{icon:'📁',color:'#10B981',cat:'Projects'},PROJECT_SHARED:{icon:'🔗',color:'#3B82F6',cat:'Projects'},
+  PROJECT_CREATED:{icon:'📁',color:'#10B981',cat:'Projects'},PROJECT_SHARED:{icon:'🔗',color:'#6DA3C0',cat:'Projects'},
   PROJECT_UPDATED:{icon:'✏️',color:'#6366F1',cat:'Projects'},PROJECT_DEADLINE:{icon:'⏰',color:'#F59E0B',cat:'Projects'},
   PROJECT_COMPLETED:{icon:'✅',color:'#10B981',cat:'Projects'},PROJECT_DELETED:{icon:'🗑️',color:'#EF4444',cat:'Projects'},
-  CALC_SAVED:{icon:'💾',color:'#3B82F6',cat:'Calcs'},CALC_PASS:{icon:'✅',color:'#10B981',cat:'Calcs'},
-  CALC_FAIL:{icon:'⚠️',color:'#EF4444',cat:'Calcs'},CALC_SHARED:{icon:'🔗',color:'#3B82F6',cat:'Calcs'},
+  CALC_SAVED:{icon:'💾',color:'#6DA3C0',cat:'Calcs'},CALC_PASS:{icon:'✅',color:'#10B981',cat:'Calcs'},
+  CALC_FAIL:{icon:'⚠️',color:'#EF4444',cat:'Calcs'},CALC_SHARED:{icon:'🔗',color:'#6DA3C0',cat:'Calcs'},
   CALC_ERROR:{icon:'❌',color:'#EF4444',cat:'Calcs'},
   PDF_READY:{icon:'📄',color:'#10B981',cat:'Reports'},PDF_DOWNLOADED:{icon:'⬇️',color:'#6366F1',cat:'Reports'},
-  REPORT_SHARED:{icon:'📤',color:'#3B82F6',cat:'Reports'},WORD_READY:{icon:'📝',color:'#10B981',cat:'Reports'},
-  TEAM_INVITE:{icon:'📨',color:'#3B82F6',cat:'Collab'},TEAM_JOINED:{icon:'🤝',color:'#10B981',cat:'Collab'},
+  REPORT_SHARED:{icon:'📤',color:'#6DA3C0',cat:'Reports'},WORD_READY:{icon:'📝',color:'#10B981',cat:'Reports'},
+  TEAM_INVITE:{icon:'📨',color:'#6DA3C0',cat:'Collab'},TEAM_JOINED:{icon:'🤝',color:'#10B981',cat:'Collab'},
   TEAM_REMOVED:{icon:'👋',color:'#EF4444',cat:'Collab'},COMMENT_ADDED:{icon:'💬',color:'#6366F1',cat:'Collab'},
   MENTION:{icon:'@',color:'#F59E0B',cat:'Collab'},REVIEW_REQUESTED:{icon:'👁️',color:'#6366F1',cat:'Collab'},
   // BuildMetrics is free — there are no plan, payment or invoice notifications.
-  NEW_CALCULATOR:{icon:'🧮',color:'#3B82F6',cat:'System'},MAINTENANCE:{icon:'🔧',color:'#F59E0B',cat:'System'},
-  FEATURE_UPDATE:{icon:'🚀',color:'#6366F1',cat:'System'},WEEKLY_DIGEST:{icon:'📊',color:'#3B82F6',cat:'System'},
-  WAITLIST_CONFIRMED:{icon:'📋',color:'#3B82F6',cat:'System'},ACCESS_GRANTED:{icon:'🎉',color:'#10B981',cat:'System'},
+  NEW_CALCULATOR:{icon:'🧮',color:'#6DA3C0',cat:'System'},MAINTENANCE:{icon:'🔧',color:'#F59E0B',cat:'System'},
+  FEATURE_UPDATE:{icon:'🚀',color:'#6366F1',cat:'System'},WEEKLY_DIGEST:{icon:'📊',color:'#6DA3C0',cat:'System'},
+  WAITLIST_CONFIRMED:{icon:'📋',color:'#6DA3C0',cat:'System'},ACCESS_GRANTED:{icon:'🎉',color:'#10B981',cat:'System'},
 };
 
 function load() {
@@ -192,7 +192,7 @@ function render() {
     return;
   }
   container.innerHTML = list.map(n => {
-    const m = TYPE_META[n.type] || {icon:'🔔',color:'#3B82F6',cat:'System'};
+    const m = TYPE_META[n.type] || {icon:'🔔',color:'#6DA3C0',cat:'System'};
     return '<div class="nf-item'+(n.read?'':' unread')+'" data-id="'+n.id+'" '+(n.link?'onclick="window.location.href=\''+n.link+'\'"':'')+'>'+
       '<div class="nf-icon" style="background:'+m.color+'18;color:'+m.color+'">'+m.icon+'</div>'+
       '<div class="nf-body">'+

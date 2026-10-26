@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Report Templates — BuildMetrics</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/main.css" />
+<link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
   <style>
     /* ── Template gallery ── */
     .tpl-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
@@ -25,7 +25,7 @@
     .tpl-card-blocks-bar { height:4px; background:var(--accent-light); border-radius:99px; margin-top:4px; }
     .tpl-card-blocks-bar-fill { height:100%; background:var(--accent); border-radius:99px; }
     .tpl-use-btn { width:100%; padding:10px; background:var(--accent); color:white; border:none; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer; margin-top:4px; }
-    .tpl-use-btn:hover { background:#1d4ed8; }
+    .tpl-use-btn:hover { background:#255A82; }
 
     /* ── Filter tabs ── */
     .filter-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:28px; }
@@ -381,7 +381,7 @@ function renderProjectList() {
     return;
   }
 
-  var COLORS = ['#2563EB','#16A34A','#D97706','#7C3AED','#DC2626','#0891B2','#BE185D','#059669'];
+  var COLORS = ['#2E6E9E','#16A34A','#D97706','#7C3AED','#DC2626','#0891B2','#BE185D','#059669'];
   list.innerHTML = projects.map(function(p, i) {
     var color = p.color || COLORS[i % COLORS.length];
     return (

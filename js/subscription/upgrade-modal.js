@@ -55,7 +55,7 @@ const UpgradeModal = (() => {
             }
 
             .um-header {
-                background: linear-gradient(135deg, #3730A3 0%, #4F46E5 50%, #7C3AED 100%);
+                background: linear-gradient(135deg, #3730A3 0%, #2E6E9E 50%, #7C3AED 100%);
                 padding: 30px 32px 26px;
                 color: white;
                 position: relative;
@@ -74,13 +74,13 @@ const UpgradeModal = (() => {
                 font-weight: 800;
                 letter-spacing: -0.4px;
                 margin-bottom: 6px;
-                font-family: 'Inter', sans-serif;
+                font-family: 'Hanken Grotesk', sans-serif;
             }
             .um-sub {
                 font-size: 0.85rem;
                 color: rgba(255,255,255,0.80);
                 line-height: 1.55;
-                font-family: 'Inter', sans-serif;
+                font-family: 'Hanken Grotesk', sans-serif;
             }
             .um-sub strong { color: #C7D2FE; }
             .um-close {
@@ -111,7 +111,7 @@ const UpgradeModal = (() => {
                 border: 1.5px solid #E5E5E5;
             }
             .um-plan.pro {
-                border-color: #4F46E5;
+                border-color: #2E6E9E;
                 background: #F5F4FF;
             }
             .um-plan-label {
@@ -121,23 +121,23 @@ const UpgradeModal = (() => {
                 text-transform: uppercase;
                 color: #A3A3A3;
                 margin-bottom: 8px;
-                font-family: 'Inter', sans-serif;
+                font-family: 'Hanken Grotesk', sans-serif;
             }
-            .um-plan.pro .um-plan-label { color: #4F46E5; }
+            .um-plan.pro .um-plan-label { color: #2E6E9E; }
             .um-plan-price {
                 font-size: 1.5rem;
                 font-weight: 800;
                 color: #111;
                 letter-spacing: -0.5px;
                 margin-bottom: 2px;
-                font-family: 'Inter', sans-serif;
+                font-family: 'Hanken Grotesk', sans-serif;
             }
-            .um-plan.pro .um-plan-price { color: #4F46E5; }
+            .um-plan.pro .um-plan-price { color: #2E6E9E; }
             .um-plan-period {
                 font-size: 0.75rem;
                 color: #A3A3A3;
                 margin-bottom: 14px;
-                font-family: 'Inter', sans-serif;
+                font-family: 'Hanken Grotesk', sans-serif;
             }
             .um-plan-features {
                 list-style: none;
@@ -152,7 +152,7 @@ const UpgradeModal = (() => {
                 display: flex;
                 align-items: flex-start;
                 gap: 7px;
-                font-family: 'Inter', sans-serif;
+                font-family: 'Hanken Grotesk', sans-serif;
                 line-height: 1.4;
             }
             .um-plan-features li .check { color: #16A34A; font-size: 12px; flex-shrink: 0; margin-top: 1px; }
@@ -167,11 +167,11 @@ const UpgradeModal = (() => {
             .um-btn-upgrade {
                 width: 100%;
                 padding: 14px;
-                background: linear-gradient(135deg, #4F46E5, #7C3AED);
+                background: linear-gradient(135deg, #2E6E9E, #7C3AED);
                 color: white;
                 border: none;
                 border-radius: 10px;
-                font-family: 'Inter', sans-serif;
+                font-family: 'Hanken Grotesk', sans-serif;
                 font-size: 0.95rem;
                 font-weight: 700;
                 cursor: pointer;
@@ -190,7 +190,7 @@ const UpgradeModal = (() => {
                 color: #A3A3A3;
                 border: 1.5px solid #E5E5E5;
                 border-radius: 10px;
-                font-family: 'Inter', sans-serif;
+                font-family: 'Hanken Grotesk', sans-serif;
                 font-size: 0.85rem;
                 font-weight: 600;
                 cursor: pointer;

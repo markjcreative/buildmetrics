@@ -313,7 +313,7 @@ const PreviewRenderer = (() => {
       return `<tr>
         <td>${esc(c.element || c.label)}</td>
         <td>${esc(c.checkName)}</td>
-        <td style="text-align:right;font-family:'Courier New',monospace">${util}</td>
+        <td style="text-align:right;font-family:'Geist Mono',ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums">${util}</td>
         <td class="${pass ? 'rp-pass' : 'rp-fail'}">${pass ? '✓ PASS' : '✗ FAIL'}</td>
       </tr>`;
     }).join('');
@@ -431,9 +431,9 @@ const PreviewRenderer = (() => {
     const utilStr   = typeof util === 'number' ? util.toFixed(3) : '—';
     return `<tr>
       <td>${esc(check)}</td>
-      <td style="font-family:'Courier New',monospace">${fmt(Ed, 2)} ${esc(EdUnit || '')}</td>
-      <td style="font-family:'Courier New',monospace">${fmt(Rd, 2)} ${esc(RdUnit || '')}</td>
-      <td style="font-family:'Courier New',monospace;text-align:right">${utilStr}</td>
+      <td style="font-family:'Geist Mono',ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums">${fmt(Ed, 2)} ${esc(EdUnit || '')}</td>
+      <td style="font-family:'Geist Mono',ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums">${fmt(Rd, 2)} ${esc(RdUnit || '')}</td>
+      <td style="font-family:'Geist Mono',ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;text-align:right">${utilStr}</td>
       <td class="${passClass}">${passText}</td>
     </tr>`;
   }
@@ -945,7 +945,7 @@ const PreviewRenderer = (() => {
             <div style="height:100%;width:${pct}%;background:${color};"></div>
           </div>
         </td>
-        <td style="width:40pt;font-family:'Courier New',monospace;font-size:8pt;text-align:right">${(c.util).toFixed(3)}</td>
+        <td style="width:40pt;font-family:'Geist Mono',ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:8pt;text-align:right">${(c.util).toFixed(3)}</td>
       </tr>`;
     }).join('');
 
@@ -962,15 +962,21 @@ const PreviewRenderer = (() => {
   function _getPreviewCSS() {
     return `
 :root {
-  --bm-navy:#0F172A; --bm-blue:#2563EB; --bm-blue-dark:#1D4ED8;
-  --bm-blue-light:#EFF6FF; --bm-blue-mid:#DBEAFE;
-  --bm-text:#1F2937; --bm-muted:#64748B; --bm-border:#E2E8F0; --bm-line:#EEF2F7;
-  --bm-green:#15803D; --bm-green-bg:#DCFCE7; --bm-green-bd:#BBF7D0;
-  --bm-red:#B91C1C; --bm-red-bg:#FEE2E2; --bm-red-bd:#FECACA;
-  --bm-amber:#B45309; --bm-amber-bg:#FEF3C7;
+  /* v2.1 report palette — navy structure, sky detail, on white paper. Signal
+     orange is deliberately absent: the report wears the client's letterhead,
+     not BuildMetrics' accent. Status colours are always labelled. */
+  --bm-navy:#0B2639; --bm-blue:#2E6E9E; --bm-blue-dark:#1C4663;
+  --bm-blue-light:#EAF3F8; --bm-blue-mid:#D6E8F1;
+  --bm-text:#0B2639; --bm-muted:#5E6A75; --bm-border:#E3E0D8; --bm-line:#EFECE5;
+  --bm-green:#256A4C; --bm-green-bg:#E6F1EC; --bm-green-bd:#C4DFD2;
+  --bm-red:#B3261E; --bm-red-bg:#F7E6E3; --bm-red-bd:#EBC7C1;
+  --bm-amber:#8A5A00; --bm-amber-bg:#FBF1DC;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-size:10pt; color:var(--bm-text); background:#E2E8F0; }
+@font-face{font-family:'Hanken Grotesk';src:url('/fonts/hanken-grotesk-latin-var.woff2') format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:'Archivo';src:url('/fonts/archivo-latin-var.woff2') format('woff2');font-weight:100 900;font-stretch:62% 125%;font-display:swap}
+@font-face{font-family:'Geist Mono';src:url('/fonts/geist-mono-latin-var.woff2') format('woff2');font-weight:100 900;font-display:swap}
+body { font-family:'Hanken Grotesk',-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-size:10pt; color:var(--bm-text); background:#E6E2D7; }
 
 .rp-page {
   width:210mm; min-height:297mm; background:#fff;

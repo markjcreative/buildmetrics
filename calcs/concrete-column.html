@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Concrete Column Design — BuildMetrics</title>
   <meta name="description" content="Reinforced concrete column design to Eurocode 2 — axial capacity, slenderness, interaction">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css" />
+<link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/calcs.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
   <style>
     .util-ring-track { fill:none; stroke:#E4E4E7; stroke-width:8; }
     .util-ring-fill  { fill:none; stroke-width:8; stroke-linecap:round; transform:rotate(-90deg); transform-origin:50% 50%; transition:stroke-dasharray .6s ease, stroke .4s; }
@@ -216,7 +217,7 @@
               <div class="util-gauge-wrap">
                 <svg class="util-gauge-svg" width="90" height="90" viewBox="0 0 90 90">
                   <circle class="util-ring-track" cx="45" cy="45" r="36"/>
-                  <circle class="util-ring-fill" id="util-ring" cx="45" cy="45" r="36" stroke-dasharray="0 226" stroke="#2563EB"/>
+                  <circle class="util-ring-fill" id="util-ring" cx="45" cy="45" r="36" stroke-dasharray="0 226" stroke="#2E6E9E"/>
                 </svg>
                 <div class="util-gauge-info">
                   <div class="util-gauge-value" id="util-pct">—%</div>
@@ -265,7 +266,7 @@
             <div style="padding:12px">
               <svg id="nm-svg" width="100%" viewBox="0 0 380 280" style="display:block;max-width:100%;background:var(--bg-subtle);border-radius:8px;overflow:visible"></svg>
               <div style="display:flex;gap:16px;margin-top:8px;font-size:0.73rem;color:var(--text-muted)">
-                <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:2px;background:#4F46E5;border-radius:1px"></span> Capacity envelope</span>
+                <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:24px;height:2px;background:#2E6E9E;border-radius:1px"></span> Capacity envelope</span>
                 <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;background:#DC2626;border-radius:50%"></span> Design point (N<sub>Ed</sub>, M<sub>Ed</sub>)</span>
               </div>
             </div>
@@ -576,7 +577,7 @@ function renderNMDiagram(r, config) {
     <!-- Capacity envelope fill -->
     <path d="${pathD}" fill="rgba(79,70,229,0.08)" stroke="none"/>
     <!-- Capacity envelope line -->
-    <path d="${pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.M).toFixed(1)},${sy(p.N).toFixed(1)}`).join(' ')}" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+    <path d="${pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.M).toFixed(1)},${sy(p.N).toFixed(1)}`).join(' ')}" fill="none" stroke="#2E6E9E" stroke-width="2" stroke-linejoin="round"/>
     <!-- Design point -->
     <circle cx="${sx(r.MEd).toFixed(1)}" cy="${sy(r.NEd).toFixed(1)}" r="5" fill="${dotColor}" stroke="white" stroke-width="1.5"/>
     <!-- Design point label -->

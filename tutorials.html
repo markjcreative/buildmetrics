@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorials — BuildMetrics</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/main.css" />
+<link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
   <style>
     .tut-layout {
       display: grid;
@@ -53,7 +53,7 @@
       border-left: 3px solid transparent;
     }
     .tut-nav-item:hover { background: var(--bg-subtle); color: var(--text-primary); }
-    .tut-nav-item.active { background: #EFF6FF; color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+    .tut-nav-item.active { background: #EAF3F8; color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
     .tut-nav-dot {
       width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
     }
@@ -140,7 +140,7 @@
       font-size: 0.83rem;
       line-height: 1.6;
     }
-    .tut-tip.info { background: #EFF6FF; border: 1.5px solid #BFDBFE; color: #1D4ED8; }
+    .tut-tip.info { background: #EAF3F8; border: 1.5px solid #AACFDF; color: #255A82; }
     .tut-tip.warn { background: #FFFBEB; border: 1.5px solid #FDE68A; color: #92400E; }
     .tut-tip.success { background: #F0FDF4; border: 1.5px solid #BBF7D0; color: #166534; }
     .tut-tip-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
@@ -152,12 +152,12 @@
       font-size: 0.83rem; font-weight: 600; color: var(--accent);
       text-decoration: none;
       padding: 8px 16px; border-radius: 8px;
-      border: 1.5px solid #BFDBFE;
-      background: #EFF6FF;
+      border: 1.5px solid #AACFDF;
+      background: #EAF3F8;
       transition: background 0.15s, border-color 0.15s;
       margin-top: 4px;
     }
-    .tut-action:hover { background: #DBEAFE; border-color: var(--accent); }
+    .tut-action:hover { background: #D6E8F1; border-color: var(--accent); }
     .tut-action svg { width: 14px; height: 14px; }
 
     /* Check results table */
@@ -214,7 +214,7 @@
           <div class="tut-sidebar-divider"></div>
           <div class="tut-sidebar-title">Calculators</div>
           <a class="tut-nav-item" href="#beam" onclick="setActive(this)">
-            <div class="tut-nav-dot" style="background:#1E40AF"></div>Beam Design
+            <div class="tut-nav-dot" style="background:#1C4663"></div>Beam Design
           </a>
           <a class="tut-nav-item" href="#rc-beam" onclick="setActive(this)">
             <div class="tut-nav-dot" style="background:#7C2D12"></div>RC Beam
@@ -356,8 +356,8 @@
           <!-- ── Beam Design ── -->
           <section class="tut-section" id="beam">
             <div class="tut-section-header">
-              <div class="tut-section-icon" style="background:#DBEAFE">
-                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="#1E40AF" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="#1E40AF" stroke-width="1.6" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>
+              <div class="tut-section-icon" style="background:#D6E8F1">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="#1C4663" stroke-width="2" stroke-linecap="round" d="M3 12h18"/><path stroke="#1C4663" stroke-width="1.6" stroke-linecap="round" d="M5 8v8M19 8v8"/></svg>
               </div>
               <div>
                 <h2>Beam Design</h2>
@@ -731,7 +731,7 @@
           <!-- ── RC Slab ── -->
           <section class="tut-section" id="slab">
             <div class="tut-section-header">
-              <div class="tut-section-icon" style="background:#DBEAFE">
+              <div class="tut-section-icon" style="background:#D6E8F1">
                 <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="1" stroke="#1E3A5F" stroke-width="1.8"/><path stroke="#1E3A5F" stroke-width="1.4" stroke-linecap="round" d="M7 9v6M12 9v6M17 9v6"/></svg>
               </div>
               <div>

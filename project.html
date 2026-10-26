@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project — BuildMetrics</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/app.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
   <style>
     /* Layout */
     .pj-layout { display:flex; min-height:calc(100vh - 56px); }
@@ -42,7 +43,7 @@
       transition: box-shadow .15s, border-color .15s, transform .1s;
       overflow: hidden;
     }
-    .report-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.09); border-color: #BFDBFE; transform: translateY(-1px); }
+    .report-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.09); border-color: #AACFDF; transform: translateY(-1px); }
     .report-card-body { padding: 18px 20px 14px; }
     .report-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; gap:12px; }
     .report-card-title { font-size:1rem; font-weight:700; color:#1F2937; margin-bottom:3px; }
@@ -67,8 +68,8 @@
       height: 32px;
     }
     .rep-btn:hover { background: #F3F4F6; border-color: #D1D5DB; }
-    .rep-btn.primary { background: #2563EB; color: white; border-color: #2563EB; box-shadow: 0 2px 6px rgba(37,99,235,.25); }
-    .rep-btn.primary:hover { background: #1D4ED8; border-color:#1D4ED8; transform: translateY(-1px); }
+    .rep-btn.primary { background: #2E6E9E; color: white; border-color: #2E6E9E; box-shadow: 0 2px 6px rgba(46,110,158,.25); }
+    .rep-btn.primary:hover { background: #255A82; border-color:#255A82; transform: translateY(-1px); }
     .rep-btn.export { background:#F0FDF4; color:#166534; border-color:#BBF7D0; }
     .rep-btn.export:hover { background:#DCFCE7; }
     .rep-btn.danger { background:none; border:none; color:#9CA3AF; padding:6px 8px; height:32px; }
@@ -96,7 +97,7 @@
       opacity: 0.8;
     }
     .rep-status.draft    { background:#FFFBEB; color:#92400E; border: 1px solid #FCD34D; }
-    .rep-status.review   { background:#EFF6FF; color:#1E40AF; border: 1px solid #93C5FD; }
+    .rep-status.review   { background:#EAF3F8; color:#1C4663; border: 1px solid #AACFDF; }
     .rep-status.checked  { background:#F0FDF4; color:#166534; border: 1px solid #86EFAC; }
     .rep-status.approved { background:#F0FDF4; color:#065F46; border: 1px solid #34D399; }
     .rep-status.exported { background:#F5F3FF; color:#5B21B6; border: 1px solid #A78BFA; }
@@ -130,7 +131,7 @@
     .tpl-item-desc { font-size:0.78rem; color:var(--text-secondary); line-height:1.4; margin-bottom:6px; }
     .tpl-item-blocks { font-size:0.72rem; color:var(--text-muted); margin-bottom:10px; }
     .tpl-use-btn { width:100%; padding:9px; background:var(--accent); color:white; border:none; border-radius:8px; font-size:0.83rem; font-weight:600; cursor:pointer; font-family:inherit; }
-    .tpl-use-btn:hover { background:#1d4ed8; }
+    .tpl-use-btn:hover { background:#255A82; }
     .tpl-creating { display:flex; align-items:center; justify-content:center; gap:8px; color:var(--text-muted); font-size:0.88rem; padding:40px 20px; }
 
     /* Modal overlay */
@@ -343,7 +344,7 @@ function renderReports() {
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-            <span style="font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:#6B7280;background:#F3F4F6;padding:2px 8px;border-radius:5px;border:1px solid #E5E7EB;">${_versionLabel(r)}</span>
+            <span style="font-size:0.68rem;font-family:'Geist Mono',monospace;color:#6B7280;background:#F3F4F6;padding:2px 8px;border-radius:5px;border:1px solid #E5E7EB;">${_versionLabel(r)}</span>
             <span class="rep-status ${r.status || 'draft'}">${statusLabel(r.status)}</span>
           </div>
         </div>

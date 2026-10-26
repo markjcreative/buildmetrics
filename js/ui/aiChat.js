@@ -446,7 +446,7 @@ const AIChat = (() => {
         bottom: 24px;
         right: 24px;
         z-index: 2000;
-        font-family: 'Inter', -apple-system, sans-serif;
+        font-family: 'Hanken Grotesk', -apple-system, sans-serif;
       }
 
       /* ════════════════════════════════════
@@ -461,8 +461,8 @@ const AIChat = (() => {
         border: 1px solid rgba(147,197,253,0.50);
         border-radius: 18px;
         box-shadow:
-          0 0 0 1px rgba(37,99,235,0.05),
-          0 8px 32px rgba(37,99,235,0.12),
+          0 0 0 1px rgba(46,110,158,0.05),
+          0 8px 32px rgba(46,110,158,0.12),
           0 2px 8px rgba(0,0,0,0.06);
         position: relative;
         overflow: hidden;
@@ -484,8 +484,8 @@ const AIChat = (() => {
         border-radius: 20px;
         cursor: default;
         box-shadow:
-          0 0 0 1px rgba(37,99,235,0.08),
-          0 20px 60px rgba(37,99,235,0.16),
+          0 0 0 1px rgba(46,110,158,0.08),
+          0 20px 60px rgba(46,110,158,0.16),
           0 4px 16px rgba(0,0,0,0.08);
       }
 
@@ -497,8 +497,8 @@ const AIChat = (() => {
       #ai-card:not(.chat-open):hover {
         border-color: rgba(96,165,250,0.65);
         box-shadow:
-          0 0 0 1px rgba(37,99,235,0.08),
-          0 12px 40px rgba(37,99,235,0.16),
+          0 0 0 1px rgba(46,110,158,0.08),
+          0 12px 40px rgba(46,110,158,0.16),
           0 2px 8px rgba(0,0,0,0.06);
         transform: translateY(-2px) scale(1.01);
       }
@@ -548,15 +548,15 @@ const AIChat = (() => {
       .ai-card-icon {
         width: 34px; height: 34px;
         border-radius: 10px;
-        background: linear-gradient(135deg, #2563EB, #7C3AED);
+        background: linear-gradient(135deg, #2E6E9E, #7C3AED);
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
-        box-shadow: 0 3px 10px rgba(37,99,235,0.35);
+        box-shadow: 0 3px 10px rgba(46,110,158,0.35);
       }
       .ai-card-title {
         font-size: 0.88rem;
         font-weight: 700;
-        color: #0F172A;
+        color: #0B2639;
         letter-spacing: -0.2px;
       }
       .ai-card-online {
@@ -606,7 +606,7 @@ const AIChat = (() => {
       }
       .ai-cursor {
         display: inline-block;
-        color: #3B82F6;
+        color: #6DA3C0;
         animation: ai-blink 0.9s step-end infinite;
         margin-left: 1px;
       }
@@ -620,7 +620,7 @@ const AIChat = (() => {
         justify-content: center;
         gap: 8px;
         padding: 10px 16px;
-        background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+        background: linear-gradient(135deg, #2E6E9E 0%, #7C3AED 100%);
         border: none;
         border-radius: 12px;
         color: #fff;
@@ -628,13 +628,13 @@ const AIChat = (() => {
         font-weight: 600;
         cursor: pointer;
         transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
-        box-shadow: 0 4px 16px rgba(37,99,235,0.45);
-        font-family: 'Inter', sans-serif;
+        box-shadow: 0 4px 16px rgba(46,110,158,0.45);
+        font-family: 'Hanken Grotesk', sans-serif;
         letter-spacing: -0.1px;
       }
       .ai-card-cta:hover {
         transform: translateY(-1px);
-        box-shadow: 0 6px 22px rgba(37,99,235,0.55);
+        box-shadow: 0 6px 22px rgba(46,110,158,0.55);
         filter: brightness(1.08);
       }
 
@@ -659,7 +659,7 @@ const AIChat = (() => {
         align-items: center;
         justify-content: space-between;
         padding: 13px 14px;
-        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 55%, #7C3AED 100%);
+        background: linear-gradient(135deg, #1C4663 0%, #2E6E9E 55%, #7C3AED 100%);
         flex-shrink: 0;
         border-radius: 19px 19px 0 0;
       }
@@ -740,7 +740,7 @@ const AIChat = (() => {
         transition: opacity 0.18s;
       }
       .ai-welcome-icon { font-size: 2rem; margin-bottom: 6px; }
-      .ai-welcome-title { font-size: 0.88rem; font-weight: 800; color: #0F172A; margin-bottom: 4px; }
+      .ai-welcome-title { font-size: 0.88rem; font-weight: 800; color: #0B2639; margin-bottom: 4px; }
       .ai-welcome-sub { font-size: 0.76rem; color: #64748B; line-height: 1.55; margin: 0 0 12px; max-width: 270px; }
       .ai-samples { display: flex; flex-direction: column; gap: 5px; width: 100%; text-align: left; }
       .ai-sample {
@@ -755,13 +755,13 @@ const AIChat = (() => {
         color: #334155;
         text-align: left;
         transition: all 0.14s;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Hanken Grotesk', sans-serif;
         line-height: 1.4;
       }
       .ai-sample:hover {
-        border-color: #93C5FD;
+        border-color: #AACFDF;
         background: rgba(239,246,255,0.92);
-        color: #1D4ED8;
+        color: #255A82;
         transform: translateX(2px);
       }
       .ai-sample-icon { font-size: 0.9rem; flex-shrink: 0; }
@@ -789,7 +789,7 @@ const AIChat = (() => {
         word-wrap: break-word;
       }
       .ai-bubble-user {
-        background: linear-gradient(135deg, #2563EB, #1D4ED8);
+        background: linear-gradient(135deg, #2E6E9E, #255A82);
         color: #fff;
         border-radius: 14px 14px 4px 14px;
         font-weight: 500;
@@ -814,11 +814,11 @@ const AIChat = (() => {
       /* Markdown */
       .ai-md-p { margin: 0 0 5px; } .ai-md-p:last-child { margin-bottom: 0; }
       .ai-spacer { height: 4px; }
-      .ai-md-h { font-size: 0.82rem; font-weight: 700; color: #0F172A; margin: 6px 0 3px; }
+      .ai-md-h { font-size: 0.82rem; font-weight: 700; color: #0B2639; margin: 6px 0 3px; }
       .ai-md-ul, .ai-md-ol { padding-left: 15px; margin: 3px 0 5px; }
       .ai-md-ul li, .ai-md-ol li { margin-bottom: 3px; font-size: 0.79rem; }
-      .ai-md-pre { background: #0F172A; color: #E2E8F0; border-radius: 8px; padding: 9px 11px; font-size: 0.71rem; overflow-x: auto; margin: 5px 0; font-family: 'SF Mono','Fira Code',Consolas,monospace; line-height: 1.5; }
-      .ai-md-code { background: rgba(241,245,249,0.9); color: #0F172A; border-radius: 4px; padding: 1px 5px; font-size: 0.79em; font-family: 'SF Mono','Fira Code',Consolas,monospace; border: 1px solid #E2E8F0; }
+      .ai-md-pre { background: #0B2639; color: #E2E8F0; border-radius: 8px; padding: 9px 11px; font-size: 0.71rem; overflow-x: auto; margin: 5px 0; font-family: 'SF Mono','Fira Code',Consolas,monospace; line-height: 1.5; }
+      .ai-md-code { background: rgba(241,245,249,0.9); color: #0B2639; border-radius: 4px; padding: 1px 5px; font-size: 0.79em; font-family: 'SF Mono','Fira Code',Consolas,monospace; border: 1px solid #E2E8F0; }
 
       /* Input area — glass tinted */
       .ai-input-wrap {
@@ -837,9 +837,9 @@ const AIChat = (() => {
         border: 1.5px solid rgba(203,213,225,0.7);
         border-radius: 11px;
         padding: 8px 12px;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Hanken Grotesk', sans-serif;
         font-size: 0.81rem;
-        color: #0F172A;
+        color: #0B2639;
         resize: none;
         outline: none;
         min-height: 36px;
@@ -849,23 +849,23 @@ const AIChat = (() => {
         transition: border-color 0.14s, background 0.14s;
       }
       .ai-input:focus {
-        border-color: #93C5FD;
+        border-color: #AACFDF;
         background: rgba(255,255,255,0.95);
       }
       .ai-input::placeholder { color: #94A3B8; }
       .ai-send-btn {
         width: 36px; height: 36px;
         border-radius: 10px;
-        background: linear-gradient(135deg, #2563EB, #7C3AED);
+        background: linear-gradient(135deg, #2E6E9E, #7C3AED);
         border: none;
         cursor: pointer;
         display: flex; align-items: center; justify-content: center;
         color: #fff;
         flex-shrink: 0;
         transition: transform 0.14s, box-shadow 0.14s;
-        box-shadow: 0 2px 8px rgba(37,99,235,0.38);
+        box-shadow: 0 2px 8px rgba(46,110,158,0.38);
       }
-      .ai-send-btn:hover:not(:disabled) { transform: scale(1.07); box-shadow: 0 4px 14px rgba(37,99,235,0.48); }
+      .ai-send-btn:hover:not(:disabled) { transform: scale(1.07); box-shadow: 0 4px 14px rgba(46,110,158,0.48); }
       .ai-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
       /* Footer bar */

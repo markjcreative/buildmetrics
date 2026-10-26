@@ -104,7 +104,7 @@ const Sidebar = (() => {
         '<a href="/dashboard.html" class="sb-brand">' +
           '<div class="sb-logo">' +
             '<svg width="28" height="28" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-              '<rect width="30" height="30" rx="7" fill="#3B82F6"/>' +
+              '<rect width="30" height="30" rx="7" fill="#6DA3C0"/>' +
               '<rect x="8" y="7" width="3" height="16" rx="1" fill="white"/>' +
               '<rect x="8" y="7" width="11" height="3" rx="1" fill="white"/>' +
               '<rect x="8" y="14" width="9" height="3" rx="1" fill="white"/>' +
@@ -125,7 +125,7 @@ const Sidebar = (() => {
           '<span>New Calculation</span>' +
         '</button>' +
         '<div class="sb-new-calc-menu" id="sb-new-calc-menu">' +
-          '<a href="/index.html" class="sb-menu-item"><span class="sb-menu-dot" style="background:#2563EB"></span>Beam Analysis</a>' +
+          '<a href="/index.html" class="sb-menu-item"><span class="sb-menu-dot" style="background:#2E6E9E"></span>Beam Analysis</a>' +
           '<a href="/calcs/column.html" class="sb-menu-item"><span class="sb-menu-dot" style="background:#D97706"></span>Column Design</a>' +
           '<a href="/calcs/slab.html" class="sb-menu-item"><span class="sb-menu-dot" style="background:#16A34A"></span>RC Slab</a>' +
           '<a href="/calcs/footing.html" class="sb-menu-item"><span class="sb-menu-dot" style="background:#7C3AED"></span>Pad Footing</a>' +
@@ -142,7 +142,7 @@ const Sidebar = (() => {
         '</a>' +
 
         '<div class="sb-section">Calculators</div>' +
-        '<a href="/index.html" class="sb-item" data-sb="beam"><span class="sb-dot" style="background:#2563EB"></span><span class="sb-label">Beam Analysis</span></a>' +
+        '<a href="/index.html" class="sb-item" data-sb="beam"><span class="sb-dot" style="background:#2E6E9E"></span><span class="sb-label">Beam Analysis</span></a>' +
         '<a href="/calcs/column.html" class="sb-item" data-sb="column"><span class="sb-dot" style="background:#D97706"></span><span class="sb-label">Column Design</span></a>' +
         '<a href="/calcs/slab.html" class="sb-item" data-sb="slab"><span class="sb-dot" style="background:#16A34A"></span><span class="sb-label">RC Slab</span></a>' +
         '<a href="/calcs/footing.html" class="sb-item" data-sb="footing"><span class="sb-dot" style="background:#7C3AED"></span><span class="sb-label">Pad Footing</span></a>' +

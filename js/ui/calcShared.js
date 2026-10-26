@@ -83,19 +83,19 @@ const CalcShared = (() => {
             #bm-confirm-modal h3 {
                 margin: 0 0 2px;
                 font-size: 1.1rem; font-weight: 700;
-                color: #111; font-family: 'Inter', sans-serif;
+                color: #111; font-family: 'Hanken Grotesk', sans-serif;
             }
             #bm-confirm-modal .bm-cm-desc {
                 font-size: 0.82rem; color: #6B7280;
                 margin: 0 0 18px; text-align: center;
-                font-family: 'Inter', sans-serif;
+                font-family: 'Hanken Grotesk', sans-serif;
             }
             .bm-cm-btns { display: flex; gap: 10px; width: 100%; margin-bottom: 10px; }
             .bm-cm-btn {
                 flex: 1; display: inline-flex; align-items: center; justify-content: center;
                 gap: 6px; padding: 11px 10px;
                 font-size: 0.86rem; font-weight: 600;
-                font-family: 'Inter', sans-serif;
+                font-family: 'Hanken Grotesk', sans-serif;
                 border-radius: 10px; cursor: pointer;
                 border: none; transition: all 0.15s;
             }

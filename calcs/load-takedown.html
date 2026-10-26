@@ -7,14 +7,13 @@
   <meta name="description" content="Structural load takedown calculator — accumulate floor dead and imposed loads to foundation, compute ULS and SLS design loads." />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-
-  <!-- Styles -->
+<!-- Styles -->
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/calcs.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
 
   <style>
     /* ── Floor table inside input panel ── */
@@ -52,12 +51,12 @@
       font-size: 0.8rem;
       color: var(--text-primary);
       background: #fff;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Hanken Grotesk', sans-serif;
       box-sizing: border-box;
     }
     .floor-table td input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(37,99,235,0.12);
+      box-shadow: 0 0 0 2px rgba(46,110,158,0.12);
       outline: none;
     }
     .floor-table td.label-col input {
@@ -78,8 +77,8 @@
 
     /* ── Foundation load box ── */
     .foundation-box {
-      background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
-      border: 2px solid #2563EB;
+      background: linear-gradient(135deg, #EAF3F8 0%, #D6E8F1 100%);
+      border: 2px solid #2E6E9E;
       border-radius: 14px;
       padding: 20px 24px;
       text-align: center;
@@ -89,19 +88,19 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: #1D4ED8;
+      color: #255A82;
       margin-bottom: 6px;
     }
     .foundation-box .fnd-value {
       font-size: 2.2rem;
       font-weight: 800;
-      font-family: 'JetBrains Mono', monospace;
-      color: #1E40AF;
+      font-family: 'Geist Mono', monospace;
+      color: #1C4663;
       line-height: 1;
     }
     .foundation-box .fnd-unit {
       font-size: 0.85rem;
-      color: #3B82F6;
+      color: #6DA3C0;
       margin-top: 4px;
     }
 
@@ -237,7 +236,7 @@
             </div>
             <div class="calc-badge">
               <div class="calc-badge-label">ULS to foundation</div>
-              <div class="calc-badge-value" id="badge-uls" style="color:#1D4ED8">—</div>
+              <div class="calc-badge-value" id="badge-uls" style="color:#255A82">—</div>
               <div class="calc-badge-unit">kN (factored)</div>
             </div>
           </div>
@@ -438,14 +437,14 @@
   function renderTable(r, c) {
     document.getElementById('takedown-body').innerHTML = r.floors.map((f, i) => {
       const isLast = i === r.floors.length - 1;
-      return `<tr style="${isLast ? 'font-weight:700;background:rgba(37,99,235,0.04)' : ''}">
+      return `<tr style="${isLast ? 'font-weight:700;background:rgba(46,110,158,0.04)' : ''}">
         <td>${f.label}</td>
         <td class="mono">${CalcShared.fmt(f.Gk_floor, 2)}</td>
         <td class="mono">${CalcShared.fmt(f.Qk_floor, 2)}</td>
         <td class="mono">${CalcShared.fmt(f.ULS_floor, 2)}</td>
         <td class="mono">${CalcShared.fmt(f.cumGk,  2)}</td>
         <td class="mono">${CalcShared.fmt(f.cumQk,  2)}</td>
-        <td class="mono" style="color:#1D4ED8;font-weight:700;">${CalcShared.fmt(f.cumULS, 2)}</td>
+        <td class="mono" style="color:#255A82;font-weight:700;">${CalcShared.fmt(f.cumULS, 2)}</td>
       </tr>`;
     }).join('') +
     `<tr style="border-top:2px solid var(--border);font-weight:700;background:var(--bg-subtle);">
@@ -455,7 +454,7 @@
       <td class="mono">${CalcShared.fmt(r.totalULS, 2)}</td>
       <td class="mono">${CalcShared.fmt(r.totalGk,  2)}</td>
       <td class="mono">${CalcShared.fmt(r.totalQk,  2)}</td>
-      <td class="mono" style="color:#1D4ED8;">${CalcShared.fmt(r.totalULS, 2)}</td>
+      <td class="mono" style="color:#255A82;">${CalcShared.fmt(r.totalULS, 2)}</td>
     </tr>`;
   }
 
@@ -488,7 +487,7 @@
               font-size="9.5" font-weight="600" fill="#374151" font-family="Inter,sans-serif">${f.label}</text>
         <!-- Value label -->
         <text x="${padL + bw + 4}" y="${y + barH / 2 + 4}" text-anchor="start"
-              font-size="9" fill="#1D4ED8" font-family="JetBrains Mono,monospace">${CalcShared.fmt(f.cumULS, 0)} kN</text>
+              font-size="9" fill="#255A82" font-family="JetBrains Mono,monospace">${CalcShared.fmt(f.cumULS, 0)} kN</text>
       `;
     });
 
@@ -499,8 +498,8 @@
     svg.innerHTML = `
       <defs>
         <linearGradient id="bar-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%"   stop-color="#2563EB"/>
-          <stop offset="100%" stop-color="#60A5FA"/>
+          <stop offset="0%"   stop-color="#2E6E9E"/>
+          <stop offset="100%" stop-color="#6DA3C0"/>
         </linearGradient>
       </defs>
       <!-- Axis label -->

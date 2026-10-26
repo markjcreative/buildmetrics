@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Standards Library — BuildMetrics</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/app.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
   <style>
     .page-body { padding: 0; }
 
@@ -24,8 +25,8 @@
     .search-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
     .search-input-wrap { position: relative; flex: 1; max-width: 380px; }
     .search-input-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
-    .search-input { width: 100%; padding: 8px 12px 8px 34px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.83rem; font-family: 'Inter', sans-serif; color: var(--text-primary); background: var(--bg-surface); outline: none; transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
-    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    .search-input { width: 100%; padding: 8px 12px 8px 34px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.83rem; font-family: 'Hanken Grotesk', sans-serif; color: var(--text-primary); background: var(--bg-surface); outline: none; transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
+    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(46,110,158,0.12); }
     .search-input::placeholder { color: var(--text-muted); }
     .result-count { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
 
@@ -43,11 +44,11 @@
     .data-table th:hover { color: var(--accent); }
     .data-table th .sort-arrow { display: inline-block; margin-left: 4px; opacity: 0.4; font-size: 0.65rem; }
     .data-table th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
-    .data-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+    .data-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-family: 'Geist Mono', monospace; white-space: nowrap; }
     .data-table tr:last-child td { border-bottom: none; }
     .data-table tbody tr:hover { background: var(--bg-subtle); }
-    .data-table td.desig { font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--accent); }
-    .data-table td.text { font-family: 'Inter', sans-serif; }
+    .data-table td.desig { font-weight: 600; font-family: 'Geist Mono', monospace; color: var(--accent); }
+    .data-table td.text { font-family: 'Hanken Grotesk', sans-serif; }
     .no-results { padding: 40px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
 
     /* ── Materials tab ── */
@@ -65,14 +66,14 @@
     .mat-props { display: flex; flex-wrap: wrap; gap: 6px; }
     .mat-prop { display: inline-flex; align-items: center; gap: 4px; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 7px; font-size: 0.68rem; }
     .mat-prop-label { color: var(--text-muted); font-weight: 500; }
-    .mat-prop-value { color: var(--text-primary); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .mat-prop-value { color: var(--text-primary); font-weight: 700; font-family: 'Geist Mono', monospace; }
     .mat-search-empty { padding: 32px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
 
     /* ── Loads tab ── */
     .loads-intro { background: var(--accent-light); border: 1px solid var(--accent-mid); border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 16px; font-size: 0.8rem; color: var(--accent); }
     .loads-intro strong { font-weight: 700; }
     .cat-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; background: var(--accent); color: white; flex-shrink: 0; }
-    .qk-range { font-family: 'JetBrains Mono', monospace; }
+    .qk-range { font-family: 'Geist Mono', monospace; }
 
     /* ── Responsive ── */
     @media (max-width: 768px) {
@@ -438,7 +439,7 @@ function renderMaterials(searchTerm) {
    IMPOSED LOADS TAB
 ════════════════════════════════════════════ */
 const CAT_COLORS = {
-  A: '#16A34A', B: '#2563EB', C: '#D97706', D: '#DC2626',
+  A: '#16A34A', B: '#2E6E9E', C: '#D97706', D: '#DC2626',
   E: '#7C3AED', F: '#0891B2', G: '#0E7490', H: '#6B7280', I: '#059669', K: '#B45309'
 };
 
@@ -461,7 +462,7 @@ function renderLoads(searchTerm) {
 
   tbody.innerHTML = filtered.map(r => {
     const catKey = (r.category || r.cat || '?');
-    const color = CAT_COLORS[catKey.charAt(0)] || '#2563EB';
+    const color = CAT_COLORS[catKey.charAt(0)] || '#2E6E9E';
     const displayCat = catKey.length <= 2 ? catKey : catKey.charAt(0);
     const qkStr = (r.qk_min != null && r.qk_max != null && r.qk_min !== r.qk_max)
       ? `${Number(r.qk_min).toFixed(2)} – ${Number(r.qk_max).toFixed(2)}`
@@ -474,7 +475,7 @@ function renderLoads(searchTerm) {
     const subCat = r.subCategory || r.subcategory || '';
     return `<tr>
       <td><span class="cat-badge" style="background:${color}">${displayCat}</span></td>
-      <td class="text" style="font-family:'JetBrains Mono',monospace;font-weight:600;font-size:0.73rem;color:var(--text-secondary)">${subCat}</td>
+      <td class="text" style="font-family:'Geist Mono',monospace;font-weight:600;font-size:0.73rem;color:var(--text-secondary)">${subCat}</td>
       <td class="text" style="white-space:normal;min-width:200px">${r.description}</td>
       <td class="qk-range">${qkStr}</td>
       <td class="qk-range">${QkStr}</td>

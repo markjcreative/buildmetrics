@@ -83,7 +83,7 @@ const WindMap = (() => {
   function _leafletMarker(lat, lng) {
     const icon = window.L.divIcon({
       className: '', iconSize: [26, 26], iconAnchor: [13, 26],
-      html: '<div style="width:22px;height:22px;border-radius:50% 50% 50% 0;background:#2563EB;border:2px solid #fff;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>'
+      html: '<div style="width:22px;height:22px;border-radius:50% 50% 50% 0;background:#2E6E9E;border:2px solid #fff;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>'
     });
     return window.L.marker([lat, lng], { icon }).addTo(_map);
   }
@@ -120,26 +120,26 @@ const WindMap = (() => {
     _onPick = callback;
     const ov = document.createElement('div');
     ov.className = 'wm-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:Inter,system-ui,sans-serif';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:Hanken Grotesk,system-ui,sans-serif';
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
 
     ov.innerHTML =
       '<div style="background:#fff;border-radius:14px;max-width:640px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.35);overflow:hidden;display:flex;flex-direction:column;max-height:92vh">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #E5E7EB">' +
-          '<div><div style="font-weight:800;font-size:15px;color:#0F172A">UK Basic Wind Speed</div>' +
+          '<div><div style="font-weight:800;font-size:15px;color:#0B2639">UK Basic Wind Speed</div>' +
           '<div style="font-size:11px;color:#6B7280">BS EN 1991-1-4 NA Fig NA.1 — enter a postcode or click the map</div></div>' +
           '<button id="wm-close" style="border:none;background:#F3F4F6;border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:15px;color:#6B7280">✕</button>' +
         '</div>' +
         '<div style="padding:12px 16px 0;display:flex;gap:8px">' +
           '<input id="wm-postcode" type="text" autocomplete="postal-code" placeholder="e.g. SW1A 1AA or M1" ' +
             'style="flex:1;padding:9px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:14px;text-transform:uppercase" />' +
-          '<button id="wm-search" style="background:#2563EB;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer">Search</button>' +
+          '<button id="wm-search" style="background:#2E6E9E;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer">Search</button>' +
         '</div>' +
         '<div id="wm-map" style="height:52vh;min-height:340px;margin:12px 16px;border-radius:10px;overflow:hidden;background:#E2E8F0;border:1px solid #E5E7EB"></div>' +
         '<div id="wm-readout" style="padding:0 16px 8px;font-size:13px;color:#374151;text-align:center;min-height:18px">Loading map…</div>' +
         '<div style="padding:10px 16px;border-top:1px solid #E5E7EB;display:flex;justify-content:space-between;align-items:center;gap:10px">' +
           '<span style="font-size:10.5px;color:#9CA3AF;line-height:1.4">Estimated from NA Fig NA.1 — verify against the published map for design.</span>' +
-          '<button id="wm-apply" disabled style="background:#2563EB;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;opacity:.45">Use value</button>' +
+          '<button id="wm-apply" disabled style="background:#2E6E9E;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;opacity:.45">Use value</button>' +
         '</div>' +
       '</div>';
 

@@ -7,14 +7,13 @@
   <meta name="description" content="BS 8666:2020 Bar Bending Schedule calculator. Add bars by shape code, compute cut lengths and total steel weight." />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-
-  <!-- Styles -->
+<!-- Styles -->
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/calcs.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
 
   <style>
     /* ── BBS table styles ── */
@@ -50,7 +49,7 @@
       border: 1.5px solid var(--border);
       border-radius: 6px;
       font-size: 0.78rem;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Hanken Grotesk', sans-serif;
       color: var(--text-primary);
       background: #fff;
       box-sizing: border-box;
@@ -60,7 +59,7 @@
     .bbs-bar-table input[type="number"]:focus,
     .bbs-bar-table select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(37,99,235,0.10);
+      box-shadow: 0 0 0 2px rgba(46,110,158,0.10);
       outline: none;
     }
     .bbs-bar-table input.dim-input {
@@ -97,7 +96,7 @@
       text-align: center;
       margin-top: 8px;
       transition: all 0.15s;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Hanken Grotesk', sans-serif;
     }
     .btn-add-row:hover {
       background: var(--bg-subtle);
@@ -129,12 +128,12 @@
     .bbs-result-table tr:last-child td { border-bottom: none; }
     .bbs-result-table .total-row td {
       font-weight: 700;
-      background: #EFF6FF;
-      border-top: 2px solid #2563EB;
+      background: #EAF3F8;
+      border-top: 2px solid #2E6E9E;
       color: var(--text-primary);
     }
     .bbs-result-table td.mono {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Geist Mono', monospace;
       font-size: 0.8rem;
       font-weight: 600;
     }
@@ -151,12 +150,12 @@
       cursor: pointer;
       transition: all 0.15s;
       color: var(--text-secondary);
-      font-family: 'Inter', sans-serif;
+      font-family: 'Hanken Grotesk', sans-serif;
     }
     .el-chip.active {
-      background: #EFF6FF;
-      border-color: #2563EB;
-      color: #2563EB;
+      background: #EAF3F8;
+      border-color: #2E6E9E;
+      color: #2E6E9E;
     }
     .el-chip:hover:not(.active) { background: var(--bg-subtle); }
     .section-note {
@@ -175,7 +174,7 @@
       border-radius: 8px;
       font-size: 0.84rem;
       font-weight: 600;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Hanken Grotesk', sans-serif;
       cursor: pointer;
       transition: all 0.15s;
     }

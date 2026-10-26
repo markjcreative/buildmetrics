@@ -7,14 +7,13 @@
   <meta name="description" content="EC3 bolt group and weld group connection calculator. Polar moment method for eccentric bolt groups, unit throat method for weld groups." />
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-
-  <!-- Styles -->
+<!-- Styles -->
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/calcs.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/brand.css" />
+  <link rel="stylesheet" href="/css/shell.css" />
 
   <style>
     /* ── Tab switcher ── */
@@ -51,12 +50,12 @@
     .bolt-cell {
       width: 18px; height: 18px;
       border-radius: 50%;
-      background: #BFDBFE;
-      border: 2px solid #2563EB;
+      background: #AACFDF;
+      border: 2px solid #2E6E9E;
       cursor: pointer;
       transition: background 0.1s;
     }
-    .bolt-cell.active { background: #2563EB; }
+    .bolt-cell.active { background: #2E6E9E; }
     .preset-btn {
       padding: 5px 10px;
       border: 1px solid var(--border);
@@ -214,7 +213,7 @@
                 <div class="form-row">
                   <label for="bolt-custom-coords">x,y pairs (one per line, mm)</label>
                   <textarea id="bolt-custom-coords" rows="4" placeholder="e.g.&#10;-40,-40&#10;40,-40&#10;-40,40&#10;40,40"
-                    style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:8px;font-family:'JetBrains Mono',monospace;font-size:0.8rem;resize:vertical;"
+                    style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:8px;font-family:'Geist Mono',monospace;font-size:0.8rem;resize:vertical;"
                     oninput="onCustomCoordsChange()"></textarea>
                 </div>
               </div>
@@ -737,8 +736,8 @@
       <!-- Bolts -->
       ${layout.map((b, i) => {
         const px = bx(b.x), py = by(b.y);
-        return `<circle cx="${px}" cy="${py}" r="8" fill="#BFDBFE" stroke="#2563EB" stroke-width="2"/>
-                <circle cx="${px}" cy="${py}" r="2" fill="#2563EB"/>
+        return `<circle cx="${px}" cy="${py}" r="8" fill="#AACFDF" stroke="#2E6E9E" stroke-width="2"/>
+                <circle cx="${px}" cy="${py}" r="2" fill="#2E6E9E"/>
                 <text x="${px}" y="${py + 18}" text-anchor="middle" font-size="7.5" fill="#64748B" font-family="JetBrains Mono,monospace">${b.x},${b.y}</text>`;
       }).join('')}
 
@@ -747,7 +746,7 @@
       <line x1="${cx_px}" y1="${cy_px - 20}" x2="${cx_px}" y2="${cy_px + 20}" stroke="#E2E8F0" stroke-width="1"/>
 
       <!-- Legend -->
-      <circle cx="14" cy="${H-14}" r="6" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.5"/>
+      <circle cx="14" cy="${H-14}" r="6" fill="#AACFDF" stroke="#2E6E9E" stroke-width="1.5"/>
       <text x="24" y="${H-10}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Bolt position</text>
       <line x1="108" y1="${H-18}" x2="118" y2="${H-10}" stroke="#DC2626" stroke-width="1.5"/>
       <line x1="118" y1="${H-18}" x2="108" y2="${H-10}" stroke="#DC2626" stroke-width="1.5"/>
@@ -772,7 +771,7 @@
 
     const segsHTML = weldSegs.map(s =>
       `<line x1="${wx(s.x1)}" y1="${wy(s.y1)}" x2="${wx(s.x2)}" y2="${wy(s.y2)}"
-             stroke="#2563EB" stroke-width="4" stroke-linecap="round"/>`
+             stroke="#2E6E9E" stroke-width="4" stroke-linecap="round"/>`
     ).join('');
 
     // Centroid of welds (approx midpoint of all segments)
@@ -790,11 +789,11 @@
       <line x1="${wx(avgMx)}" y1="${wy(avgMy)-8}" x2="${wx(avgMx)}" y2="${wy(avgMy)+8}" stroke="#DC2626" stroke-width="1.5"/>
 
       <!-- Labels -->
-      <text x="${W/2}" y="20" text-anchor="middle" font-size="9" font-weight="600" fill="#1E40AF" font-family="Inter,sans-serif">L<tspan baseline-shift="sub" font-size="7">total</tspan> = ${r.totalLength} mm</text>
+      <text x="${W/2}" y="20" text-anchor="middle" font-size="9" font-weight="600" fill="#1C4663" font-family="Inter,sans-serif">L<tspan baseline-shift="sub" font-size="7">total</tspan> = ${r.totalLength} mm</text>
       <text x="${W/2}" y="34" text-anchor="middle" font-size="9" fill="#52525B" font-family="Inter,sans-serif">Util = ${r.utilisationPct}%</text>
 
       <!-- Legend -->
-      <line x1="8" y1="${H-14}" x2="24" y2="${H-14}" stroke="#2563EB" stroke-width="4" stroke-linecap="round"/>
+      <line x1="8" y1="${H-14}" x2="24" y2="${H-14}" stroke="#2E6E9E" stroke-width="4" stroke-linecap="round"/>
       <text x="28" y="${H-10}" font-size="8.5" fill="#52525B" font-family="Inter,sans-serif">Fillet weld</text>
     `;
   }

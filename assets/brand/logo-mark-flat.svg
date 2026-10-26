@@ -1,0 +1,7 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BuildMetrics mark">
+  <g fill="#F04E24">
+    <rect x="15" y="15" width="34" height="9" rx="1"/>
+    <rect x="27" y="24" width="10" height="16"/>
+    <rect x="15" y="40" width="34" height="9" rx="1"/>
+  </g>
+</svg>
